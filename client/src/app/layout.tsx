@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Footer from '@/components/atomic/Footer';
+import Header from '@/components/atomic/Header';
+import { menus } from '@/lib/menus';
+
+type UserRole = keyof typeof menus;
+const userRole: UserRole = (process.env.USER_ROLE as UserRole) || 'guest';
 
 export const metadata: Metadata = {
   title: 'Smashminton',
@@ -13,9 +19,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi,en">
+    <html lang="vi,en" className="font-roboto">
       <body>
-        <main className="font-roboto min-h-screen">{children}</main>
+        <Header
+          role={userRole.toUpperCase()}
+          menuItems={menus[userRole]}
+          showLoginButton={userRole === ('guest' as string)}
+        />
+        <main className="min-h-screen">{children}</main>
+        <Footer />
       </body>
     </html>
   );

@@ -1,12 +1,13 @@
-import Header from '@/atomic/Header';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
-const SignInPage: React.FC = () => {
+export default function SignInPage() {
   return (
     <div>
-      <Header />
       <h1>Sign In Page</h1>
+      <Button asChild>
+        <Link href="/sigout">Signout</Link>
+      </Button>
     </div>
   );
-};
-
-export default SignInPage;
+}
