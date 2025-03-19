@@ -18,7 +18,6 @@ async function main() {
   await prisma.account.createMany({
     data: [
       {
-        accountid: 1,
         username: 'employee1',
         password: 'pass1',
         status: 'Active',
@@ -30,7 +29,6 @@ async function main() {
         address: 'Hanoi',
       },
       {
-        accountid: 2,
         username: 'employee2',
         password: 'pass2',
         status: 'Inactive',
@@ -42,7 +40,6 @@ async function main() {
         address: 'HCM',
       },
       {
-        accountid: 3,
         username: 'employee3',
         password: 'pass3',
         status: 'Active',
@@ -54,7 +51,6 @@ async function main() {
         address: 'Da Nang',
       },
       {
-        accountid: 4,
         username: 'employee4',
         password: 'pass4',
         status: 'Active',
@@ -66,7 +62,6 @@ async function main() {
         address: 'Can Tho',
       },
       {
-        accountid: 5,
         username: 'employee5',
         password: 'pass5',
         status: 'Inactive',
@@ -78,7 +73,6 @@ async function main() {
         address: 'Hai Phong',
       },
       {
-        accountid: 6,
         username: 'customer1',
         password: 'pass6',
         status: 'Active',
@@ -90,7 +84,6 @@ async function main() {
         address: 'Hue',
       },
       {
-        accountid: 7,
         username: 'customer2',
         password: 'pass7',
         status: 'Active',
