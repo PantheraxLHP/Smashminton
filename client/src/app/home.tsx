@@ -12,6 +12,7 @@ import {
   MapPin,
   Clock,
   Calendar,
+  MapPinned,
 } from 'lucide-react';
 
 const Home = () => {
@@ -31,76 +32,97 @@ const Home = () => {
         <div className="container mx-auto flex flex-col items-center gap-8 lg:flex-row lg:items-stretch lg:justify-between">
           {/* Hero Text - Responsive for all devices */}
           <div className="max-w-md flex-2/3 text-white md:max-w-lg lg:self-center">
-            <div className="text-3xl leading-tight font-bold whitespace-nowrap uppercase md:text-4xl lg:text-5xl">
+            <div className="text-3xl leading-tight font-bold whitespace-nowrap uppercase md:text-4xl lg:text-5xl drop-shadow-lg">
               Thể thao mỗi ngày, sức khỏe mỗi phút
             </div>
-            <p className="mt-3 text-lg md:text-xl">Đặt sân cầu lông ngay hôm nay!</p>
-            <Button className="mt-6 bg-green-500 px-6 py-2 text-lg font-medium transition-all hover:bg-green-600 hover:shadow-lg">
+            <p className="mt-3 text-lg md:text-4xl drop-shadow-lg italic">Đặt sân cầu lông ngay hôm nay!</p>
+            <Button className="mt-6 text-green-500 border-2 border-green-500 bg-white px-6 py-2 text-lg font-medium transition-all hover:bg-green-600 hover:text-white">
               Đặt lịch cố định →
             </Button>
           </div>
 
           {/* Booking Form - Better mobile experience */}
-          <div className="w-full max-w-md flex-1/3 rounded-xl bg-white/95 p-5 shadow-xl backdrop-blur-sm md:p-6">
-            <h2 className="text-xl font-semibold text-gray-800">Đặt sân cầu lông chất lượng cao</h2>
-            <p className="text-sm text-gray-600">Tìm và đặt sân phù hợp với nhu cầu của bạn</p>
+          <div className="w-full max-w-md flex-[1_1_33%] rounded-xl bg-black/20 p-5">
+            <p className="w-full pb-5 text-base font-roboto font-light text-white transition-all text-center flex justify-center lg:text-lg">
+              Khám phá và đặt sân cầu lông chất lượng cao
+              <br />
+              Một cách dễ dàng với Smashminton
+            </p>
+            <div className="w-full max-w-md flex-1/3 rounded-xl bg-white/95 p-5 shadow-xl backdrop-blur-sm md:p-6">
+              <h2 className="text-xl font-semibold text-gray-800">Đặt sân cầu lông chất lượng cao</h2>
+              <p className="text-sm text-gray-600">Tìm và đặt sân phù hợp với nhu cầu của bạn</p>
 
-            <div className="mt-5 space-y-4">
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
-                <MapPin className="h-5 w-5 text-gray-500" />
-                <Select>
-                  <SelectTrigger className="border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Chọn khu vực sân" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="khu1">Khu vực 1</SelectItem>
-                    <SelectItem value="khu2">Khu vực 2</SelectItem>
-                    <SelectItem value="khu3">Khu vực 3</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <Input type="date" className="border-0 bg-transparent focus:ring-0" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="mt-5 space-y-4">
                 <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
-                  <Clock className="h-5 w-5 text-gray-500" />
+                  <MapPin className="h-5 w-5 text-gray-500" />
                   <Select>
                     <SelectTrigger className="border-0 bg-transparent focus:ring-0">
-                      <SelectValue placeholder="Giờ bắt đầu" />
+                      <SelectValue placeholder="Chọn khu vực sân" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 15 }, (_, i) => i + 6).map((hour) => (
-                        <SelectItem
-                          key={hour}
-                          value={`${hour}h`}
-                        >{`${hour.toString().padStart(2, '0')}:00`}</SelectItem>
-                      ))}
+                      <SelectItem value="khu1">Khu vực 1</SelectItem>
+                      <SelectItem value="khu2">Khu vực 2</SelectItem>
+                      <SelectItem value="khu3">Khu vực 3</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
-                  <Clock className="h-5 w-5 text-gray-500" />
+                  <MapPinned className="h-5 w-5 text-gray-500" />
                   <Select>
                     <SelectTrigger className="border-0 bg-transparent focus:ring-0">
-                      <SelectValue placeholder="Thời lượng" />
+                      <SelectValue placeholder="Chọn loại sân" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1h">1 giờ</SelectItem>
-                      <SelectItem value="2h">2 giờ</SelectItem>
-                      <SelectItem value="3h">3 giờ</SelectItem>
+                      <SelectItem value="typea">Loại A</SelectItem>
+                      <SelectItem value="typeb">Loại B</SelectItem>
+                      <SelectItem value="typec">Loại C</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <Button className="w-full bg-green-500 py-5 text-base font-medium text-white transition-all hover:bg-green-600 hover:shadow-md">
-                TÌM SÂN TRỐNG
-              </Button>
+                <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
+                  <Calendar className="h-5 w-5 text-gray-500" />
+                  <Input type="date" className="border-0 bg-transparent focus:ring-0" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
+                    <Clock className="h-5 w-5 text-gray-500" />
+                    <Select>
+                      <SelectTrigger className="border-0 bg-transparent focus:ring-0">
+                        <SelectValue placeholder="Giờ bắt đầu" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 15 }, (_, i) => i + 6).map((hour) => (
+                          <SelectItem
+                            key={hour}
+                            value={`${hour}h`}
+                          >{`${hour.toString().padStart(2, '0')}:00`}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2">
+                    <Clock className="h-5 w-5 text-gray-500" />
+                    <Select>
+                      <SelectTrigger className="border-0 bg-transparent focus:ring-0">
+                        <SelectValue placeholder="Thời lượng" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1h">1 giờ</SelectItem>
+                        <SelectItem value="2h">2 giờ</SelectItem>
+                        <SelectItem value="3h">3 giờ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Button className="w-full bg-green-500 py-5 text-base font-medium text-white transition-all hover:bg-green-600 hover:shadow-md">
+                  TÌM SÂN TRỐNG
+                </Button>
+              </div>
             </div>
           </div>
         </div>
