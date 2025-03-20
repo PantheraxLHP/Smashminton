@@ -278,14 +278,7 @@ async function main() {
     })).map(accounts => accounts.accountid);
 
     for (let i = 0; i < accountIds.length; i++) {
-        if (i === 0) {
-            await prisma.employees.create({
-                data: {
-                    employeeid: accountIds[i++],
-                    employee_type: "Manager",
-                },
-            });
-        } else if (i <= 3) {
+		if (i <= 3) {
             await prisma.employees.create({
                 data: {
                     employeeid: accountIds[i],
