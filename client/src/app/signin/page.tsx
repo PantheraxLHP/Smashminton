@@ -16,7 +16,7 @@ export default function SignInPage() {
         />
 
         {/* Login form */}
-        <div className="absolute top-2/5 left-1/8 transform -translate-y-1/2 bg-white/90 p-8 rounded-lg shadow-lg w-[500px] ">
+        <div className="absolute top-2/5 left-1/8 transform -translate-y-1/2 bg-white/90 p-8 rounded-lg shadow-lg w-[500px]">
           <h2 className="text-xl font-bold text-green-600 text-center mb-6">Đăng nhập</h2>
 
           <form>
