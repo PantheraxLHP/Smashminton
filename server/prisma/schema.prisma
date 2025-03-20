@@ -26,6 +26,38 @@ model account {
   employee    employee?
 }
 
+model customer {
+  customerid    Int           @id @default(autoincrement())
+  totalpurchase Decimal?      @db.Decimal
+  bookings      bookings[]
+  account       account       @relation(fields: [customerid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_account")
+  orders        orders[]
+  student_card  student_card?
+}
+model student_card {
+  studentcardid Int      @id
+  schoolname    String?
+  studentid     String?
+  studyperiod   String?
+  customer      customer @relation(fields: [studentcardid], references: [customerid], onDelete: NoAction, onUpdate: NoAction, map: "fk_studentcard_customer")
+}
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model employee {
+  employeeid           Int                @id @default(autoincrement())
+  fingerprintid        Int?
+  last_week_shift_type String?
+  employee_type        String?
+  bank_detail          bank_detail[]
+  bookings             bookings[]
+  account              account            @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employee_account")
+  orders               orders[]
+  penalty_records      penalty_records[]
+  purchase_order       purchase_order[]
+  reward_records       reward_records[]
+  shift_assignment     shift_assignment[]
+  shift_enrollment     shift_enrollment[]
+  timesheet            timesheet[]
+}
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model autoassignment_rules {
   aaruleid        Int       @id @default(autoincrement())
@@ -91,33 +123,6 @@ model courts {
   zoneid           Int?
   court_booking    court_booking[]
   zones            zones?          @relation(fields: [zoneid], references: [zoneid], onDelete: NoAction, onUpdate: NoAction, map: "fk_courts_zones")
-}
-
-model customer {
-  customerid    Int           @id
-  totalpurchase Decimal?      @db.Decimal
-  bookings      bookings[]
-  account       account       @relation(fields: [customerid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_account")
-  orders        orders[]
-  student_card  student_card?
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model employee {
-  employeeid           Int                @id
-  fingerprintid        Int?
-  last_week_shift_type String?
-  employee_type        String?
-  bank_detail          bank_detail[]
-  bookings             bookings[]
-  account              account            @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employee_account")
-  orders               orders[]
-  penalty_records      penalty_records[]
-  purchase_order       purchase_order[]
-  reward_records       reward_records[]
-  shift_assignment     shift_assignment[]
-  shift_enrollment     shift_enrollment[]
-  timesheet            timesheet[]
 }
 
 model order_product {
@@ -282,13 +287,6 @@ model shift_enrollment {
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftenrollment")
 }
 
-model student_card {
-  studentcardid Int      @id
-  schoolname    String?
-  studentid     String?
-  studyperiod   String?
-  customer      customer @relation(fields: [studentcardid], references: [customerid], onDelete: NoAction, onUpdate: NoAction, map: "fk_studentcard_customer")
-}
 
 model suppliers {
   supplierid     Int              @id @default(autoincrement())
