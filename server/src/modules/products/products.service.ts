@@ -5,29 +5,29 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) {}
 
-  // CRUD operations
-  create(createProductDto: CreateProductDto) {
-    return this.prisma.products.create({ data: createProductDto });
-  }
+    // CRUD operations
+    create(createProductDto: CreateProductDto) {
+        return this.prisma.products.create({ data: createProductDto });
+    }
 
-  findAll() {
-    return this.prisma.products.findMany();
-  }
+    findAll() {
+        return this.prisma.products.findMany();
+    }
 
-  findOne(id: number) {
-    return this.prisma.products.findUnique({ where: { productid: id } });
-  }
+    findOne(id: number) {
+        return this.prisma.products.findUnique({ where: { productid: id } });
+    }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return this.prisma.products.update({
-      where: { productid: id },
-      data: updateProductDto,
-    });
-  }
+    update(id: number, updateProductDto: UpdateProductDto) {
+        return this.prisma.products.update({
+            where: { productid: id },
+            data: updateProductDto,
+        });
+    }
 
-  remove(id: number) {
-    return this.prisma.products.delete({ where: { productid: id } });
-  }
+    remove(id: number) {
+        return this.prisma.products.delete({ where: { productid: id } });
+    }
 }

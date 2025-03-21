@@ -5,29 +5,29 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AccountsService {
-  constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) {}
 
-  //CRUD operations
-  create(createAccountDto: CreateAccountDto) {
-    return this.prisma.account.create({ data: createAccountDto });
-  }
+    //CRUD operations
+    create(createAccountDto: CreateAccountDto) {
+        return this.prisma.accounts.create({ data: createAccountDto });
+    }
 
-  findAll() {
-    return this.prisma.account.findMany();
-  }
+    findAll() {
+        return this.prisma.accounts.findMany();
+    }
 
-  findOne(id: number) {
-    return this.prisma.account.findUnique({ where: { accountid: id } });
-  }
+    findOne(id: number) {
+        return this.prisma.accounts.findUnique({ where: { accountid: id } });
+    }
 
-  update(id: number, updateAccountDto: UpdateAccountDto) {
-    return this.prisma.account.update({
-      where: { accountid: id },
-      data: updateAccountDto,
-    });
-  }
+    update(id: number, updateAccountDto: UpdateAccountDto) {
+        return this.prisma.accounts.update({
+            where: { accountid: id },
+            data: updateAccountDto,
+        });
+    }
 
-  remove(id: number) {
-    return this.prisma.account.delete({ where: { accountid: id } });
-  }
+    remove(id: number) {
+        return this.prisma.accounts.delete({ where: { accountid: id } });
+    }
 }

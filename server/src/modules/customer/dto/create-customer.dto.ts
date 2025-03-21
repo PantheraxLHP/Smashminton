@@ -1,12 +1,9 @@
-import { IsInt, IsOptional, IsNumber } from 'class-validator';
+import { IsInt, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCustomerDto {
-  @IsInt()
-  accountId: number; // accountId bắt buộc, trùng với customerid
-
-  @IsOptional()
-  @IsNumber()
-  @ApiProperty({ example: 0 })
-  totalPurchase?: number;
+    @ApiProperty({ example: 1 })
+    @IsNumber()
+    @IsInt()
+    accountId: number; // accountId bắt buộc, trùng với customerid
 }
