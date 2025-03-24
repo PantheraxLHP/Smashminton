@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  Dumbbell,
+  Search,
   Footprints,
   ShoppingBag,
   GlassWater,
@@ -13,7 +13,20 @@ import {
   Clock,
   Calendar,
   MapPinned,
+  ArrowDownLeft
 } from 'lucide-react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+
+const categories = [
+  { title: 'Thuê vợt', icon: Search, desc: 'Vợt chất lượng cao từ nhiều thương hiệu' },
+  { title: 'Thuê giày', icon: Footprints, desc: 'Giày thể thao chuyên dụng nhiều size' },
+  { title: 'Túi đựng giày', icon: ShoppingBag, desc: 'Bảo vệ giày khi di chuyển' },
+  { title: 'Đồ ăn & nước', icon: GlassWater, desc: 'Đồ uống và thực phẩm dinh dưỡng' },
+  { title: 'Quả cầu', icon: ArrowDownLeft, desc: 'Cầu lông đạt tiêu chuẩn thi đấu' },
+  { title: 'Phụ kiện', icon: GripVertical, desc: 'Băng, grip và các phụ kiện khác' },
+];
+
 
 const Home = () => {
   return (
@@ -31,11 +44,11 @@ const Home = () => {
         />
         <div className="container mx-auto flex flex-col items-center gap-8 lg:flex-row lg:items-stretch lg:justify-between">
           {/* Hero Text - Responsive for all devices */}
-          <div className="max-w-md flex-2/3 text-white md:max-w-lg lg:self-center">
-            <div className="text-3xl leading-tight font-bold whitespace-nowrap uppercase md:text-4xl lg:text-5xl drop-shadow-lg">
+          <div className="max-w-xl flex-2/3 text-white md:max-w-lg lg:self-center pl-50">
+            <div className="text-3xl leading-tight font-bold whitespace-nowrap uppercase md:text-4xl lg:text-4xl drop-shadow-lg">
               Thể thao mỗi ngày, sức khỏe mỗi phút
             </div>
-            <p className="mt-3 text-lg md:text-4xl drop-shadow-lg italic">Đặt sân cầu lông ngay hôm nay!</p>
+            <p className="mt-3 text-lg md:text-3xl drop-shadow-lg italic whitespace-nowrap">Đặt sân cầu lông ngay hôm nay!</p>
             <Button className="mt-6 text-green-500 border-2 border-green-500 bg-white px-6 py-2 text-lg font-medium transition-all hover:bg-green-600 hover:text-white">
               Đặt lịch cố định →
             </Button>
@@ -129,15 +142,15 @@ const Home = () => {
       </div>
 
       {/* Featured Courts Section - Improved cards */}
-      <div className="bg-gray-50 py-16">
+      <div className="bg-white py-16">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800 md:text-3xl">Sân cầu lông nổi bật</h3>
-            <p className="mx-auto mt-3 max-w-2xl text-gray-600">
+            <p className="mx-auto mt-3 max-w-2xl text-gray-600 pb-5">
               Khám phá các sân cầu lông chất lượng cao, đáp ứng mọi nhu cầu tập luyện và thi đấu của bạn.
             </p>
           </div>
-
+          <div className="w-full mx-auto mt-2 border-t-3 border-green-500"></div>
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
@@ -206,19 +219,20 @@ const Home = () => {
               </div>
             ))}
           </div>
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center pb-5">
             <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50">
               Xem tất cả sân →
             </Button>
           </div>
+          <div className="w-full mx-auto mt-2 border-t-3 border-green-500"></div>
         </div>
       </div>
 
       {/* Product & Services Section - Improved layout */}
-      <div className="py-16">
+      {/* <div className="py-16">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-gray-800 md:text-3xl">Dịch vụ đi kèm</h3>
+            <h3 className="text-2xl font-bold text-gray-800 md:text-3xl">Danh mục sản phẩm - dịch vụ</h3>
             <p className="mx-auto mt-3 max-w-2xl text-gray-600">
               Cung cấp đầy đủ các dịch vụ giúp buổi chơi cầu lông của bạn trở nên trọn vẹn
             </p>
@@ -246,7 +260,57 @@ const Home = () => {
             ))}
           </div>
         </div>
+      </div> */}
+      <div className="relative py-4 min-h-[400px]">
+        {/* Container chính */}
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-gray-800 md:text-3xl">
+              Danh mục sản phẩm - dịch vụ
+            </h3>
+          </div>
+
+          <div className="py-16 flex justify-center items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-[900px]">
+              {categories.map((item, index) => (
+                <div
+                  key={index}
+                  className={`group flex flex-col items-center justify-center p-8 aspect-square ${index % 2 === 1 ? "bg-gray-100" : "bg-white"
+                    } hover:bg-primary-500 transition-all duration-100 ease-in-out`}
+                >
+                  <item.icon className="text-green-600 h-16 w-16 mb-4 group-hover:text-white group-hover:-translate-y-2 duration-200" />
+                  <h4 className="text-lg font-semibold text-gray-800 group-hover:text-white group-hover:-translate-y-2 duration-200">
+                    {item.title}
+                  </h4>
+                  <p className="mt-2 text-center text-gray-600 group-hover:text-white group-hover:-translate-y-2 duration-200">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mũi tên bên trái */}
+        <div className="absolute top-1/2 left-2 z-50 transform -translate-y-1/2 flex flex-col items-center space-y-0">
+          <FontAwesomeIcon icon={faChevronDown} className="rotate-90 text-green-600 text-3xl opacity-0" />
+          <FontAwesomeIcon icon={faChevronDown} className="rotate-90 text-green-500 text-3xl opacity-80" />
+          <FontAwesomeIcon icon={faChevronDown} className="rotate-90 text-green-400 text-3xl opacity-60" />
+          <FontAwesomeIcon icon={faChevronDown} className="rotate-90 text-green-300 text-3xl opacity-40" />
+          <FontAwesomeIcon icon={faChevronDown} className="rotate-90 text-green-200 text-3xl opacity-20" />
+        </div>
+
+        {/* Mũi tên bên phải */}
+        <div className="absolute top-1/2 right-2 z-50 transform -translate-y-1/2 flex flex-col items-center space-y-0">
+          <FontAwesomeIcon icon={faChevronDown} className="-rotate-90 text-green-600 text-3xl opacity-100" />
+          <FontAwesomeIcon icon={faChevronDown} className="-rotate-90 text-green-500 text-3xl opacity-80" />
+          <FontAwesomeIcon icon={faChevronDown} className="-rotate-90 text-green-400 text-3xl opacity-60" />
+          <FontAwesomeIcon icon={faChevronDown} className="-rotate-90 text-green-300 text-3xl opacity-40" />
+          <FontAwesomeIcon icon={faChevronDown} className="-rotate-90 text-green-200 text-3xl opacity-20" />
+        </div>
+
       </div>
+
     </section>
   );
 };
