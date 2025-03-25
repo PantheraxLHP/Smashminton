@@ -1,13 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Param,
-    Delete,
-    Put,
-    NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -65,10 +56,7 @@ export class ProductsController {
     @ApiOkResponse({ description: 'Product was updated' })
     @ApiBadRequestResponse({ description: 'Invalid input' })
     @ApiNotFoundResponse({ description: 'Product not found' })
-    async update(
-        @Param('id') id: number,
-        @Body() updateProductDto: UpdateProductDto,
-    ) {
+    async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
         const product = await this.productsService.findOne(+id);
         if (!product) {
             throw new NotFoundException('Product not found');

@@ -9,4 +9,4 @@ import { CustomerModule } from '../customer/customer.module';
     providers: [AccountsService],
     imports: [PrismaModule, CustomerModule],
 })
-export class AccountsModule { }
+export class AccountsModule {}

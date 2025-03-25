@@ -1,13 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Put,
-    Param,
-    Delete,
-    NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -29,7 +20,7 @@ export class AccountsController {
         private readonly customerService: CustomerService,
     ) {}
 
-    @Post()
+    @Post('customer')
     @ApiOperation({ summary: 'Create an account customer' })
     @ApiCreatedResponse({
         description: 'Account was created',
@@ -37,27 +28,23 @@ export class AccountsController {
     })
     @ApiBadRequestResponse({ description: 'Invalid input' })
     async createAccountCustomer(@Body() createAccountDto: CreateAccountDto) {
-        const account = await this.accountsService.create(createAccountDto);
-
-        if (account.accounttype === 'customer') {
-            await this.customerService.create(account.accountid);
-        }
+        return this.accountsService.createCustomer(createAccountDto);
     }
 
-    @Post()
-    @ApiOperation({ summary: 'Create an account employee' })
-    @ApiCreatedResponse({
-        description: 'Account was created',
-        type: CreateAccountDto,
-    })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    async createAccountEmployee(@Body() createAccountDto: CreateAccountDto) {
-        const account = await this.accountsService.create(createAccountDto);
+    // @Post()
+    // @ApiOperation({ summary: 'Create an account employee' })
+    // @ApiCreatedResponse({
+    //     description: 'Account was created',
+    //     type: CreateAccountDto,
+    // })
+    // @ApiBadRequestResponse({ description: 'Invalid input' })
+    // async createAccountEmployee(@Body() createAccountDto: CreateAccountDto) {
+    //     const account = await this.accountsService.create(createAccountDto);
 
-        if (account.accounttype === 'Employee') {
-            await this.customerService.create(account.accountid);
-        }
-    }
+    //     if (account.accounttype === 'Employee') {
+    //         await this.customerService.create(account.accountid);
+    //     }
+    // }
 
     @Get()
     @ApiOperation({ summary: 'Find all accounts' })
@@ -88,10 +75,7 @@ export class AccountsController {
     @ApiOkResponse({ description: 'Account was updated' })
     @ApiBadRequestResponse({ description: 'Invalid input' })
     @ApiNotFoundResponse({ description: 'Account not found' })
-    async update(
-        @Param('id') id: number,
-        @Body() updateAccountDto: UpdateAccountDto,
-    ) {
+    async update(@Param('id') id: number, @Body() updateAccountDto: UpdateAccountDto) {
         const account = await this.accountsService.findOne(+id);
         if (!account) {
             throw new NotFoundException('Account not found');
