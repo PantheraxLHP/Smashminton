@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { CustomerService } from '../customer/customer.service';
+import { CustomerService } from '../customers/customer.service';
 import * as bcrypt from 'bcryptjs';
 import { BadRequestException } from '@nestjs/common';
 @Injectable()
@@ -61,6 +61,7 @@ export class AccountsService {
             where: { username: username },
         });
     }
+
     update(id: number, updateAccountDto: UpdateAccountDto) {
         return this.prisma.accounts.update({
             where: { accountid: id },
