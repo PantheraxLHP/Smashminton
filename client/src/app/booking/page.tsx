@@ -6,7 +6,6 @@ import BookingFilter from "@/components/atomic/BookingFilter";
 import BookingCourtList from "@/components/atomic/BookingCourtList";
 import { Button } from "@/components/ui/button";
 
-
 interface Court {
     id: number;
     name: string;
@@ -18,27 +17,28 @@ interface Filters {
     location?: string;
     time?: string;
     duration?: number;
+    fixedCourt?: boolean;
 }
 
 export default function BookingPage() {
     const [step, setStep] = useState<number>(1);
-    const [filters, setFilters] = useState<Filters>({});
+    const [filters, setFilters] = useState<Filters>({
+        fixedCourt: false, // Include fixedCourt in filters
+    });
     const [courts, setCourts] = useState<Court[]>([]);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // ✅ Ngăn cập nhật `filters` nếu không có thay đổi thực sự
+    // ✅ Update filters, including fixedCourt
     const handleFilterChange = (newFilters: Filters) => {
-        setFilters((prevFilters) => {
-            if (JSON.stringify(prevFilters) !== JSON.stringify(newFilters)) {
-                return newFilters;
-            }
-            return prevFilters;
-        });
+        setFilters((prevFilters) => ({
+            ...prevFilters,
+            ...newFilters,
+        }));
     };
 
-    // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce 500ms
+    // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce
     useEffect(() => {
-        if (!filters.location || !filters.time || !filters.duration) return; // Đảm bảo đủ dữ liệu mới gọi API
+        // if (!filters.location || !filters.time || !filters.duration) return; // Đảm bảo đủ dữ liệu mới gọi API
 
         if (debounceTimeout.current) {
             clearTimeout(debounceTimeout.current);
@@ -84,11 +84,21 @@ export default function BookingPage() {
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap gap-4">
                         {/* Bộ lọc chọn khu vực, thời gian, số giờ chơi */}
-                        <BookingFilter onFilterChange={handleFilterChange} />
+                        <BookingFilter
+                            onFilterChange={(newFilters) =>
+                                handleFilterChange({ ...newFilters })
+                            }
+                        />
 
                         {/* Danh sách sân hiển thị theo filter */}
                         <div className="flex-1">
-                            <BookingCourtList courts={/*courts*/ courtExData} />
+                            <BookingCourtList
+                                courts={/*courts*/courtExData}
+                                filters={filters}
+                                onToggleChange={(isFixed) =>
+                                    handleFilterChange({ fixedCourt: isFixed })
+                                }
+                            />
                         </div>
                     </div>
                 </div>
@@ -105,7 +115,8 @@ export default function BookingPage() {
                 {/* Nút Quay lại */}
                 <Button
                     onClick={() => setStep(step - 1)}
-                    className={`bg-gray-500 text-white ${step === 1 ? "opacity-0 pointer-events-none" : ""}`}
+                    className={`bg-gray-500 text-white ${step === 1 ? "opacity-0 pointer-events-none" : ""
+                        }`}
                 >
                     ← Quay lại
                 </Button>
@@ -113,7 +124,8 @@ export default function BookingPage() {
                 {/* Nút Tiếp theo */}
                 <Button
                     onClick={() => setStep(step + 1)}
-                    className={`bg-green-500 text-white ${step === 3 ? "opacity-0 pointer-events-none" : ""}`}
+                    className={`bg-green-500 text-white ${step === 3 ? "opacity-0 pointer-events-none" : ""
+                        }`}
                 >
                     Tiếp theo →
                 </Button>

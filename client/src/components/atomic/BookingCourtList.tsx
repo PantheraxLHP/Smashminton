@@ -11,12 +11,20 @@ interface Court {
     img: string;
 }
 
-interface BookingCourtListProps {
-    courts: Court[];
+interface Filters {
+    location?: string;
+    time?: string;
+    duration?: number;
+    fixedCourt?: boolean;
 }
 
-const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts }) => {
-    const [fixedCourt, setFixedCourt] = useState(false);
+interface BookingCourtListProps {
+    courts: Court[];
+    filters: Filters;
+    onToggleChange: (isFixed: boolean) => void;
+}
+
+const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, onToggleChange }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false); // Trạng thái mở/đóng tooltip
 
     return (
@@ -57,15 +65,15 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts }) => {
                     type="checkbox"
                     className="toggle-checkbox hidden"
                     id="fixedCourt"
-                    checked={fixedCourt}
-                    onChange={() => setFixedCourt(!fixedCourt)}
+                    checked={filters.fixedCourt}
+                    onChange={(e) => onToggleChange(e.target.checked)}
                 />
                 <label
                     htmlFor="fixedCourt"
-                    className={`cursor-pointer w-10 h-5 flex items-center rounded-full transition duration-300 ${fixedCourt ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`cursor-pointer w-10 h-5 flex items-center rounded-full transition duration-300 ${filters.fixedCourt ? "bg-green-500" : "bg-gray-300"}`}
                 >
                     <div
-                        className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${fixedCourt ? "translate-x-5" : "translate-x-0"}`}
+                        className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${filters.fixedCourt ? "translate-x-5" : "translate-x-0"}`}
                     ></div>
                 </label>
             </div>
