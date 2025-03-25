@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import BookingStep from '@/components/atomic/BookingStep';
-import BookingFilter from '@/components/atomic/BookingFilter';
-import BookingCourtList from '@/components/atomic/BookingCourtList';
+import BookingStep from '@/app/booking/BookingStep';
+import BookingFilter from '@/app/booking/BookingFilter';
+import BookingCourtList from '@/app/booking/BookingCourtList';
 import { Button } from '@/components/ui/button';
 
 interface Court {
@@ -37,32 +37,32 @@ export default function BookingPage() {
     };
 
     // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce
-    // useEffect(() => {
-    //     // if (!filters.location || !filters.time || !filters.duration) return; // Đảm bảo đủ dữ liệu mới gọi API
+    useEffect(() => {
+        // if (!filters.location || !filters.time || !filters.duration) return; // Đảm bảo đủ dữ liệu mới gọi API
 
-    //     if (debounceTimeout.current) {
-    //         clearTimeout(debounceTimeout.current);
-    //     }
+        if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current);
+        }
 
-    //     debounceTimeout.current = setTimeout(async () => {
-    //         try {
-    //             const response = await fetch('/api/courts', {
-    //                 method: 'POST',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(filters),
-    //             });
+        debounceTimeout.current = setTimeout(async () => {
+            try {
+                const response = await fetch('/api/courts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(filters),
+                });
 
-    //             if (!response.ok) {
-    //                 throw new Error('Failed to fetch courts');
-    //             }
+                if (!response.ok) {
+                    throw new Error('Failed to fetch courts');
+                }
 
-    //             const data: Court[] = await response.json();
-    //             setCourts(data);
-    //         } catch (error) {
-    //             console.error('Error fetching courts:', error);
-    //         }
-    //     }, 500); // Đợi 500ms trước khi gọi API
-    // }, [filters]);
+                const data: Court[] = await response.json();
+                setCourts(data);
+            } catch (error) {
+                console.error('Error fetching courts:', error);
+            }
+        }, 500); // Đợi 500ms trước khi gọi API
+    }, [filters]);
 
     const courtExData = [
         { id: 1, name: 'Sân 1', price: '120.000 VND', img: '/Court1.png' },
@@ -104,7 +104,8 @@ export default function BookingPage() {
                 {/* Nút Quay lại */}
                 <Button
                     onClick={() => setStep(step - 1)}
-                    className={`bg-gray-500 text-white ${step === 1 ? 'pointer-events-none opacity-0' : ''}`}
+                    variant={'secondary'}
+                    className={` ${step === 1 ? 'pointer-events-none opacity-0' : ''}`}
                 >
                     ← Quay lại
                 </Button>

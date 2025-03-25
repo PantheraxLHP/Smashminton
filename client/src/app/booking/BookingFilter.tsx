@@ -13,15 +13,15 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
     const [startTime, setStartTime] = useState('09:00');
 
     // Cập nhật filters và gửi về BookingPage
-    // useEffect(() => {
-    //     const filters = {
-    //         zone: selectedZone,
-    //         date: date.toISOString().split('T')[0], // Format YYYY-MM-DD
-    //         duration,
-    //         startTime,
-    //     };
-    //     onFilterChange(filters);
-    // }, [selectedZone, date, duration, startTime, onFilterChange]);
+    useEffect(() => {
+        const filters = {
+            zone: selectedZone,
+            date: date.toISOString().split('T')[0], // Format YYYY-MM-DD
+            duration,
+            startTime,
+        };
+        onFilterChange(filters);
+    }, [selectedZone, date, duration, startTime]);
 
     const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];

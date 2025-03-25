@@ -5,7 +5,7 @@ import HeroSection from './_homepage/hero-section';
 
 export default function Page() {
     return (
-        <div className="container mx-auto max-w-full">
+        <div className="container min-w-full">
             <HeroSection />
             <FeaturedCourts />
             <Categories />
