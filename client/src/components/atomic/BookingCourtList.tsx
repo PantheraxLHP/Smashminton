@@ -1,8 +1,8 @@
-import { useState } from "react";
-import Image from "next/image"; // Nếu dùng Next.js, nếu không có thể dùng <img />
-import { Tooltip, TooltipRoot, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Icon } from "@iconify/react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import Image from 'next/image'; // Nếu dùng Next.js, nếu không có thể dùng <img />
+import { Tooltip, TooltipRoot, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Icon } from '@iconify/react';
+import { Button } from '@/components/ui/button';
 
 interface Court {
     id: number;
@@ -30,25 +30,22 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, on
     return (
         <div className="px-4">
             {/* Toggle đặt sân cố định */}
-            <div className="flex items-center justify-end mb-4">
+            <div className="mb-4 flex items-center justify-end">
                 <span className="text-gray-600">Đặt sân cố định:</span>
 
                 {/* Tooltip icon */}
                 <Tooltip>
-                    <TooltipRoot
-                        open={tooltipOpen}
-                        onOpenChange={(isOpen) => setTooltipOpen(isOpen)}
-                    >
+                    <TooltipRoot open={tooltipOpen} onOpenChange={(isOpen) => setTooltipOpen(isOpen)}>
                         <TooltipTrigger>
                             <button
                                 aria-label="Thông tin đặt sân cố định"
-                                className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center ml-2 mr-2"
+                                className="bg-primary-500 mr-2 ml-2 flex items-center justify-center rounded-full p-1 text-white"
                                 onClick={() => setTooltipOpen(!tooltipOpen)}
                             >
-                                <Icon icon="mdi:information-outline" className="text-white text-lg" />
+                                <Icon icon="mdi:information-outline" className="text-lg text-white" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent className="bg-white text-sm shadow-md p-2 rounded-md max-w-xs">
+                        <TooltipContent className="max-w-xs rounded-md bg-white p-2 text-sm shadow-md">
                             <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
                             <ul className="list-disc pl-4">
                                 <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>
@@ -70,29 +67,24 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, on
                 />
                 <label
                     htmlFor="fixedCourt"
-                    className={`cursor-pointer w-10 h-5 flex items-center rounded-full transition duration-300 ${filters.fixedCourt ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`flex h-5 w-10 cursor-pointer items-center rounded-full transition duration-300 ${filters.fixedCourt ? 'bg-primary-500' : 'bg-gray-300'}`}
                 >
                     <div
-                        className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${filters.fixedCourt ? "translate-x-5" : "translate-x-0"}`}
+                        className={`h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 ${filters.fixedCourt ? 'translate-x-5' : 'translate-x-0'}`}
                     ></div>
                 </label>
             </div>
 
-
             {/* Tiêu đề */}
-            <h2 className="text-lg font-semibold text-center">
-                Tổng cộng có{" "}
-                <span className="text-green-600 font-bold">{courts.length} sân</span> có
-                sẵn tại khung giờ này. Đặt bất kỳ sân nào bạn thích nhất.
+            <h2 className="text-center text-lg font-semibold">
+                Tổng cộng có <span className="text-primary-600 font-bold">{courts.length} sân</span> có sẵn tại khung
+                giờ này. Đặt bất kỳ sân nào bạn thích nhất.
             </h2>
 
             {/* Danh sách sân */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
                 {courts.map((court) => (
-                    <div
-                        key={court.id}
-                        className="border rounded-lg shadow-lg overflow-hidden"
-                    >
+                    <div key={court.id} className="overflow-hidden rounded-lg border shadow-lg">
                         <Image
                             src={court.img}
                             alt={court.name}
@@ -103,14 +95,12 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, on
                         <div className="p-4 text-center">
                             <h3 className="text-lg font-semibold">{court.name}</h3>
                             <p className="text-gray-600">{court.price} / 1 giờ</p>
-                            <Button className="w-full">
-                                ĐẶT SÂN
-                            </Button>
+                            <Button className="w-full">ĐẶT SÂN</Button>
                         </div>
                     </div>
                 ))}
             </div>
-        </div >
+        </div>
     );
 };
 

@@ -1,125 +1,156 @@
-import { useState, useEffect } from "react";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+import { useState, useEffect } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 interface BookingFilterProps {
-	onFilterChange: (filters: any) => void;
+    onFilterChange: (filters: any) => void;
 }
 
 const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
-	const [selectedZone, setSelectedZone] = useState("A");
-	const [date, setDate] = useState(new Date());
-	const [duration, setDuration] = useState(2);
-	const [startTime, setStartTime] = useState("09:00");
+    const [selectedZone, setSelectedZone] = useState('A');
+    const [date, setDate] = useState(new Date());
+    const [duration, setDuration] = useState(2);
+    const [startTime, setStartTime] = useState('09:00');
 
-	// Cập nhật filters và gửi về BookingPage
-	useEffect(() => {
-		const filters = {
-			zone: selectedZone,
-			date: date.toISOString().split("T")[0], // Format YYYY-MM-DD
-			duration,
-			startTime,
-		};
-		onFilterChange(filters);
-	}, [selectedZone, date, duration, startTime, onFilterChange]);
+    // Cập nhật filters và gửi về BookingPage
+    // useEffect(() => {
+    //     const filters = {
+    //         zone: selectedZone,
+    //         date: date.toISOString().split('T')[0], // Format YYYY-MM-DD
+    //         duration,
+    //         startTime,
+    //     };
+    //     onFilterChange(filters);
+    // }, [selectedZone, date, duration, startTime, onFilterChange]);
 
-	const zones = ["A", "B", "C"];
-	const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
-	const times = [
-		"06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
-		"10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-		"14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-		"18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"
-	];
-	const disabledTimes = ["08:30", "12:30", "15:30", "18:30"]; // Giờ bị disable
+    const zones = ['A', 'B', 'C'];
+    const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+    const times = [
+        '06:00',
+        '06:30',
+        '07:00',
+        '07:30',
+        '08:00',
+        '08:30',
+        '09:00',
+        '09:30',
+        '10:00',
+        '10:30',
+        '11:00',
+        '11:30',
+        '12:00',
+        '12:30',
+        '13:00',
+        '13:30',
+        '14:00',
+        '14:30',
+        '15:00',
+        '15:30',
+        '16:00',
+        '16:30',
+        '17:00',
+        '17:30',
+        '18:00',
+        '18:30',
+        '19:00',
+        '19:30',
+        '20:00',
+        '20:30',
+        '21:00',
+        '21:30',
+    ];
+    const disabledTimes = ['08:30', '12:30', '15:30', '18:30']; // Giờ bị disable
 
-	return (
-		<div className="p-4 border rounded-lg shadow-md w-full max-w-sm bg-white">
-			{/* Chọn khu vực sân */}
-			<div>
-				<h3 className="text-sm font-semibold">Chọn khu vực sân</h3>
-				<div className="gap-2 mt-2 grid grid-cols-3">
-					{zones.map((zone) => (
-						<button
-							key={zone}
-							onClick={() => setSelectedZone(zone)}
-							className={`px-3 py-1 rounded-lg text-sm border ${selectedZone === zone
-								? "bg-green-500 text-white"
-								: "bg-gray-100 text-gray-700 border-gray-300 hover:bg-green-200 cursor-pointer"
-								} transition`}
-						>
-							Zone {zone}
-						</button>
-					))}
-				</div>
-			</div>
+    return (
+        <div className="w-full max-w-sm rounded-lg border bg-white p-4 shadow-md">
+            {/* Chọn khu vực sân */}
+            <div>
+                <h3 className="text-sm font-semibold">Chọn khu vực sân</h3>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                    {zones.map((zone) => (
+                        <button
+                            key={zone}
+                            onClick={() => setSelectedZone(zone)}
+                            className={`rounded-lg border px-3 py-1 text-sm ${
+                                selectedZone === zone
+                                    ? 'bg-primary-500 text-white'
+                                    : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                            } transition`}
+                        >
+                            Zone {zone}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-			<hr className="my-3" />
+            <hr className="my-3" />
 
-			{/* Chọn ngày đánh */}
-			<div>
-				<h3 className="text-sm font-semibold">Chọn ngày đánh</h3>
-				<div className="mt-2">
-					<div className="custom-calendar-wrapper">
-						<Calendar
-							onChange={(value) => value && setDate(value as Date)}
-							value={date}
-							locale="vi-VN"
-							minDate={new Date()}
-							className="custom-calendar"
-						/>
-					</div>
-				</div>
-			</div>
+            {/* Chọn ngày đánh */}
+            <div>
+                <h3 className="text-sm font-semibold">Chọn ngày đánh</h3>
+                <div className="mt-2">
+                    <div className="custom-calendar-wrapper">
+                        <Calendar
+                            onChange={(value) => value && setDate(value as Date)}
+                            value={date}
+                            locale="vi-VN"
+                            minDate={new Date()}
+                            className="custom-calendar"
+                        />
+                    </div>
+                </div>
+            </div>
 
-			<hr className="my-3" />
+            <hr className="my-3" />
 
-			{/* Chọn thời lượng */}
-			<div>
-				<h3 className="text-sm font-semibold">Chọn thời lượng đánh</h3>
-				<div className="grid grid-cols-3 gap-2 mt-2 sm:grid-cols-2">
-					{durations.map((d) => (
-						<button
-							key={d}
-							onClick={() => setDuration(d)}
-							className={`px-3 py-1 rounded-lg text-sm border ${duration === d
-								? "bg-green-500 text-white"
-								: "bg-gray-100 text-gray-700 border-gray-300 hover:bg-green-200 cursor-pointer"
-								} transition`}
-						>
-							{d}h
-						</button>
-					))}
-				</div>
-			</div>
+            {/* Chọn thời lượng */}
+            <div>
+                <h3 className="text-sm font-semibold">Chọn thời lượng đánh</h3>
+                <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-2">
+                    {durations.map((d) => (
+                        <button
+                            key={d}
+                            onClick={() => setDuration(d)}
+                            className={`rounded-lg border px-3 py-1 text-sm ${
+                                duration === d
+                                    ? 'bg-primary-500 text-white'
+                                    : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                            } transition`}
+                        >
+                            {d}h
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-			<hr className="my-3" />
+            <hr className="my-3" />
 
-			{/* Chọn giờ bắt đầu */}
-			<div>
-				<h3 className="text-sm font-semibold">Chọn giờ bắt đầu</h3>
-				<div className="grid grid-cols-3 gap-2 mt-2 sm:grid-cols-4">
-					{times.map((time) => (
-						<button
-							key={time}
-							onClick={() => setStartTime(time)}
-							disabled={disabledTimes.includes(time)}
-							className={`px-3 py-1 rounded-lg text-sm border ${disabledTimes.includes(time)
-								? "bg-gray-200 text-gray-400 cursor-not-allowed line-through"
-								: startTime === time
-									? "bg-green-500 text-white"
-									: "bg-gray-100 text-gray-700 border-gray-300 hover:bg-green-200 cursor-pointer"
-								} transition`}
-						>
-							{time}
-						</button>
-					))}
-				</div>
-			</div>
+            {/* Chọn giờ bắt đầu */}
+            <div>
+                <h3 className="text-sm font-semibold">Chọn giờ bắt đầu</h3>
+                <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {times.map((time) => (
+                        <button
+                            key={time}
+                            onClick={() => setStartTime(time)}
+                            disabled={disabledTimes.includes(time)}
+                            className={`rounded-lg border px-3 py-1 text-sm ${
+                                disabledTimes.includes(time)
+                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
+                                    : startTime === time
+                                      ? 'bg-primary-500 text-white'
+                                      : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                            } transition`}
+                        >
+                            {time}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-			{/* CSS Custom */}
-			<style>
-				{`
+            {/* CSS Custom */}
+            <style>
+                {`
 					/* Custom Calendar */
 					.custom-calendar-wrapper {
 						width: 100%;
@@ -176,9 +207,9 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
 						color: #d1d5db !important;
 					}
 				`}
-			</style>
-		</div>
-	);
+            </style>
+        </div>
+    );
 };
 
 export default BookingFilter;
