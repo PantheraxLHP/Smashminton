@@ -8,9 +8,7 @@ async function main() {
     async function deleteAllData(tableList: string[]) {
         for (const tableName of tableList) {
             console.log('Truncating all data from ' + tableName);
-            await prisma.$executeRawUnsafe(
-                `TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE;`,
-            );
+            await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE;`);
         }
     }
 
@@ -331,8 +329,7 @@ async function main() {
             },
             {
                 rewardname: 'Holidays Bonus',
-                rewarddescription:
-                    'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
+                rewarddescription: 'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
                 rewardtype: 'Money',
                 rewardvalue: 500000,
             },
@@ -350,8 +347,7 @@ async function main() {
             },
             {
                 penaltyname: 'Unauthorized absence',
-                penaltydescription:
-                    'Phạt nhân viên vắng mặt không phép, bỏ ca làm việc',
+                penaltydescription: 'Phạt nhân viên vắng mặt không phép, bỏ ca làm việc',
                 basepenalty: 50000,
                 incrementalpenalty: 50000,
                 maxiumpenalty: 300000,
@@ -359,8 +355,7 @@ async function main() {
             },
             {
                 penaltyname: 'Failure to comply with workplace policies',
-                penaltydescription:
-                    'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
+                penaltydescription: 'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
@@ -408,8 +403,7 @@ async function main() {
         data: [
             {
                 rulename: 'Max Full-time Shifts Per Week',
-                ruledescription:
-                    'Mỗi nhân viên toàn thời gian phải làm đủ 6 ca full time (48 tiếng 1 tuần)',
+                ruledescription: 'Mỗi nhân viên toàn thời gian phải làm đủ 6 ca full time (48 tiếng 1 tuần)',
                 rulefor: 'Full-time',
                 rulevalue: 6,
                 rulestatus: 'Active',
@@ -429,8 +423,7 @@ async function main() {
             },
             {
                 rulename: 'Max Part-time Shifts Per Week',
-                ruledescription:
-                    'Mỗi nhân viên bán thời gian được làm tối đa 12 ca part time (48 tiếng 1 tuần)',
+                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 12 ca part time (48 tiếng 1 tuần)',
                 rulefor: 'Part-time',
                 rulevalue: 12,
                 rulestatus: 'Active',
@@ -450,8 +443,7 @@ async function main() {
             },
             {
                 rulename: 'Max Part-time Shifts Per Day',
-                ruledescription:
-                    'Mỗi nhân viên bán thời gian được làm tối đa 2 ca part time mỗi ngày',
+                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 2 ca part time mỗi ngày',
                 rulefor: 'Part-time',
                 rulevalue: 2,
                 rulestatus: 'Active',
@@ -490,14 +482,17 @@ async function main() {
             {
                 zonename: 'Zone A',
                 zonetype: 'Normal',
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
             },
             {
                 zonename: 'Zone B',
                 zonetype: 'AirConditioner',
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
             },
             {
                 zonename: 'Zone C',
                 zonetype: 'Private',
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
             },
         ],
     });
@@ -738,18 +733,10 @@ async function main() {
         if (product.producttype === 'Badminton Equipment') {
             await prisma.product_descriptions.create({
                 data: {
-                    weight: product.productname.includes('Racket')
-                        ? 85.0
-                        : null,
-                    size: product.productname.includes('Net')
-                        ? 'Standard'
-                        : null,
-                    gripsize: product.productname.includes('Racket')
-                        ? 'G4'
-                        : null,
-                    shaftstiffness: product.productname.includes('Racket')
-                        ? 'Medium'
-                        : null,
+                    weight: product.productname.includes('Racket') ? 85.0 : null,
+                    size: product.productname.includes('Net') ? 'Standard' : null,
+                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
+                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
                     productid: createdProduct.productid,
                 },
             });
