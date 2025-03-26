@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import FastBooking from './fast-booking';
+import Link from 'next/link';
 
 const HeroSection = () => {
     return (
-        <div className="relative h-screen w-full">
+        <div className="relative max-h-screen w-full">
             <Image
                 src="/homebg.png"
                 alt="Badminton Court"
@@ -12,7 +13,7 @@ const HeroSection = () => {
                 priority
                 quality={90}
                 sizes="100vw"
-                className="absolute inset-0 -z-10 object-cover brightness-[0.85]"
+                className="absolute inset-0 -z-10 object-cover brightness-75"
             />
             <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8">
                 {/* Left Section: Text */}
@@ -21,8 +22,8 @@ const HeroSection = () => {
                         Thể thao mỗi ngày, sức khỏe mỗi phút
                     </h1>
                     <p className="mt-3 text-lg italic drop-shadow-lg md:text-2xl">Đặt sân cầu lông ngay hôm nay!</p>
-                    <Button variant="outline" className="mt-4">
-                        Đặt lịch cố định →
+                    <Button variant="outline" className="mt-4" asChild>
+                        <Link href={'booking'}>Đặt lịch cố định →</Link>
                     </Button>
                 </div>
 
