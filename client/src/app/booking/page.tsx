@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import BookingStep from '@/app/booking/BookingStep';
 import BookingFilter from '@/app/booking/BookingFilter';
 import BookingCourtList from '@/app/booking/BookingCourtList';
+import BookingBottomSheet from '@/app/booking/BookingBottomSheet';
 import { Button } from '@/components/ui/button';
 
 interface Court {
@@ -13,19 +14,35 @@ interface Court {
     img: string;
 }
 
+interface Product {
+    id: number;
+    name: string;
+    price: string;
+    quantity: number;
+}
+
+interface SelectedCourt {
+    court: Court;
+    filters: Filters;
+}
+
 interface Filters {
-    location?: string;
-    time?: string;
+    zone?: string;
+    date?: string;
     duration?: number;
+    startTime?: string;
     fixedCourt?: boolean;
 }
 
 export default function BookingPage() {
     const [step, setStep] = useState<number>(1);
     const [filters, setFilters] = useState<Filters>({
-        fixedCourt: false, // Include fixedCourt in filters
+        fixedCourt: false,
     });
-    const [courts, setCourts] = useState<Court[]>([]);
+    const [courts, setCourts] = useState<Court[]>([]); // Danh sách sân hiển thị
+    const [selectedCourts, setSelectedCourts] = useState<SelectedCourt[]>([]); // Danh sách sân muốn thuê
+    const [products, setProducts] = useState<Product[]>([]); // Danh sách sản phẩm từ DB
+    const [selectedProducts, setSelectedProducts] = useState<Product[]>([]); // Danh sách sản phẩm muốn mua
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // ✅ Update filters, including fixedCourt
@@ -38,8 +55,6 @@ export default function BookingPage() {
 
     // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce
     useEffect(() => {
-        // if (!filters.location || !filters.time || !filters.duration) return; // Đảm bảo đủ dữ liệu mới gọi API
-
         if (debounceTimeout.current) {
             clearTimeout(debounceTimeout.current);
         }
@@ -73,6 +88,49 @@ export default function BookingPage() {
         { id: 6, name: 'Sân 6', price: '120.000 VND', img: '/Court6.png' },
     ];
 
+    // ✅ Thêm sân vào danh sách thuê
+    const handleAddCourt = (scCourt: SelectedCourt) => {
+        setSelectedCourts((prev) => [...prev, scCourt]);
+    };
+
+    // ✅ Xóa sân khỏi danh sách thuê
+    const handleRemoveCourt = (scCourt: SelectedCourt) => {
+        setSelectedCourts((prev) => prev.filter((court) =>
+            court.court.id !== scCourt.court.id ||
+            court.filters.zone !== scCourt.filters.zone ||
+            court.filters.date !== scCourt.filters.date ||
+            court.filters.duration !== scCourt.filters.duration ||
+            court.filters.startTime !== scCourt.filters.startTime ||
+            court.filters.fixedCourt !== scCourt.filters.fixedCourt
+        ));
+    };
+
+    // ✅ Thêm sản phẩm vào danh sách mua
+    const handleAddProduct = (product: Product) => {
+        setSelectedProducts((prev) => {
+            const existingProduct = prev.find((p) => p.id === product.id);
+            if (existingProduct) {
+                return prev.map((p) =>
+                    p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+                );
+            }
+            product.quantity = 1;
+            return [...prev, product];
+        });
+    };
+
+    // ✅ Xóa sản phẩm khỏi danh sách mua
+    const handleRemoveProduct = (productId: number) => {
+        setSelectedProducts((prev) => prev.filter((product) => product.id !== productId));
+    };
+
+    // ✅ Tính tổng giá tiền
+    const totalPrice =
+        selectedCourts.reduce((sum, scCourt) => sum + parseInt(scCourt.court.price.replace(/\D/g, '')), 0) +
+        selectedProducts.reduce(
+            (sum, product) => sum + parseInt(product.price.replace(/\D/g, '')) * product.quantity, 0
+        );
+
     return (
         <div className="p-4">
             {/* Thanh bước tiến trình đặt sân */}
@@ -81,7 +139,7 @@ export default function BookingPage() {
             {/* Nội dung từng bước */}
             {step === 1 && (
                 <div className="flex flex-col gap-4">
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-4 justify-center">
                         {/* Bộ lọc chọn khu vực, thời gian, số giờ chơi */}
                         <BookingFilter onFilterChange={(newFilters) => handleFilterChange({ ...newFilters })} />
 
@@ -89,8 +147,11 @@ export default function BookingPage() {
                         <div className="flex-1">
                             <BookingCourtList
                                 courts={/*courts*/ courtExData}
+                                selectedCourts={selectedCourts}
                                 filters={filters}
                                 onToggleChange={(isFixed) => handleFilterChange({ fixedCourt: isFixed })}
+                                onAddCourt={handleAddCourt} // Thêm sân vào danh sách thuê
+                                onRemoveCourt={handleRemoveCourt} // Xóa sân khỏi danh sách thuê
                             />
                         </div>
                     </div>
@@ -118,6 +179,22 @@ export default function BookingPage() {
                     Tiếp theo →
                 </Button>
             </div>
+
+            {/* Hiển thị Bottom Sheet nếu có ít nhất 1 sân hoặc sản phẩm */}
+            {(selectedCourts.length > 0 || selectedProducts.length > 0) && (
+                <BookingBottomSheet
+                    totalPrice={totalPrice}
+                    selectedCourts={selectedCourts} // Truyền danh sách sân muốn thuê
+                    selectedProducts={selectedProducts} // Truyền danh sách sản phẩm muốn mua
+                    onRemoveCourt={handleRemoveCourt} // Xóa sân khỏi danh sách thuê
+                    onConfirm={() => alert('Đặt sân thành công!')}
+                    onCancel={() => {
+                        setSelectedCourts([]);
+                        setSelectedProducts([]);
+                        alert('Hủy đặt sân!');
+                    }}
+                />
+            )}
         </div>
     );
 }
