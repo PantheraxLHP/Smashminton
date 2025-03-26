@@ -11,20 +11,36 @@ interface Court {
     img: string;
 }
 
+interface SelectedCourt {
+    court: Court;
+    filters: Filters;
+}
+
 interface Filters {
-    location?: string;
-    time?: string;
+    zone?: string;
+    date?: string;
     duration?: number;
+    startTime?: string;
     fixedCourt?: boolean;
 }
 
 interface BookingCourtListProps {
     courts: Court[];
+    selectedCourts: SelectedCourt[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
+    onAddCourt: (scCourt: SelectedCourt) => void
+    onRemoveCourt: (scCourt: SelectedCourt) => void
 }
 
-const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, onToggleChange }) => {
+const BookingCourtList: React.FC<BookingCourtListProps> = ({
+    courts,
+    selectedCourts,
+    filters,
+    onToggleChange,
+    onAddCourt,
+    onRemoveCourt
+}) => {
     const [tooltipOpen, setTooltipOpen] = useState(false); // Trạng thái mở/đóng tooltip
 
     return (
@@ -82,23 +98,45 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts, filters, on
             </h2>
 
             {/* Danh sách sân */}
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-                {courts.map((court) => (
-                    <div key={court.id} className="overflow-hidden rounded-lg border shadow-lg">
-                        <Image
-                            src={court.img}
-                            alt={court.name}
-                            width={300}
-                            height={200}
-                            className="w-full object-cover"
-                        />
-                        <div className="p-4 text-center">
-                            <h3 className="text-lg font-semibold">{court.name}</h3>
-                            <p className="text-gray-600">{court.price} / 1 giờ</p>
-                            <Button className="w-full">ĐẶT SÂN</Button>
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {courts.map((court) => {
+                    const scCourt = selectedCourts.find((selected) =>
+                        selected.court.id === court.id &&
+                        selected.filters.zone === filters.zone &&
+                        selected.filters.date === filters.date &&
+                        selected.filters.duration === filters.duration &&
+                        selected.filters.startTime === filters.startTime &&
+                        selected.filters.fixedCourt === filters.fixedCourt
+                    );
+
+                    return (
+                        <div key={court.id} className="overflow-hidden rounded-lg border shadow-lg">
+                            <Image
+                                src={court.img}
+                                alt={court.name}
+                                width={300}
+                                height={200}
+                                className="w-full object-cover"
+                            />
+                            <div className="p-4 text-center">
+                                <h3 className="text-lg font-semibold">{court.name}</h3>
+                                <p className="text-gray-600">{court.price} / 1 giờ</p>
+                                <Button
+                                    className="w-full"
+                                    variant={scCourt ? "destructive" : "default"}
+                                    onClick={() =>
+                                        scCourt ? onRemoveCourt(scCourt) : onAddCourt({
+                                            court,
+                                            filters
+                                        })
+                                    }
+                                >
+                                    {scCourt ? "HỦY ĐẶT SÂN" : "ĐẶT SÂN"}
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     );

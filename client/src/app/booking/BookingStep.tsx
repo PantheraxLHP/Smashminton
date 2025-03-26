@@ -1,10 +1,8 @@
-import { FC } from 'react';
-
 interface BookingStepProps {
     currentStep: number;
 }
 
-const BookingStep: FC<BookingStepProps> = ({ currentStep }) => {
+const BookingStep: React.FC<BookingStepProps> = ({ currentStep }) => {
     const steps = [
         { id: 1, title: 'Đặt sân' },
         { id: 2, title: 'Sản phẩm / Dịch vụ' },
