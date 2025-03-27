@@ -11,8 +11,8 @@ const HeroSection = () => {
                 alt="Badminton Court"
                 fill
                 priority
-                quality={90}
-                sizes="100vw"
+                // quality={90}
+                // sizes="100vw"
                 className="absolute inset-0 -z-10 object-cover brightness-75"
             />
             <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8">
