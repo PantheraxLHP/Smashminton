@@ -2,9 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { AuthService } from './auth.service';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { AccountsService } from '../accounts/accounts.service';
-import { AuthGuard } from './guards/auth.guards';
-import { BADQUERY } from 'dns';
+import { AuthGuard } from './guards/auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PassportLocalGuard } from './guards/passport-local.guard';
+import { SignInData } from './interfaces/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -14,14 +15,16 @@ export class AuthController {
     ) {}
 
     @Post('signin')
-    login(@Body() signinAuthDto: SigninAuthDto) {
-        return this.authService.authenticate(signinAuthDto);
+    @UseGuards(PassportLocalGuard)
+    login(@Request() req: { user: SignInData }) {
+        //return this.authService.authenticate(signinAuthDto);
+        return this.authService.generateToken(req.user);
     }
 
     @UseGuards(AuthGuard)
     @ApiBearerAuth()
     @Get('me')
-    getUserInfo(@Request() req) {
+    getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }
 
