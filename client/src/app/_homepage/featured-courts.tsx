@@ -1,10 +1,10 @@
 import BlueLine from '@/components/atomic/BlueLine';
 import { Button } from '@/components/ui/button';
-import { Zones } from '@/types/types';
+import { FeatureZone } from '../api/zones/route';
 import Image from 'next/image';
 import Link from 'next/link';
 
-async function getZones() {
+async function getZones(): Promise<FeatureZone[]> {
     const response = await fetch(`${process.env.HOST}/api/zones`, {
         cache: 'no-store',
     });
@@ -15,7 +15,7 @@ async function getZones() {
 }
 
 const FeaturedCourts = async () => {
-    const zones: Zones[] = await getZones();
+    const zones = await getZones();
 
     return (
         <div className="container mx-auto bg-white px-4 py-16">
@@ -48,7 +48,7 @@ const FeaturedCourts = async () => {
                             <p className="mt-1 text-gray-600">Mở cửa 6:00 - 22:00</p>
 
                             <div className="mt-4 flex items-center justify-between">
-                                <p className="text-lg font-bold"> {zone.zonetype} </p>
+                                <p className="text-lg font-bold"> {zone.feature} </p>
                                 <Button variant="outline" asChild>
                                     <Link href={'booking'}> Đặt ngay</Link>
                                 </Button>

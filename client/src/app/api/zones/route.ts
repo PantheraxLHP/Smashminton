@@ -1,6 +1,10 @@
 import { Zones } from '@/types/types';
 import { NextResponse } from 'next/server';
 
+export interface FeatureZone extends Zones {
+    feature: string;
+}
+
 const featureTranslations: Record<string, string> = {
     Normal: 'Thông thoáng, không gian rộng, giá hợp lý',
     AirConditioner: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP',
@@ -17,12 +21,12 @@ export async function GET() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data: Zones[] = await response.json();
 
-        // Map the English descriptions to Vietnamese features
-        const translatedData = data.map((zone: Zones) => ({
+        // Map the English descriptions to Vietnamese features and ensure ZoneFeature type
+        const translatedData: FeatureZone[] = data.map((zone) => ({
             ...zone,
-            zonetype: featureTranslations[zone.zonetype || 'Không có thông tin'],
+            feature: featureTranslations[zone.zonetype || 'Không có thông tin'],
         }));
 
         return NextResponse.json(translatedData);
