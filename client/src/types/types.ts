@@ -108,7 +108,6 @@ export interface CourtBooking {
 
 export interface Courts {
     courtid: number;
-    courtnumber?: string;
     courtname?: string;
     courtimgurl?: string;
     status?: string;

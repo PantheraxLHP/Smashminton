@@ -3,16 +3,13 @@ import Image from 'next/image'; // Nếu dùng Next.js, nếu không có thể d
 import { Tooltip, TooltipRoot, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
+import { Courts } from '@/types/types';
 
-interface Court {
-    id: number;
-    name: string;
-    price: string;
-    img: string;
+interface CourtsWithPrice extends Courts {
+    courtprice: string;
 }
 
-interface SelectedCourt {
-    court: Court;
+interface SelectedCourt extends CourtsWithPrice {
     filters: Filters;
 }
 
@@ -25,7 +22,7 @@ interface Filters {
 }
 
 interface BookingCourtListProps {
-    courts: Court[];
+    courts: CourtsWithPrice[];
     selectedCourts: SelectedCourt[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
@@ -101,7 +98,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts.map((court) => {
                     const scCourt = selectedCourts.find((selected) =>
-                        selected.court.id === court.id &&
+                        selected.courtid === court.courtid &&
                         selected.filters.zone === filters.zone &&
                         selected.filters.date === filters.date &&
                         selected.filters.duration === filters.duration &&
@@ -110,26 +107,31 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                     );
 
                     return (
-                        <div key={court.id} className="overflow-hidden rounded-lg border shadow-lg">
+                        <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
                             <Image
-                                src={court.img}
-                                alt={court.name}
+                                src={court.courtimgurl || '/default-image.jpg'}
+                                alt={court.courtname || 'Hình ảnh sân'}
                                 width={300}
                                 height={200}
                                 className="w-full object-cover"
                             />
                             <div className="p-4 text-center">
-                                <h3 className="text-lg font-semibold">{court.name}</h3>
-                                <p className="text-gray-600">{court.price} / 1 giờ</p>
+                                <h3 className="text-lg font-semibold">{court.courtname}</h3>
+                                <p className="text-gray-600">{court.courtprice} / 1 giờ</p>
                                 <Button
                                     className="w-full"
                                     variant={scCourt ? "destructive" : "default"}
-                                    onClick={() =>
-                                        scCourt ? onRemoveCourt(scCourt) : onAddCourt({
-                                            court,
-                                            filters
-                                        })
-                                    }
+                                    onClick={() => {
+                                        if (scCourt) {
+                                            onRemoveCourt(scCourt);
+                                        } else {
+                                            const selectedCourt: SelectedCourt = {
+                                                ...court,
+                                                filters
+                                            };
+                                            onAddCourt(selectedCourt);
+                                        }
+                                    }}
                                 >
                                     {scCourt ? "HỦY ĐẶT SÂN" : "ĐẶT SÂN"}
                                 </Button>

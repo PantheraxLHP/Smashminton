@@ -1,18 +1,17 @@
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
+import { Courts, Products } from '@/types/types';
 
-interface Court {
-    id: number;
-    name: string;
-    price: string;
-    img: string;
+interface CourtsWithPrice extends Courts {
+    courtprice: string;
 }
 
-interface Product {
-    id: number;
-    name: string;
-    price: string;
+interface SelectedCourt extends CourtsWithPrice {
+    filters: Filters;
+}
+
+interface SelectedProducts extends Products {
     quantity: number;
 }
 
@@ -24,15 +23,10 @@ interface Filters {
     fixedCourt?: boolean;
 }
 
-interface SelectedCourt {
-    court: Court;
-    filters: Filters;
-}
-
 interface BookingBottomSheetProps {
     totalPrice: number;
     selectedCourts: SelectedCourt[];
-    selectedProducts: Product[];
+    selectedProducts: SelectedProducts[];
     onRemoveCourt: (scCourt: SelectedCourt) => void;
     onConfirm: () => void;
     onCancel: () => void;
@@ -70,20 +64,24 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 <div className="flex-1 overflow-y-auto p-0 max-h-[calc(100vh-150px)] sm:max-h-20">
                     <div className="flex flex-col gap-1">
                         {/* Danh sách sân */}
-                        {selectedCourts.map(({ court, filters }) => (
+                        {selectedCourts.map((scCourt) => (
                             <div
-                                key={`${court.id}-${filters.zone}-${filters.date}-${filters.startTime}-${filters.duration}-${filters.fixedCourt}`}
+                                key={`
+                                    ${scCourt.courtid}-${scCourt.filters.zone}-${scCourt.filters.date}-
+                                    ${scCourt.filters.startTime}-${scCourt.filters.duration}-
+                                    ${scCourt.filters.fixedCourt}
+                                `}
                                 className="flex items-center gap-2"
                             >
-                                <span className="font-bold">{court.name}</span>
+                                <span className="font-bold">{scCourt.courtname}</span>
                                 <Icon icon="mdi:calendar" className="w-5 h-5" />
-                                <span>{filters.date}</span>
+                                <span>{scCourt.filters.date}</span>
                                 <Icon icon="mdi:clock-outline" className="w-5 h-5" />
-                                <span>{filters.startTime}</span>
+                                <span>{scCourt.filters.startTime}</span>
                                 <Icon icon="mdi:timer" className="w-5 h-5" />
-                                <span>{filters.duration}h</span>
+                                <span>{scCourt.filters.duration}h</span>
                                 <Icon
-                                    onClick={() => onRemoveCourt({ court, filters })}
+                                    onClick={() => onRemoveCourt(scCourt)}
                                     icon="mdi:close-circle"
                                     className="w-5 h-5 text-red-500 cursor-pointer"
                                 />
@@ -92,11 +90,11 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
                         {/* Danh sách sản phẩm */}
                         <div className="flex flex-wrap gap-4">
-                            {selectedProducts.map((product) => (
-                                <div key={product.id} className="flex items-center gap-2">
+                            {selectedProducts.map((scProduct) => (
+                                <div key={scProduct.productid} className="flex items-center gap-2">
                                     <Icon icon="mdi:racket" className="w-5 h-5" />
                                     <span>
-                                        {product.quantity} {product.name}
+                                        {scProduct.quantity} {scProduct.productname}
                                     </span>
                                     <Icon
                                         icon="mdi:close-circle"
