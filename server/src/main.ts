@@ -13,6 +13,7 @@ async function bootstrap() {
         .setTitle('Smashminton')
         .setDescription('Smashminton API description')
         .setVersion('1.0.0')
+        .addBearerAuth()
         .build();
 
     const document = SwaggerModule.createDocument(app, config);

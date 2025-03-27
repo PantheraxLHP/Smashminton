@@ -4,8 +4,8 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CustomerService } from '../customers/customer.service';
-import * as bcrypt from 'bcryptjs';
 import { BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AccountsService {
     constructor(

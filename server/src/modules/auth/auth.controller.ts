@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { AccountsService } from '../accounts/accounts.service';
+import { AuthGuard } from './guards/auth.guards';
+import { BADQUERY } from 'dns';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -10,15 +13,16 @@ export class AuthController {
         private readonly accountsService: AccountsService,
     ) {}
 
-    @Post('login')
-    login(@Body() SigninAuthDto: SigninAuthDto) {
-        const { username } = SigninAuthDto;
-        return this.accountsService.findByUsername(username);
+    @Post('signin')
+    login(@Body() signinAuthDto: SigninAuthDto) {
+        return this.authService.authenticate(signinAuthDto);
     }
 
-    @Get()
-    findAll() {
-        return this.authService.findAll();
+    @UseGuards(AuthGuard)
+    @ApiBearerAuth()
+    @Get('me')
+    getUserInfo(@Request() req) {
+        return req.user;
     }
 
     @Get(':id')
