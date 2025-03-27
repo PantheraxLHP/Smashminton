@@ -121,7 +121,6 @@ model court_booking {
 
 model courts {
     courtid          Int             @id @default(autoincrement())
-    courtnumber      String?
     courtname        String?
     courtimgurl      String?
     status           String?

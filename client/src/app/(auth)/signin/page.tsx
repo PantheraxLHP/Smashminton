@@ -52,7 +52,7 @@ export default function SignInPage() {
 
                 {/* Login form */}
                 <div className="absolute top-2/5 left-1/8 w-[500px] -translate-y-1/2 transform rounded-lg bg-white/90 p-8 shadow-lg">
-                    <h2 className="mb-6 text-center text-xl font-bold text-green-600">Đăng nhập</h2>
+                    <h2 className="text-primary-600 mb-6 text-center text-xl font-bold">Đăng nhập</h2>
 
                     <form onSubmit={handleLogin}>
                         <div className="mb-4">
@@ -61,7 +61,7 @@ export default function SignInPage() {
                                 type="text"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none"
                             />
                         </div>
 
@@ -71,35 +71,29 @@ export default function SignInPage() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none"
                             />
                         </div>
 
                         {error && <p className="text-sm text-red-500">{error}</p>}
 
                         <div className="mb-2 text-right underline">
-                            <a href="#" className="text-sm text-gray-500 hover:text-green-600">
+                            <a href="#" className="hover:text-primary-600 text-sm text-gray-500">
                                 Quên mật khẩu?
                             </a>
                         </div>
 
                         <div className="mb-6 flex items-center justify-between">
-                            <Button
-                                type="submit"
-                                className="w-full rounded-md bg-green-500 py-2 text-white transition hover:bg-green-600"
-                            >
+                            <Button type="submit" className="w-full">
                                 ĐĂNG NHẬP
                             </Button>
                         </div>
 
                         <p className="mt-4 text-center text-sm text-gray-600">
                             Bạn chưa có tài khoản?{' '}
-                            <Link
-                                href="/signup"
-                                className="text-black-600 font-semibold underline hover:text-green-600"
-                            >
-                                Đăng ký ngay
-                            </Link>
+                            <Button asChild variant="link">
+                                <Link href="/signup">Đăng ký ngay</Link>
+                            </Button>
                         </p>
                     </form>
                 </div>
