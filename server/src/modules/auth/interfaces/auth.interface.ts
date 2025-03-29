@@ -10,6 +10,4 @@ export interface SignInData {
 
 export interface AuthResponse {
     accessToken: string;
-    accountid: number;
-    username: string;
 }

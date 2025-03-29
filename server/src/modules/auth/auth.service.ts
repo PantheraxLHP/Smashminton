@@ -18,7 +18,7 @@ export class AuthService {
             throw new BadRequestException('User not found');
         }
 
-        return this.generateToken(user);
+        return this.signIn(user);
     }
 
     async validateUser(signinAuthDto: SigninAuthDto): Promise<SignInData | null> {
@@ -30,29 +30,26 @@ export class AuthService {
         if (!user.password) {
             throw new BadRequestException('Password is null');
         }
-
+        // Check if the password is correct
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             throw new BadRequestException('Password not match');
         }
         return {
-            accountid: user.accountid,
+            accountid: user.accountid ?? '',
             username: user.username ?? '',
         };
     }
 
-    async generateToken(user: SignInData): Promise<AuthResponse> {
+    async signIn(user: SignInData): Promise<AuthResponse> {
         const tokenPayload = {
-            sub: user.accountid,
-            username: user.username,
+            sub: user.accountid ?? '',
+            username: user.username ?? '',
         };
-
-        const accessToken = await this.jwtService.signAsync(tokenPayload);
+        const access_token = await this.jwtService.signAsync(tokenPayload);
 
         return {
-            accessToken,
-            accountid: user.accountid,
-            username: user.username,
+            accessToken: access_token,
         };
     }
     findAll() {
