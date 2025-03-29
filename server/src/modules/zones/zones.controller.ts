@@ -4,33 +4,33 @@ import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags ('zones')
+@ApiTags('Zones')
 @Controller('zones')
 export class ZonesController {
-  constructor(private readonly zonesService: ZonesService) {}
+    constructor(private readonly zonesService: ZonesService) {}
 
-  @Post()
-  create(@Body() createZoneDto: CreateZoneDto) {
-    return this.zonesService.create(createZoneDto);
-  }
+    @Post()
+    create(@Body() createZoneDto: CreateZoneDto) {
+        return this.zonesService.create(createZoneDto);
+    }
 
-  @Get()
-  findAll() {
-    return this.zonesService.findAll();
-  }
+    @Get()
+    findAll() {
+        return this.zonesService.findAll();
+    }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.zonesService.findOne(+id);
-  }
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.zonesService.findOne(+id);
+    }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateZoneDto: UpdateZoneDto) {
-    return this.zonesService.update(+id, updateZoneDto);
-  }
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() updateZoneDto: UpdateZoneDto) {
+        return this.zonesService.update(+id, updateZoneDto);
+    }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.zonesService.remove(+id);
-  }
+    @Delete(':id')
+    remove(@Param('id') id: string) {
+        return this.zonesService.remove(+id);
+    }
 }
