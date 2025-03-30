@@ -38,6 +38,7 @@ export class AuthService {
         return {
             accountid: user.accountid ?? '',
             username: user.username ?? '',
+            accounttype: user.accounttype ?? '',
         };
     }
 
@@ -45,6 +46,7 @@ export class AuthService {
         const tokenPayload = {
             sub: user.accountid ?? '',
             username: user.username ?? '',
+            accounttype: user.accounttype ?? '',
         };
         const access_token = await this.jwtService.signAsync(tokenPayload);
 
