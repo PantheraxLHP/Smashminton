@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import BookingStep from '@/app/booking/BookingStep';
 import BookingFilter from '@/app/booking/BookingFilter';
 import BookingCourtList from '@/app/booking/BookingCourtList';
@@ -37,15 +37,23 @@ export default function BookingPage() {
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourt[]>([]); // Danh sách sân muốn thuê
     const [products, setProducts] = useState<Products[]>([]); // Danh sách sản phẩm từ DB
     const [selectedProducts, setSelectedProducts] = useState<SelectedProducts[]>([]); // Danh sách sản phẩm muốn mua
+    const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
+    const handleResetTimer = useCallback((resetFn: () => void) => {
+        setResetTimer(() => resetFn);
+    }, []);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // ✅ Update filters, including fixedCourt
-    const handleFilterChange = (newFilters: Filters) => {
+    const handleFilterChange = useCallback((newFilters: Filters) => {
         setFilters((prevFilters) => ({
             ...prevFilters,
             ...newFilters,
         }));
-    };
+    }, []);
+
+    const handleToggleChange = useCallback((isFixed: boolean) => {
+        handleFilterChange({ fixedCourt: isFixed });
+    }, [handleFilterChange]);
 
     // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce
     useEffect(() => {
@@ -85,6 +93,10 @@ export default function BookingPage() {
     // ✅ Thêm sân vào danh sách thuê
     const handleAddCourt = (scCourt: SelectedCourt) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
+
+        if (resetTimer) {
+            resetTimer();
+        }
     };
 
     // ✅ Xóa sân khỏi danh sách thuê
@@ -135,7 +147,7 @@ export default function BookingPage() {
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap gap-4 justify-center">
                         {/* Bộ lọc chọn khu vực, thời gian, số giờ chơi */}
-                        <BookingFilter onFilterChange={(newFilters) => handleFilterChange({ ...newFilters })} />
+                        <BookingFilter onFilterChange={handleFilterChange} />
 
                         {/* Danh sách sân hiển thị theo filter */}
                         <div className="flex-1">
@@ -143,7 +155,7 @@ export default function BookingPage() {
                                 courts={/*courts*/ courtExDataV2}
                                 selectedCourts={selectedCourts}
                                 filters={filters}
-                                onToggleChange={(isFixed) => handleFilterChange({ fixedCourt: isFixed })}
+                                onToggleChange={handleToggleChange}
                                 onAddCourt={handleAddCourt} // Thêm sân vào danh sách thuê
                                 onRemoveCourt={handleRemoveCourt} // Xóa sân khỏi danh sách thuê
                             />
@@ -187,6 +199,7 @@ export default function BookingPage() {
                         setSelectedProducts([]);
                         alert('Hủy đặt sân!');
                     }}
+                    onResetTimer={handleResetTimer}
                 />
             )}
         </div>

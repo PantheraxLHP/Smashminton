@@ -21,7 +21,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
             startTime,
         };
         onFilterChange(filters);
-    }, [selectedZone, date, duration, startTime]);
+    }, [selectedZone, date, duration, startTime, onFilterChange]);
 
     const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
