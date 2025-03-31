@@ -6,10 +6,9 @@ export interface AuthRequest {
 export interface SignInData {
     accountid: number;
     username: string;
+    accounttype: string;
 }
 
 export interface AuthResponse {
     accessToken: string;
-    accountid: number;
-    username: string;
 }

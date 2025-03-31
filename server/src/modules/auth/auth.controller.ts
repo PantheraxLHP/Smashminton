@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SigninAuthDto } from './dto/signin-auth.dto';
 import { AccountsService } from '../accounts/accounts.service';
-import { AuthGuard } from './guards/auth.guards';
-import { BADQUERY } from 'dns';
-import { ApiBearerAuth } from '@nestjs/swagger';
-
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { SignInData } from './interfaces/auth.interface';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { SigninAuthDto } from './dto/signin-auth.dto';
+@ApiTags('Authorization')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -14,14 +15,22 @@ export class AuthController {
     ) {}
 
     @Post('signin')
-    login(@Body() signinAuthDto: SigninAuthDto) {
-        return this.authService.authenticate(signinAuthDto);
+    @UseGuards(LocalAuthGuard)
+    @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' }) // Mô tả API
+    @ApiBody({ type: SigninAuthDto }) // Định nghĩa body request
+    @ApiResponse({ status: 201, description: 'SignIn successful'}) // Phản hồi khi thành công
+    @ApiUnauthorizedResponse() // Phản hồi khi lỗi xác thực
+    async signIn(@Request() req: { user: SignInData }) {
+        //return this.authService.authenticate(signinAuthDto);
+        return this.authService.signIn(req.user);
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
+    // @ApiBearerAuth()
+    @Get('profile')
+    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @Get('me')
-    getUserInfo(@Request() req) {
+    getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }
 
