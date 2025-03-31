@@ -26,8 +26,8 @@ interface BookingCourtListProps {
     selectedCourts: SelectedCourt[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
-    onAddCourt: (scCourt: SelectedCourt) => void
-    onRemoveCourt: (scCourt: SelectedCourt) => void
+    onAddCourt: (scCourt: SelectedCourt) => void;
+    onRemoveCourt: (scCourt: SelectedCourt) => void;
 }
 
 const BookingCourtList: React.FC<BookingCourtListProps> = ({
@@ -36,7 +36,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
     filters,
     onToggleChange,
     onAddCourt,
-    onRemoveCourt
+    onRemoveCourt,
 }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false); // Trạng thái mở/đóng tooltip
 
@@ -97,13 +97,14 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
             {/* Danh sách sân */}
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts.map((court) => {
-                    const scCourt = selectedCourts.find((selected) =>
-                        selected.courtid === court.courtid &&
-                        selected.filters.zone === filters.zone &&
-                        selected.filters.date === filters.date &&
-                        selected.filters.duration === filters.duration &&
-                        selected.filters.startTime === filters.startTime &&
-                        selected.filters.fixedCourt === filters.fixedCourt
+                    const scCourt = selectedCourts.find(
+                        (selected) =>
+                            selected.courtid === court.courtid &&
+                            selected.filters.zone === filters.zone &&
+                            selected.filters.date === filters.date &&
+                            selected.filters.duration === filters.duration &&
+                            selected.filters.startTime === filters.startTime &&
+                            selected.filters.fixedCourt === filters.fixedCourt,
                     );
 
                     return (
@@ -115,29 +116,31 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                 height={200}
                                 className="w-full object-cover"
                             />
-                            <div className="p-4 text-center">
+                            <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
-                                <p className="text-gray-600">{court.courtprice} / 1 giờ</p>
+                                <p className="py-1 text-lg font-semibold">
+                                    {court.courtprice} <span className="text-grey-300 text-sm"> / 1 giờ</span>
+                                </p>
                                 <Button
                                     className="w-full"
-                                    variant={scCourt ? "destructive" : "default"}
+                                    variant={scCourt ? 'destructive' : 'default'}
                                     onClick={() => {
                                         if (scCourt) {
                                             onRemoveCourt(scCourt);
                                         } else {
                                             const selectedCourt: SelectedCourt = {
                                                 ...court,
-                                                filters
+                                                filters,
                                             };
                                             onAddCourt(selectedCourt);
                                         }
                                     }}
                                 >
-                                    {scCourt ? "HỦY ĐẶT SÂN" : "ĐẶT SÂN"}
+                                    {scCourt ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
                                 </Button>
                             </div>
                         </div>
-                    )
+                    );
                 })}
             </div>
         </div>
