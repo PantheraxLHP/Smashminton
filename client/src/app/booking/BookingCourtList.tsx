@@ -119,7 +119,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
                                 <p className="py-1 text-lg font-semibold">
-                                    {court.courtprice} <span className="text-grey-300 text-sm"> / 1 giờ</span>
+                                    {court.courtprice} <span className="text-sm text-gray-300"> / 1 giờ</span>
                                 </p>
                                 <Button
                                     className="w-full"
