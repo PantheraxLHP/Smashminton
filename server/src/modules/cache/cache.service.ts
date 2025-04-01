@@ -3,14 +3,14 @@ import Keyv from 'keyv';
 
 @Injectable()
 export class CacheService {
-    constructor(@Inject('CACHE') private readonly keyv: Keyv) {}
+    constructor(private readonly keyv: Keyv) {}
 
-    async get<T>(key: string): Promise<T | null> {
+    async get(key: string){
         return this.keyv.get(key);
     }
 
-    async set<T>(key: string, value: T, ttl: number = 0): Promise<boolean> {
-        return this.keyv.set(key, value, ttl);
+    async set(key: string, value: any, ttl: number = 0): Promise<boolean> {
+        return this.keyv.set(key, value, ttl*1000);
     }
 
     async delete(key: string): Promise<boolean> {

@@ -48,7 +48,7 @@ export class ProductsController {
     @ApiNotFoundResponse({ description: 'Product not found' })
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
-        await this.cacheService.set('test-key', 'test-value', 1000);
+        await this.cacheService.set('test-key', 'test-value', 60);
         if (!product) {
             throw new NotFoundException('Product not found');
         }
