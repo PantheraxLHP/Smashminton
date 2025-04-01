@@ -202,6 +202,7 @@ model products {
     sellingprice         Decimal?               @db.Decimal
     rentalprice          Decimal?               @db.Decimal
     costprice            Decimal?               @db.Decimal
+    productimgurl        String?
     createdat            DateTime?              @default(now()) @db.Timestamptz(6)
     updatedat            DateTime?              @default(now()) @db.Timestamptz(6)
     order_product        order_product[]

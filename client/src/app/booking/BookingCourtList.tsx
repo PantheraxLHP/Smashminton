@@ -110,8 +110,8 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                     return (
                         <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
                             <Image
-                                src={court.courtimgurl || '/default-image.jpg'}
-                                alt={court.courtname || 'Hình ảnh sân'}
+                                src={court.courtimgurl || "/default-image.jpg"}
+                                alt={court.courtname || "Hình ảnh sân"}
                                 width={300}
                                 height={200}
                                 className="w-full object-cover"

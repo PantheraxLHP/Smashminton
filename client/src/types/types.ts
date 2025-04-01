@@ -186,6 +186,7 @@ export interface Products {
     sellingprice?: number;
     rentalprice?: number;
     costprice?: number;
+    productimgurl?: string;
     createdat?: Date;
     updatedat?: Date;
     order_product?: OrderProduct[];
