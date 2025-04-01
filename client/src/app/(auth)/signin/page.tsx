@@ -3,38 +3,53 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { handleLogin } from '@/services/auth.service';
+import { redirect } from 'next/navigation';
 
 export default function SignInPage() {
-    // useState phải nằm trong component
-    const [phone, setPhone] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [formErrors, setFormErrors] = useState({
+        username: '',
+        password: '',
+    });
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault(); // Ngăn chặn reload trang
+    const validateForm = () => {
+        let valid = true;
+        const newErrors = {
+            username: '',
+            password: '',
+        };
 
-        try {
-            const response = await fetch('http://localhost:5555/api/login', {
-                // Đổi URL phù hợp với backend của bạn
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone, password }),
-            });
+        if (!username.trim()) {
+            newErrors.username = 'Vui lòng nhập tên đăng nhập';
+            valid = false;
+        }
 
-            const data = await response.json();
+        if (!password.trim()) {
+            newErrors.password = 'Vui lòng nhập mật khẩu';
+            valid = false;
+        }
 
-            if (response.ok) {
-                console.log('Login successful:', data);
-                // Lưu token nếu có
-                localStorage.setItem('token', data.token);
-                // Chuyển hướng sau khi đăng nhập thành công
-                window.location.href = '/home';
-            } else {
-                setError(data.message || 'Đăng nhập thất bại');
-            }
-        } catch (error) {
-            setError('Lỗi kết nối đến server');
-            console.error('Error during login:', error);
+        setFormErrors(newErrors);
+        return valid;
+    };
+
+    const onSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        const result = await handleLogin(username, password);
+
+        if (result.success) {
+            localStorage.setItem('token', result.data.token);
+            redirect('/');
+        } else {
+            setError(result.error || 'Đăng nhập thất bại');
         }
     };
 
@@ -54,25 +69,41 @@ export default function SignInPage() {
                 <div className="absolute top-2/5 left-1/8 w-[500px] -translate-y-1/2 transform rounded-lg bg-white/90 p-8 shadow-lg">
                     <h2 className="text-primary-600 mb-6 text-center text-xl font-bold">Đăng nhập</h2>
 
-                    <form onSubmit={handleLogin}>
+                    <form onSubmit={onSubmit}>
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-600">Nhập số điện thoại</label>
+                            <label className="block text-sm font-medium text-gray-600">Tên đăng nhập</label>
                             <input
                                 type="text"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none"
+                                value={username}
+                                onChange={(e) => {
+                                    setUsername(e.target.value);
+                                    setFormErrors({ ...formErrors, username: '' });
+                                }}
+                                className={`mt-1 w-full rounded-md border px-4 py-2 focus:outline-none ${
+                                    formErrors.username
+                                        ? 'border-red-500'
+                                        : 'focus:ring-primary-500 border-gray-300 focus:ring-2'
+                                }`}
                             />
+                            {formErrors.username && <p className="mt-1 text-sm text-red-500">{formErrors.username}</p>}
                         </div>
 
                         <div className="mb-1">
-                            <label className="block text-sm font-medium text-gray-600">Nhập mật khẩu</label>
+                            <label className="block text-sm font-medium text-gray-600">Mật khẩu</label>
                             <input
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="focus:ring-primary-500 mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none"
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    setFormErrors({ ...formErrors, password: '' });
+                                }}
+                                className={`mt-1 w-full rounded-md border px-4 py-2 focus:outline-none ${
+                                    formErrors.password
+                                        ? 'border-red-500'
+                                        : 'focus:ring-primary-500 border-gray-300 focus:ring-2'
+                                }`}
                             />
+                            {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
                         </div>
 
                         {error && <p className="text-sm text-red-500">{error}</p>}

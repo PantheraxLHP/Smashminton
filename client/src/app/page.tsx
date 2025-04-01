@@ -1,4 +1,4 @@
-import Banner from './_homepage/banner';
+// import Banner from './_homepage/banner';
 import Categories from './_homepage/categories';
 import FeaturedCourts from './_homepage/featured-courts';
 import HeroSection from './_homepage/hero-section';
@@ -9,7 +9,7 @@ export default function Page() {
             <HeroSection />
             <FeaturedCourts />
             <Categories />
-            <Banner />
+            {/* <Banner /> */}
         </div>
     );
 }

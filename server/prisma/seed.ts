@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -33,11 +32,14 @@ async function main() {
 
     console.log('🌱 Seeding...');
     // Insert Accounts
+    const password = '123';
+    const hashedPassword = (await bcrypt.hash(password, 10)).toString();
+
     const accounts = await prisma.accounts.createMany({
         data: [
             {
                 username: 'admin',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Admin',
                 email: 'admin@example.com',
@@ -47,7 +49,7 @@ async function main() {
             },
             {
                 username: 'nguyenvana',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Văn A',
                 email: 'nguyenvana@example.com',
@@ -61,7 +63,7 @@ async function main() {
             },
             {
                 username: 'tranthib',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Trần Thị B',
                 email: 'tranthib@example.com',
@@ -75,7 +77,7 @@ async function main() {
             },
             {
                 username: 'lehongc',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Lê Hồng C',
                 email: 'lehongc@example.com',
@@ -89,7 +91,7 @@ async function main() {
             },
             {
                 username: 'lehoangd',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Lê Hoàng D',
                 email: 'lehoangd@example.com',
@@ -103,7 +105,7 @@ async function main() {
             },
             {
                 username: 'nguyenminhe',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Minh E',
                 email: 'nguyenminhe@example.com',
@@ -117,7 +119,7 @@ async function main() {
             },
             {
                 username: 'buithanhf',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Bùi Thành F',
                 email: 'buithanhf@example.com',
@@ -131,7 +133,7 @@ async function main() {
             },
             {
                 username: 'trantieng',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Trần Tiến G',
                 email: 'trantieng@example.com',
@@ -145,7 +147,7 @@ async function main() {
             },
             {
                 username: 'phamthih',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phạm Thị H',
                 email: 'phamthih@example.com',
@@ -159,7 +161,7 @@ async function main() {
             },
             {
                 username: 'phumyi',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phù Mỹ I',
                 email: 'phumyi@example.com',
@@ -173,7 +175,7 @@ async function main() {
             },
             {
                 username: 'caobaj',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Cao Bá J',
                 email: 'caobaj@example.com',
@@ -187,7 +189,7 @@ async function main() {
             },
             {
                 username: 'hoangthik',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Hoàng Thị K',
                 email: 'hoangthik@example.com',
@@ -201,7 +203,7 @@ async function main() {
             },
             {
                 username: 'nguyenducl',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Đức L',
                 email: 'nguyenducl@example.com',
@@ -215,7 +217,7 @@ async function main() {
             },
             {
                 username: 'vophatm',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Võ Phát M',
                 email: 'vophatm@example.com',
@@ -229,7 +231,7 @@ async function main() {
             },
             {
                 username: 'nguyenvun',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Vũ N',
                 email: 'nguyenvun@example.com',
@@ -243,7 +245,7 @@ async function main() {
             },
             {
                 username: 'phamthuyo',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phạm Thuỳ O',
                 email: 'phamthuyo@example.com',
@@ -257,7 +259,7 @@ async function main() {
             },
             {
                 username: 'huyenvup',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Huyền Vũ P',
                 email: 'huyenvup@example.com',

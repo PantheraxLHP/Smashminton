@@ -10,11 +10,14 @@ import {
     ApiOperation,
     ApiNotFoundResponse,
 } from '@nestjs/swagger';
-
+import { CacheService } from '../cache/cache.service';
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
-    constructor(private readonly productsService: ProductsService) {}
+    constructor(
+        private readonly productsService: ProductsService,
+        private readonly cacheService: CacheService,
+    ) {}
 
     @Post()
     @ApiOperation({ summary: 'Create a product' })
@@ -45,6 +48,7 @@ export class ProductsController {
     @ApiNotFoundResponse({ description: 'Product not found' })
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
+        await this.cacheService.set('test-key', 'test-value', 60);
         if (!product) {
             throw new NotFoundException('Product not found');
         }
