@@ -1,11 +1,23 @@
-import { FeatureZone } from '@/app/api/zones/route';
+export async function handleLogin(
+    username: string,
+    password: string,
+): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+        const response = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
 
-export async function getZones(): Promise<FeatureZone[]> {
-    const response = await fetch(`${process.env.HOST}/api/zones`, {
-        cache: 'no-store',
-    });
+        const data = await response.json();
 
-    if (!response.ok) throw new Error('Failed to fetch zones');
-
-    return response.json();
+        if (response.ok) {
+            return { success: true, data };
+        } else {
+            return { success: false, error: data.error || 'Đăng nhập thất bại' };
+        }
+    } catch (err) {
+        console.error('Error during login:', err);
+        return { success: false, error: 'Lỗi kết nối đến server' };
+    }
 }
