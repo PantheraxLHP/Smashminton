@@ -13,27 +13,20 @@ async function runCommand(command: string, args: string[] = []) {
 }
 
 async function startDev() {
-    try {
-        await runCommand('docker', ['compose', 'up', '-d']);
-
-        // Handle Ctrl+C (SIGINT) to stop containers
-        process.on('SIGINT', () => {
-            (async () => {
-                console.log('\nStopping Docker containers (SIGINT)...');
-                await runCommand('docker', ['compose', 'down']);
-                process.exit(0);
-            })().catch((err) => {
-                console.error('Error during SIGINT handling:', err);
-                process.exit(1);
-            });
+    await runCommand('docker', ['compose', 'up', '-d']);
+    // Handle Ctrl+C (SIGINT) to stop containers
+    process.on('SIGINT', () => {
+        (async () => {
+            console.log('\nStopping Docker containers (SIGINT)...');
+            await runCommand('docker', ['compose', 'down']);
+            process.exit(0);
+        })().catch((err) => {
+            console.error('Error during SIGINT handling:', err);
+            process.exit(1);
         });
+    });
 
-        await runCommand('nest', ['start', '--watch']);
-    } finally {
-        console.log('Stopping Docker containers (normal exit)...');
-        await runCommand('docker', ['compose', 'down']);
-        process.exit(1);
-    }
+    await runCommand('nest', ['start', '--watch']);
 }
 
 startDev().catch((err) => {
