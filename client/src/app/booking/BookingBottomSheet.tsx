@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Courts, Products } from '@/types/types';
@@ -30,6 +30,7 @@ interface BookingBottomSheetProps {
     onRemoveCourt: (scCourt: SelectedCourt) => void;
     onConfirm: () => void;
     onCancel: () => void;
+    onResetTimer(resetTimerFn: () => void): void;
 }
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
@@ -39,17 +40,38 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     onRemoveCourt,
     onConfirm,
     onCancel,
+    onResetTimer,
 }) => {
-    const [timeLeft, setTimeLeft] = useState(300);
+    const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
+    const endTimeRef = useRef<number>(Date.now() + 300 * 1000); // 5 phút => milli giây
 
     useEffect(() => {
-        if (timeLeft <= 0) {
-            onCancel();
-            return;
+        const tick = () => {
+            const remainingTime = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
+            setTimeLeft(remainingTime);
+
+            if (remainingTime > 0) {
+                requestAnimationFrame(tick); // Non-blocking timer
+            } else {
+                onCancel();
+            }
+        };
+
+        const animationFrame = requestAnimationFrame(tick);
+
+        return () => cancelAnimationFrame(animationFrame);
+    }, []);
+
+    const resetTimer = useCallback(() => {
+        endTimeRef.current = Date.now() + 300 * 1000;
+        setTimeLeft(300);
+    }, []);
+
+    useEffect(() => {
+        if (onResetTimer) {
+            onResetTimer(resetTimer);
         }
-        const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-        return () => clearInterval(timer);
-    }, [timeLeft, onCancel]);
+    }, [onResetTimer, resetTimer]);
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
