@@ -3,16 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FeatureZone } from '../api/zones/route';
 import Image from 'next/image';
 import Link from 'next/link';
-
-async function getZones(): Promise<FeatureZone[]> {
-    const response = await fetch(`${process.env.HOST}/api/zones`, {
-        cache: 'no-store',
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch zones');
-
-    return response.json();
-}
+import { getZones } from '@/services/homepage.service';
 
 const FeaturedCourts = async () => {
     const zones = await getZones();
