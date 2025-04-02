@@ -35,3 +35,4 @@ import { LocalStrategy } from 'src/strategies/local.strategy';
     ],
 })
 export class AuthModule {}
+    

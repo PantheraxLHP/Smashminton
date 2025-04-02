@@ -718,13 +718,26 @@ async function main() {
             },
         ],
     });
-
+    await prisma.product_types.createMany({
+        data: [
+            {
+                producttypename: 'Badminton Equipment',
+                productisfood: false,
+            },
+            {
+                producttypename: 'Food & Beverages',
+                productisfood: true,
+            },
+        ],
+    });
+    
     const products = [
         {
             productname: 'Yonex Badminton Racket',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
+            producttypeid: 1,
             stockquantity: 30,
             sellingprice: 150.0,
             rentalprice: 20.0,
@@ -735,6 +748,7 @@ async function main() {
             batch: 'B002',
             expirydate: null,
             status: 'Available',
+            producttypeid: 1,
             stockquantity: 100,
             sellingprice: 25.0,
             rentalprice: null,
@@ -745,6 +759,7 @@ async function main() {
             batch: 'B003',
             expirydate: null,
             status: 'Available',
+            producttypeid: 1,
             stockquantity: 10,
             sellingprice: 50.0,
             rentalprice: 10.0,
@@ -755,6 +770,7 @@ async function main() {
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
+            producttypeid: 2,
             stockquantity: 200,
             sellingprice: 2.5,
             rentalprice: null,
@@ -765,6 +781,7 @@ async function main() {
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
+            producttypeid: 2,
             stockquantity: 150,
             sellingprice: 3.0,
             rentalprice: null,
@@ -772,22 +789,25 @@ async function main() {
         },
     ];
 
-    // for (const product of products) {
-    //     const createdProduct = await prisma.products.create({
-    //         data: product,
-    //     });
+/* The above code is a TypeScript snippet that appears to be part of a loop iterating over products. It
+seems to be using Prisma to create new product entries and product descriptions based on certain
+conditions. */
+    for (const product of products) {
+        const createdProduct = await prisma.products.create({
+            data: product,
+        });
 
-    //     if (product.producttype === 'Badminton Equipment') {
-    //         await prisma.product_descriptions.create({
-    //             data: {
-    //                 weight: product.productname.includes('Racket') ? 85.0 : null,
-    //                 size: product.productname.includes('Net') ? 'Standard' : null,
-    //                 gripsize: product.productname.includes('Racket') ? 'G4' : null,
-    //                 shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
-    //             },
-    //         });
-    //     }
-    // }
+        if (product.producttypeid === 1) {
+            await prisma.product_descriptions.create({
+                data: {
+                    weight: product.productname.includes('Racket') ? 85.0 : null,
+                    size: product.productname.includes('Net') ? 'Standard' : null,
+                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
+                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
+                },
+            });
+        }
+    }
 
     await prisma.suppliers.createMany({
         data: [
