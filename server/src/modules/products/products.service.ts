@@ -12,6 +12,7 @@ export class ProductsService {
         return this.prisma.products.create({ data: createProductDto });
     }
 
+    // Tìm các sản phẩm 
     findAll() {
         return this.prisma.products.findMany();
     }
