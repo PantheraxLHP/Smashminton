@@ -2,13 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import SignInPage from '../src/app/signin/page';
+import SignInPage from '../src/app/(auth)/signin/page';
 
 // Mock Next.js components and hooks
 jest.mock('next/image', () => ({
     __esModule: true,
     default: (props: any) => {
-        // eslint-disable-next-line @next/next/no-img-element
         return <img src={props.src} alt={props.alt} {...props} />;
     },
 }));

@@ -5,10 +5,22 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { ProductsModule } from './modules/products/products.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { ZonesModule } from './modules/zones/zones.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from './modules/cache/cache.module';
 
 @Module({
-  imports: [PrismaModule, ProductsModule, AccountsModule, ZonesModule],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        CacheModule,
+        PrismaModule,
+        ProductsModule,
+        AccountsModule,
+        ZonesModule,
+        AuthModule,
+        CacheModule,
+    ],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule {}

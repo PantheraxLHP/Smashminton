@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -8,9 +7,7 @@ async function main() {
     async function deleteAllData(tableList: string[]) {
         for (const tableName of tableList) {
             console.log('Truncating all data from ' + tableName);
-            await prisma.$executeRawUnsafe(
-                `TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE;`,
-            );
+            await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE;`);
         }
     }
 
@@ -35,11 +32,14 @@ async function main() {
 
     console.log('🌱 Seeding...');
     // Insert Accounts
+    const password = '123';
+    const hashedPassword = (await bcrypt.hash(password, 10)).toString();
+
     const accounts = await prisma.accounts.createMany({
         data: [
             {
                 username: 'admin',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Admin',
                 email: 'admin@example.com',
@@ -49,7 +49,7 @@ async function main() {
             },
             {
                 username: 'nguyenvana',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Văn A',
                 email: 'nguyenvana@example.com',
@@ -63,7 +63,7 @@ async function main() {
             },
             {
                 username: 'tranthib',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Trần Thị B',
                 email: 'tranthib@example.com',
@@ -77,7 +77,7 @@ async function main() {
             },
             {
                 username: 'lehongc',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Lê Hồng C',
                 email: 'lehongc@example.com',
@@ -91,7 +91,7 @@ async function main() {
             },
             {
                 username: 'lehoangd',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Lê Hoàng D',
                 email: 'lehoangd@example.com',
@@ -105,7 +105,7 @@ async function main() {
             },
             {
                 username: 'nguyenminhe',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Minh E',
                 email: 'nguyenminhe@example.com',
@@ -119,7 +119,7 @@ async function main() {
             },
             {
                 username: 'buithanhf',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Bùi Thành F',
                 email: 'buithanhf@example.com',
@@ -133,7 +133,7 @@ async function main() {
             },
             {
                 username: 'trantieng',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Trần Tiến G',
                 email: 'trantieng@example.com',
@@ -147,7 +147,7 @@ async function main() {
             },
             {
                 username: 'phamthih',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phạm Thị H',
                 email: 'phamthih@example.com',
@@ -161,7 +161,7 @@ async function main() {
             },
             {
                 username: 'phumyi',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phù Mỹ I',
                 email: 'phumyi@example.com',
@@ -175,7 +175,7 @@ async function main() {
             },
             {
                 username: 'caobaj',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Cao Bá J',
                 email: 'caobaj@example.com',
@@ -189,7 +189,7 @@ async function main() {
             },
             {
                 username: 'hoangthik',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Hoàng Thị K',
                 email: 'hoangthik@example.com',
@@ -203,7 +203,7 @@ async function main() {
             },
             {
                 username: 'nguyenducl',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Đức L',
                 email: 'nguyenducl@example.com',
@@ -217,7 +217,7 @@ async function main() {
             },
             {
                 username: 'vophatm',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Võ Phát M',
                 email: 'vophatm@example.com',
@@ -231,7 +231,7 @@ async function main() {
             },
             {
                 username: 'nguyenvun',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Nguyễn Vũ N',
                 email: 'nguyenvun@example.com',
@@ -245,7 +245,7 @@ async function main() {
             },
             {
                 username: 'phamthuyo',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Phạm Thuỳ O',
                 email: 'phamthuyo@example.com',
@@ -259,7 +259,7 @@ async function main() {
             },
             {
                 username: 'huyenvup',
-                password: '123',
+                password: hashedPassword,
                 status: 'Active',
                 fullname: 'Huyền Vũ P',
                 email: 'huyenvup@example.com',
@@ -331,8 +331,7 @@ async function main() {
             },
             {
                 rewardname: 'Holidays Bonus',
-                rewarddescription:
-                    'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
+                rewarddescription: 'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
                 rewardtype: 'Money',
                 rewardvalue: 500000,
             },
@@ -350,8 +349,7 @@ async function main() {
             },
             {
                 penaltyname: 'Unauthorized absence',
-                penaltydescription:
-                    'Phạt nhân viên vắng mặt không phép, bỏ ca làm việc',
+                penaltydescription: 'Phạt nhân viên vắng mặt không phép, bỏ ca làm việc',
                 basepenalty: 50000,
                 incrementalpenalty: 50000,
                 maxiumpenalty: 300000,
@@ -359,8 +357,7 @@ async function main() {
             },
             {
                 penaltyname: 'Failure to comply with workplace policies',
-                penaltydescription:
-                    'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
+                penaltydescription: 'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
@@ -408,8 +405,7 @@ async function main() {
         data: [
             {
                 rulename: 'Max Full-time Shifts Per Week',
-                ruledescription:
-                    'Mỗi nhân viên toàn thời gian phải làm đủ 6 ca full time (48 tiếng 1 tuần)',
+                ruledescription: 'Mỗi nhân viên toàn thời gian phải làm đủ 6 ca full time (48 tiếng 1 tuần)',
                 rulefor: 'Full-time',
                 rulevalue: 6,
                 rulestatus: 'Active',
@@ -429,8 +425,7 @@ async function main() {
             },
             {
                 rulename: 'Max Part-time Shifts Per Week',
-                ruledescription:
-                    'Mỗi nhân viên bán thời gian được làm tối đa 12 ca part time (48 tiếng 1 tuần)',
+                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 12 ca part time (48 tiếng 1 tuần)',
                 rulefor: 'Part-time',
                 rulevalue: 12,
                 rulestatus: 'Active',
@@ -450,8 +445,7 @@ async function main() {
             },
             {
                 rulename: 'Max Part-time Shifts Per Day',
-                ruledescription:
-                    'Mỗi nhân viên bán thời gian được làm tối đa 2 ca part time mỗi ngày',
+                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 2 ca part time mỗi ngày',
                 rulefor: 'Part-time',
                 rulevalue: 2,
                 rulestatus: 'Active',
@@ -490,17 +484,17 @@ async function main() {
             {
                 zonename: 'Zone A',
                 zonetype: 'Normal',
-                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg'
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
             },
             {
                 zonename: 'Zone B',
                 zonetype: 'AirConditioner',
-                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png'
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
             },
             {
                 zonename: 'Zone C',
                 zonetype: 'Private',
-                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg'
+                zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
             },
         ],
     });
@@ -741,18 +735,10 @@ async function main() {
         if (product.producttype === 'Badminton Equipment') {
             await prisma.product_descriptions.create({
                 data: {
-                    weight: product.productname.includes('Racket')
-                        ? 85.0
-                        : null,
-                    size: product.productname.includes('Net')
-                        ? 'Standard'
-                        : null,
-                    gripsize: product.productname.includes('Racket')
-                        ? 'G4'
-                        : null,
-                    shaftstiffness: product.productname.includes('Racket')
-                        ? 'Medium'
-                        : null,
+                    weight: product.productname.includes('Racket') ? 85.0 : null,
+                    size: product.productname.includes('Net') ? 'Standard' : null,
+                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
+                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
                     productid: createdProduct.productid,
                 },
             });

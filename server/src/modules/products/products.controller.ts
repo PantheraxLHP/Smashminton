@@ -1,13 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Param,
-    Delete,
-    Put,
-    NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -19,11 +10,14 @@ import {
     ApiOperation,
     ApiNotFoundResponse,
 } from '@nestjs/swagger';
-
+import { CacheService } from '../cache/cache.service';
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
-    constructor(private readonly productsService: ProductsService) {}
+    constructor(
+        private readonly productsService: ProductsService,
+        private readonly cacheService: CacheService,
+    ) {}
 
     @Post()
     @ApiOperation({ summary: 'Create a product' })
@@ -54,6 +48,7 @@ export class ProductsController {
     @ApiNotFoundResponse({ description: 'Product not found' })
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
+        await this.cacheService.set('test-key', 'test-value', 60);
         if (!product) {
             throw new NotFoundException('Product not found');
         }
@@ -65,10 +60,7 @@ export class ProductsController {
     @ApiOkResponse({ description: 'Product was updated' })
     @ApiBadRequestResponse({ description: 'Invalid input' })
     @ApiNotFoundResponse({ description: 'Product not found' })
-    async update(
-        @Param('id') id: number,
-        @Body() updateProductDto: UpdateProductDto,
-    ) {
+    async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
         const product = await this.productsService.findOne(+id);
         if (!product) {
             throw new NotFoundException('Product not found');

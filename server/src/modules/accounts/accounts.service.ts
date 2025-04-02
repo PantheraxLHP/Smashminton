@@ -2,14 +2,49 @@ import { Injectable } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { CustomerService } from '../customers/customer.service';
+import { BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AccountsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private customerService: CustomerService,
+    ) {}
 
     //CRUD operations
-    create(createAccountDto: CreateAccountDto) {
-        return this.prisma.accounts.create({ data: createAccountDto });
+    async createCustomer(createAccountDto: CreateAccountDto) {
+        const data = createAccountDto;
+
+        // Check username existed
+        const user = await this.prisma.accounts.findFirst({
+            where: { username: data.username },
+        });
+        if (user) {
+            throw new BadRequestException('Username already existed');
+        }
+        // Check repassword
+        if (data.password !== data.repassword) {
+            throw new BadRequestException('Password not match');
+        }
+
+        // Hash password
+        const password: string = data.password;
+        const hashPassword = await bcrypt.hash(password, 10);
+        const account = await this.prisma.accounts.create({
+            data: {
+                username: data.username,
+                password: hashPassword,
+                fullname: data.fullname,
+                dob: data.dob,
+                phonenumber: data.phonenumber,
+                address: data.address,
+                status: 'Active',
+                accounttype: data.accounttype,
+            },
+        });
+        const customer = await this.customerService.create(account.accountid);
+        return { account, customer };
     }
 
     findAll() {
@@ -18,6 +53,12 @@ export class AccountsService {
 
     findOne(id: number) {
         return this.prisma.accounts.findUnique({ where: { accountid: id } });
+    }
+
+    findByUsername(username: string) {
+        return this.prisma.accounts.findFirst({
+            where: { username: username },
+        });
     }
 
     update(id: number, updateAccountDto: UpdateAccountDto) {
