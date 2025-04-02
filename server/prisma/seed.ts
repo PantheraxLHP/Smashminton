@@ -273,7 +273,22 @@ async function main() {
             },
         ],
     });
-
+    await prisma.roles.createMany({
+        data: [
+            {
+                rolename: 'admin',
+            },
+            {
+                rolename: 'hr_manager',
+            },
+            {
+                rolename: 'wh_manager',
+            },
+            {
+                rolename: 'employee',
+            },
+        ],
+    });
     const accountIds = (
         await prisma.accounts.findMany({
             select: {
@@ -282,12 +297,52 @@ async function main() {
         })
     ).map((accounts) => accounts.accountid);
 
+    const roles = (
+        await prisma.roles.findMany({
+        select: {
+                roleid: true,
+            },
+        })
+    ).map((roles) => roles.roleid);    
+
     for (let i = 0; i < accountIds.length; i++) {
-        if (i <= 3) {
+        if (i == 0) {
             await prisma.employees.create({
                 data: {
+
                     employeeid: accountIds[i],
                     employee_type: 'Full-time',
+                    roleid: roles[0],
+                },
+            });
+        }
+        else if (i == 1) {
+            await prisma.employees.create({
+                data: {
+
+                    employeeid: accountIds[i],
+                    employee_type: 'Full-time',
+                    roleid: roles[1],
+                },
+            });
+        }
+        else if (i == 2) {
+            await prisma.employees.create({
+                data: {
+
+                    employeeid: accountIds[i],
+                    employee_type: 'Full-time',
+                    roleid: roles[2],
+                },
+            });
+        }
+        else if (i == 3) {
+            await prisma.employees.create({
+                data: {
+
+                    employeeid: accountIds[i],
+                    employee_type: 'Full-time',
+                    roleid: roles[3],
                 },
             });
         } else if (i < accountIds.length - 3) {
@@ -409,7 +464,6 @@ async function main() {
                 rulefor: 'Full-time',
                 rulevalue: 6,
                 rulestatus: 'Active',
-                managerid: 1,
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -419,7 +473,6 @@ async function main() {
                 rulefor: 'Full-time',
                 rulevalue: 1,
                 rulestatus: 'Active',
-                managerid: 1,
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -429,7 +482,6 @@ async function main() {
                 rulefor: 'Part-time',
                 rulevalue: 12,
                 rulestatus: 'Active',
-                managerid: 1,
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -439,7 +491,6 @@ async function main() {
                 rulefor: 'Part-time',
                 rulevalue: 2,
                 rulestatus: 'Active',
-                managerid: 1,
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -449,7 +500,6 @@ async function main() {
                 rulefor: 'Part-time',
                 rulevalue: 2,
                 rulestatus: 'Active',
-                managerid: 1,
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -672,7 +722,6 @@ async function main() {
     const products = [
         {
             productname: 'Yonex Badminton Racket',
-            producttype: 'Badminton Equipment',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
@@ -683,7 +732,6 @@ async function main() {
         },
         {
             productname: 'Li-Ning Shuttlecock',
-            producttype: 'Badminton Equipment',
             batch: 'B002',
             expirydate: null,
             status: 'Available',
@@ -694,7 +742,6 @@ async function main() {
         },
         {
             productname: 'Badminton Net',
-            producttype: 'Badminton Equipment',
             batch: 'B003',
             expirydate: null,
             status: 'Available',
@@ -705,7 +752,6 @@ async function main() {
         },
         {
             productname: 'Energy Drink',
-            producttype: 'Snacks and Drinks',
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
@@ -716,7 +762,6 @@ async function main() {
         },
         {
             productname: 'Protein Bar',
-            producttype: 'Snacks and Drinks',
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
@@ -727,23 +772,22 @@ async function main() {
         },
     ];
 
-    for (const product of products) {
-        const createdProduct = await prisma.products.create({
-            data: product,
-        });
+    // for (const product of products) {
+    //     const createdProduct = await prisma.products.create({
+    //         data: product,
+    //     });
 
-        if (product.producttype === 'Badminton Equipment') {
-            await prisma.product_descriptions.create({
-                data: {
-                    weight: product.productname.includes('Racket') ? 85.0 : null,
-                    size: product.productname.includes('Net') ? 'Standard' : null,
-                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
-                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
-                    productid: createdProduct.productid,
-                },
-            });
-        }
-    }
+    //     if (product.producttype === 'Badminton Equipment') {
+    //         await prisma.product_descriptions.create({
+    //             data: {
+    //                 weight: product.productname.includes('Racket') ? 85.0 : null,
+    //                 size: product.productname.includes('Net') ? 'Standard' : null,
+    //                 gripsize: product.productname.includes('Racket') ? 'G4' : null,
+    //                 shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
+    //             },
+    //         });
+    //     }
+    // }
 
     await prisma.suppliers.createMany({
         data: [
