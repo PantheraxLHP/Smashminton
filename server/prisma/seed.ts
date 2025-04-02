@@ -299,11 +299,11 @@ async function main() {
 
     const roles = (
         await prisma.roles.findMany({
-        select: {
+            select: {
                 roleid: true,
             },
         })
-    ).map((roles) => roles.roleid);    
+    ).map((roles) => roles.roleid);
 
     for (let i = 0; i < accountIds.length; i++) {
         if (i == 0) {
@@ -721,23 +721,49 @@ async function main() {
     await prisma.product_types.createMany({
         data: [
             {
-                producttypename: 'Badminton Equipment',
+                producttypename: 'Shoe bag',
                 productisfood: false,
             },
             {
-                producttypename: 'Food & Beverages',
+                producttypename: 'Badminton tube',
+                productisfood: false,
+            },
+            {
+                producttypename: 'Badminton racket grip',
+                productisfood: false,
+            },
+            {
+                producttypename: 'Badminton sock',
+                productisfood: false,
+            },
+            {
+                producttypename: 'Badminton string',
+                productisfood: false,
+            },
+            {
+                producttypename: 'Food',
                 productisfood: true,
             },
+            {
+                producttypename: 'Beverage',
+                productisfood: true,
+            },
+            {
+                producttypename: 'Snack',
+                productisfood: true,
+            }
         ],
     });
-    
+
     const products = [
+        // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
+        // 6: Food, 7: Beverage, 8: Snack
         {
-            productname: 'Yonex Badminton Racket',
+            productname: 'Yonex Badminton Grip',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
-            producttypeid: 1,
+            producttypeid: 3,
             stockquantity: 30,
             sellingprice: 150.0,
             rentalprice: 20.0,
@@ -748,18 +774,29 @@ async function main() {
             batch: 'B002',
             expirydate: null,
             status: 'Available',
-            producttypeid: 1,
+            producttypeid: 2,
             stockquantity: 100,
             sellingprice: 25.0,
             rentalprice: null,
             costprice: 15.0,
         },
         {
-            productname: 'Badminton Net',
+            productname: 'Yonex Shuttlecock',
+            batch: 'B002',
+            expirydate: null,
+            status: 'Available',
+            producttypeid: 2,
+            stockquantity: 100,
+            sellingprice: 25.0,
+            rentalprice: null,
+            costprice: 15.0,
+        },
+        {
+            productname: 'Yonex pro string',
             batch: 'B003',
             expirydate: null,
             status: 'Available',
-            producttypeid: 1,
+            producttypeid: 5,
             stockquantity: 10,
             sellingprice: 50.0,
             rentalprice: 10.0,
@@ -770,7 +807,7 @@ async function main() {
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
-            producttypeid: 2,
+            producttypeid: 7,
             stockquantity: 200,
             sellingprice: 2.5,
             rentalprice: null,
@@ -781,17 +818,28 @@ async function main() {
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
-            producttypeid: 2,
+            producttypeid: 8,
             stockquantity: 150,
             sellingprice: 3.0,
             rentalprice: null,
             costprice: 2.0,
         },
+        {
+            productname: 'Cá viên chiên xiên bẩn',
+            batch: 'D002',
+            expirydate: new Date('2024-06-30'),
+            status: 'Available',
+            producttypeid: 6,
+            stockquantity: 150,
+            sellingprice: 3.0,
+            rentalprice: null,
+            costprice: 2.0,
+        }
     ];
 
-/* The above code is a TypeScript snippet that appears to be part of a loop iterating over products. It
-seems to be using Prisma to create new product entries and product descriptions based on certain
-conditions. */
+    /* The above code is a TypeScript snippet that appears to be part of a loop iterating over products. It
+    seems to be using Prisma to create new product entries and product descriptions based on certain
+    conditions. */
     for (const product of products) {
         const createdProduct = await prisma.products.create({
             data: product,

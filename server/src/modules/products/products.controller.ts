@@ -30,13 +30,68 @@ export class ProductsController {
         return this.productsService.create(createProductDto);
     }
 
-    @Get('foods-drinks')
-    @ApiOperation({ summary: 'Find all products' })
-    @ApiOkResponse({ description: 'Found all products' })
-    async findAll() {
-        const products = await this.productsService.findAll();
+    @Get('BadmintonEquipments')
+    @ApiOperation({ summary: 'Find all badminton equipments' })
+    @ApiOkResponse({ description: 'Find all badminton equipments' })
+    async findAllBadmintonEquipments() {
+        const products = await this.productsService.findAllBadmintonEquipments();
         if (!products) {
-            throw new NotFoundException('No products found');
+            throw new NotFoundException('No badminton equipments');
+        }
+        return products;
+    }
+
+    @Get('BadmintonTubes')
+    @ApiOperation({ summary: 'Find all badminton tubes' })
+    @ApiOkResponse({ description: 'Find all badminton tubess' })
+    async findAllBadmintonTube() {
+        const products = await this.productsService.findAllBadmintonTube();
+        if (!products) {
+            throw new NotFoundException('No badminton tubes');
+        }
+        return products;
+    }
+
+    @Get('foods-snacks-beverages')
+    @ApiOperation({ summary: 'Find all foods, snacks and beverages' })
+    @ApiOkResponse({ description: 'Find all foods, snacks and beverages' })
+    async findAllFoodsSnacksBeverages() {
+        const products = await this.productsService.findAllFoodsSnacksBeverages();
+        if (!products) {
+            throw new NotFoundException('No foods, snacks and beverages found');
+        }
+        return products;
+    }
+
+    @Get('foods')
+    @ApiOperation({ summary: 'Find all foods' })
+    @ApiOkResponse({ description: 'Find all foods' })
+    async findAllFoods() {
+        const products = await this.productsService.findAllFoods();
+        if (!products) {
+            throw new NotFoundException('No foods');
+        }
+        return products;
+    }
+
+    @Get('snacks')
+    @ApiOperation({ summary: 'Find all snacks' })
+    @ApiOkResponse({ description: 'Find all snacks' })
+    async findAllSnacks() {
+        const products = await this.productsService.findAllSnacks();
+        if (!products) {
+            throw new NotFoundException('No snacks');
+        }
+        return products;
+    }
+
+    @Get('breverages')
+    @ApiOperation({ summary: 'Find all breverages' })
+    @ApiOkResponse({ description: 'Find all breverages' })
+    async findAllBreverages() {
+        const products = await this.productsService.findAllBreverages();
+        if (!products) {
+            throw new NotFoundException('No breverages');
         }
         return products;
     }
