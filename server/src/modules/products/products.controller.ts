@@ -36,7 +36,7 @@ export class ProductsController {
         return this.productsService.create(createProductDto);
     }
 
-    @Get()
+    @Get('foods-drinks')
     @ApiOperation({ summary: 'Find all products' })
     @ApiOkResponse({ description: 'Found all products' })
     async findAll() {
@@ -47,7 +47,7 @@ export class ProductsController {
         return products;
     }
 
-    @Get(':id')
+    @Get('products/:id')
     @ApiOperation({ summary: 'Find one product' })
     @ApiOkResponse({ description: 'Found the product' })
     @ApiBadRequestResponse({ description: 'Invalid ID' })
