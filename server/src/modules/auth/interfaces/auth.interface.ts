@@ -7,6 +7,7 @@ export interface SignInData {
     accountid: number;
     username: string;
     accounttype: string;
+    role?: string;
 }
 
 export interface AuthResponse {

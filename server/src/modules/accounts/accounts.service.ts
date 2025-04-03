@@ -2,14 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { CustomerService } from '../customers/customer.service';
+import { CustomerService } from '../customers/customers.service';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { EmployeesService } from '../employees/employees.service';
 @Injectable()
 export class AccountsService {
     constructor(
         private prisma: PrismaService,
         private customerService: CustomerService,
+        private employeeService: EmployeesService, // Assuming you have an EmployeesModule
     ) {}
 
     //CRUD operations
@@ -60,7 +62,9 @@ export class AccountsService {
             where: { username: username },
         });
     }
-
+    findRoleByEmployeeId(employeeId: number) {
+        return this.employeeService.getEmployeeRoles(employeeId);
+    }
     update(id: number, updateAccountDto: UpdateAccountDto) {
         return this.prisma.accounts.update({
             where: { accountid: id },

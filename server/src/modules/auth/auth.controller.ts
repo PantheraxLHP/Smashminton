@@ -28,6 +28,8 @@ import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { Public } from 'src/decorators/public.decorator';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 @ApiTags('Authorization')
 @Controller('auth')
 export class AuthController {
@@ -37,15 +39,14 @@ export class AuthController {
     ) {}
 
     @Post('signin')
-    //@Public() // Đánh dấu route này là công khai
-    @UseGuards(LocalAuthGuard)
+    @UseGuards(LocalAuthGuard)// Đánh dấu route này là công khai
+    @Public()
     @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' }) // Mô tả API
     @ApiBody({ type: SigninAuthDto }) // Định nghĩa body request
     @ApiResponse({ status: 201, description: 'SignIn successful' }) // Phản hồi khi thành công
     @ApiUnauthorizedResponse() // Phản hồi khi lỗi xác thực
     async signIn(@Request() req: { user: SignInData }, @Res({ passthrough: true }) res: Response) {
         const { accessToken, refreshToken } = await this.authService.signIn(req.user);
-
         // Đặt refresh token vào cookies
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true, // Chỉ truy cập được từ server
@@ -94,7 +95,7 @@ export class AuthController {
 
     @Get('profile')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
+    @Roles('admin')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }

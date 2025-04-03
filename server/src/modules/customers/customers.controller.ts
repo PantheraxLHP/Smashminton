@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
-import { CustomerService } from './customer.service';
+import { CustomerService } from './customers.service';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { ApiTags } from '@nestjs/swagger';
 

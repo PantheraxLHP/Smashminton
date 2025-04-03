@@ -5,10 +5,13 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { LocalStrategy } from 'src/strategies/local.strategy';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
+import { RolesModule } from '../roles/roles.module';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @Module({
     controllers: [AuthController],
@@ -16,13 +19,18 @@ import { LocalStrategy } from 'src/strategies/local.strategy';
         AuthService,
         LocalStrategy,
         JwtStrategy,
-        // {
-        //     provide: APP_GUARD,
-        //     useClass: JwtAuthGuard,
-        // },
+        {
+            provide: APP_GUARD,
+            useClass: JwtAuthGuard, // Đăng ký JwtAuthGuard trước
+        },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard, // Đăng ký RolesGuard sau
+        },
     ],
     imports: [
         AccountsModule,
+        RolesModule,
         PassportModule,
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({

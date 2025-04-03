@@ -10,7 +10,7 @@ import {
     ApiOperation,
     ApiNotFoundResponse,
 } from '@nestjs/swagger';
-import { CustomerService } from '../customers/customer.service';
+import { CustomerService } from '../customers/customers.service';
 
 @ApiTags('Accounts')
 @Controller('accounts')

@@ -25,6 +25,18 @@ export class AuthService {
         if (!isMatch) {
             throw new BadRequestException('Password not match');
         }
+        
+        if (user.accounttype === 'Employee') {
+            const roleEmployee:string = await this.accountService.findRoleByEmployeeId(user.accountid);
+            return {
+                accountid: user.accountid ?? '',
+                username: user.username ?? '',
+                accounttype: user.accounttype ?? '',
+                role: roleEmployee ?? '',
+
+            };
+        }
+
         return {
             accountid: user.accountid ?? '',
             username: user.username ?? '',
@@ -35,20 +47,25 @@ export class AuthService {
     async validateUserByRefreshToken(refreshToken: string): Promise<SignInData | null> {
         try {
             // Xác thực refresh token
-            const payload: { sub: number; username: string; accounttype: string } = await this.jwtService.verifyAsync(
-                refreshToken,
-                {
+            const payload: { sub: number; username: string; accounttype: string; role?: string } =
+                await this.jwtService.verifyAsync(refreshToken, {
                     secret: process.env.JWT_REFRESH_TOKEN_SECRET, // Sử dụng secret của refresh token
-                },
-            );
-
+                });
+    
             // Lấy thông tin người dùng từ payload
             const user = {
                 accountid: Number(payload.sub),
                 username: payload.username,
                 accounttype: payload.accounttype,
+                role: payload.role ?? '', // Nếu role không tồn tại, đặt giá trị là undefined
             };
-
+    
+            // Nếu accounttype là Employee và role không có trong payload, truy vấn role từ cơ sở dữ liệu
+            if (user.accounttype === 'Employee' && user.role === '') {
+                const roleEmployee: string = await this.accountService.findRoleByEmployeeId(user.accountid);
+                user.role = roleEmployee ?? undefined; // Cập nhật role từ cơ sở dữ liệu
+            }
+            // Trả về thông tin người dùng
             return user;
         } catch {
             return null; // Trả về null nếu refresh token không hợp lệ
@@ -60,6 +77,7 @@ export class AuthService {
             sub: user.accountid ?? '',
             username: user.username ?? '',
             accounttype: user.accounttype ?? '',
+            ...(user.accounttype === 'Employee' && user.role ? { role: user.role } : {}), // Thêm role nếu là Employee
         };
         const access_token = await this.jwtService.signAsync(tokenPayload, {
             expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES,
