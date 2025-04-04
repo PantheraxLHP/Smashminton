@@ -3,6 +3,7 @@ import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/decorators/public.decorator';
 
 @ApiTags('Zones')
 @Controller('zones')
@@ -14,6 +15,7 @@ export class ZonesController {
         return this.zonesService.create(createZoneDto);
     }
 
+    @Public()
     @Get()
     findAll() {
         return this.zonesService.findAll();

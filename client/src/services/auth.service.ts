@@ -3,11 +3,7 @@ export async function handleLogin(
     password: string,
 ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-        const response = await fetch('/api/auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-        });
+        const response = await fetch('/api/auth/signin');
 
         const data = await response.json();
 

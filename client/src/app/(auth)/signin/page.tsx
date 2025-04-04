@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { handleLogin } from '@/services/auth.service';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function SignInPage() {
     const [username, setUsername] = useState('');
@@ -14,7 +15,7 @@ export default function SignInPage() {
         username: '',
         password: '',
     });
-
+    const router = useRouter();
     const validateForm = () => {
         let valid = true;
         const newErrors = {
@@ -43,11 +44,17 @@ export default function SignInPage() {
             return;
         }
 
+        console.log('username', username);
+        console.log('password', password);
+        // Call the login function from auth.service
+
         const result = await handleLogin(username, password);
 
         if (result.success) {
             localStorage.setItem('token', result.data.token);
-            redirect('/');
+            toast.success('Đăng nhập thành công!');
+            router.push('/');
+            //
         } else {
             setError(result.error || 'Đăng nhập thất bại');
         }
@@ -62,6 +69,7 @@ export default function SignInPage() {
                     alt="Badminton"
                     fill
                     priority
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="absolute inset-0 h-full w-full object-cover opacity-100"
                 />
 

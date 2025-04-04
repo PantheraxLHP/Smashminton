@@ -3,6 +3,7 @@ import './globals.css';
 import Footer from '@/components/atomic/Footer';
 import Header from '@/components/atomic/Header';
 import { menus } from '@/lib/menus';
+import { Toaster } from '@/components/ui/sonner';
 
 type UserRole = keyof typeof menus;
 const userRole: UserRole = (process.env.USER_ROLE as UserRole) || 'guest';
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     showLoginButton={userRole === ('guest' as string)}
                 />
                 <main className="min-h-screen">{children}</main>
+                <Toaster richColors expand={false} position="bottom-right" />
                 <Footer />
             </body>
         </html>

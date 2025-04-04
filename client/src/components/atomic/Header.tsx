@@ -32,7 +32,13 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                 {/* Logo */}
                 <div className="flex items-center">
                     <Link href="/" className="rounded hover:bg-gray-800">
-                        <Image src="/logo.png" alt="Logo" width={40} height={40} />
+                        <Image
+                            src="/logo.png"
+                            alt="Logo"
+                            width={40}
+                            height={40}
+                            style={{ width: 'auto', height: 'auto' }}
+                        />
                     </Link>
                 </div>
 
