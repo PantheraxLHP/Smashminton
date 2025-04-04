@@ -7,9 +7,7 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     // Đặt tiền tố toàn cầu cho tất cả các đường dẫn trừ đường dẫn gốc
-    app.enableCors({
-        credentials: true,
-    });
+    app.enableCors();
 
     app.setGlobalPrefix('api/v1', { exclude: [''] });
 

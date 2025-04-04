@@ -1,9 +1,7 @@
 import { loginSchema } from '@/types/schema';
 
 export const handleLogin = async (username: string, password: string) => {
-    // Xác thực đầu vào với Zod
-    const result = loginSchema.safeParse({ username, password });
-    if (!result.success) {
+    if (!loginSchema.safeParse({ username, password }).success) {
         return { success: false, error: 'Thông tin đăng nhập không hợp lệ' };
     }
 
@@ -14,15 +12,13 @@ export const handleLogin = async (username: string, password: string) => {
             body: JSON.stringify({ username, password }),
             cache: 'no-store',
         });
-
         const data = await res.json();
-
-        if (!res.ok) {
+        if (res.ok) {
+            return { success: true, data };
+        } else {
             return { success: false, error: data.message || 'Đăng nhập thất bại' };
         }
-
-        return { success: true, data };
-    } catch (error) {
+    } catch {
         return { success: false, error: 'Lỗi hệ thống, vui lòng thử lại sau' };
     }
 };
