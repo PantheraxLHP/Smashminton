@@ -1,9 +1,8 @@
 import BlueLine from '@/components/atomic/BlueLine';
 import { Button } from '@/components/ui/button';
-import { FeatureZone } from '../api/zones/route';
+import { getZones } from '@/services/zones.service';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getZones } from '@/services/homepage.service';
 
 const FeaturedCourts = async () => {
     const zones = await getZones();
@@ -28,6 +27,8 @@ const FeaturedCourts = async () => {
                                 src={zone.zoneimgurl || ''}
                                 alt={zone.zonename || ''}
                                 fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                priority
                                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                             <div className="text-primary-600 absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium backdrop-blur-sm">

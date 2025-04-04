@@ -11,26 +11,35 @@ const featureTranslations: Record<string, string> = {
     Private: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu',
 };
 
-export async function GET() {
+export const getZones = async (): Promise<FeatureZone[]> => {
     try {
-        const response = await fetch(`${process.env.SERVER}/api/v1/zones`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER}/api/v1/zones`, {
             cache: 'no-store',
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorMessage = `HTTP error! Status: ${response.status} - ${response.statusText}`;
+            console.error(errorMessage);
+            throw new Error(errorMessage);
         }
 
         const data: Zones[] = await response.json();
 
+        if (!Array.isArray(data)) {
+            const errorMessage = 'Invalid response format: Expected an array of zones';
+            console.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+
         // Map the English descriptions to Vietnamese features and ensure ZoneFeature type
         const translatedData: FeatureZone[] = data.map((zone) => ({
             ...zone,
-            feature: featureTranslations[zone.zonetype || 'Không có thông tin'],
+            feature: featureTranslations[zone.zonetype || 'Không có thông tin'] || 'Không có thông tin',
         }));
 
-        return NextResponse.json(translatedData);
+        return translatedData;
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to fetch zones' }, { status: 500 });
+        console.error('Error fetching zones:', error);
+        throw new Error('Failed to fetch zones');
     }
-}
+};

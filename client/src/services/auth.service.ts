@@ -1,19 +1,28 @@
-export async function handleLogin(
-    username: string,
-    password: string,
-): Promise<{ success: boolean; data?: any; error?: string }> {
-    try {
-        const response = await fetch('/api/auth/signin');
+import { loginSchema } from '@/types/schema';
 
-        const data = await response.json();
-
-        if (response.ok) {
-            return { success: true, data };
-        } else {
-            return { success: false, error: data.error || 'Đăng nhập thất bại' };
-        }
-    } catch (err) {
-        console.error('Error during login:', err);
-        return { success: false, error: 'Lỗi kết nối đến server' };
+export const handleLogin = async (username: string, password: string) => {
+    // Xác thực đầu vào với Zod
+    const result = loginSchema.safeParse({ username, password });
+    if (!result.success) {
+        return { success: false, error: 'Thông tin đăng nhập không hợp lệ' };
     }
-}
+
+    try {
+        const res = await fetch('/api/auth/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            cache: 'no-store',
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            return { success: false, error: data.message || 'Đăng nhập thất bại' };
+        }
+
+        return { success: true, data };
+    } catch (error) {
+        return { success: false, error: 'Lỗi hệ thống, vui lòng thử lại sau' };
+    }
+};
