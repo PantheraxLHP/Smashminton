@@ -1,26 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { handleLogin } from '@/services/auth.service';
+import { useAuth } from '@/context/AuthContext';
+import { handleSignin } from '@/services/auth.service';
 import { loginSchema } from '@/types/schema';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function useSignIn() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [formErrors, setFormErrors] = useState<{ username?: string; password?: string }>({});
+    const { login } = useAuth(); // Access the login function from AuthContext
+    const [username, setUsername] = useState(''); // State for username input
+    const [password, setPassword] = useState(''); // State for password input
+    const [error, setError] = useState(''); // State for general error messages
+    const [formErrors, setFormErrors] = useState<{ username?: string; password?: string }>({}); // State for form validation errors
 
-    const router = useRouter();
+    const router = useRouter(); // Next.js router for navigation
 
     const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default form submission
 
-        // Validate data using Zod
+        // Validate form inputs using loginSchema
         const result = loginSchema.safeParse({ username, password });
 
         if (!result.success) {
+            // Extract and set validation errors
             const formattedErrors = result.error.format();
             setFormErrors({
                 username: formattedErrors.username?._errors?.[0],
@@ -30,16 +33,17 @@ export function useSignIn() {
         }
 
         try {
-            const res = await handleLogin(username, password);
+            // Call the sign-in service
+            const res = await handleSignin(username, password);
             if (res.success) {
-                localStorage.setItem('token', res.data.token);
-                toast.success('Đăng nhập thành công!');
-                router.push('/');
+                login(res.data.accessToken); // Save access token using login function
+                toast.success('Đăng nhập thành công!'); // Show success toast
+                router.push('/'); // Redirect to home page
             } else {
-                setError(res.error || 'Đăng nhập thất bại');
+                setError(res.error || 'Đăng nhập thất bại'); // Set error message
             }
         } catch (err) {
-            setError('Lỗi hệ thống, vui lòng thử lại sau');
+            setError('Lỗi hệ thống, vui lòng thử lại sau'); // Handle system errors
         }
     };
 

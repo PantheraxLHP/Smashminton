@@ -1,10 +1,4 @@
-import { loginSchema } from '@/types/schema';
-
-export const handleLogin = async (username: string, password: string) => {
-    if (!loginSchema.safeParse({ username, password }).success) {
-        return { success: false, error: 'Thông tin đăng nhập không hợp lệ' };
-    }
-
+export const handleSignin = async (username: string, password: string) => {
     try {
         const res = await fetch('/api/auth/signin', {
             method: 'POST',
@@ -20,5 +14,22 @@ export const handleLogin = async (username: string, password: string) => {
         }
     } catch {
         return { success: false, error: 'Lỗi hệ thống, vui lòng thử lại sau' };
+    }
+};
+
+export const handleSignout = async () => {
+    try {
+        const res = await fetch('/api/auth/signout', {
+            method: 'POST',
+            cache: 'no-store',
+        });
+        const data = await res.json();
+        if (res.ok) {
+            return { success: true };
+        } else {
+            return { success: false, error: data.error || 'Logout failed' };
+        }
+    } catch {
+        return { success: false, error: 'System error, please try again later' };
     }
 };

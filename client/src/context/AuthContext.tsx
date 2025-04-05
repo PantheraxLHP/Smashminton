@@ -1,4 +1,5 @@
-// contexts/AuthContext.tsx
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
@@ -19,23 +20,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-
-    // Giải mã token và lưu thông tin người dùng
     const login = (token: string) => {
-        const payload = JSON.parse(atob(token.split('.')[1])); // Decode payload
+        const payload = JSON.parse(atob(token.split('.')[1]));
         setUser({
             id: payload.sub,
             username: payload.username,
             role: payload.role,
             accountType: payload.accounttype,
         });
-        sessionStorage.setItem('accessToken', token); // Lưu token
+        sessionStorage.setItem('accessToken', token);
     };
 
     const logout = () => {
         setUser(null);
         sessionStorage.removeItem('accessToken');
-        // Gọi API logout nếu cần
     };
 
     // Kiểm tra token khi khởi động app
@@ -60,7 +58,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-// Hook để sử dụng trong components
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

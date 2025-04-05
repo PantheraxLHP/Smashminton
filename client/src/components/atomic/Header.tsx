@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronDown, User } from 'lucide-react';
 import { Button } from '../ui/button';
+import { redirect } from 'next/dist/server/api-utils';
+import { handleSignout } from '@/services/auth.service';
 
 interface MenuItem {
     label: string;
@@ -66,7 +68,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                     </nav>
                 </div>
 
-                {/* signin / Profile Icon */}
+                <Button onClick={handleSignout}>Đăng xuất</Button>
                 {showLoginButton ? (
                     <Button asChild>
                         <Link href="/signin">Đăng nhập</Link>
