@@ -6,11 +6,10 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    // Đặt tiền tố toàn cầu cho tất cả các đường dẫn trừ đường dẫn gốc
-    app.enableCors({
-        origin: 'http://localhost:3000', // Domain của frontend
-        credentials: true, // Cho phép gửi cookies
-    });
+    // app.enableCors({
+    //     origin: 'http://localhost:3000', // Domain của frontend
+    //     credentials: true, // Cho phép gửi cookies
+    // });
 
     app.setGlobalPrefix('api/v1', { exclude: [''] });
 

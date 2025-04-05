@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 function decodeJWT(token: string) {
@@ -13,21 +14,28 @@ function decodeJWT(token: string) {
     }
 }
 
-export async function GET(req: Request) {
-    const cookies = req.headers.get('cookie');
-    const accessToken = cookies
-        ?.split('; ')
-        .find((c) => c.startsWith('accessToken='))
-        ?.split('=')[1];
+export async function GET() {
+    const cookieStore = cookies();
+    const accessToken = (await cookieStore).get('accessToken')?.value;
 
     if (!accessToken) {
-        return NextResponse.json({ user: null }, { status: 401 });
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const decodedUser = decodeJWT(accessToken); // Decode without verifying
-        return NextResponse.json({ user: decodedUser }, { status: 200 });
+        // ❗ Decode không verify để lấy payload
+        const decoded = decodeJWT(accessToken) as {
+            id: string;
+            username: string;
+            role: string;
+            accounttype: string;
+            exp: number;
+        };
+
+        if (!decoded) throw new Error('Invalid token');
+
+        return NextResponse.json({ user: decoded });
     } catch (error) {
-        return NextResponse.json({ user: null }, { status: 401 });
+        return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
 }

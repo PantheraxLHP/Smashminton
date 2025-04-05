@@ -1,6 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type User = {
     id: string;
@@ -11,6 +13,7 @@ type User = {
 
 type AuthContextType = {
     isAuthenticated: boolean;
+    isLoading: boolean;
     user: User | null;
     login: () => Promise<void>;
     logout: () => Promise<void>;
@@ -18,6 +21,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
+    isLoading: true,
     user: null,
     login: async () => {},
     logout: async () => {},
@@ -25,52 +29,55 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-
-    useEffect(() => {
-        const fetchSession = async () => {
-            try {
-                const res = await fetch('/api/auth/session', {
-                    method: 'GET',
-                    credentials: 'include',
-                });
-                if (!res.ok) throw new Error('Not authenticated');
-                const data = await res.json();
-                setUser(data.user);
-            } catch {
-                setUser(null);
-            }
-        };
-
-        fetchSession();
-    }, []);
-
-    const isAuthenticated = !!user;
-
-    const login = async () => {
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+    const fetchSession = async () => {
+        setIsLoading(true);
         try {
             const res = await fetch('/api/auth/session', {
                 method: 'GET',
+                credentials: 'include',
             });
-            if (!res.ok) throw new Error('Failed to fetch user data');
+            if (!res.ok) throw new Error('Not authenticated');
             const data = await res.json();
-            console.log('User data:', data);
             setUser(data.user);
-        } catch (error) {
+        } catch {
             setUser(null);
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    useEffect(() => {
+        fetchSession();
+    }, []);
+
+    const login = async () => {
+        await fetchSession();
+        setTimeout(() => {
+            toast.success('Đăng nhập thành công!');
+        }, 500);
+        router.push('/'); // Redirect to home page after login
     };
 
     const logout = async () => {
         try {
             const res = await fetch('/api/auth/signout', { method: 'POST' });
             if (!res.ok) throw new Error('Logout failed');
+            toast.success('Đăng xuất thành công!');
             setUser(null);
         } catch (error) {
             console.error(error);
         }
     };
 
-    return <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>{children}</AuthContext.Provider>;
+    const isAuthenticated = !!user;
+
+    return (
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => useContext(AuthContext);

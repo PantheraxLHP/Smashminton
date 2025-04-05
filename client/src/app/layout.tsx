@@ -13,10 +13,12 @@ export const metadata: Metadata = {
         apple: '/apple-touch-icon.png',
     },
 };
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="vi, en" className="font-roboto">
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+            </head>
             <body>
                 <AuthProvider>
                     <LayoutContent>{children}</LayoutContent>

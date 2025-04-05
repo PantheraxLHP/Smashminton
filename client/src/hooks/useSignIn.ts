@@ -1,9 +1,9 @@
-import { PurchaseOrder } from './../types/types';
 import { useAuth } from '@/context/AuthContext';
 import { handleSignin } from '@/services/auth.service';
 import { loginSchema } from '@/types/schema';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function useSignIn() {
     const [username, setUsername] = useState('');
@@ -11,7 +11,6 @@ export function useSignIn() {
     const [error, setError] = useState('');
     const [formErrors, setFormErrors] = useState<{ username?: string; password?: string }>({});
     const { login } = useAuth();
-    const router = useRouter();
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,9 +28,8 @@ export function useSignIn() {
         try {
             const res = await handleSignin(username, password);
             if (res.success) {
-                // Gọi hàm login từ AuthContext để cập nhật trạng thái người dùng
-                await login(res.data.accessToken);
-                router.push('/'); // Chuyển hướng về trang chính sau khi đăng nhập thành công
+                login();
+                setError('');
             } else {
                 setError(res.error || 'Đăng nhập thất bại');
             }

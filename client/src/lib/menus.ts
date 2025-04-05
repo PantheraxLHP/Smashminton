@@ -9,7 +9,7 @@ export const menus = {
         { label: 'Sản phẩm', link: '/products', subMenu: [{ label: 'Bánh', link: '/products/cake' }] },
         { label: 'Dịch vụ', link: '/services' },
     ],
-    staff: [
+    employee: [
         { label: 'Hỗ trợ khách hàng', link: '/support' },
         { label: 'Quản lý công việc', link: '/work-management' },
     ],
