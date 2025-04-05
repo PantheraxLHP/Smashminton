@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { handleSignout } from '@/services/auth.service';
+import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronDown, User } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
-import { redirect } from 'next/dist/server/api-utils';
-import { handleSignout } from '@/services/auth.service';
+import ProfileIcon from './ProfileIcon';
 
 interface MenuItem {
     label: string;
@@ -68,15 +68,12 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                     </nav>
                 </div>
 
-                <Button onClick={handleSignout}>Đăng xuất</Button>
                 {showLoginButton ? (
                     <Button asChild>
                         <Link href="/signin">Đăng nhập</Link>
                     </Button>
                 ) : (
-                    <div className="rounded-full bg-white p-2">
-                        <User className="text-primary-500" size={20} />
-                    </div>
+                    <ProfileIcon />
                 )}
             </header>
 

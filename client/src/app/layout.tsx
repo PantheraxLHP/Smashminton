@@ -1,7 +1,8 @@
+// app/layout.tsx
 import { AuthProvider } from '@/context/AuthContext';
 import type { Metadata } from 'next';
 import './globals.css';
-import ClientLayoutWrapper from './LayoutContent';
+import LayoutContent from './LayoutContent';
 
 export const metadata: Metadata = {
     title: 'Smashminton',
@@ -13,12 +14,12 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="vi,en" className="font-roboto">
+        <html lang="vi, en" className="font-roboto">
             <body>
                 <AuthProvider>
-                    <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+                    <LayoutContent>{children}</LayoutContent>
                 </AuthProvider>
             </body>
         </html>

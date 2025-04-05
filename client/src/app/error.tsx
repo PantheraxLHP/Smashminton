@@ -11,6 +11,7 @@ interface ErrorProps {
 export default function Error({ error, reset }: ErrorProps) {
     useEffect(() => {
         console.error('Error occurred:', error);
+        window.location.reload();
     }, [error]);
 
     return (

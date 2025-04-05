@@ -1,73 +1,76 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-interface User {
-    id: number;
+type User = {
+    id: string;
     username: string;
-    role: string; // 'wh_manager', 'employee', 'admin'
-    accountType: string; // 'Employee', 'Customer'
-}
+    accounttype: string;
+    role: string;
+};
 
-interface AuthContextType {
-    user: User | null;
+type AuthContextType = {
     isAuthenticated: boolean;
-    login: (token: string) => void;
-    logout: () => void;
-}
+    user: User | null;
+    login: () => Promise<void>;
+    logout: () => Promise<void>;
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    isAuthenticated: false,
+    user: null,
+    login: async () => {},
+    logout: async () => {},
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const login = (token: string) => {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-            id: payload.sub,
-            username: payload.username,
-            role: payload.role,
-            accountType: payload.accounttype,
-        });
-        sessionStorage.setItem('accessToken', token);
-    };
 
-    const logout = () => {
-        setUser(null);
-        sessionStorage.removeItem('accessToken');
-    };
-
-    // Kiểm tra token khi khởi động app
     useEffect(() => {
-        const token = sessionStorage.getItem('accessToken');
-        if (token && !isTokenExpired(token)) {
-            login(token); // Khôi phục session
-        }
+        const fetchSession = async () => {
+            try {
+                const res = await fetch('/api/auth/session', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                if (!res.ok) throw new Error('Not authenticated');
+                const data = await res.json();
+                setUser(data.user);
+            } catch {
+                setUser(null);
+            }
+        };
+
+        fetchSession();
     }, []);
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                isAuthenticated: !!user,
-                login,
-                logout,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+    const isAuthenticated = !!user;
+
+    const login = async () => {
+        try {
+            const res = await fetch('/api/auth/session', {
+                method: 'GET',
+            });
+            if (!res.ok) throw new Error('Failed to fetch user data');
+            const data = await res.json();
+            console.log('User data:', data);
+            setUser(data.user);
+        } catch (error) {
+            setUser(null);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            const res = await fetch('/api/auth/signout', { method: 'POST' });
+            if (!res.ok) throw new Error('Logout failed');
+            setUser(null);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
-
-// Kiểm tra token hết hạn
-function isTokenExpired(token: string): boolean {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp * 1000 < Date.now();
-}
+export const useAuth = () => useContext(AuthContext);

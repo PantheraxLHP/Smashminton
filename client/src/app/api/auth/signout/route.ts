@@ -1,13 +1,11 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-    try {
-        (await cookies()).delete('accessToken');
-        (await cookies()).delete('refreshToken');
+    const response = NextResponse.json({ success: true });
 
-        return NextResponse.json({ success: true }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ error: 'Logout failed' }, { status: 500 });
-    }
+    // Xóa cookies
+    response.cookies.set('accessToken', '', { httpOnly: true, path: '/', maxAge: 0 });
+    response.cookies.set('refreshToken', '', { httpOnly: true, path: '/', maxAge: 0 });
+
+    return response;
 }
