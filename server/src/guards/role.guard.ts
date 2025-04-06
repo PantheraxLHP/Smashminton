@@ -10,7 +10,6 @@ export class RolesGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly accountService: AccountsService, // Inject AccountsService để truy vấn DB
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,6 +31,13 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
+    if(!user.role) {
+      this.logger.warn('User role is not defined');
+      return false;
+    }
+
+    const userRole = user.role;
+
     //Lấy danh sách vai trò yêu cầu từ metadata (class + method)
     const classRoles = this.reflector.get<string[]>(ROLES_KEY, context.getClass()) || [];
     const methodRoles = this.reflector.get<string[]>(ROLES_KEY, context.getHandler()) || [];
@@ -42,15 +48,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    //Truy vấn DB lấy vai trò của người dùng
-    const userRoles = await this.accountService.findRoleByEmployeeId(user.accountid);
-    if (!userRoles || userRoles.length === 0) {
-      this.logger.warn(`User ${user.accountid} has no roles assigned`);
-      return false;
-    }
-
     //Kiểm tra xem user có vai trò phù hợp không
-    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
+    const hasRole = requiredRoles.some((role) => userRole.includes(role));
     return hasRole;
   }
 }

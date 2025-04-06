@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Courts, Products } from '@/types/types';
+import { useRouter } from "next/router";
+
 
 interface CourtsWithPrice extends Courts {
     courtprice: string;
@@ -44,6 +46,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 }) => {
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
     const endTimeRef = useRef<number>(Date.now() + 300 * 1000); // 5 phút => milli giây
+    const router = useRouter();
 
     useEffect(() => {
         const tick = () => {
@@ -77,6 +80,17 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    const handleConfirm = () => {
+        router.push({
+            pathname: "/payment",
+            query: {
+                selectedCourts: JSON.stringify(selectedCourts),
+                selectedProducts: JSON.stringify(selectedProducts),
+                totalPrice,
+            },
+        });
     };
 
     return (
@@ -147,7 +161,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                         </div>
                         <Button
                             className="w-full bg-primary"
-                            onClick={onConfirm}
+                            onClick={handleConfirm}
                         >
                             ĐẶT SÂN
                         </Button>

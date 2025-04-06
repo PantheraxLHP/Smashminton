@@ -25,10 +25,8 @@ import {
 } from '@nestjs/swagger';
 import { SignInData } from './interfaces/auth.interface';
 import { LocalAuthGuard } from '../../guards/local-auth.guard';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { Public } from 'src/decorators/public.decorator';
-import { RolesGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/role.decorator';
 @ApiTags('Authorization')
 @Controller('auth')
@@ -39,12 +37,12 @@ export class AuthController {
     ) {}
 
     @Post('signin')
-    @UseGuards(LocalAuthGuard)// Đánh dấu route này là công khai
+    @UseGuards(LocalAuthGuard)
     @Public()
-    @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' }) // Mô tả API
-    @ApiBody({ type: SigninAuthDto }) // Định nghĩa body request
-    @ApiResponse({ status: 201, description: 'SignIn successful' }) // Phản hồi khi thành công
-    @ApiUnauthorizedResponse() // Phản hồi khi lỗi xác thực
+    @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' })
+    @ApiBody({ type: SigninAuthDto })
+    @ApiResponse({ status: 201, description: 'SignIn successful' })
+    @ApiUnauthorizedResponse()
     async signIn(@Request() req: { user: SignInData }, @Res({ passthrough: true }) res: Response) {
         const { accessToken, refreshToken } = await this.authService.signIn(req.user);
         // Đặt refresh token vào cookies
@@ -95,7 +93,7 @@ export class AuthController {
 
     @Get('profile')
     @ApiBearerAuth()
-    @Roles('admin')
+    @Roles('hr_manager')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }
