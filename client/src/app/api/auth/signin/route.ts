@@ -1,13 +1,12 @@
+import { SigninSchema } from '@/app/(auth)/auth.schema';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-    const { username, password } = await req.json();
-
-    // Gửi yêu cầu đăng nhập đến server NestJS
-    const res = await fetch('http://localhost:8000/api/v1/auth/signin', {
+    const signinData: SigninSchema = await req.json();
+    const res = await fetch(`${process.env.SERVER}/api/v1/auth/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(signinData), // Gửi toàn bộ object
     });
 
     if (!res.ok) {

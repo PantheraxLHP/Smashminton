@@ -10,8 +10,6 @@ import Loading from './loading';
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, user, isLoading } = useAuth(); // Giả sử hook useAuth có trả về isLoading
 
-    console.log('isAuthenticated', isAuthenticated);
-
     // Nếu đang loading, render component Loading
     if (isLoading || isAuthenticated === undefined) {
         return <Loading />;
@@ -27,7 +25,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                 showLoginButton={!isAuthenticated}
             />
             <main className="min-h-screen">{children}</main>
-            <Toaster richColors expand={false} position="bottom-right" />
+            <Toaster richColors expand={false} position="top-left" />
             <Footer />
         </>
     );

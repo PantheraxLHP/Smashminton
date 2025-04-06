@@ -1,10 +1,10 @@
-export const handleSignin = async (username: string, password: string) => {
+import type { SigninSchema } from '@/app/(auth)/auth.schema';
+export const handleSignin = async (values: SigninSchema) => {
     try {
         const res = await fetch('/api/auth/signin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            cache: 'no-store',
+            body: JSON.stringify(values),
         });
         const data = await res.json();
         if (res.ok) {
