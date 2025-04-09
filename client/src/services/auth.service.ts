@@ -30,9 +30,10 @@ export async function handleSignout() {
             method: 'POST',
             credentials: 'include',
         });
+        const result = await response.json();
 
         if (!response.ok) {
-            return ServiceResponse.error('Đăng xuất thất bại');
+            return ServiceResponse.error(result.message);
         }
 
         return ServiceResponse.success(null, 'Đăng xuất thành công');
