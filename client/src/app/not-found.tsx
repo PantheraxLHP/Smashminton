@@ -1,21 +1,12 @@
 // not-found.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function NotFoundPage() {
     const router = useRouter();
-    const { isAuthenticated } = useAuth();
-
-    useEffect(() => {
-        if (!isAuthenticated) {
-            router.push('/signin');
-        }
-    }, [isAuthenticated, router]);
 
     return (
         <div className="bg-background text-foreground flex min-h-screen flex-col items-center justify-center px-4 text-center">

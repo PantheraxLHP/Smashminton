@@ -28,13 +28,14 @@ export default function SigninForm() {
         formState: { isSubmitting },
     } = form;
 
-    const onSubmit = async (values: SigninSchema) => {
-        const res = await handleSignin(values);
-        if (res.success) {
-            toast.success('Đăng nhập thành công!');
+    const onSubmit = async (signinData: SigninSchema) => {
+        const response = await handleSignin(signinData);
+        
+        if (response.ok) {
+            toast.success(response.message);
             router.push('/');
         } else {
-            toast.error('Đăng nhập thất bại, vui lòng thử lại!');
+            toast.error(response.message);
         }
     };
 

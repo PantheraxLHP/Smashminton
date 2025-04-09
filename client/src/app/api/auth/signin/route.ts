@@ -1,29 +1,29 @@
 import { SigninSchema } from '@/app/(auth)/auth.schema';
-import { NextResponse } from 'next/server';
+import { ApiResponse } from '@/lib/apiResponse';
 
 export async function POST(req: Request) {
     const signinData: SigninSchema = await req.json();
     const res = await fetch(`${process.env.SERVER}/api/v1/auth/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signinData), // Gửi toàn bộ object
+        body: JSON.stringify(signinData),
     });
 
     if (!res.ok) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        return ApiResponse.unauthorized('Invalid credentials');
     }
 
     const { accessToken, refreshToken } = await res.json();
 
-    const response = NextResponse.json({ success: true });
+    const response = ApiResponse.success();
 
-    // Lưu accessToken và refreshToken vào HTTP-only cookies
+    // Set accessToken and refreshToken in HTTP-only cookies
     response.cookies.set('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 60 * 15, // 15 phút
+        maxAge: 60 * 15, // 15 minutes
     });
 
     response.cookies.set('refreshToken', refreshToken, {
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60, // 7 ngày
+        maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return response;
