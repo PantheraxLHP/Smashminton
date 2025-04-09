@@ -35,7 +35,7 @@ async function main() {
     const password = '123';
     const hashedPassword = (await bcrypt.hash(password, 10)).toString();
 
-    const accounts = await prisma.accounts.createMany({
+    await prisma.accounts.createMany({
         data: [
             {
                 username: 'admin',
@@ -273,6 +273,20 @@ async function main() {
             },
         ],
     });
+
+    for (let i = 0; i < 1000; i++) {
+        await prisma.accounts.create({
+            data: {
+                username: `user${i}`,
+                password: hashedPassword,
+                status: 'Active',
+                fullname: `User ${i}`,
+                accounttype: 'Employee',
+                gender: i % 2 === 0 ? 'Male' : 'Female'
+            },
+        });
+    }
+
     await prisma.roles.createMany({
         data: [
             {
@@ -289,6 +303,7 @@ async function main() {
             },
         ],
     });
+
     const accountIds = (
         await prisma.accounts.findMany({
             select: {
@@ -306,43 +321,13 @@ async function main() {
     ).map((roles) => roles.roleid);
 
     for (let i = 0; i < accountIds.length; i++) {
-        if (i == 0) {
+        if (i <= 3) {
             await prisma.employees.create({
                 data: {
 
                     employeeid: accountIds[i],
                     employee_type: 'Full-time',
-                    roleid: roles[0],
-                },
-            });
-        }
-        else if (i == 1) {
-            await prisma.employees.create({
-                data: {
-
-                    employeeid: accountIds[i],
-                    employee_type: 'Full-time',
-                    roleid: roles[1],
-                },
-            });
-        }
-        else if (i == 2) {
-            await prisma.employees.create({
-                data: {
-
-                    employeeid: accountIds[i],
-                    employee_type: 'Full-time',
-                    roleid: roles[2],
-                },
-            });
-        }
-        else if (i == 3) {
-            await prisma.employees.create({
-                data: {
-
-                    employeeid: accountIds[i],
-                    employee_type: 'Full-time',
-                    roleid: roles[3],
+                    roleid: roles[i],
                 },
             });
         } else if (i < accountIds.length - 3) {
@@ -404,7 +389,7 @@ async function main() {
             },
             {
                 penaltyname: 'Unauthorized absence',
-                penaltydescription: 'Phạt nhân viên vắng mặt không phép, bỏ ca làm việc',
+                penaltydescription: 'Phạt nhân viên vắng mặt không phép, tự ý bỏ ca làm việc',
                 basepenalty: 50000,
                 incrementalpenalty: 50000,
                 maxiumpenalty: 300000,
@@ -459,47 +444,170 @@ async function main() {
     await prisma.autoassignment_rules.createMany({
         data: [
             {
-                rulename: 'Max Full-time Shifts Per Week',
-                ruledescription: 'Mỗi nhân viên toàn thời gian phải làm đủ 6 ca full time (48 tiếng 1 tuần)',
-                rulefor: 'Full-time',
-                rulevalue: 6,
-                rulestatus: 'Active',
+                rulename: "Số ca tối đa 1 ngày",
+                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 ngày",
+                rulestatus: "Active",
+                ruleforemptype: "Part-time",
+                rulevalue: "2",
+                ruleappliedfor: "Employee",
+                ruletype: "WHERE",
+                rulesql:
+                    `
+                    daily_shift_counts AS (
+                        SELECT 
+                            ae.employeeid,
+                            sd.shiftdate,
+                            COALESCE(COUNT(sa.*), 0) AS assigned_shifts_in_day
+                        FROM available_employees ae
+                        CROSS JOIN date_range dr
+                        CROSS JOIN shift_date sd
+                        LEFT JOIN shift_assignment sa ON ae.employeeid = sa.employeeid
+                            AND sa.shiftid = sd.shiftid
+                            AND sa.shiftdate = sd.shiftdate
+                        WHERE sd.shiftdate >= dr.next_week_start
+                            AND sd.shiftdate < dr.next_week_end
+                        GROUP BY ae.employeeid, sd.shiftdate
+                    )
+                `,
+                columnname: "dsc.assigned_shifts_in_day,dsc.shiftdate",
+                ctename: "daily_shift_counts dsc",
+                condition: "assigned_shifts_in_day < rulevalue AND shiftdate = $shiftdate",
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: 'Max Full-time Employees Per Shift',
-                ruledescription: 'Mỗi ca toàn thời gian tối đa 1 nhân viên',
-                rulefor: 'Full-time',
-                rulevalue: 1,
-                rulestatus: 'Active',
+                rulename: "Sắp xếp theo điểm ưu tiên",
+                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có điểm ưu tiên cao hơn",
+                rulestatus: "Active",
+                ruleforemptype: "Part-time",
+                rulevalue: "DESC",
+                ruleappliedfor: "Employee",
+                ruletype: "ORDER",
+                rulesql:
+                    `
+                    late_counts AS (
+                        SELECT 
+                            pr.employeeid, 
+                            COUNT(*) AS late_count
+                        FROM penalty_records pr
+                        JOIN available_employees ae ON ae.employeeid = pr.employeeid
+                        JOIN penalty_rules pru ON pr.penaltyruleid = pru.penaltyruleid, date_range dr
+                        WHERE LOWER(pru.penaltyname) = 'late for work'
+                            AND pr.violationdate >= dr.current_month_start 
+                            AND pr.violationdate < dr.current_month_end
+                        GROUP BY pr.employeeid
+                    ),
+                    absence_counts AS (
+                        SELECT 
+                            pr.employeeid, 
+                            COUNT(*) AS absence_count
+                        FROM penalty_records pr
+                        JOIN available_employees ae ON ae.employeeid = pr.employeeid
+                        JOIN penalty_rules pru ON pr.penaltyruleid = pru.penaltyruleid, date_range dr
+                        WHERE LOWER(pru.penaltyname) = 'unauthorized absence'
+                            AND pr.violationdate >= dr.current_month_start 
+                            AND pr.violationdate < dr.current_month_end
+                        GROUP BY pr.employeeid
+                    ),
+                    employee_priority AS (
+                        SELECT
+                            ae.employeeid,
+                            lc.late_count,
+                            ac.absence_count,
+                            100 - (COALESCE(lc.late_count, 0) + 3 * COALESCE(ac.absence_count, 0)) AS priority_score
+                        FROM available_employees ae
+                        LEFT JOIN late_counts lc ON ae.employeeid = lc.employeeid
+                        LEFT JOIN absence_counts ac ON ae.employeeid = ac.employeeid
+                    )
+                `,
+                columnname: "ep.priority_score",
+                ctename: "employee_priority ep",
+                condition: "priority_score rulevalue",
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: 'Max Part-time Shifts Per Week',
-                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 12 ca part time (48 tiếng 1 tuần)',
-                rulefor: 'Part-time',
-                rulevalue: 12,
-                rulestatus: 'Active',
+                rulename: "Số ca tối đa 1 tuần",
+                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 tuần",
+                rulestatus: "Active",
+                ruleforemptype: "Part-time",
+                rulevalue: "12",
+                ruleappliedfor: "Employee",
+                ruletype: "WHERE",
+                rulesql:
+                    `
+                    shift_counts AS (
+                        SELECT 
+                            ae.employeeid, 
+                            COALESCE(COUNT(sa.*), 0) AS assigned_shifts
+                        FROM available_employees ae
+                        CROSS JOIN date_range dr
+                        LEFT JOIN shift_assignment sa ON ae.employeeid = sa.employeeid
+                            AND sa.shiftdate >= dr.next_week_start 
+                            AND sa.shiftdate < dr.next_week_end
+                        GROUP BY ae.employeeid
+                    )  
+                `,
+                columnname: "sc.assigned_shifts",
+                ctename: "shift_counts sc",
+                canbecollided: true,
+                condition: "assigned_shifts < rulevalue",
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: 'Max Part-time Employees Per Shift',
-                ruledescription: 'Mỗi ca bán thời gian tối đa 2 nhân viên',
-                rulefor: 'Part-time',
-                rulevalue: 2,
-                rulestatus: 'Active',
+                rulename: "Sắp xếp theo số ca làm trong tuần",
+                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có số ca làm trong tuần ít hơn",
+                rulestatus: "Active",
+                ruleforemptype: "Part-time",
+                rulevalue: "ASC",
+                ruleappliedfor: "Employee",
+                ruletype: "ORDER",
+                rulesql:
+                    `
+                    shift_counts AS (
+                        SELECT 
+                            ae.employeeid, 
+                            COALESCE(COUNT(sa.*), 0) AS assigned_shifts
+                        FROM available_employees ae
+                        CROSS JOIN date_range dr
+                        LEFT JOIN shift_assignment sa ON ae.employeeid = sa.employeeid
+                            AND sa.shiftdate >= dr.next_week_start 
+                            AND sa.shiftdate < dr.next_week_end
+                        GROUP BY ae.employeeid
+                    )
+                `,
+                columnname: "sc.assigned_shifts",
+                ctename: "shift_counts sc",
+                canbecollided: true,
+                condition: "assigned_shifts rulevalue",
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: 'Max Part-time Shifts Per Day',
-                ruledescription: 'Mỗi nhân viên bán thời gian được làm tối đa 2 ca part time mỗi ngày',
-                rulefor: 'Part-time',
-                rulevalue: 2,
-                rulestatus: 'Active',
+                rulename: "Số nhân viên tối đa trong 1 ca",
+                ruledescription: "Số nhân viên tối đa có thể được phân công trong 1 ca làm việc bán thời gian",
+                rulestatus: "Active",
+                ruleforemptype: "Part-time",
+                rulevalue: "2",
+                ruleappliedfor: "Shift",
+                ruletype: "WHERE",
+                rulesql:
+                    `
+                    employee_counts AS (
+                        SELECT
+                            nws.shiftid,
+                            nws.shiftdate,
+                            COALESCE(COUNT(sa.employeeid), 0) AS assigned_employees
+                        FROM next_week_shifts nws
+                        LEFT JOIN shift_assignment sa ON nws.shiftid = sa.shiftid
+                            AND nws.shiftdate = sa.shiftdate
+                        GROUP BY nws.shiftid, nws.shiftdate
+                    )
+                `,
+                columnname: "ec.assigned_employees",
+                ctename: "employee_counts ec",
+                condition: "assigned_employees < rulevalue",
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -837,11 +945,8 @@ async function main() {
         }
     ];
 
-    /* The above code is a TypeScript snippet that appears to be part of a loop iterating over products. It
-    seems to be using Prisma to create new product entries and product descriptions based on certain
-    conditions. */
     for (const product of products) {
-        const createdProduct = await prisma.products.create({
+        await prisma.products.create({
             data: product,
         });
 
@@ -895,6 +1000,33 @@ async function main() {
                 address: '654 Snack Boulevard, Sydney, Australia',
             },
         ],
+    });
+
+    const employeeIds = (await prisma.employees.findMany({
+        select: {
+            employeeid: true,
+        },
+        where: {
+            employee_type: 'Part-time',
+        },
+    })).map((employee) => employee.employeeid);
+
+    const shiftdates = await prisma.shift_date.findMany({
+        select: {
+            shiftid: true,
+            shiftdate: true,
+        },
+    });
+
+    employeeIds.forEach(async (employeeId) => {
+        const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
+        await prisma.shift_enrollment.create({
+            data: {
+                employeeid: employeeId,
+                shiftid: randomShiftDate.shiftid,
+                shiftdate: randomShiftDate.shiftdate,
+            },
+        });
     });
 }
 
