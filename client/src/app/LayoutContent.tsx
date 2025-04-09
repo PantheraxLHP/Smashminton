@@ -8,7 +8,7 @@ import { menus } from '@/lib/menus';
 import Loading from './loading';
 
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
-    const { isAuthenticated, user, isLoading } = useAuth(); // Giả sử hook useAuth có trả về isLoading
+    const { isAuthenticated, user, isLoading } = useAuth();
 
     // Nếu đang loading, render component Loading
     if (isLoading || isAuthenticated === undefined) {

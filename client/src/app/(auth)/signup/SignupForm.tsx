@@ -31,6 +31,7 @@ const SignupForm = () => {
             phoneNumber: '',
             birthDate: '',
             address: '',
+            username: '',
             password: '',
             confirmPassword: '',
         },
@@ -42,9 +43,9 @@ const SignupForm = () => {
         formState: { isSubmitting },
     } = form;
 
-    const onSubmit = async (values: SignupSchema) => {
+    const onSubmit = async (singupData: SignupSchema) => {
         // Handle form submission logic here
-        console.log('Form data:', values);
+        console.log('Form data:', singupData);
         toast.success('Đăng ký thành công!');
     };
 
@@ -59,6 +60,7 @@ const SignupForm = () => {
                         { label: 'Số điện thoại', name: 'phoneNumber', type: 'text' },
                         { label: 'Ngày sinh', name: 'birthDate', type: 'date' },
                         { label: 'Địa chỉ', name: 'address', type: 'text' },
+                        { label: 'Tên đăng nhập', name: 'username', type: 'text' },
                         { label: 'Mật khẩu', name: 'password', type: 'password' },
                         { label: 'Xác nhận mật khẩu', name: 'confirmPassword', type: 'password' },
                     ].map(({ label, name, type }, index) => (

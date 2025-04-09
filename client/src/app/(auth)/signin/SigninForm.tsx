@@ -7,13 +7,10 @@ import { handleSignin } from '@/services/auth.service';
 import { signinSchema, SigninSchema } from '../auth.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export default function SigninForm() {
-    const router = useRouter();
-
     const form = useForm<SigninSchema>({
         resolver: zodResolver(signinSchema),
         defaultValues: {
@@ -30,12 +27,13 @@ export default function SigninForm() {
 
     const onSubmit = async (signinData: SigninSchema) => {
         const response = await handleSignin(signinData);
-        
+
         if (response.ok) {
-            toast.success(response.message);
-            router.push('/');
+            toast.success('Đăng nhập thành công!');
+            window.location.reload();
+            window.location.href = '/';
         } else {
-            toast.error(response.message);
+            toast.error('Dang nhập thất bại, vui lòng thử lại! ');
         }
     };
 

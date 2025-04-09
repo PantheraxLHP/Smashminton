@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
 type User = {
     id: string;
@@ -10,19 +10,19 @@ type User = {
 };
 
 type AuthContextType = {
-    isAuthenticated: boolean;
     isLoading: boolean;
     user: User | null;
-    logout: () => Promise<void>;
-    fetchSession: () => Promise<void>;
+    isAuthenticated: boolean;
+    setUser: (user: User | null) => void;
+    setIsAuthenticated: (value: boolean) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     isLoading: true,
     user: null,
-    logout: async () => {},
-    fetchSession: async () => {},
+    setUser: () => {},
+    setIsAuthenticated: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -50,30 +50,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    // Sử dụng useLayoutEffect để fetch session trước khi render
     useLayoutEffect(() => {
         fetchSession();
     }, []);
-
-    const logout = async () => {
-        try {
-            const res = await fetch('/api/auth/signout', { method: 'POST' });
-            if (!res.ok) throw new Error('Logout failed');
-            setUser(null);
-            setIsAuthenticated(false);
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
     return (
         <AuthContext.Provider
             value={{
                 user,
+                setUser,
                 isAuthenticated,
+                setIsAuthenticated,
                 isLoading,
-                logout,
-                fetchSession,
             }}
         >
             {children}
