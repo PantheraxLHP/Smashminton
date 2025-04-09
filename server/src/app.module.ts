@@ -8,6 +8,7 @@ import { ZonesModule } from './modules/zones/zones.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from './modules/cache/cache.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { CacheModule } from './modules/cache/cache.module';
         ZonesModule,
         AuthModule,
         CacheModule,
+        CloudinaryModule,
     ],
     controllers: [AppController],
     providers: [AppService],

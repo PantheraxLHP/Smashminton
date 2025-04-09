@@ -23,7 +23,7 @@ import {
     ApiTags,
     ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { SignInData } from './interfaces/auth.interface';
+import { SignInData } from '../../interfaces/auth.interface';
 import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { Public } from 'src/decorators/public.decorator';
