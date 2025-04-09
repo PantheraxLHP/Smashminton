@@ -32,9 +32,16 @@ model autoassignment_rules {
   aaruleid        Int       @id @default(autoincrement())
   rulename        String?
   ruledescription String?
-  rulefor         String?
-  rulevalue       Int?
   rulestatus      String?
+  ruleforemptype  String?
+  rulevalue       String?
+  ruleappliedfor  String?
+  ruletype        String?
+  rulesql         String?
+  columnname      String?
+  ctename         String?
+  canbecollided   Boolean?  @default(false)
+  condition       String?
   createdat       DateTime? @default(now()) @db.Timestamptz(6)
   updatedat       DateTime? @default(now()) @db.Timestamptz(6)
 }
