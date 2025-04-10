@@ -287,23 +287,6 @@ async function main() {
         });
     }
 
-    await prisma.roles.createMany({
-        data: [
-            {
-                rolename: 'admin',
-            },
-            {
-                rolename: 'hr_manager',
-            },
-            {
-                rolename: 'wh_manager',
-            },
-            {
-                rolename: 'employee',
-            },
-        ],
-    });
-
     const accountIds = await prisma.accounts.findMany({
             select: {
                 accountid: true,
@@ -313,14 +296,8 @@ async function main() {
 
     const employeeIds = accountIds.filter((account) => account.accounttype === 'Employee').map((account) => account.accountid);
     const customerIds = accountIds.filter((account) => account.accounttype === 'Customer').map((account) => account.accountid);
-
-    const roles = (
-        await prisma.roles.findMany({
-            select: {
-                roleid: true,
-            },
-        })
-    ).map((roles) => roles.roleid);
+    
+    const defaultRoles = ['admin', 'hr_manager', 'wh_manager', 'employee'];
 
     customerIds.forEach(async (customerId) => {
         await prisma.customers.create({
@@ -337,7 +314,7 @@ async function main() {
                 data: {
                     employeeid: employeeIds[i],
                     employee_type: 'Full-time',
-                    roleid: roles[i],
+                    role: defaultRoles[i],
                 },
             });
         } else {

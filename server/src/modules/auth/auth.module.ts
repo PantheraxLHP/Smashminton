@@ -9,8 +9,6 @@ import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { LocalStrategy } from 'src/strategies/local.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guards/role.guard';
-import { Roles } from 'src/decorators/role.decorator';
-import { RolesModule } from '../roles/roles.module';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @Module({
@@ -30,7 +28,6 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
     ],
     imports: [
         AccountsModule,
-        RolesModule,
         PassportModule,
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/role.decorator';
 import { AccountsService } from 'src/modules/accounts/accounts.service';
@@ -27,13 +27,11 @@ export class RolesGuard implements CanActivate {
 
     //Nếu không có user, từ chối truy cập
     if (!user) {
-      this.logger.warn('Unauthorized access attempt');
-      return false;
+      throw new UnauthorizedException('User not logged in.');
     }
 
     if(!user.role) {
-      this.logger.warn('User role is not defined');
-      return false;
+      throw new NotFoundException('User role is not defined.');
     }
 
     const userRole = user.role;
@@ -50,6 +48,9 @@ export class RolesGuard implements CanActivate {
 
     //Kiểm tra xem user có vai trò phù hợp không
     const hasRole = requiredRoles.some((role) => userRole.includes(role));
+    if (!hasRole) {
+      throw new ForbiddenException('Role not allowed.');
+    }
     return hasRole;
   }
 }

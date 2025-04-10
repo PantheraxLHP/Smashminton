@@ -29,7 +29,6 @@ drop table if exists product_descriptions CASCADE;
 drop table if exists orders CASCADE;
 drop table if exists order_product CASCADE;
 drop table if exists receipts CASCADE;
-drop table if exists roles CASCADE;
 drop table if exists product_types CASCADE;
 
 create table if not exists accounts (
@@ -49,19 +48,13 @@ create table if not exists accounts (
 	updatedat timestamptz default now()
 );
 
-create table if not exists roles (
-	roleid integer generated always as identity primary key,
-	rolename text
-);
-
 create table if not exists employees (
 	employeeid integer primary key,
 	fingerprintid integer default NULL,
 	last_week_shift_type text check (last_week_shift_type in ('Morning', 'Evening', 'Mix')),
 	employee_type text check (employee_type in ('Full-time', 'Part-time')),
-	roleid int,
-	constraint fk_employees_accounts foreign key (employeeid) references accounts(accountid),
-	constraint fk_employees_roles foreign key (roleid) references roles(roleid)
+	role text,
+	constraint fk_employees_accounts foreign key (employeeid) references accounts(accountid)
 );
 
 create table if not exists bank_detail (
@@ -149,14 +142,21 @@ create table if not exists reward_records (
 );
 
 create table if not exists autoassignment_rules (
-	aaruleid integer generated always as identity primary key,
-	rulename text,
-	ruledescription text,
-	rulefor text,
-	rulevalue integer,
-	rulestatus text check (rulestatus in ('Active', 'Inactive')),
-	createdat timestamptz default now(),
-	updatedat timestamptz default now()
+    aaruleid integer generated always as identity primary key,
+    rulename text,
+    ruledescription text,
+    rulestatus text check (rulestatus in ('Active', 'Inactive')),
+    ruleforemptype text,
+    rulevalue text,
+    ruleappliedfor text,
+    ruletype text,
+    rulesql text,
+    columnname text,
+    ctename text,
+    canbecollided boolean default false,
+    condition text,
+    createdat timestamptz default now(),
+    updatedat timestamptz default now()
 );
 
 create table if not exists timesheet (
@@ -185,7 +185,7 @@ create table if not exists student_card (
 create table if not exists zones (
 	zoneid integer generated always as identity primary key,
 	zonename text,
-	zonetype text check (zonetype in ('Cool', 'AirConditioner', 'Private')),
+	zonetype text check (zonetype in ('Normal', 'AirConditioner', 'Private')),
 	zoneimgurl text
 );
 

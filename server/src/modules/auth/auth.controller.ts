@@ -37,7 +37,6 @@ import { RolesGuard } from 'src/guards/role.guard';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly accountsService: AccountsService,
     ) {}
 
     @Post('signin')
@@ -97,7 +96,7 @@ export class AuthController {
 
     @Get('profile')
     @ApiBearerAuth()
-    @Roles('admin')
+    @Roles('hr_manager')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }
