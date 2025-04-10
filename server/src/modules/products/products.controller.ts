@@ -11,6 +11,7 @@ import {
     ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
+import { Public } from 'src/decorators/public.decorator';
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
@@ -97,13 +98,17 @@ export class ProductsController {
     }
 
     @Get('products/:id')
+    @Public()
     @ApiOperation({ summary: 'Find one product' })
     @ApiOkResponse({ description: 'Found the product' })
     @ApiBadRequestResponse({ description: 'Invalid ID' })
     @ApiNotFoundResponse({ description: 'Product not found' })
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
-        await this.cacheService.set('test-key', 'test-value', 60);
+        const user={ id:1, name:'test'};
+        await this.cacheService.set('test-key',user , 1000);
+        const result = await this.cacheService.get('test-key');
+        console.log(result);
         if (!product) {
             throw new NotFoundException('Product not found');
         }

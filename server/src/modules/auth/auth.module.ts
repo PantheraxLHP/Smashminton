@@ -19,14 +19,14 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
         AuthService,
         LocalStrategy,
         JwtStrategy,
-        {
-            provide: APP_GUARD,
-            useClass: JwtAuthGuard, // Đăng ký JwtAuthGuard trước
-        },
-        {
-            provide: APP_GUARD,
-            useClass: RolesGuard, // Đăng ký RolesGuard sau
-        },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: JwtAuthGuard, // Đăng ký JwtAuthGuard trước
+        // },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: RolesGuard, // Đăng ký RolesGuard sau
+        // },
     ],
     imports: [
         AccountsModule,

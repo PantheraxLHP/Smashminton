@@ -28,7 +28,11 @@ import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { Roles } from 'src/decorators/role.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
 @ApiTags('Authorization')
+@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -93,7 +97,7 @@ export class AuthController {
 
     @Get('profile')
     @ApiBearerAuth()
-    @Roles('hr_manager')
+    @Roles('admin')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
     }
