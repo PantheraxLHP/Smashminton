@@ -304,13 +304,15 @@ async function main() {
         ],
     });
 
-    const accountIds = (
-        await prisma.accounts.findMany({
+    const accountIds = await prisma.accounts.findMany({
             select: {
                 accountid: true,
+                accounttype: true,
             },
         })
-    ).map((accounts) => accounts.accountid);
+
+    const employeeIds = accountIds.filter((account) => account.accounttype === 'Employee').map((account) => account.accountid);
+    const customerIds = accountIds.filter((account) => account.accounttype === 'Customer').map((account) => account.accountid);
 
     const roles = (
         await prisma.roles.findMany({
@@ -320,28 +322,29 @@ async function main() {
         })
     ).map((roles) => roles.roleid);
 
-    for (let i = 0; i < accountIds.length; i++) {
+    customerIds.forEach(async (customerId) => {
+        await prisma.customers.create({
+            data: {
+                customerid: customerId,
+                totalpurchase: 1000000,
+            },
+        });
+    });
+
+    for (let i = 0; i < employeeIds.length; i++) {
         if (i <= 3) {
             await prisma.employees.create({
                 data: {
-
-                    employeeid: accountIds[i],
+                    employeeid: employeeIds[i],
                     employee_type: 'Full-time',
                     roleid: roles[i],
                 },
             });
-        } else if (i < accountIds.length - 3) {
+        } else {
             await prisma.employees.create({
                 data: {
-                    employeeid: accountIds[i],
+                    employeeid: employeeIds[i],
                     employee_type: 'Part-time',
-                },
-            });
-        } else {
-            await prisma.customers.create({
-                data: {
-                    customerid: accountIds[i],
-                    totalpurchase: 1000000,
                 },
             });
         }
@@ -1002,7 +1005,7 @@ async function main() {
         ],
     });
 
-    const employeeIds = (await prisma.employees.findMany({
+    const parttimeEmployeeIds = (await prisma.employees.findMany({
         select: {
             employeeid: true,
         },
@@ -1018,7 +1021,7 @@ async function main() {
         },
     });
 
-    employeeIds.forEach(async (employeeId) => {
+    parttimeEmployeeIds.forEach(async (employeeId) => {
         const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
         await prisma.shift_enrollment.create({
             data: {

@@ -1,12 +1,9 @@
 import BlueLine from '@/components/atomic/BlueLine';
 import { Button } from '@/components/ui/button';
-import { getZones } from '@/services/zones.service';
-import Image from 'next/image';
 import Link from 'next/link';
+import ZoneList from './ZoneList';
 
-const FeaturedCourts = async () => {
-    const zones = await getZones();
-
+const FeaturedCourts = () => {
     return (
         <div className="container mx-auto bg-white px-4 py-16">
             <div className="text-center">
@@ -16,39 +13,7 @@ const FeaturedCourts = async () => {
                 </p>
             </div>
             <BlueLine />
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {zones.map((zone) => (
-                    <div
-                        key={zone.zoneid}
-                        className="group overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg"
-                    >
-                        <div className="relative h-56 overflow-hidden">
-                            <Image
-                                src={zone.zoneimgurl || ''}
-                                alt={zone.zonename || ''}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                priority
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                            <div className="text-primary-600 absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium backdrop-blur-sm">
-                                ⭐ {'4.5'}
-                            </div>
-                        </div>
-                        <div className="p-5">
-                            <h4 className="text-xl font-semibold text-gray-800"> {zone.zonename}</h4>
-                            <p className="mt-1 text-gray-600">Mở cửa 6:00 - 22:00</p>
-
-                            <div className="mt-4 flex items-center justify-between">
-                                <p className="text-lg font-bold"> {zone.feature} </p>
-                                <Button variant="outline" asChild>
-                                    <Link href={'booking'}> Đặt ngay</Link>
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <ZoneList />
             <div className="mt-8 pb-5 text-center">
                 <Button variant="default" asChild>
                     <Link href={'booking'}>Xem tất cả sân →</Link>

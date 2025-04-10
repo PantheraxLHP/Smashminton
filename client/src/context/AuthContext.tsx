@@ -1,31 +1,35 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
 type User = {
     id: string;
     username: string;
     accounttype: string;
-    role: string;
+    role?: string;
 };
 
 type AuthContextType = {
-    isAuthenticated: boolean;
     isLoading: boolean;
     user: User | null;
-    logout: () => Promise<void>;
+    isAuthenticated: boolean;
+    setUser: (user: User | null) => void;
+    setIsAuthenticated: (value: boolean) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     isLoading: true,
     user: null,
-    logout: async () => {},
+    setUser: () => {},
+    setIsAuthenticated: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
     const fetchSession = async () => {
         setIsLoading(true);
         try {
@@ -33,33 +37,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 method: 'GET',
                 credentials: 'include',
             });
-            if (!res.ok) throw new Error('Not authenticated');
-            const data = await res.json();
-            setUser(data.user);
-        } catch {
+            if (res.ok) {
+                const session = await res.json();
+                setUser(session.data.user);
+                setIsAuthenticated(true);
+            }
+        } catch (error) {
             setUser(null);
+            setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         fetchSession();
     }, []);
 
-    const logout = async () => {
-        try {
-            const res = await fetch('/api/auth/signout', { method: 'POST' });
-            if (!res.ok) throw new Error('Logout failed');
-            setUser(null);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const isAuthenticated = !!user;
-
-    return <AuthContext.Provider value={{ isAuthenticated, isLoading, user, logout }}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider
+            value={{
+                user,
+                setUser,
+                isAuthenticated,
+                setIsAuthenticated,
+                isLoading,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => useContext(AuthContext);

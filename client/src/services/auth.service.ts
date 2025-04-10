@@ -1,18 +1,42 @@
 import type { SigninSchema } from '@/app/(auth)/auth.schema';
-export const handleSignin = async (values: SigninSchema) => {
+import { ServiceResponse } from '@/lib/serviceResponse';
+
+export async function handleSignin(signinData: SigninSchema) {
     try {
-        const res = await fetch('/api/auth/signin', {
+        const response = await fetch('/api/auth/signin', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(values),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(signinData),
+            credentials: 'include',
         });
-        const data = await res.json();
-        if (res.ok) {
-            return { success: true, data };
-        } else {
-            return { success: false, error: data.message || 'Đăng nhập thất bại' };
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message);
         }
-    } catch {
-        return { success: false, error: 'Lỗi hệ thống, vui lòng thử lại sau' };
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng nhập thất bại');
     }
-};
+}
+
+export async function handleSignout() {
+    try {
+        const response = await fetch('/api/auth/signout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            return ServiceResponse.error('Đăng xuất thất bại');
+        }
+
+        return ServiceResponse.success(null, 'Đăng xuất thành công');
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng xuất thất bại');
+    }
+}
