@@ -23,17 +23,20 @@ import {
     ApiTags,
     ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { SignInData } from './interfaces/auth.interface';
+import { SignInData } from '../../interfaces/auth.interface';
 import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { Roles } from 'src/decorators/role.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
 @ApiTags('Authorization')
+@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly accountsService: AccountsService,
     ) {}
 
     @Post('signin')

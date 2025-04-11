@@ -8,25 +8,18 @@ export class EmployeesService {
   constructor(private prismaService: PrismaService) {}
 
   async getEmployeeRoles(employeeId: number): Promise<string> {
-    const employee = await this.prismaService.employees.findUnique({
+    const employeeRole = await this.prismaService.employees.findUnique({
       where: { employeeid: employeeId },
       select: {
-        roles: {
-          select: {
-            rolename: true,
-          },
-        },
+        role: true
       },
     });
-  
-    // Kiểm tra nếu không tìm thấy nhân viên hoặc không có vai trò
-    if (!employee || !employee.roles) {
+
+    if (!employeeRole) {
       return '';
     }
-  
-    // Trích xuất danh sách rolename và nối thành chuỗi
-    const roleNames = employee.roles ? employee.roles.rolename || '' : '';
-    return roleNames;
+
+    return employeeRole.role || '';
   }
 
 

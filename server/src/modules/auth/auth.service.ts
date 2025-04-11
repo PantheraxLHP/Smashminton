@@ -3,7 +3,7 @@ import { AccountsService } from '../accounts/accounts.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { SigninAuthDto } from './dto/signin-auth.dto';
-import { AuthResponse, SignInData } from './interfaces/auth.interface';
+import { AuthResponse, SignInData } from '../../interfaces/auth.interface';
 @Injectable()
 export class AuthService {
     constructor(

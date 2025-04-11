@@ -11,6 +11,8 @@ async function bootstrap() {
     //     credentials: true, // Cho phép gửi cookies
     // });
 
+    app.enableCors();
+    
     app.setGlobalPrefix('api/v1', { exclude: [''] });
 
     app.use(cookieParser());

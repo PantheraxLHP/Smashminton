@@ -14,7 +14,7 @@ import { Cacheable } from 'cacheable';
             useFactory: () => {
                 const redisUrl = 'redis://localhost:6379';
                 console.log('Initializing Keyv with Redis:', redisUrl);
-                const keyv = new Keyv({ store: new KeyvRedis(redisUrl) }); // Sử dụng Keyv với KeyvRedis
+                const keyv = new Keyv({ store: new KeyvRedis(redisUrl), namespace: '' }); // Sử dụng Keyv với KeyvRedis
                 // Truyền Keyv vào CacheService
                 return new CacheService(keyv);
             },

@@ -115,11 +115,10 @@ model employees {
   fingerprintid        Int?
   last_week_shift_type String?
   employee_type        String?
-  roleid               Int?
+  role                 String?
   bank_detail          bank_detail[]
   bookings             bookings[]
   accounts             accounts           @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employees_accounts")
-  roles                roles?             @relation(fields: [roleid], references: [roleid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employees_roles")
   orders               orders[]
   penalty_records      penalty_records[]
   purchase_order       purchase_order[]
@@ -259,12 +258,6 @@ model reward_rules {
   rewardtype        String?
   rewardvalue       Decimal?         @db.Decimal
   reward_records    reward_records[]
-}
-
-model roles {
-  roleid    Int         @id @default(autoincrement())
-  rolename  String?
-  employees employees[]
 }
 
 model shift {
