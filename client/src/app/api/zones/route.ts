@@ -15,6 +15,6 @@ export async function GET() {
         const data = await response.json();
         return ApiResponse.success({ zones: data });
     } catch (error) {
-        return ApiResponse.error('Failed to fetch zones');
+        return ApiResponse.error('Không thể tải danh sách sân');
     }
 }

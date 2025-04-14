@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 
 export class ApiResponse {
-    static success(data: any = null, message = 'Success') {
+    static success(data: any, message = 'Success') {
         return NextResponse.json({ message, data }, { status: HttpStatus.OK });
     }
 
-    static created(data: any = null, message = 'Created') {
+    static created(data: any, message = 'Created') {
         return NextResponse.json({ message, data }, { status: HttpStatus.CREATED });
     }
 

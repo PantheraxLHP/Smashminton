@@ -1,6 +1,5 @@
 export const menus = {
     guest: [
-        { label: 'Trang chủ', link: '/' },
         { label: 'Sản phẩm', link: '/products' },
         { label: 'Dịch vụ', link: '/services' },
     ],

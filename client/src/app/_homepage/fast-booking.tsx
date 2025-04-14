@@ -23,9 +23,9 @@ const FastBooking = () => {
                                 <SelectValue placeholder="Chọn khu vực sân" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="khu1">Khu vực 1</SelectItem>
-                                <SelectItem value="khu2">Khu vực 2</SelectItem>
-                                <SelectItem value="khu3">Khu vực 3</SelectItem>
+                                <SelectItem value="khu1">Khu vực A</SelectItem>
+                                <SelectItem value="khu2">Khu vực B</SelectItem>
+                                <SelectItem value="khu3">Khu vực C</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
