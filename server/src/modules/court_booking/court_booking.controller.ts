@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CourtBookingService } from './court_booking.service';
 import { CreateCourtBookingDto } from './dto/create-court_booking.dto';
 import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
@@ -10,6 +10,13 @@ export class CourtBookingController {
   @Post()
   create(@Body() createCourtBookingDto: CreateCourtBookingDto) {
     return this.courtBookingService.create(createCourtBookingDto);
+  }
+
+  @Get('available-courts')
+  findAvailableCourt(@Query('zoneid') zoneid: number, @Query('date') date: Date,
+                    @Query('starttime') starttime: Date, @Query('duration') duration: number)
+  {
+    return this.courtBookingService.findAvailableCourt(zoneid, date, starttime, duration); 
   }
 
   @Get()
