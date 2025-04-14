@@ -11,6 +11,7 @@ import { CacheModule } from './modules/cache/cache.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { TesseractOcrModule } from './modules/tesseract-ocr/tesseract-ocr.module';
 import { StudentCardModule } from './modules/student_card/student_card.module';
+import { CourtBookingModule } from './modules/court_booking/court_booking.module';
 
 @Module({
     imports: [
@@ -25,6 +26,7 @@ import { StudentCardModule } from './modules/student_card/student_card.module';
         CloudinaryModule,
         TesseractOcrModule,
         StudentCardModule,
+        CourtBookingModule,
     ],
     controllers: [AppController],
     providers: [AppService],
