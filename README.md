@@ -2,6 +2,8 @@
 
 Use `Link` whenever possible for website interactive as 'open link in new tab'
 
+[Sample file ENV](https://notepad.link/phucsharecode)
+
 ## Basic Commit Format
 
 ```
