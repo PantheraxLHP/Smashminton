@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -11,24 +11,36 @@ import {
     ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { CustomerService } from '../customers/customers.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Accounts')
 @Controller('accounts')
 export class AccountsController {
     constructor(
         private readonly accountsService: AccountsService,
-        private readonly customerService: CustomerService,
     ) {}
 
     @Post('customer')
-    @ApiOperation({ summary: 'Create an account customer' })
-    @ApiCreatedResponse({
-        description: 'Account was created',
-        type: CreateAccountDto,
-    })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    async createAccountCustomer(@Body() createAccountDto: CreateAccountDto) {
-        return this.accountsService.createCustomer(createAccountDto);
+    @UseInterceptors(FilesInterceptor('studentCard', 10, { // Cho phép tối đa 10 file
+        limits: {
+            fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+        },
+        fileFilter: (req, file, cb) => {
+            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                return cb(new Error('Only image files are allowed!'), false);
+            }
+            cb(null, true);
+        },
+    }))
+    async createAccount(
+        @Body() createAccountDto: CreateAccountDto,
+        @UploadedFiles() files: Express.Multer.File[],
+    ) {
+        if (!createAccountDto) {
+            throw new BadRequestException('Invalid account data');
+        }
+
+        return this.accountsService.createCustomer(createAccountDto, files);
     }
 
     // @Post()

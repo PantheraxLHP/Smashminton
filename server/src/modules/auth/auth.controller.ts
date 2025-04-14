@@ -10,6 +10,8 @@ import {
     Request,
     Res,
     BadRequestException,
+    UseInterceptors,
+    UploadedFiles,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -17,6 +19,7 @@ import { AccountsService } from '../accounts/accounts.service';
 import {
     ApiBearerAuth,
     ApiBody,
+    ApiConsumes,
     ApiCookieAuth,
     ApiOperation,
     ApiResponse,
@@ -30,6 +33,8 @@ import { Public } from 'src/decorators/public.decorator';
 import { Roles } from 'src/decorators/role.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
+import { SignupAuthDto } from './dto/signup-auth.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 @ApiTags('Authorization')
 @UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
@@ -37,11 +42,13 @@ import { RolesGuard } from 'src/guards/role.guard';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
+        private readonly accountsService: AccountsService,
     ) {}
 
     @Post('signin')
     @UseGuards(LocalAuthGuard)
     @Public()
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' })
     @ApiBody({ type: SigninAuthDto })
     @ApiResponse({ status: 201, description: 'SignIn successful' })
@@ -92,6 +99,40 @@ export class AuthController {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         return { accessToken };
+    }
+
+    @Post('signup')
+    @Public()
+    @ApiOperation({ summary: 'User Sign Up', description: 'Register a new user.' })
+    @UseInterceptors(
+      FilesInterceptor('studentCard', 2, {
+        limits: {
+          fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+        },
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+            return cb(new Error('Only image files are allowed!'), false);
+          }
+          cb(null, true);
+        },
+      }),
+    )
+    @ApiConsumes('multipart/form-data') // Định nghĩa loại dữ liệu là multipart/form-data
+    @ApiBody({
+      description: 'Signup with profile pictures',
+      type: SignupAuthDto,
+    })
+    async signUp(
+        @Body() signupAuthDto: SignupAuthDto,
+        @UploadedFiles() files: Express.Multer.File[], // Lấy danh sách file đã upload
+    ) {
+        return this.accountsService.createCustomer(
+            {
+            ...signupAuthDto,
+            studentCard: files.map((file) => file.filename), // Lưu tên file vào DTO hoặc cơ sở dữ liệu
+            },
+            files, // Pass the files array as the second argument
+        );
     }
 
     @Get('profile')

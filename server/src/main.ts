@@ -11,7 +11,11 @@ async function bootstrap() {
     //     credentials: true, // Cho phép gửi cookies
     // });
 
-    app.enableCors();
+    app.enableCors({
+        origin: '*', // Cho phép tất cả các nguồn (chỉ nên dùng trong môi trường phát triển)
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true, // Cho phép gửi cookies
+    });
     
     app.setGlobalPrefix('api/v1', { exclude: [''] });
 

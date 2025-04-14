@@ -42,8 +42,10 @@
         "passport-local": "^1.0.0",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
+        "sharp": "^0.34.1",
         "streamifier": "^0.1.1",
         "swagger-ui-express": "^5.0.1",
+        "tesseract.js": "^4.0.2",
         "tsx": "^4.19.3"
     },
     "devDependencies": {

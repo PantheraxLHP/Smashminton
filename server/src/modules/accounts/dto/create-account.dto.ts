@@ -31,4 +31,11 @@ export class CreateAccountDto {
 
     @ApiProperty({ example: 'Customer' })
     accounttype?: string;
+
+    @ApiProperty({
+        type: 'array',
+        items: { type: 'string', format: 'binary' },
+        description: 'Array of student card pictures',
+    })
+    studentCard?: string[]; // Trường cho nhiều file ảnh
 }

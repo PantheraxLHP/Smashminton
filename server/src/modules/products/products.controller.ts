@@ -97,7 +97,7 @@ export class ProductsController {
         return products;
     }
 
-    @Get('products/:id')
+    @Get(':id')
     @Public()
     @ApiOperation({ summary: 'Find one product' })
     @ApiOkResponse({ description: 'Found the product' })
@@ -106,8 +106,8 @@ export class ProductsController {
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
         const user={ id:1, name:'test'};
-        await this.cacheService.set('test-key',user , 1000);
-        const result = await this.cacheService.get('test-key');
+        await this.cacheService.setStudentCard('test-key', user, 1000);
+        const result = await this.cacheService.getStudentCard('test-key');
         console.log(result);
         if (!product) {
             throw new NotFoundException('Product not found');

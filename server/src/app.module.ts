@@ -9,6 +9,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from './modules/cache/cache.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { TesseractOcrModule } from './modules/tesseract-ocr/tesseract-ocr.module';
+import { StudentCardModule } from './modules/student_card/student_card.module';
 
 @Module({
     imports: [
@@ -21,6 +23,8 @@ import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
         AuthModule,
         CacheModule,
         CloudinaryModule,
+        TesseractOcrModule,
+        StudentCardModule,
     ],
     controllers: [AppController],
     providers: [AppService],
