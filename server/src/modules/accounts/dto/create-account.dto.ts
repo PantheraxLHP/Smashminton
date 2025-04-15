@@ -29,9 +29,6 @@ export class CreateAccountDto {
     @ApiProperty({ example: '123 Main St' })
     address?: string;
 
-    @ApiProperty({ example: 'Customer' })
-    accounttype?: string;
-
     @ApiProperty({
         type: 'array',
         items: { type: 'string', format: 'binary' },
