@@ -33,7 +33,7 @@ const SignupForm = () => {
             address: '',
             username: '',
             password: '',
-            confirmPassword: '',
+            repassword: '',
         },
     });
 
@@ -43,9 +43,9 @@ const SignupForm = () => {
         formState: { isSubmitting },
     } = form;
 
-    const onSubmit = async (singupData: SignupSchema) => {
+    const onSubmit = async (signupData: SignupSchema) => {
         // Handle form submission logic here
-        console.log('Form data:', singupData);
+        console.log('Form data:', signupData);
         toast.success('Đăng ký thành công!');
     };
 

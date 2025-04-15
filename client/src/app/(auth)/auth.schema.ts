@@ -18,11 +18,11 @@ export const signupSchema = z
         address: z.string().optional(),
         username: z.string().min(1, 'Vui lòng nhập tên đăng nhập'),
         password: z.string().min(1, 'Mật khẩu phải có ít nhất 1 ký tự'),
-        confirmPassword: z.string().min(1, 'Mật khẩu xác nhận phải có ít nhất 1 ký tự'),
+        repassword: z.string().min(1, 'Mật khẩu xác nhận phải có ít nhất 1 ký tự'),
     })
-    .refine((data) => data.password === data.confirmPassword, {
+    .refine((data) => data.password === data.repassword, {
         message: 'Mật khẩu và mật khẩu xác nhận không khớp',
-        path: ['confirmPassword'], // Highlight the confirmPassword field
+        path: ['repassword'], // Highlight the confirmPassword field
     });
 
 // Export the type for TypeScript usage

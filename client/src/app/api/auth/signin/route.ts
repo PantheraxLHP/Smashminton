@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     const { accessToken, refreshToken } = await res.json();
 
-    const response = ApiResponse.success();
+    const response = ApiResponse.success('Đăng nhập thành công');
 
     // Set accessToken and refreshToken in HTTP-only cookies
     response.cookies.set('accessToken', accessToken, {

@@ -41,3 +41,21 @@ export async function handleSignout() {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng xuất thất bại');
     }
 }
+
+export async function handleSignup() {
+    try {
+        const response = await fetch('/api/auth/signout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message);
+        }
+
+        return ServiceResponse.success(null, 'Đăng xuất thành công');
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng xuất thất bại');
+    }
+}
