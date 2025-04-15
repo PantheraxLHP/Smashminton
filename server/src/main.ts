@@ -6,13 +6,9 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    // app.enableCors({
-    //     origin: 'http://localhost:3000', // Domain của frontend
-    //     credentials: true, // Cho phép gửi cookies
-    // });
 
     app.enableCors({
-        origin: 'http://localhost:3000',
+        origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true, // Cho phép gửi cookies
     });

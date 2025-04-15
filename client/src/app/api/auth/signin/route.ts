@@ -15,8 +15,6 @@ export async function POST(req: Request) {
         return ApiResponse.unauthorized('Invalid credentials');
     }
 
-    console.log(nestRes);
-
     // 🍪 Grab the Set-Cookie header from NestJS
     const setCookie = nestRes.headers.get('set-cookie');
 
