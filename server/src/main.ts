@@ -12,11 +12,11 @@ async function bootstrap() {
     // });
 
     app.enableCors({
-        origin: '*', // Cho phép tất cả các nguồn (chỉ nên dùng trong môi trường phát triển)
+        origin: 'http://localhost:3000',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true, // Cho phép gửi cookies
     });
-    
+
     app.setGlobalPrefix('api/v1', { exclude: [''] });
 
     app.use(cookieParser());

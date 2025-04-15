@@ -1,38 +1,31 @@
-import { SigninSchema } from '@/app/(auth)/auth.schema';
 import { ApiResponse } from '@/lib/apiResponse';
 
 export async function POST(req: Request) {
-    const signinData: SigninSchema = await req.json();
-    const res = await fetch(`${process.env.SERVER}/api/v1/auth/signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signinData),
-    });
+    try {
+        const signupFormData = await req.formData();
 
-    if (!res.ok) {
-        return ApiResponse.unauthorized('Invalid credentials');
+        // Log the FormData contents for debugging
+        console.log('Server received FormData:');
+        for (let pair of signupFormData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
+        const res = await fetch(`${process.env.SERVER}/api/v1/auth/signup`, {
+            method: 'POST',
+            body: signupFormData,
+            credentials: 'include',
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+            console.error('Server error:', result);
+            return ApiResponse.error(result.message || 'Đăng ký thất bại');
+        }
+
+        return ApiResponse.success('Đăng ký thành công');
+    } catch (error) {
+        console.error('Server route error:', error);
+        return ApiResponse.error('Đăng ký thất bại');
     }
-
-    const { accessToken, refreshToken } = await res.json();
-
-    const response = ApiResponse.success('Đăng ký thành công');
-
-    // Set accessToken and refreshToken in HTTP-only cookies
-    response.cookies.set('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 60 * 15, // 15 minutes
-    });
-
-    response.cookies.set('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60, // 7 days
-    });
-
-    return response;
 }

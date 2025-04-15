@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
 
 interface ErrorProps {
     error: Error;
