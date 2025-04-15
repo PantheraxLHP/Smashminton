@@ -206,7 +206,6 @@ create table if not exists courts (
 	courtid integer generated always as identity primary key,
 	courtname text,
 	courtimgurl text,
-	status boolean,
 	avgrating numeric,
 	timecalculateavg timestamptz,
 	zoneid integer,
