@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/generated/client';
 //npx tsx prisma/bookings_seed.ts
 const prisma = new PrismaClient();
 
