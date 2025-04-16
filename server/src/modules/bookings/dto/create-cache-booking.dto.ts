@@ -11,6 +11,14 @@ import {
 import { Type } from 'class-transformer';
 
 class courtBookingDto {
+    @IsInt()
+    @IsNotEmpty()
+    zoneid: number;
+    
+    @IsInt()
+    @IsNotEmpty()
+    courtid: number;
+
     @IsDateString()
     @IsNotEmpty()
     date: string; // YYYY-MM-DD format (ISO 8601)
