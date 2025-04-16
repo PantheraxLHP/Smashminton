@@ -10,10 +10,10 @@ export class CourtBookingService {
     return 'This action adds a new courtBooking';
   }
 
-  async findAvailableCourt(zoneid: number, date: Date, starttime: Date, duration: number)
+  async findAvailableCourt(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean)
   {
-    const parsedStartTime = new Date(starttime); // ép kiểu
-    const endtime = new Date(parsedStartTime.getTime() + duration * 60 * 1000);
+    const parsedStartTime = new Date(date + " " + starttime); // ép kiểu
+    const endtime = new Date(parsedStartTime.getTime() + duration * 60 * 60 * 1000);
     const parsedZoneId = Number(zoneid);
 
     // Truy vấn các sân có sẵn
@@ -23,11 +23,13 @@ export class CourtBookingService {
         court_booking: {
           none: {
             starttime: { lt: endtime },
-            endtime: { gt: starttime },
+            endtime: { gt: parsedStartTime },
           },
         },
       },
     });
+
+    // thêm trường hợp đặt sân cố định
 
     return availableCourts
   }
