@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/generated/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -642,7 +642,7 @@ async function main() {
             {
                 dayfrom: 'Monday',
                 dayto: 'Friday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '07:00:00',
                 price: 100000,
                 zoneid: 1,
@@ -666,7 +666,7 @@ async function main() {
             {
                 dayfrom: 'Saturday',
                 dayto: 'Sunday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '22:00:00',
                 price: 140000,
                 zoneid: 1,
@@ -674,7 +674,7 @@ async function main() {
             {
                 dayfrom: 'Monday',
                 dayto: 'Friday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '07:00:00',
                 price: 110000,
                 zoneid: 2,
@@ -698,7 +698,7 @@ async function main() {
             {
                 dayfrom: 'Saturday',
                 dayto: 'Sunday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '22:00:00',
                 price: 150000,
                 zoneid: 2,
@@ -706,7 +706,7 @@ async function main() {
             {
                 dayfrom: 'Monday',
                 dayto: 'Friday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '07:00:00',
                 price: 120000,
                 zoneid: 3,
@@ -730,7 +730,7 @@ async function main() {
             {
                 dayfrom: 'Saturday',
                 dayto: 'Sunday',
-                starttime: '05:00:00',
+                starttime: '06:00:00',
                 endtime: '22:00:00',
                 price: 160000,
                 zoneid: 3,

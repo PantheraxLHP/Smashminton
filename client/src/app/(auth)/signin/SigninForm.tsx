@@ -33,7 +33,7 @@ export default function SigninForm() {
             window.location.reload();
             window.location.href = '/';
         } else {
-            toast.error('Dang nhập thất bại, vui lòng thử lại! ');
+            toast.error('Đăng nhập thất bại, vui lòng thử lại! ');
         }
     };
 

@@ -53,7 +53,7 @@ export class AccountsService {
                 phonenumber: data.phonenumber,
                 address: data.address,
                 status: 'Active',
-                accounttype: data.accounttype,
+                accounttype: 'Customer',
             },
         });
     

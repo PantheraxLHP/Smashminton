@@ -58,7 +58,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                 <Icon icon="mdi:information-outline" className="text-lg text-white" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-xs rounded-md bg-white p-2 text-sm shadow-md">
+                        <TooltipContent className="max-w-xs rounded-md bg-white p-2 text-sm shadow-md z-1000">
                             <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
                             <ul className="list-disc pl-4">
                                 <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>

@@ -1,5 +1,4 @@
 import { ApiResponse } from '@/lib/apiResponse';
-import { NextResponse } from 'next/server';
 
 export async function POST() {
     const response = ApiResponse.success('Đăng xuất thành công');

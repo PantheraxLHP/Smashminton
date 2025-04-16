@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button";
 import { Courts, Products } from '@/types/types';
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 
 interface CourtsWithPrice extends Courts {
@@ -83,15 +83,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        router.push({
-            pathname: "/payment",
-            query: {
-                selectedCourts: JSON.stringify(selectedCourts),
-                selectedProducts: JSON.stringify(selectedProducts),
-                totalPrice,
-            },
-        });
-    };
+        router.push("/payment");
+    }
 
     return (
         <div className="fixed bottom-0 inset-x-0 bg-black text-white py-2 sm:p-4 shadow-lg z-50">
