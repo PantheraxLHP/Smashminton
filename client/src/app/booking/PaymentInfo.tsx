@@ -1,9 +1,11 @@
-'use client'; // Đảm bảo chạy trên client
+'use client';
 
 import React, { useState, useEffect } from "react";
 import BookingStep from "@/app/booking/BookingStep";
+import CustomerInfo from "./CustomerInfo";
+import PaymentMethod from "./PaymentMethod";
 
-type PaymentMethod = "momo" | "payos" | null;
+type PaymentMethodType = "momo" | "payos" | null;
 
 interface Item {
     icon: string;
@@ -16,7 +18,7 @@ interface Item {
 }
 
 interface PaymentData {
-    selectedMethod: PaymentMethod;
+    selectedMethod: PaymentMethodType;
     finalTotal: number;
     items: Item[];
     discount: number;
@@ -35,9 +37,9 @@ interface PaymentInfoProps {
 }
 
 const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
-    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(paymentData.selectedMethod);
+    const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>(paymentData.selectedMethod);
 
-    const handleSelect = (method: PaymentMethod) => {
+    const handleSelect = (method: PaymentMethodType) => {
         setSelectedMethod((prev) => (prev === method ? null : method));
     };
 
@@ -49,15 +51,14 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
     }, [paymentData.selectedMethod]);
 
     return (
-        <div className="w-full mx-auto bg-white p-6 rounded-lg shadow-md">
-            <BookingStep currentStep={3} />
+        <div className="w-full mx-auto bg-white p-6 rounded-lg">
 
             {/* Header */}
             <div className="flex justify-between items-center border-b pb-5 pt-5">
                 <h2 className="text-xl font-semibold text-center w-full">THÔNG TIN THANH TOÁN</h2>
             </div>
 
-            {/* Order Info Section */}
+            {/* Order Info */}
             <div className="grid grid-cols-[0.7fr_1fr] text-center mt-4">
                 <div className="bg-primary-50 p-4 rounded-lg rounded-br-none">
                     <h3 className="text-md font-semibold text-green-700 text-center">THÔNG TIN ĐƠN HÀNG</h3>
@@ -80,7 +81,6 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
 
             {/* Payment Table */}
             <div className="grid grid-cols-[0.7fr_1fr]">
-                {/* Left table: Description */}
                 <div>
                     <table className="w-full text-sm text-left">
                         <thead className="bg-white border-b border-gray-300">
@@ -103,7 +103,6 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                     </table>
                 </div>
 
-                {/* Right table: Quantity, Duration, Time, Unit Price, Total */}
                 <div className="bg-primary-50 rounded-lg rounded-tl-none">
                     <table className="w-full text-sm text-left">
                         <thead className="border-b border-gray-300">
@@ -144,82 +143,13 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                 </div>
             </div>
 
-            {/* Customer Info Section */}
             <div className="mt-6 p-4 rounded-lg grid grid-cols-[0.7fr_1fr] gap-6 border-t-1">
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-700 mt-4">Thông tin khách hàng</h3>
-                    <div className="grid grid-cols-1 gap-4 mt-4">
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-gray-600">Họ và tên</label>
-                            <input
-                                type="text"
-                                className="p-2 mt-1 border border-gray-300 rounded-md text-gray-700"
-                                value={paymentData.customerInfo.fullName}
-                                disabled
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-gray-600">Số điện thoại</label>
-                            <input
-                                type="text"
-                                className="p-2 mt-1 border border-gray-300 rounded-md text-gray-700"
-                                value={paymentData.customerInfo.phone}
-                                disabled
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-gray-600">Email</label>
-                            <input
-                                type="text"
-                                className="p-2 mt-1 border border-gray-300 rounded-md text-gray-700"
-                                value={paymentData.customerInfo.email}
-                                disabled
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Payment Method Section */}
-                <div className="text-center">
-                    <div className="flex flex-row items-start">
-                        <h3 className="text-lg font-semibold text-gray-700 mr-5 mt-4 whitespace-nowrap">
-                            Hình thức thanh toán
-                        </h3>
-
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="flex justify-center gap-6 mb-2">
-                                <button
-                                    onClick={() => handleSelect("momo")}
-                                    className={`flex flex-row items-center justify-center w-25 h-15 border-2 rounded-lg  ${selectedMethod === "momo"
-                                        ? "border-green-500 text-black bg-green-100"
-                                        : "border-gray-300 text-black hover:border-green-500 hover:text-green-600 hover:bg-green-100"}`}
-                                >
-                                    <img src="/momo.png" alt="Momo" className="w-10 h-10 mr-2" />
-                                    <span className="text-xs">Momo</span>
-                                </button>
-                                <button
-                                    onClick={() => handleSelect("payos")}
-                                    className={`flex flex-row items-center justify-center w-25 h-15 border-2 rounded-lg  ${selectedMethod === "payos"
-                                        ? "border-green-500 text-black bg-green-100"
-                                        : "border-gray-300 text-black hover:border-green-500 hover:text-green-600 hover:bg-green-100"}`}
-                                >
-                                    <img src="/payos.png" alt="PayOS" className="w-10 h-10 mr-2 border-1" />
-                                    <span className="text-xs">PayOS</span>
-                                </button>
-                            </div>
-
-                            <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                Thanh toán {finalTotal.toLocaleString()} VND
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex justify-between mt-6">
-                <button className="px-6 py-2">
-                    ← Quay lại
-                </button>
+                <CustomerInfo customerInfo={paymentData.customerInfo} />
+                <PaymentMethod
+                    selectedMethod={selectedMethod}
+                    onSelect={handleSelect}
+                    finalTotal={finalTotal}
+                />
             </div>
         </div>
     );
