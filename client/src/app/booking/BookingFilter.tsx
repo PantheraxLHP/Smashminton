@@ -1,9 +1,18 @@
+import { get } from 'http';
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
+interface Filters {
+    zone?: string;
+    date?: string;
+    duration?: number;
+    startTime?: string;
+    fixedCourt?: boolean;
+}
+
 interface BookingFilterProps {
-    onFilterChange: (filters: any) => void;
+    onFilterChange: (filters: Filters) => void;
 }
 
 const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
@@ -12,11 +21,20 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
     const [duration, setDuration] = useState(2);
     const [startTime, setStartTime] = useState('09:00');
 
+    // Format YYYY-MM-DD
+    const getLocalDateString = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // months are zero-based
+        const day = String(date.getDate()).padStart(2, '0');
+      
+        return `${year}-${month}-${day}`;
+      }
+
     // Cập nhật filters và gửi về BookingPage
     useEffect(() => {
-        const filters = {
+        const filters: Filters = {
             zone: selectedZone,
-            date: date.toISOString().split('T')[0], // Format YYYY-MM-DD
+            date: getLocalDateString(date), 
             duration,
             startTime,
         };
@@ -24,16 +42,6 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
     }, [selectedZone, date, duration, startTime, onFilterChange]);
 
     const zones = ['A', 'B', 'C'];
-    // Durations - lưu theo số phút để tao tính EndTime = StartTime + Duration
-    // 60: 1,
-    // 90: 1.5
-    // 120: 2
-    // 150: 2.5
-    // 180: 3,
-    // 210: 3.5
-    // 240: 4
-    // 270: 4.5
-    // 300: 5 
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
     const times = [
         '06:00',
