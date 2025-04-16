@@ -5,9 +5,7 @@ export async function handleSignin(signinData: SigninSchema) {
     try {
         const response = await fetch('/api/auth/signin', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(signinData),
             credentials: 'include',
         });
@@ -21,6 +19,28 @@ export async function handleSignin(signinData: SigninSchema) {
         return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng nhập thất bại');
+    }
+}
+
+export async function handleSignup(signupFormData: FormData) {
+    try {
+        const response = await fetch('/api/auth/signup', {
+            method: 'POST',
+            body: signupFormData,
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('Signup error:', result);
+            return ServiceResponse.error(result.message || 'Đăng ký thất bại');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        console.error('Signup error:', error);
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Đăng ký thất bại');
     }
 }
 

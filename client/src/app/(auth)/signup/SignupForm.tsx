@@ -10,10 +10,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { signupSchema, SignupSchema } from '../auth.schema';
+import { useRouter } from 'next/navigation';
+import { handleSignup } from '@/services/auth.service';
 
 const SignupForm = () => {
     const [selectedFile, setSelectedFile] = useState<File[]>([]);
     const [isStudent, setIsStudent] = useState(false);
+    const router = useRouter();
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -27,13 +30,8 @@ const SignupForm = () => {
     const form = useForm<SignupSchema>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
-            fullName: '',
-            phoneNumber: '',
-            birthDate: '',
-            address: '',
-            username: '',
-            password: '',
-            confirmPassword: '',
+            dob: '1990-01-01T00:00:00Z',
+            phonenumber: undefined,
         },
     });
 
@@ -43,10 +41,29 @@ const SignupForm = () => {
         formState: { isSubmitting },
     } = form;
 
-    const onSubmit = async (singupData: SignupSchema) => {
-        // Handle form submission logic here
-        console.log('Form data:', singupData);
-        toast.success('Đăng ký thành công!');
+    const onSubmit = async (signupData: SignupSchema) => {
+        const formData = new FormData();
+
+        // Append all form values to formData
+        Object.entries(signupData).forEach(([key, value]) => {
+            formData.append(key, value);
+        });
+
+        // Append files if student and files exist
+        if (isStudent && selectedFile.length > 0) {
+            selectedFile.forEach((file) => {
+                formData.append('studentCard', file);
+            });
+        }
+
+        const response = await handleSignup(formData);
+
+        if (response.ok) {
+            toast.success('Đăng ký thành công!');
+            router.push('/signin');
+        } else {
+            toast.error('Đăng ký thất bại, vui lòng thử lại! ');
+        }
     };
 
     return (
@@ -56,13 +73,13 @@ const SignupForm = () => {
             <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     {[
-                        { label: 'Họ và Tên', name: 'fullName', type: 'text' },
-                        { label: 'Số điện thoại', name: 'phoneNumber', type: 'text' },
-                        { label: 'Ngày sinh', name: 'birthDate', type: 'date' },
+                        { label: 'Tên đăng nhập*', name: 'username', type: 'text' },
+                        { label: 'Mật khẩu*', name: 'password', type: 'password' },
+                        { label: 'Xác nhận mật khẩu*', name: 'repassword', type: 'password' },
+                        { label: 'Họ và Tên', name: 'fullname', type: 'text' },
+                        { label: 'Ngày sinh', name: 'dob', type: 'date' },
+                        { label: 'Số điện thoại', name: 'phonenumber', type: 'text' },
                         { label: 'Địa chỉ', name: 'address', type: 'text' },
-                        { label: 'Tên đăng nhập', name: 'username', type: 'text' },
-                        { label: 'Mật khẩu', name: 'password', type: 'password' },
-                        { label: 'Xác nhận mật khẩu', name: 'confirmPassword', type: 'password' },
                     ].map(({ label, name, type }, index) => (
                         <FormField
                             key={index}
@@ -76,7 +93,7 @@ const SignupForm = () => {
                                             type={type}
                                             placeholder={`Nhập ${label.toLowerCase()}`}
                                             {...field}
-                                            value={field.value ?? ''}
+                                            value={field.value}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -130,7 +147,7 @@ const SignupForm = () => {
                                                     alt={`Ảnh ${index + 1}`}
                                                     width={100}
                                                     height={100}
-                                                    className="rounded-md border border-gray-300"
+                                                    className="rounded-md border border-gray-300 object-contain"
                                                 />
                                                 <button
                                                     onClick={() => handleRemoveFile(index)}

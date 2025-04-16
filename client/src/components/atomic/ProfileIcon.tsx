@@ -26,13 +26,13 @@ const ProfileIcon = () => {
     };
 
     return (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
                 <div className="flex cursor-pointer items-center rounded-full bg-white p-2">
                     <User className="text-primary-500" size={20} />
                 </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="z-[9999]">
                 <DropdownMenuLabel>{user?.accounttype}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile')}>
