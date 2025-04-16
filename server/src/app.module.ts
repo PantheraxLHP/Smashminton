@@ -12,6 +12,7 @@ import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { TesseractOcrModule } from './modules/tesseract-ocr/tesseract-ocr.module';
 import { StudentCardModule } from './modules/student_card/student_card.module';
 import { CourtBookingModule } from './modules/court_booking/court_booking.module';
+import { CourtsModule } from './modules/courts/courts.module';
 
 @Module({
     imports: [
@@ -27,6 +28,7 @@ import { CourtBookingModule } from './modules/court_booking/court_booking.module
         TesseractOcrModule,
         StudentCardModule,
         CourtBookingModule,
+        CourtsModule,
     ],
     controllers: [AppController],
     providers: [AppService],

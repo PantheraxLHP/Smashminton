@@ -9,30 +9,6 @@ export class CourtBookingService {
   create(createCourtBookingDto: CreateCourtBookingDto) {
     return 'This action adds a new courtBooking';
   }
-
-  async findAvailableCourt(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean)
-  {
-    const parsedStartTime = new Date(date + " " + starttime); // ép kiểu
-    const endtime = new Date(parsedStartTime.getTime() + duration * 60 * 60 * 1000);
-    const parsedZoneId = Number(zoneid);
-
-    // Truy vấn các sân có sẵn
-    const availableCourts = await this.prisma.courts.findMany({
-      where: {
-        zoneid: parsedZoneId,
-        court_booking: {
-          none: {
-            starttime: { lt: endtime },
-            endtime: { gt: parsedStartTime },
-          },
-        },
-      },
-    });
-
-    // thêm trường hợp đặt sân cố định
-
-    return availableCourts
-  }
   
   findAll() {
     return this.prisma.court_booking.findMany();
