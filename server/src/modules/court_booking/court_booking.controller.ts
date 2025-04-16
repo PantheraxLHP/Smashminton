@@ -12,15 +12,7 @@ export class CourtBookingController {
     return this.courtBookingService.create(createCourtBookingDto);
   }
 
-  @Get('available-courts')
-  findAvailableCourt(@Query('zoneid') zoneid: number,
-                    @Query('date') date: string,
-                    @Query('starttime') starttime: string, 
-                    @Query('duration') duration: number,
-                    @Query('fixedCourt') fixedCourt: boolean)
-  {
-    return this.courtBookingService.findAvailableCourt(zoneid, date, starttime, duration, fixedCourt); 
-  }
+  
 
   @Get()
   findAll() {
