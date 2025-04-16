@@ -1,12 +1,46 @@
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Products } from "@/types/types";
 import { Icon } from "@iconify/react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { set } from "zod";
+
+interface FoodResponse {
+    foods: Products[]; // Danh sách sản phẩm
+    totalPages: number; // Tổng số trang
+    page: number; // Trang hiện tại (trường hợp page > totalPages thì trả về page cuối cùng)
+}
 
 const FoodList = () => {
-    const foods: Products[] = [
+    const [foods, setFoods] = useState<Products[]>([]); // State quản lý danh sách sản phẩm
+    const [page, setPage] = useState(1); // State quản lý trang hiện tại
+    const [totalPages, setTotalPages] = useState(10); // State quản lý tổng số trang
+    //? State quản lý số lượng sản phẩm trên mỗi trang (nếu có tính năng thay đổi số lượng sản phẩm trên mỗi trang thì sẽ sử dụng state này, còn không mặc định 1 trang là 12 sản phẩm)
+    const [pageSize, setPageSize] = useState(12); 
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(`/api/foods?page=${page}&pageSize=${pageSize}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch foods');
+                }
+
+                const data: FoodResponse = await response.json();
+                setFoods(data.foods); // Cập nhật danh sách sản phẩm
+                setTotalPages(data.totalPages); // Cập nhật tổng số trang
+                setPage(data.page); // Cập nhật trang hiện tại
+            } catch (error) {
+                console.error("Error fetching foods:", error);
+            }
+        };
+
+        fetchProducts();
+    }, [page, pageSize]); // Chạy lại khi page hoặc itemsPerPage thay đổi
+
+    const foodsExData: Products[] = [
         { productid: 1, productname: "Set cá viên chiên", sellingprice: 105000, productimgurl: "/setcavienchien.png" },
         { productid: 2, productname: "Set cá viên chiên chua cay", sellingprice: 290000, productimgurl: "/setcavienchienchuacay.png" },
         { productid: 3, productname: "Bánh snack O'Star", sellingprice: 275000, productimgurl: "/ostar.png" },
@@ -18,7 +52,7 @@ const FoodList = () => {
     // State quản lý số lượng sản phẩm các sản phẩm
     const [quantities, setQuantities] = useState<{ [key: number]: number }>(
         // Khởi tạo state quantities với giá trị mặc định là 0 cho mỗi sản phẩm
-        foods.reduce((acc, food) => {
+        foodsExData.reduce((acc, food) => {
             acc[food.productid] = 0; 
             return acc;
         }, {} as { [key: number]: number })
@@ -59,7 +93,7 @@ const FoodList = () => {
                 </div>
             </div>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-15">
-                {foods.map((item) => (
+                {foodsExData.map((item) => (
                     <div key={item.productid} className="">
                         <Image
                             src={item.productimgurl || "/default-image.jpg"}
@@ -87,6 +121,17 @@ const FoodList = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                ))}
+            </div>
+            <div className="flex justify-end gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                    <div
+                        key={`page-${pageNumber}`}
+                        className={`cursor-pointer px-4 py-2 rounded outline-2 outline-primary ${page === pageNumber ? "bg-primary text-white" : "text-primary hover:bg-primary-200"}`}
+                        onClick={() => setPage(pageNumber)}
+                    >
+                        {pageNumber}
                     </div>
                 ))}
             </div>
