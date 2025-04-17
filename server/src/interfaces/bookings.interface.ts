@@ -6,7 +6,8 @@ export interface CacheCourtBooking {
     endtime: Date;       
   }
   
-  export interface CacheBooking {
-    customerid: number;
-    court_booking: CacheCourtBooking[];
-  }
+export interface CacheBooking {
+  customerid: number;
+  court_booking: CacheCourtBooking[];
+}
+

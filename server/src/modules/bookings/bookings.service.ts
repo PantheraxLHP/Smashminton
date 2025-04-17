@@ -4,7 +4,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO } from './dto/create-cache-booking.dto';
-import { calculateEndTime } from '../../utilities/date.utilities';
+import { calculateEndTimeCache } from '../../utilities/date.utilities';
 import { CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 @Injectable()
 export class BookingsService {
@@ -21,7 +21,7 @@ export class BookingsService {
 		// Mapping từng phần tử trong mảng court_booking thành một object JSON
 		const courtBooking: CacheCourtBooking[] = court_booking.map((booking) => {
 			const startTime = booking.date + ' ' + booking.starttime;
-			const endTime = calculateEndTime(booking.date, booking.starttime, booking.duration);
+			const endTime = calculateEndTimeCache(booking.date, booking.starttime, booking.duration);
 		
 			return {
 			zoneid: booking.zoneid,

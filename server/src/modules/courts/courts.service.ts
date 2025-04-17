@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { calculateEndTime, getEnglishDayName } from 'src/utilities/date.utilities';
+import { AvailableCourt } from 'src/interfaces/courts.interface';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 @Injectable()
 export class CourtsService {
   constructor(private prisma: PrismaService) {}
@@ -14,39 +18,117 @@ export class CourtsService {
     return `This action returns all courts`;
   }
 
-  async findAvailableCourt(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean)
-  {
-    const parsedStartTime = new Date(date + " " + starttime); // ép kiểu
-    const endtime = new Date(parsedStartTime.getTime() + duration * 60 * 60 * 1000);
+  async findAvailableCourt(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) {
+    const parsedStartTime = dayjs(starttime, 'HH:mm');
+    const endtime = calculateEndTime(starttime, duration);
+    const parsedEndTime = dayjs(endtime, 'HH:mm');
+  
     const parsedZoneId = Number(zoneid);
-    const dayOfWeek = parsedStartTime.getDay(); // lấy thứ trong tuần
-    const dayOfWeekString = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek]; // chuyển đổi thành chuỗi
-    let DayFrom: string;
-    let DayTo: string;
-
-    // xác định thứ trong tuần
-    if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(dayOfWeekString)) {
+    const dayOfWeek = getEnglishDayName(date);
+  
+    let DayFrom: string = '';
+    let DayTo: string = '';
+  
+    // Xác định khoảng thời gian theo ngày trong tuần
+    if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(dayOfWeek)) {
       DayFrom = 'Monday';
       DayTo = 'Friday';
-    } else if (['Sunday', 'Saturday'].includes(dayOfWeekString)) {
+    } else {
       DayFrom = 'Saturday';
       DayTo = 'Sunday';
     }
-
-    // Truy vấn các sân có sẵn
-    const availableCourts = await this.prisma.courts.findMany({
+  
+    // Truy vấn tất cả các sân phù hợp
+    const zonePricesByAllCourts = await this.prisma.courts.findMany({
       where: {
         zoneid: parsedZoneId,
-        court_booking: {
-          none: {
-            starttime: { lt: endtime },
-            endtime: { gt: parsedStartTime },
-          }
+      },
+      select: {
+        courtid: true,
+        courtname: true,
+        zones: {
+          select: {
+            zone_prices: {
+              where: {
+                dayfrom: DayFrom,
+                dayto: DayTo,
+              },
+              select: {
+                dayfrom: true,
+                dayto: true,
+                starttime: true,
+                endtime: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  
+    // Gộp tất cả zone_prices vào một mảng duy nhất
+    const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
+      court.zones?.zone_prices.map((zonePrice) => ({
+        courtid: court.courtid,
+        courtname: court.courtname,
+        dayfrom: zonePrice.dayfrom,
+        dayto: zonePrice.dayto,
+        starttime: zonePrice.starttime,
+        endtime: zonePrice.endtime,
+        price: zonePrice.price,
+      })) || []
+    );
+  
+    // Sử dụng Map để nhóm kết quả theo courtid
+    const courtResults = new Map<number, {
+      courtid: number; 
+      courtname: string; 
+      totalPrice: number; 
+      dayfrom: string; 
+      dayto: string 
+    }>();
+  
+    for (const zone of allZonePrices) {
+      const zoneStart = dayjs(zone.starttime, 'HH:mm');
+      const zoneEnd = dayjs(zone.endtime, 'HH:mm');
+  
+      // Tính khoảng giao nhau giữa thời gian người dùng và khung giờ của zone
+      const actualStart = parsedStartTime.isAfter(zoneStart) ? parsedStartTime : zoneStart;
+      const actualEnd = parsedEndTime.isBefore(zoneEnd) ? parsedEndTime : zoneEnd;
+  
+      if (actualStart.isBefore(actualEnd)) {
+        const durationInHours = actualEnd.diff(actualStart, 'minutes') / 60; // phút -> giờ
+        const pricePerHour = parseFloat((zone.price ?? '0').toString());
+        const priceForZone = durationInHours * pricePerHour;
+  
+        // Nếu courtid đã tồn tại trong Map, cộng dồn tổng tiền
+        if (courtResults.has(zone.courtid)) {
+          const courtData = courtResults.get(zone.courtid)!;
+          courtData.totalPrice += priceForZone;
+        } else {
+          // Nếu chưa tồn tại, khởi tạo dữ liệu cho courtid
+          courtResults.set(zone.courtid, {
+            courtid: zone.courtid,
+            courtname: zone.courtname ?? '',
+            totalPrice: priceForZone,
+            dayfrom: zone.dayfrom ?? '',
+            dayto: zone.dayto ?? '',
+          });
         }
       }
-    });
-
-    return availableCourts
+    }
+    // Chuyển Map thành mảng kết quả
+    const availableCourts = Array.from(courtResults.values()).map((court) => ({
+      courtid: court.courtid,
+      courtname: court.courtname,
+      dayfrom: court.dayfrom,
+      dayto: court.dayto,
+      starttime: starttime,
+      endtime: endtime,
+      price: court.totalPrice.toFixed(0), // Làm tròn giá trị tiền
+    }));
+  
+    return availableCourts;
   }
 
   findOne(id: number) {
