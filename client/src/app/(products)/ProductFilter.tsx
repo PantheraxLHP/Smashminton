@@ -1,4 +1,4 @@
-const FoodFilter = () => {
+const ProductFilter = () => {
     const foodCategories = [
         { id: 1, name: "Tất cả" },
         { id: 2, name: "Đồ mặn"},
@@ -22,4 +22,4 @@ const FoodFilter = () => {
     );
 };
 
-export default FoodFilter;
+export default ProductFilter;

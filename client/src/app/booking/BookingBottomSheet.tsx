@@ -32,7 +32,9 @@ interface BookingBottomSheetProps {
     onRemoveCourt: (scCourt: SelectedCourt) => void;
     onConfirm: () => void;
     onCancel: () => void;
-    onResetTimer(resetTimerFn: () => void): void;
+    onResetTimer(resetTimerFn: () => void): void; 
+    currentStep: number;
+    isTimerRunning: boolean;
 }
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
@@ -43,27 +45,30 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     onConfirm,
     onCancel,
     onResetTimer,
+    currentStep,
+    isTimerRunning,
 }) => {
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
     const endTimeRef = useRef<number>(Date.now() + 300 * 1000); // 5 phút => milli giây
     const router = useRouter();
 
     useEffect(() => {
+        if (currentStep === 3 || !isTimerRunning) return; // Nếu là bước 3 hoặc bộ đếm giờ không chạy, dừng bộ đếm giờ
+
         const tick = () => {
             const remainingTime = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
             setTimeLeft(remainingTime);
 
             if (remainingTime > 0) {
-                requestAnimationFrame(tick); // Non-blocking timer
+                requestAnimationFrame(tick);
             } else {
                 onCancel();
             }
         };
 
         const animationFrame = requestAnimationFrame(tick);
-
         return () => cancelAnimationFrame(animationFrame);
-    }, []);
+    }, [currentStep, onCancel, isTimerRunning]);
 
     const resetTimer = useCallback(() => {
         endTimeRef.current = Date.now() + 300 * 1000;
@@ -83,7 +88,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        router.push("/payment");
+        onConfirm();
     }
 
     return (
