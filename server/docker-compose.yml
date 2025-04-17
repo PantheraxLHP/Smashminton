@@ -1,6 +1,6 @@
 services:
     postgres:
-        image: postgres:17.4-alpine
+        image: postgres:alpine
         container_name: postgres
         pull_policy: missing
         environment:
