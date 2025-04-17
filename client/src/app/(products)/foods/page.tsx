@@ -10,6 +10,7 @@ interface FoodResponse {
     foods: Products[]; // Danh sách sản phẩm
     totalPages: number; // Tổng số trang
     page: number; // Trang hiện tại (trường hợp page > totalPages thì trả về page cuối cùng)
+    foodCategory: string[]; // Danh mục sản phẩm
 }
 
 interface SelectedProducts extends Products {
@@ -18,6 +19,7 @@ interface SelectedProducts extends Products {
 
 const FoodPage = () => {
     const [foods, setFoods] = useState<Products[]>([]); // State quản lý danh sách sản phẩm
+    const [foodCategories, setFoodCategories] = useState<string[]>([]); // State quản lý danh mục sản phẩm
     const [page, setPage] = useState(1); // State quản lý trang hiện tại
     const [totalPages, setTotalPages] = useState(10); // State quản lý tổng số trang
     //? State quản lý số lượng sản phẩm trên mỗi trang (nếu có tính năng thay đổi số lượng sản phẩm trên mỗi trang thì sẽ sử dụng state này, còn không mặc định 1 trang là 12 sản phẩm)
@@ -37,6 +39,7 @@ const FoodPage = () => {
                 setFoods(data.foods); // Cập nhật danh sách sản phẩm
                 setTotalPages(data.totalPages); // Cập nhật tổng số trang
                 setPage(data.page); // Cập nhật trang hiện tại
+                setFoodCategories(data.foodCategory); // Cập nhật danh mục sản phẩm
             } catch (error) {
                 console.error("Error fetching foods:", error);
             }
@@ -80,6 +83,13 @@ const FoodPage = () => {
         }));
     };
 
+    const handleRemoveFood = (productid: number) => {
+        setProductQuantities((prev) => ({
+            ...prev,
+            [productid]: 0,
+        }));
+    }
+
     // const selectedFoods: SelectedProducts[] = foods
     const selectedFoods: SelectedProducts[] = foodsExData
         .filter((food) => productQuantities[food.productid] > 0)
@@ -88,7 +98,10 @@ const FoodPage = () => {
             quantity: productQuantities[food.productid],
         }));
 
-    console.log("Selected foods:", selectedFoods)
+    const totalPrice = selectedFoods.reduce((acc, food) => {
+        return acc + (food.sellingprice ?? 0) * food.quantity;
+    }, 0);
+
 
     return (
         <div className="flex px-2 py-4 gap-4">
@@ -104,7 +117,12 @@ const FoodPage = () => {
                 onDecrement={handleDecrement}
             />
             {(selectedFoods.length > 0) && (
-                <ProductBottomSheet />
+                <ProductBottomSheet
+                    totalPrice={totalPrice}
+                    selectedProducts={selectedFoods}
+                    onRemoveProduct={handleRemoveFood}
+                    onConfirm={() => { alert("Đặt hàng thành công") }}
+                />
             )}
         </div>
     );
