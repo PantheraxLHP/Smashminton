@@ -7,6 +7,7 @@ import BookingCourtList from '@/app/booking/BookingCourtList';
 import BookingBottomSheet from '@/app/booking/BookingBottomSheet';
 import { Button } from '@/components/ui/button';
 import { Courts, Products } from '@/types/types';
+import PaymentInfo from './PaymentInfo';
 
 interface CourtsWithPrice extends Courts {
     courtprice: string;
@@ -42,6 +43,8 @@ export default function BookingPage() {
         setResetTimer(() => resetFn);
     }, []);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+    const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
+    const [isTimerRunning, setIsTimerRunning] = useState(true);
 
     // ✅ Update filters, including fixedCourt
     const handleFilterChange = useCallback((newFilters: Filters) => {
@@ -54,6 +57,12 @@ export default function BookingPage() {
     const handleToggleChange = useCallback((isFixed: boolean) => {
         handleFilterChange({ fixedCourt: isFixed });
     }, [handleFilterChange]);
+
+    const handleConfirm = () => {
+        setStep(3);
+        setIsBookingBottomSheetVisible(false);
+        setIsTimerRunning(false);
+    };
 
     // ✅ Gọi API lấy danh sách sân theo bộ lọc, có debounce
     useEffect(() => {
@@ -164,18 +173,56 @@ export default function BookingPage() {
                 </div>
             )}
 
-            {step > 1 && <div className="p-10 text-center text-lg font-semibold text-gray-500">Đang phát triển...</div>}
+            {step === 2 && (
+                <div className="p-10 text-center text-lg font-semibold text-gray-500">Đang phát triển...</div>
+            )}
+
+            {step === 3 && (
+                <PaymentInfo
+                    paymentData={{
+                        selectedMethod: null,
+                        finalTotal: totalPrice,
+                        items: selectedCourts.map((court) => ({
+                            icon: court.courtimgurl || "",
+                            description: court.courtname ?? "Tên sân không xác định",
+                            quantity: "1",
+                            duration: `${court.filters.duration ?? 1} giờ`,
+                            time: court.filters.startTime ?? '',
+                            unitPrice: parseInt(court.courtprice.replace(/\D/g, '')),
+                            total: parseInt(court.courtprice.replace(/\D/g, '')),
+                        })),
+                        discount: 0.1, // giả sử có giảm giá 10%
+                        invoiceCode: "None",
+                        employeeCode: "None",
+                        createdAt: new Date().toLocaleDateString(),
+                        customerInfo: {
+                            fullName: "Nguyễn Văn A",
+                            phone: "0123456789",
+                            email: "a@gmail.com",
+                        },
+                    }}
+                />
+            )}
+
 
             {/* Nút chuyển bước */}
             <div className="mt-4 flex justify-between">
                 {/* Nút Quay lại */}
                 <Button
-                    onClick={() => setStep(step - 1)}
+                    onClick={() => {
+                        const prevStep = step - 1;
+                        setStep(prevStep);
+
+                        if (prevStep < 3) {
+                            setIsTimerRunning(true); // bật lại đồng hồ
+                        }
+                    }}
                     variant={'secondary'}
                     className={` ${step === 1 ? 'pointer-events-none opacity-0' : ''}`}
                 >
                     ← Quay lại
                 </Button>
+
 
                 {/* Nút Tiếp theo */}
                 <Button
@@ -187,19 +234,20 @@ export default function BookingPage() {
             </div>
 
             {/* Hiển thị Bottom Sheet nếu có ít nhất 1 sân hoặc sản phẩm */}
-            {(selectedCourts.length > 0 || selectedProducts.length > 0) && (
+            {step !== 3 && (selectedCourts.length > 0 || selectedProducts.length > 0) && (
                 <BookingBottomSheet
                     totalPrice={totalPrice}
-                    selectedCourts={selectedCourts} // Truyền danh sách sân muốn thuê
-                    selectedProducts={selectedProducts} // Truyền danh sách sản phẩm muốn mua
-                    onRemoveCourt={handleRemoveCourt} // Xóa sân khỏi danh sách thuê
-                    onConfirm={() => alert('Đặt sân thành công!')}
+                    selectedCourts={selectedCourts}
+                    selectedProducts={selectedProducts}
+                    onRemoveCourt={handleRemoveCourt}
+                    onConfirm={handleConfirm}
                     onCancel={() => {
                         setSelectedCourts([]);
                         setSelectedProducts([]);
-                        alert('Hủy đặt sân!');
                     }}
                     onResetTimer={handleResetTimer}
+                    currentStep={step}
+                    isTimerRunning={isTimerRunning}
                 />
             )}
         </div>

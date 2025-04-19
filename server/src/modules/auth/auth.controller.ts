@@ -48,7 +48,6 @@ export class AuthController {
     @Post('signin')
     @UseGuards(LocalAuthGuard)
     @Public()
-    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'User Sign In', description: 'Authenticate user and return JWT token.' })
     @ApiBody({ type: SigninAuthDto })
     @ApiResponse({ status: 201, description: 'SignIn successful' })
