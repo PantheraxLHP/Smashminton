@@ -58,8 +58,8 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                 <h2 className="text-xl font-semibold text-center w-full">THÔNG TIN THANH TOÁN</h2>
             </div>
 
-            {/* Order Info */}
-            <div className="grid grid-cols-[0.7fr_1fr] text-center mt-4">
+            {/* Order Info - Desktop */}
+            <div className="hidden md:grid grid-cols-[0.7fr_1fr] text-center mt-4">
                 <div className="bg-primary-50 p-4 rounded-lg rounded-br-none">
                     <h3 className="text-md font-semibold text-green-700 text-center">THÔNG TIN ĐƠN HÀNG</h3>
                 </div>
@@ -79,8 +79,21 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                 </div>
             </div>
 
-            {/* Payment Table */}
-            <div className="grid grid-cols-[0.7fr_1fr]">
+            {/* Order Info - Mobile/Tablet */}
+            <div className="flex flex-col gap-2 mt-4 md:hidden bg-primary-50 p-4 rounded-lg">
+                <h3 className="text-md font-semibold text-green-700 mb-2 text-center">THÔNG TIN ĐƠN HÀNG</h3>
+                <div className="text-sm text-gray-700">
+                    <p className="font-medium">Mã hóa đơn:</p>
+                    <p className="mb-1">{paymentData.invoiceCode}</p>
+                    <p className="font-medium">Mã nhân viên:</p>
+                    <p className="mb-1">{paymentData.employeeCode}</p>
+                    <p className="font-medium">Ngày tạo:</p>
+                    <p>{paymentData.createdAt}</p>
+                </div>
+            </div>
+
+            {/* Payment Table - Desktop */}
+            <div className="hidden md:grid grid-cols-[0.7fr_1fr]">
                 <div>
                     <table className="w-full text-sm text-left">
                         <thead className="bg-white border-b border-gray-300">
@@ -143,7 +156,37 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                 </div>
             </div>
 
-            <div className="mt-6 p-4 rounded-lg grid grid-cols-[0.7fr_1fr] gap-6 border-t-1">
+            {/* Payment Table - Mobile/Tablet */}
+            <div className="md:hidden mt-4 flex flex-col gap-4">
+                {paymentData.items.map((item, idx) => (
+                    <div key={idx} className="border p-4 rounded-lg bg-white shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            {item.icon && (
+                                <img src={item.icon} alt="icon" className="w-5 h-5 object-contain" />
+                            )}
+                            <span className="font-medium text-gray-800">{item.description}</span>
+                        </div>
+                        <div className="flex flex-wrap text-sm text-gray-600">
+                            <div className="w-1/2 mb-1"><strong>Số lượng:</strong> {item.quantity}</div>
+                            <div className="w-1/2 mb-1"><strong>Thời gian:</strong> {item.time}</div>
+                            <div className="w-1/2 mb-1"><strong>Thời lượng:</strong> {item.duration}</div>
+                            <div className="w-1/2 mb-1"><strong>Đơn giá:</strong> {item.unitPrice.toLocaleString()} đ</div>
+                            <div className="w-full mt-1"><strong>Thành tiền:</strong> {item.total.toLocaleString()} đ</div>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Tổng cộng - Mobile/Tablet */}
+                <div className="text-sm mt-4 bg-primary-50 p-4 rounded-lg md:hidden">
+                    <p className="font-semibold text-left">Tổng tiền: {total.toLocaleString()} đ</p>
+                    <p className="text-red-600 font-semibold text-left">S - Student: -10%</p>
+                    <p className="text-lg font-bold text-black text-left">Tổng cộng: {finalTotal.toLocaleString()} đ</p>
+                </div>
+
+            </div>
+
+
+            <div className="mt-6 p-4 rounded-lg grid grid-cols-1 lg:grid-cols-[0.7fr_1fr] gap-6 border-t">
                 <CustomerInfo customerInfo={paymentData.customerInfo} />
                 <PaymentMethod
                     selectedMethod={selectedMethod}
