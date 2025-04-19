@@ -1,11 +1,10 @@
 import type { SigninSchema } from '@/app/(auth)/auth.schema';
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_HOST || '';
 
 export async function handleSignin(signinData: SigninSchema) {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/signin`, {
+        const response = await fetch('/api/auth/signin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(signinData),
@@ -26,7 +25,7 @@ export async function handleSignin(signinData: SigninSchema) {
 
 export async function handleSignup(signupFormData: FormData) {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/signup`, {
+        const response = await fetch('/api/auth/signup', {
             method: 'POST',
             body: signupFormData,
             credentials: 'include',
@@ -48,7 +47,7 @@ export async function handleSignup(signupFormData: FormData) {
 
 export async function handleSignout() {
     try {
-        const response = await fetch(`${apiBaseUrl}/api/auth/signout`, {
+        const response = await fetch('/api/auth/signout', {
             method: 'POST',
             credentials: 'include',
         });
