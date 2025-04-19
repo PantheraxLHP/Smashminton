@@ -13,9 +13,10 @@ const featureTranslations: Record<string, string> = {
 
 export const getZones = async () => {
     try {
-        // call by client component -> can use relative URL
         // Get ApiResponse from /api/zones
-        const res = await fetch('/api/zones');
+        const apiBaseUrl = process.env.NEXT_PUBLIC_HOST || '';
+
+        const res = await fetch(`${apiBaseUrl}/api/zones`);
         const result = await res.json();
 
         if (!res.ok) {
