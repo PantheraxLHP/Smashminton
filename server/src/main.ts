@@ -8,9 +8,12 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     app.enableCors({
-        origin: '*',
+        origin: process.env.NODE_ENV === 'production' 
+            ? ['https://smashminton.fun', 'https://www.smashminton.fun']
+            : '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        credentials: true, // Cho phép gửi cookies
+        credentials: process.env.NODE_ENV === 'production',
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     });
 
     app.setGlobalPrefix('api/v1', { exclude: [''] });

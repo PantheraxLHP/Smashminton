@@ -13,8 +13,8 @@ function decodeJWT(token: string) {
 }
 
 export async function GET() {
-    const cookieStore = cookies();
-    const accessToken = (await cookieStore).get('accessToken')?.value;
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('accessToken')?.value;
     if (!accessToken) {
         return ApiResponse.unauthorized();
     }
