@@ -28,5 +28,5 @@ jobs:
             git pull origin main
             npm install
             npm run build
-            pm2 restart smashminton || pm2 start npm --name "smashminton" -- run start
+            pm2 restart smashminton || pm2 start npm --name "smashminton" -- run start:prod
           EOF
