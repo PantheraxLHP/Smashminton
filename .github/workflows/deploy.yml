@@ -21,9 +21,12 @@ jobs:
       - name: 🚀 Deploy over SSH
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            export PATH="$HOME/.local/share/fnm:$PATH"
+            eval "$(fnm env)"
+            
             cd ${{ secrets.VPS_APP_PATH }}
             git pull origin main
             npm install
             npm run build
-            pm2 restart nestjs-app || pm2 start dist/main.js --name nestjs-app
+            pm2 restart smashminton || pm2 start npm --name "smashminton" -- run start
           EOF
