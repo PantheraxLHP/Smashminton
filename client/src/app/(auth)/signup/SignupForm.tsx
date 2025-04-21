@@ -20,9 +20,10 @@ const SignupForm = () => {
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
-            setSelectedFile(Array.from(event.target.files).slice(0, 2)); // Giới hạn tối đa 2 ảnh
+            setSelectedFile(Array.from(event.target.files).slice(0, 2));
         }
     };
+
     const handleRemoveFile = (index: number) => {
         setSelectedFile((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
@@ -43,13 +44,10 @@ const SignupForm = () => {
 
     const onSubmit = async (signupData: SignupSchema) => {
         const formData = new FormData();
-
-        // Append all form values to formData
         Object.entries(signupData).forEach(([key, value]) => {
             formData.append(key, value);
         });
 
-        // Append files if student and files exist
         if (isStudent && selectedFile.length > 0) {
             selectedFile.forEach((file) => {
                 formData.append('studentCard', file);
@@ -67,8 +65,23 @@ const SignupForm = () => {
     };
 
     return (
-        <div className="absolute top-1/2 left-1/8 w-[600px] -translate-y-1/2 transform rounded-lg bg-white/90 p-8 shadow-lg">
-            <h2 className="text-primary-600 mb-6 text-center text-2xl font-semibold">Đăng ký thành viên</h2>
+            <div
+                className="
+                    w-[95%] 
+                    max-w-[600px] 
+                    bg-white/90 
+                    rounded-lg 
+                    p-6 sm:p-8 
+                    shadow-lg 
+                    backdrop-blur-sm 
+                    mt-5 mb-5
+
+                    mx-auto 
+                    lg:ml-[-30%] lg:mr-0 
+                "
+            >
+
+            <h2 className="mb-6 text-center text-2xl font-semibold text-primary-600">Đăng ký thành viên</h2>
 
             <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -102,7 +115,6 @@ const SignupForm = () => {
                         />
                     ))}
 
-                    {/* Checkbox để chọn học sinh/sinh viên */}
                     <div className="flex items-center gap-2">
                         <input
                             type="checkbox"
@@ -116,7 +128,6 @@ const SignupForm = () => {
                         </label>
                     </div>
 
-                    {/* Phần tải lên ảnh chỉ hiển thị khi checkbox được chọn */}
                     {isStudent && (
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-medium text-black">
