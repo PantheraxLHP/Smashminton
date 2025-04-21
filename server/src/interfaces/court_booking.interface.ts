@@ -1,4 +1,4 @@
-export interface CourtPrices {
+export interface AvailableCourts {
     courtid: number;
     courtname: string | null;
     dayfrom: string | null;
@@ -6,4 +6,4 @@ export interface CourtPrices {
     starttime: string;
     endtime: string;
     price: string;
-  }
+}

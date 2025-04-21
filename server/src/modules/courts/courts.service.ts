@@ -3,7 +3,7 @@ import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { calculateEndTime_HHMM, getEnglishDayName } from 'src/utilities/date.utilities';
-import { AvailableCourt } from 'src/interfaces/courts.interface';
+import { CourtPrices } from 'src/interfaces/courts.interface';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
@@ -17,7 +17,7 @@ export class CourtsService {
   findAll() {
     return `This action returns all courts`;
   }
-  async  getCourtsByDayFrom_To(zoneid: number, date: string) {
+  async getCourtsIDByDayFrom_To(zoneid: number, date: string) {
     const parsedZoneId = Number(zoneid);
     const dayOfWeek = getEnglishDayName(date);
 
@@ -62,7 +62,7 @@ export class CourtsService {
     return filteredCourtIDByDayFromToWithoutZones;
   }
 
-  async getCourtPrices(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) {
+  async getCourtPrices(zoneid: number, date: string, starttime: string, duration: number): Promise<CourtPrices[]> {
     const parsedStartTime = dayjs(starttime, 'HH:mm');
     const endtime = calculateEndTime_HHMM(starttime, duration);
     const parsedEndTime = dayjs(endtime, 'HH:mm');

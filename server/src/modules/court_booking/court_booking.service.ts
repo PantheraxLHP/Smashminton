@@ -2,9 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCourtBookingDto } from './dto/create-court_booking.dto';
 import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { calculateEndTime_Date, calculateEndTime_HHMM, convertUTCToVNTime, convertVNToUTC, getEnglishDayName } from 'src/utilities/date.utilities';
+import { convertUTCToVNTime } from 'src/utilities/date.utilities';
 import dayjs from 'dayjs';
 import { CourtsService } from '../courts/courts.service';
+import { AvailableCourts } from 'src/interfaces/court_booking.interface';
 @Injectable()
 export class CourtBookingService {
   constructor(
@@ -21,12 +22,12 @@ export class CourtBookingService {
     '21:00','21:30',
   ];
 
-  async getAvaliableCourts(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) {
+  async getAvaliableCourts(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean): Promise<AvailableCourts[]> {
     if (!zoneid || !date || !starttime || !duration) {
       throw new BadRequestException('Missing query parameters');
     }
-    
-    const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration, fixedCourt);
+
+    const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
     
     const selectedDate = new Date(date);
     const courtBookings = await this.prisma.court_booking.findMany({
@@ -71,14 +72,14 @@ export class CourtBookingService {
 
   }
   
-  async getUnavailableStartTimes(zoneid: number, date: string, duration: number) {
+  async getUnavailableStartTimes(zoneid: number, date: string, duration: number): Promise<string[]> {
     if (!zoneid || !date || !duration) {
       throw new BadRequestException('Missing query parameters');
     }
 
     const parsedZoneId = Number(zoneid);
 
-    const filteredCourtByDayFromTo = await this.courtsService.getCourtsByDayFrom_To(parsedZoneId, date);
+    const filteredCourtByDayFromTo = await this.courtsService.getCourtsIDByDayFrom_To(parsedZoneId, date);
 
     const selectedDate = new Date(date);
     const bookings = await this.prisma.court_booking.findMany({
@@ -100,8 +101,6 @@ export class CourtBookingService {
     for (const booking of bookings) {
       const bStart = dayjs(booking.starttime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
       const bEnd = dayjs(booking.endtime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
-      console.log('bStart', bStart);
-      console.log('bEnd', bEnd);
 
       const startIndex = this.allStartTimes.indexOf(bStart);
       const endIndex = this.allStartTimes.indexOf(bEnd);

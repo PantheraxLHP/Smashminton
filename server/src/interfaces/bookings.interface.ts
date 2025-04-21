@@ -1,3 +1,5 @@
+import { AvailableCourts } from "./court_booking.interface";
+
 export interface CacheCourtBooking {
     zoneid: number;
     courtid: number;
@@ -11,3 +13,7 @@ export interface CacheBooking {
   court_booking: CacheCourtBooking[];
 }
 
+export interface AvailableCourtsAndUnavailableStartTime {
+  availableCourts: AvailableCourts[]; // Danh sách các sân khả dụng
+  unavailableStartTimes: string[];   // Danh sách các khung giờ không khả dụng
+}

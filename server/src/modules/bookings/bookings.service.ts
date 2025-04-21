@@ -5,16 +5,28 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO } from './dto/create-cache-booking.dto';
 import { calculateEndTimeCache } from '../../utilities/date.utilities';
-import { CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
+import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
+import { CourtBookingService } from '../court_booking/court_booking.service';
 @Injectable()
 export class BookingsService {
   constructor(
 	private prisma: PrismaService,
 	private cacheService: CacheService,
+	private courtBookingService: CourtBookingService,
   ) { }
   create(createBookingDto: CreateBookingDto) {
 	return 'This action adds a new booking';
   }
+  async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) : Promise<AvailableCourtsAndUnavailableStartTime> {
+    const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
+    const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
+    
+    return {
+      availableCourts: availableCourts,
+      unavailableStartTimes: unavailableStartTimes,
+    };
+  }
+
   async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
 	const { customerid, court_booking } = CacheBookingDTO;
 

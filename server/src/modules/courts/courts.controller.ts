@@ -25,7 +25,7 @@ export class CourtsController {
     @Query('zoneid') zoneid: number,
     @Query('date') date: string,
   ) {
-    return this.courtsService.getCourtsByDayFrom_To(zoneid, date);
+    return this.courtsService.getCourtsIDByDayFrom_To(zoneid, date);
   }
 
   @Get('court-prices')
@@ -33,15 +33,13 @@ export class CourtsController {
   @ApiQuery({ name: 'date', type: String, example: '2025-05-14', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
   @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
-  @ApiQuery({ name: 'fixedCourt', type: Boolean, example: true, description: 'Có cố định sân hay không' })
   getCourtPrices(
     @Query('zoneid') zoneid: number,
     @Query('date') date: string,
     @Query('starttime') starttime: string,
     @Query('duration') duration: number,
-    @Query('fixedCourt') fixedCourt: boolean,
   ) {
-    return this.courtsService.getCourtPrices(zoneid, date, starttime, duration, fixedCourt);
+    return this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
   }
 
   @Get(':id')

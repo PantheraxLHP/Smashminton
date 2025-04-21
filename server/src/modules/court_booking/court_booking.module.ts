@@ -8,5 +8,6 @@ import { CourtsModule } from '../courts/courts.module';
   controllers: [CourtBookingController],
   providers: [CourtBookingService],
   imports: [PrismaModule, CourtsModule],
+  exports: [CourtBookingService], // Export the service if needed in other modules
 })
 export class CourtBookingModule {}

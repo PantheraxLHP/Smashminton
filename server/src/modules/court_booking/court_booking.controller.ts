@@ -15,7 +15,7 @@ export class CourtBookingController {
 
   @Get('available-courts')
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
-  @ApiQuery({ name: 'date', type: String, example: '2025-05-14', description: 'Ngày đặt sân (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
   @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
   @ApiQuery({ name: 'fixedCourt', type: Boolean, example: true, description: 'Có cố định sân hay không' })
