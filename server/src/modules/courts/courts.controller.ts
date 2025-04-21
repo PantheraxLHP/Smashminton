@@ -6,7 +6,7 @@ import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('courts')
 export class CourtsController {
-  constructor(private readonly courtsService: CourtsService) {}
+  constructor(private readonly courtsService: CourtsService) { }
 
   @Post()
   create(@Body() createCourtDto: CreateCourtDto) {
@@ -18,20 +18,30 @@ export class CourtsController {
     return this.courtsService.findAll();
   }
 
-  @Get('available-courts')
+  @Get('filtered-courts-dayfromto')
+  @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
+  @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
+  getCourtsByDayFromTo(
+    @Query('zoneid') zoneid: number,
+    @Query('date') date: string,
+  ) {
+    return this.courtsService.getCourtsByDayFrom_To(zoneid, date);
+  }
+
+  @Get('court-prices')
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
   @ApiQuery({ name: 'date', type: String, example: '2025-05-14', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
   @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
   @ApiQuery({ name: 'fixedCourt', type: Boolean, example: true, description: 'Có cố định sân hay không' })
-  findAvailableCourt(
+  getCourtPrices(
     @Query('zoneid') zoneid: number,
     @Query('date') date: string,
     @Query('starttime') starttime: string,
     @Query('duration') duration: number,
     @Query('fixedCourt') fixedCourt: boolean,
   ) {
-    return this.courtsService.findAvailableCourt(zoneid, date, starttime, duration, fixedCourt);
+    return this.courtsService.getCourtPrices(zoneid, date, starttime, duration, fixedCourt);
   }
 
   @Get(':id')

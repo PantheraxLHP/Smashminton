@@ -1,15 +1,132 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCourtBookingDto } from './dto/create-court_booking.dto';
 import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
-
+import { calculateEndTime_Date, calculateEndTime_HHMM, convertUTCToVNTime, convertVNToUTC, getEnglishDayName } from 'src/utilities/date.utilities';
+import dayjs from 'dayjs';
+import { CourtsService } from '../courts/courts.service';
 @Injectable()
 export class CourtBookingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private courtsService: CourtsService, // Inject CourtsService
+  ) {}
+
+  private readonly allStartTimes: string[] = [
+    '06:00','06:30','07:00','07:30','08:00','08:30',
+    '09:00','09:30','10:00','10:30','11:00','11:30',
+    '12:00','12:30','13:00','13:30','14:00','14:30',
+    '15:00','15:30','16:00','16:30','17:00','17:30',
+    '18:00','18:30','19:00','19:30','20:00','20:30',
+    '21:00','21:30',
+  ];
+
+  async getAvaliableCourts(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) {
+    if (!zoneid || !date || !starttime || !duration) {
+      throw new BadRequestException('Missing query parameters');
+    }
+    
+    const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration, fixedCourt);
+    
+    const selectedDate = new Date(date);
+    const courtBookings = await this.prisma.court_booking.findMany({
+      where: {
+        date: selectedDate,
+      },
+      select: {
+        courtid: true,
+        starttime: true,
+        endtime: true,
+      },
+    });
+
+    const convertedCourtBookings = courtBookings.map((item) => ({
+      courtid: item.courtid,
+      starttime: item.starttime ? convertUTCToVNTime(item.starttime.toISOString()) : null,
+      endtime: item.endtime ? convertUTCToVNTime(item.endtime.toISOString()) : null,
+    }));
+    
+    // Lọc các courtPrices không bị giao thời gian với courtBookings
+    const filteredCourtPrices = courtPrices.filter((courtPrice) => {
+      const booking = convertedCourtBookings.find((booking) => booking.courtid === courtPrice.courtid);
+
+      if (!booking) {
+        // Nếu không có booking cho courtid này, giữ lại courtPrice
+        return true;
+      }
+
+      const courtPriceStart = dayjs(courtPrice.starttime, 'HH:mm');
+      const courtPriceEnd = dayjs(courtPrice.endtime, 'HH:mm');
+      const bookingStart = dayjs(booking.starttime, 'HH:mm');
+      const bookingEnd = dayjs(booking.endtime, 'HH:mm');
+
+      // Kiểm tra nếu thời gian của courtPrice không giao với thời gian của booking
+      const isOverlap = courtPriceStart.isBefore(bookingEnd) && bookingStart.isBefore(courtPriceEnd);
+
+      // Nếu không giao, giữ lại courtPrice
+      return !isOverlap;
+    });
+    
+  return filteredCourtPrices;
+
+  }
+  
+  async getUnavailableStartTimes(zoneid: number, date: string, duration: number) {
+    if (!zoneid || !date || !duration) {
+      throw new BadRequestException('Missing query parameters');
+    }
+
+    const parsedZoneId = Number(zoneid);
+
+    const filteredCourtByDayFromTo = await this.courtsService.getCourtsByDayFrom_To(parsedZoneId, date);
+
+    const selectedDate = new Date(date);
+    const bookings = await this.prisma.court_booking.findMany({
+      where: {
+        //courtid: { in: filteredCourtByDayFromTo },
+        date: selectedDate,
+      },
+      select: {
+        starttime: true,
+        endtime: true,
+      },
+    });
+
+      // Tạo mảng copy với giá trị ban đầu là tổng số sân
+    const totalCourts = filteredCourtByDayFromTo.length;
+    const courtAvailability = Array(this.allStartTimes.length).fill(totalCourts);
+
+    // Lặp qua từng booking
+    for (const booking of bookings) {
+      const bStart = dayjs(booking.starttime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
+      const bEnd = dayjs(booking.endtime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
+      console.log('bStart', bStart);
+      console.log('bEnd', bEnd);
+
+      const startIndex = this.allStartTimes.indexOf(bStart);
+      const endIndex = this.allStartTimes.indexOf(bEnd);
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        // Trừ đi 1 cho các index tương ứng trong mảng copy
+        for (let i = startIndex; i < endIndex; i++) {
+          courtAvailability[i] -= 1;
+        }
+      }
+    }
+
+    // Lấy danh sách các khung giờ bị block (các index có giá trị = 0)
+    const unavailableTimes = this.allStartTimes.filter((_, index) => courtAvailability[index] === 0);
+
+    return unavailableTimes;
+  }
+  
   create(createCourtBookingDto: CreateCourtBookingDto) {
     return 'This action adds a new courtBooking';
   }
   
+  getBlockedTimes(zoneid: number, date: string) {
+
+  }
   findAll() {
     return this.prisma.court_booking.findMany();
   }
