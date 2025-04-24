@@ -3,14 +3,16 @@ import { AvailableCourts } from "./court_booking.interface";
 export interface CacheCourtBooking {
     zoneid: number;
     courtid: number;
-    starttime: Date;      
+    date: string; // Ngày đặt sân
+    starttime: string;      
     duration: number;       
-    endtime: Date;       
-  }
+    endtime: string;       
+    price: number;
+}
   
 export interface CacheBooking {
-  customerid: number;
   court_booking: CacheCourtBooking[];
+  totalprice: number;
 }
 
 export interface AvailableCourtsAndUnavailableStartTime {

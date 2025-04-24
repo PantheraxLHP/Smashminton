@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,6 +18,9 @@ export class BookingsService {
 	return 'This action adds a new booking';
   }
   async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) : Promise<AvailableCourtsAndUnavailableStartTime> {
+	if (!zoneid || !date || !starttime || !duration || fixedCourt === undefined) {
+	  throw new BadRequestException('Missing query parameters');
+	}
     const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
     const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
     
@@ -27,32 +30,32 @@ export class BookingsService {
     };
   }
 
-  async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
-	const { customerid, court_booking } = CacheBookingDTO;
+//   async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
+// 	const { customerid, court_booking } = CacheBookingDTO;
 
-		// Mapping từng phần tử trong mảng court_booking thành một object JSON
-		const courtBooking: CacheCourtBooking[] = court_booking.map((booking) => {
-			const startTime = booking.date + ' ' + booking.starttime;
-			const endTime = calculateEndTimeCache(booking.date, booking.starttime, booking.duration);
+// 		// Mapping từng phần tử trong mảng court_booking thành một object JSON
+// 		const courtBooking: CacheCourtBooking[] = court_booking.map((booking) => {
+// 			const startTime = booking.date + ' ' + booking.starttime;
+// 			const endTime = calculateEndTimeCache(booking.date, booking.starttime, booking.duration);
 		
-			return {
-			zoneid: booking.zoneid,
-			courtid: booking.courtid,
-			starttime: new Date(startTime),
-			duration: booking.duration,
-			endtime: new Date(endTime),
-			};
-		});
+// 			return {
+// 			zoneid: booking.zoneid,
+// 			courtid: booking.courtid,
+// 			starttime: new Date(startTime),
+// 			duration: booking.duration,
+// 			endtime: new Date(endTime),
+// 			};
+// 		});
 
-		// Tạo JSON cacheBooking
-		const cacheBooking: CacheBooking = {
-			customerid,
-			court_booking: courtBooking,
-		};
+// 		// Tạo JSON cacheBooking
+// 		const cacheBooking: CacheBooking = {
+// 			customerid,
+// 			court_booking: courtBooking,
+// 		};
 
-		// Trả về JSON cacheBooking
-		return cacheBooking;
-	}
+// 		// Trả về JSON cacheBooking
+// 		return cacheBooking;
+// 	}
 	findAll() {
 		return `This action returns all bookings`;
 	}
