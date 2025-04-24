@@ -1,16 +1,20 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { cacheBookingDTO } from './dto/create-cache-booking.dto';
 
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  @Post()
-  create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingsService.create(createBookingDto);
+  @Post('cache-booking')
+  @ApiOperation({ summary: 'Add booking to redis' })
+  @ApiBody({ type: cacheBookingDTO })
+  @ApiResponse({ status: 201, description: 'Add successful' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  addBookingToCache(@Body() CacheBookingDTO: cacheBookingDTO) {
+    return this.bookingsService.addBookingToCache(CacheBookingDTO);
   }
 
   @Get('available-courts-and-unavailable-start-time')

@@ -10,7 +10,7 @@ export interface CacheCourtBooking {
     price: number;
 }
   
-export interface CacheBooking {
+export interface CacheBooking {  
   court_booking: CacheCourtBooking[];
   totalprice: number;
 }
