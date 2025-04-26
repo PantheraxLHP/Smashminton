@@ -1,29 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Icon } from "@iconify/react";
-import { Button } from "@/components/ui/button";
-import { Courts, Products } from '@/types/types';
-import { useRouter } from "next/navigation";
-
-
-interface CourtsWithPrice extends Courts {
-    courtprice: string;
-}
-
-interface SelectedCourt extends CourtsWithPrice {
-    filters: Filters;
-}
-
-interface SelectedProducts extends Products {
-    quantity: number;
-}
-
-interface Filters {
-    zone?: string;
-    date?: string;
-    duration?: number;
-    startTime?: string;
-    fixedCourt?: boolean;
-}
+import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { SelectedCourt, SelectedProducts } from '../page';
 
 interface BookingBottomSheetProps {
     totalPrice: number;
@@ -32,7 +11,7 @@ interface BookingBottomSheetProps {
     onRemoveCourt: (scCourt: SelectedCourt) => void;
     onConfirm: () => void;
     onCancel: () => void;
-    onResetTimer(resetTimerFn: () => void): void; 
+    onResetTimer(resetTimerFn: () => void): void;
     currentStep: number;
     isTimerRunning: boolean;
 }
@@ -84,18 +63,18 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
     const handleConfirm = () => {
         onConfirm();
-    }
+    };
 
     return (
-        <div className="fixed bottom-0 inset-x-0 bg-black text-white py-2 sm:p-4 shadow-lg z-50">
-            <div className="flex flex-col gap-2 items-center sm:flex-row sm:max-h-20">
+        <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
+            <div className="flex flex-col items-center gap-2 sm:max-h-20 sm:flex-row">
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-0 max-h-[calc(100vh-150px)] sm:max-h-20">
+                <div className="max-h-[calc(100vh-150px)] flex-1 overflow-y-auto p-0 sm:max-h-20">
                     <div className="flex flex-col gap-1">
                         {/* Danh sách sân */}
                         {selectedCourts.map((scCourt) => (
@@ -108,16 +87,16 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 className="flex items-center gap-2"
                             >
                                 <span className="font-bold">{scCourt.courtname}</span>
-                                <Icon icon="mdi:calendar" className="w-5 h-5" />
+                                <Icon icon="mdi:calendar" className="h-5 w-5" />
                                 <span>{scCourt.filters.date}</span>
-                                <Icon icon="mdi:clock-outline" className="w-5 h-5" />
+                                <Icon icon="mdi:clock-outline" className="h-5 w-5" />
                                 <span>{scCourt.filters.startTime}</span>
-                                <Icon icon="mdi:timer" className="w-5 h-5" />
+                                <Icon icon="mdi:timer" className="h-5 w-5" />
                                 <span>{scCourt.filters.duration}h</span>
                                 <Icon
                                     onClick={() => onRemoveCourt(scCourt)}
                                     icon="mdi:close-circle"
-                                    className="w-5 h-5 text-red-500 cursor-pointer"
+                                    className="h-5 w-5 cursor-pointer text-red-500"
                                 />
                             </div>
                         ))}
@@ -126,41 +105,32 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                         <div className="flex flex-wrap gap-4">
                             {selectedProducts.map((scProduct) => (
                                 <div key={scProduct.productid} className="flex items-center gap-2">
-                                    <Icon icon="mdi:racket" className="w-5 h-5" />
+                                    <Icon icon="mdi:racket" className="h-5 w-5" />
                                     <span>
                                         {scProduct.quantity} {scProduct.productname}
                                     </span>
-                                    <Icon
-                                        icon="mdi:close-circle"
-                                        className="w-5 h-5 text-red-500 cursor-pointer"
-                                    />
+                                    <Icon icon="mdi:close-circle" className="h-5 w-5 cursor-pointer text-red-500" />
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-between sm:h-20 sm:min-w-90 sm:max-w-180">
-                    <div className="hidden sm:block h-full w-1 bg-white"></div>
+                <div className="flex flex-col items-center justify-between gap-2 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
+                    <div className="hidden h-full w-1 bg-white sm:block"></div>
                     {/* Countdown Timer */}
-                    <div className="flex flex-col items-center bg-white text-primary border-2 border-solid border-primary p-2 rounded-lg">
+                    <div className="text-primary border-primary flex flex-col items-center rounded-lg border-2 border-solid bg-white p-2">
                         <span className="text-sm">Thời gian giữ sân:</span>
-                        <span className="text-3xl w-full">{formatTime(timeLeft)}</span>
+                        <span className="w-full text-3xl">{formatTime(timeLeft)}</span>
                     </div>
 
                     {/* Tổng tiền & Đặt sân */}
-                    <div className="flex flex-col items-center max-w-full sm:max-w-65">
-                        <div className="flex mb-2 gap-2 items-center">
+                    <div className="flex max-w-full flex-col items-center sm:max-w-65">
+                        <div className="mb-2 flex items-center gap-2">
                             <span className="text-white">Tạm tính:</span>
-                            <span className="text-lg font-bold">
-                                {totalPrice.toLocaleString("vi-VN")} VND
-                            </span>
+                            <span className="text-lg font-bold">{totalPrice.toLocaleString('vi-VN')} VND</span>
                         </div>
-                        <Button
-                            className="w-full bg-primary"
-                            onClick={handleConfirm}
-                        >
+                        <Button className="bg-primary w-full" onClick={handleConfirm}>
                             ĐẶT SÂN
                         </Button>
                     </div>

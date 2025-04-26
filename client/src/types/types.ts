@@ -56,11 +56,16 @@ export interface AutoassignmentRules {
     aaruleid: number;
     rulename?: string;
     ruledescription?: string;
-    rulefor?: string;
-    rulevalue?: number;
     rulestatus?: string;
-    managerid?: number;
-    employees?: Employees;
+    ruleforemptype?: string;
+    rulevalue?: string;
+    ruleappliedfor?: string;
+    ruletype?: string;
+    rulesql?: string;
+    columnname?: string;
+    ctename?: string;
+    canbecollided?: boolean;
+    condition?: string;
     createdat?: Date;
     updatedat?: Date;
 }
@@ -110,7 +115,6 @@ export interface Courts {
     courtid: number;
     courtname?: string;
     courtimgurl?: string;
-    status?: string;
     avgrating?: number;
     timecalculateavg?: Date;
     zoneid?: number;
@@ -178,7 +182,6 @@ export interface ProductDescriptions {
 export interface Products {
     productid: number;
     productname?: string;
-    producttype?: string;
     batch?: string;
     expirydate?: Date;
     status?: string;
@@ -187,11 +190,21 @@ export interface Products {
     rentalprice?: number;
     costprice?: number;
     productimgurl?: string;
+    producttypeid?: number;
+    productdescid?: number;
     createdat?: Date;
     updatedat?: Date;
     order_product?: OrderProduct[];
-    product_descriptions?: ProductDescriptions[];
+    product_descriptions?: ProductDescriptions;
+    product_types?: ProductTypes;
     purchase_order?: PurchaseOrder[];
+}
+
+export interface ProductTypes {
+    producttypeid: number;
+    producttypename?: string;
+    productisfood?: boolean;
+    products?: Products[];
 }
 
 export interface PurchaseOrder {

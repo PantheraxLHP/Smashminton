@@ -1,25 +1,11 @@
-import { useState } from 'react';
-import Image from 'next/image'; // Nếu dùng Next.js, nếu không có thể dùng <img />
-import { Tooltip, TooltipRoot, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
-import { Courts } from '@/types/types';
+import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
+import { Icon } from '@iconify/react';
+import Image from 'next/image';
+import { useState } from 'react';
+import { CourtsWithPrice, Filters, SelectedCourt } from '../page';
+import { formatPrice } from '@/lib/utils';
 
-interface CourtsWithPrice extends Courts {
-    courtprice: string;
-}
-
-interface SelectedCourt extends CourtsWithPrice {
-    filters: Filters;
-}
-
-interface Filters {
-    zone?: string;
-    date?: string;
-    duration?: number;
-    startTime?: string;
-    fixedCourt?: boolean;
-}
 
 interface BookingCourtListProps {
     courts: CourtsWithPrice[];
@@ -31,8 +17,8 @@ interface BookingCourtListProps {
 }
 
 const BookingCourtList: React.FC<BookingCourtListProps> = ({
-    courts,
-    selectedCourts,
+    courts = [], // Provide default empty array
+    selectedCourts = [],
     filters,
     onToggleChange,
     onAddCourt,
@@ -90,14 +76,14 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
 
             {/* Tiêu đề */}
             <h2 className="text-center text-lg font-semibold">
-                Tổng cộng có <span className="text-primary-600 font-bold">{courts.length} sân</span> có sẵn tại khung
+                Tổng cộng có <span className="text-primary-600 font-bold">{courts?.length || 0} sân</span> có sẵn tại khung
                 giờ này. Đặt bất kỳ sân nào bạn thích nhất.
             </h2>
 
             {/* Danh sách sân */}
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {courts.map((court) => {
-                    const scCourt = selectedCourts.find(
+                {courts?.map((court) => {
+                    const scCourt = selectedCourts?.find(
                         (selected) =>
                             selected.courtid === court.courtid &&
                             selected.filters.zone === filters.zone &&
@@ -110,7 +96,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                     return (
                         <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
                             <Image
-                                src={court.courtimgurl || "/default-image.jpg"}
+                                src={"/ZoneA.png"}
                                 alt={court.courtname || "Hình ảnh sân"}
                                 width={300}
                                 height={200}
@@ -118,8 +104,8 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                             />
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
-                                <p className="py-1 text-lg font-semibold">
-                                    {court.courtprice} <span className="text-sm text-gray-300"> / 1 giờ</span>
+                                <p className="py-1 text-lg font-semibold text-primary-500 ">
+                                    {formatPrice(parseInt(court.price))}
                                 </p>
                                 <Button
                                     className="w-full"

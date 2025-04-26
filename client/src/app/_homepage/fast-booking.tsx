@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, MapPin, MapPinned } from 'lucide-react';
+import Link from 'next/link';
 
 const FastBooking = () => {
     return (
@@ -88,8 +89,8 @@ const FastBooking = () => {
                         </div>
                     </div>
 
-                    <Button size="lg" className="w-full">
-                        TÌM SÂN TRỐNG
+                    <Button size="lg" className="w-full" asChild>
+                        <Link href={'/booking'}>TÌM SÂN TRỐNG</Link>
                     </Button>
                 </div>
             </div>
