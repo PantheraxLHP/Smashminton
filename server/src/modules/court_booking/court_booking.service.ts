@@ -6,11 +6,13 @@ import { convertUTCToVNTime } from 'src/utilities/date.utilities';
 import dayjs from 'dayjs';
 import { CourtsService } from '../courts/courts.service';
 import { AvailableCourts } from 'src/interfaces/court_booking.interface';
+import { CacheService } from '../cache/cache.service';
 @Injectable()
 export class CourtBookingService {
   constructor(
     private prisma: PrismaService,
     private courtsService: CourtsService, // Inject CourtsService
+    private cacheService: CacheService, // Inject CacheService
   ) {}
 
   private readonly allStartTimes: string[] = [
@@ -23,12 +25,11 @@ export class CourtBookingService {
   ];
 
   async getAvaliableCourts(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean): Promise<AvailableCourts[]> {
-    if (!zoneid || !date || !starttime || !duration) {
-      throw new BadRequestException('Missing query parameters');
+    if (!zoneid || !date || !starttime || !duration || !fixedCourt) {
+      throw new BadRequestException('Missing query parameters court_booking 1');
     }
 
     const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
-    
     const selectedDate = new Date(date);
     const courtBookings = await this.prisma.court_booking.findMany({
       where: {
@@ -40,6 +41,8 @@ export class CourtBookingService {
         endtime: true,
       },
     });
+    const courtBookingCache = await this.cacheService.getAllCacheBookings(date);
+
 
     const convertedCourtBookings = courtBookings.map((item) => ({
       courtid: item.courtid,
@@ -47,34 +50,40 @@ export class CourtBookingService {
       endtime: item.endtime ? convertUTCToVNTime(item.endtime.toISOString()) : null,
     }));
     
-    // Lọc các courtPrices không bị giao thời gian với courtBookings
+
+    const mergedCourtBookings = [...convertedCourtBookings, ...courtBookingCache];
+    
+    // });
     const filteredCourtPrices = courtPrices.filter((courtPrice) => {
-      const booking = convertedCourtBookings.find((booking) => booking.courtid === courtPrice.courtid);
-
-      if (!booking) {
-        // Nếu không có booking cho courtid này, giữ lại courtPrice
-        return true;
+      // Lấy tất cả các booking có cùng courtid
+      const bookings = mergedCourtBookings.filter((booking) => booking.courtid === courtPrice.courtid);
+  
+      if (bookings.length === 0) {
+          // Nếu không có booking cho courtid này, giữ lại courtPrice
+          return true;
       }
-
+  
       const courtPriceStart = dayjs(courtPrice.starttime, 'HH:mm');
       const courtPriceEnd = dayjs(courtPrice.endtime, 'HH:mm');
-      const bookingStart = dayjs(booking.starttime, 'HH:mm');
-      const bookingEnd = dayjs(booking.endtime, 'HH:mm');
-
-      // Kiểm tra nếu thời gian của courtPrice không giao với thời gian của booking
-      const isOverlap = courtPriceStart.isBefore(bookingEnd) && bookingStart.isBefore(courtPriceEnd);
-
+  
+      // Kiểm tra nếu bất kỳ booking nào giao với courtPrice
+      const isOverlap = bookings.some((booking) => {
+          const bookingStart = dayjs(booking.starttime, 'HH:mm');
+          const bookingEnd = dayjs(booking.endtime, 'HH:mm');
+          // Kiểm tra nếu thời gian của courtPrice giao với thời gian của booking
+          return courtPriceStart.isBefore(bookingEnd) && bookingStart.isBefore(courtPriceEnd);
+      });
       // Nếu không giao, giữ lại courtPrice
       return !isOverlap;
-    });
-    
+  });
+  
   return filteredCourtPrices;
 
   }
   
   async getUnavailableStartTimes(zoneid: number, date: string, duration: number): Promise<string[]> {
     if (!zoneid || !date || !duration) {
-      throw new BadRequestException('Missing query parameters');
+      throw new BadRequestException('Missing query parameters court_booking');
     }
 
     const parsedZoneId = Number(zoneid);
@@ -93,17 +102,25 @@ export class CourtBookingService {
       },
     });
 
-      // Tạo mảng copy với giá trị ban đầu là tổng số sân
+    const convertedBookings = bookings.map((booking) => ({
+        ...booking,
+        starttime: dayjs(booking.starttime).tz('Asia/Ho_Chi_Minh').format('HH:mm'),
+        endtime: dayjs(booking.endtime).tz('Asia/Ho_Chi_Minh').format('HH:mm'),
+    }));
+    
+    const cacheBookings = await this.cacheService.getAllCacheBookings(date);
+    const cacheBookingsWithoutCourtIdAndDate = cacheBookings.map(({ courtid, date, ...rest }) => rest);
+
+    const mergedBookings = [...convertedBookings, ...cacheBookingsWithoutCourtIdAndDate];
+    console.log('Merged Bookings:', mergedBookings);
+    // Tạo mảng copy với giá trị ban đầu là tổng số sân
     const totalCourts = filteredCourtByDayFromTo.length;
     const courtAvailability = Array(this.allStartTimes.length).fill(totalCourts);
 
     // Lặp qua từng booking
-    for (const booking of bookings) {
-      const bStart = dayjs(booking.starttime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
-      const bEnd = dayjs(booking.endtime).tz('Asia/Ho_Chi_Minh').format('HH:mm');
-
-      const startIndex = this.allStartTimes.indexOf(bStart);
-      const endIndex = this.allStartTimes.indexOf(bEnd);
+    for (const booking of mergedBookings) {
+      const startIndex = this.allStartTimes.indexOf(booking.starttime);
+      const endIndex = this.allStartTimes.indexOf(booking.endtime);
 
       if (startIndex !== -1 && endIndex !== -1) {
         // Trừ đi 1 cho các index tương ứng trong mảng copy
@@ -112,10 +129,10 @@ export class CourtBookingService {
         }
       }
     }
-
     // Lấy danh sách các khung giờ bị block (các index có giá trị = 0)
     const unavailableTimes = this.allStartTimes.filter((_, index) => courtAvailability[index] === 0);
 
+    console.log('Unavailable Times:', courtAvailability);
     return unavailableTimes;
   }
   

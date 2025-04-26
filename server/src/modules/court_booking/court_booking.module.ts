@@ -3,11 +3,12 @@ import { CourtBookingService } from './court_booking.service';
 import { CourtBookingController } from './court_booking.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CourtsModule } from '../courts/courts.module';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
   controllers: [CourtBookingController],
   providers: [CourtBookingService],
-  imports: [PrismaModule, CourtsModule],
+  imports: [PrismaModule, CourtsModule, CacheModule],
   exports: [CourtBookingService], // Export the service if needed in other modules
 })
 export class CourtBookingModule {}
