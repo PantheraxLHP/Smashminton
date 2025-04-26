@@ -186,7 +186,8 @@ create table if not exists zones (
 	zoneid integer generated always as identity primary key,
 	zonename text,
 	zonetype text check (zonetype in ('Normal', 'AirConditioner', 'Private')),
-	zoneimgurl text
+	zoneimgurl text,
+	zonedescription text,
 );
 
 create table if not exists zone_prices (

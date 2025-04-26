@@ -1,9 +1,3 @@
-export interface AvailableCourts {
-    courtid: number;
-    courtname: string | null;
-    dayfrom: string | null;
-    dayto: string | null;
-    starttime: string;
-    endtime: string;
-    price: string;
-}
+import { CourtPrices } from "./courts.interface";
+
+export interface AvailableCourts extends CourtPrices {}

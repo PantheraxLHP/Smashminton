@@ -17,6 +17,8 @@ export class CourtsService {
   findAll() {
     return `This action returns all courts`;
   }
+
+  // Tạm thời không sử dụng hàm này
   async getCourtsIDByDayFrom_To(zoneid: number, date: string) {
     const parsedZoneId = Number(zoneid);
     const dayOfWeek = getEnglishDayName(date);
@@ -90,6 +92,7 @@ export class CourtsService {
       select: {
         courtid: true,
         courtname: true,
+        courtimgurl: true,
         zones: {
           select: {
             zone_prices: {
@@ -115,6 +118,7 @@ export class CourtsService {
       court.zones?.zone_prices.map((zonePrice) => ({
         courtid: court.courtid,
         courtname: court.courtname,
+        courtimgurl: court.courtimgurl,  
         dayfrom: zonePrice.dayfrom,
         dayto: zonePrice.dayto,
         starttime: zonePrice.starttime,
@@ -127,10 +131,12 @@ export class CourtsService {
     const courtResults = new Map<number, {
       courtid: number;
       courtname: string;
+      courtimgurl: string;
       totalPrice: number;
       dayfrom: string;
       dayto: string
     }>();
+
 
     for (const zone of allZonePrices) {
       const zoneStart = dayjs(zone.starttime, 'HH:mm');
@@ -154,6 +160,7 @@ export class CourtsService {
           courtResults.set(zone.courtid, {
             courtid: zone.courtid,
             courtname: zone.courtname ?? '',
+            courtimgurl: zone.courtimgurl ?? '',  
             totalPrice: priceForZone,
             dayfrom: zone.dayfrom ?? '',
             dayto: zone.dayto ?? '',
@@ -165,6 +172,7 @@ export class CourtsService {
     const availableCourts = Array.from(courtResults.values()).map((court) => ({
       courtid: court.courtid,
       courtname: court.courtname,
+      courtimgurl: court.courtimgurl,
       dayfrom: court.dayfrom,
       dayto: court.dayto,
       starttime: starttime,

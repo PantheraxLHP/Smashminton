@@ -31,7 +31,7 @@ export class ProductsController {
         return this.productsService.create(createProductDto);
     }
 
-    @Get('BadmintonEquipments')
+    @Get('badminton-equipments')
     @ApiOperation({ summary: 'Find all badminton equipments' })
     @ApiOkResponse({ description: 'Find all badminton equipments' })
     async findAllBadmintonEquipments() {
@@ -42,7 +42,7 @@ export class ProductsController {
         return products;
     }
 
-    @Get('BadmintonTubes')
+    @Get('badminton-tubes')
     @ApiOperation({ summary: 'Find all badminton tubes' })
     @ApiOkResponse({ description: 'Find all badminton tubess' })
     async findAllBadmintonTube() {
