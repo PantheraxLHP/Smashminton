@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Zones } from 'src/interfaces/zones.interface';
 
 @Injectable()
 export class ZonesService {
@@ -13,8 +14,17 @@ export class ZonesService {
     return 'This action adds a new zone';
   }
 
-  findAll() {
-    return this.prisma.zones.findMany();
+  findAll(): Promise<Zones[]> {
+    const getAllZones = this.prisma.zones.findMany({
+      select: {
+        zoneid: true,
+        zonename: true,
+        zonetype: true,
+        zoneimgurl: true,
+        zonedescription: true,
+      }
+    });
+    return getAllZones;
   }
 
   findOne(id: number) {

@@ -17,6 +17,8 @@ export class CourtsService {
   findAll() {
     return `This action returns all courts`;
   }
+
+  // Tạm thời không sử dụng hàm này
   async getCourtsIDByDayFrom_To(zoneid: number, date: string) {
     const parsedZoneId = Number(zoneid);
     const dayOfWeek = getEnglishDayName(date);
@@ -131,6 +133,7 @@ export class CourtsService {
       dayfrom: string;
       dayto: string
     }>();
+
 
     for (const zone of allZonePrices) {
       const zoneStart = dayjs(zone.starttime, 'HH:mm');

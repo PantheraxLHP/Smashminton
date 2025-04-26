@@ -623,16 +623,19 @@ async function main() {
                 zonename: 'Zone A',
                 zonetype: 'Normal',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
+                zonedescription: 'Thông thoáng, không gian rộng, giá hợp lý'
             },
             {
                 zonename: 'Zone B',
                 zonetype: 'AirConditioner',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
+                zonedescription: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP'
             },
             {
                 zonename: 'Zone C',
                 zonetype: 'Private',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
+                zonedescription: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu'
             },
         ],
     });
