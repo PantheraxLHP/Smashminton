@@ -16,7 +16,7 @@ export class ZonesController {
     }
 
     @Public()
-    @Get('get-all-zones')
+    @Get()
     findAll() {
         return this.zonesService.findAll();
     }
