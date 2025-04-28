@@ -1,14 +1,17 @@
+import { useRouter } from 'next/navigation';
+
 interface BookingStepProps {
     currentStep: number;
-    onStepClick: (stepId: number) => void;
     disableNavigation?: boolean;
 }
 
-const BookingStep: React.FC<BookingStepProps> = ({ currentStep, onStepClick, disableNavigation = false }) => {
+const BookingStep: React.FC<BookingStepProps> = ({ currentStep, disableNavigation = false }) => {
+    const router = useRouter();
     const steps = [
-        { id: 1, title: 'Đặt sân' },
-        { id: 2, title: 'Sản phẩm / Dịch vụ' },
-        { id: 3, title: 'Thanh toán' },
+        { id: 1, title: 'Đặt sân', link: '/booking/courts' },
+        { id: 2, title: 'Sản phẩm', link: '/booking/products' },
+        { id: 3, title: 'Dịch vụ', link: '/booking/rentals' },
+        { id: 4, title: 'Thanh toán', link: 'booking/payment' },
     ];
 
     return (
@@ -19,7 +22,7 @@ const BookingStep: React.FC<BookingStepProps> = ({ currentStep, onStepClick, dis
                     className="flex flex-col items-center"
                     onClick={() => {
                         if (!disableNavigation && step.id <= currentStep) {
-                            onStepClick(step.id);
+                            router.push(step.link);
                         }
                     }}
                 >

@@ -47,15 +47,15 @@ export default function BookingPage() {
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
     const [isTimerRunning, setIsTimerRunning] = useState(true);
 
-    const handleStepClick = (newStep: number) => {
-        // Only allow navigation to steps that are less than or equal to current step
-        if (newStep <= step) {
-            setStep(newStep);
-            if (newStep < 3) {
-                setIsTimerRunning(true);
-            }
-        }
-    };
+    // const handleStepClick = (newStep: number) => {
+    //     // Only allow navigation to steps that are less than or equal to current step
+    //     if (newStep <= step) {
+    //         setStep(newStep);
+    //         if (newStep < 3) {
+    //             setIsTimerRunning(true);
+    //         }
+    //     }
+    // };
 
     // Update filters, including fixedCourt
     const handleFilterChange = useCallback((newFilters: Filters) => {
@@ -72,11 +72,11 @@ export default function BookingPage() {
         [handleFilterChange],
     );
 
-    const handleConfirm = () => {
-        setStep(3);
-        setIsBookingBottomSheetVisible(false);
-        setIsTimerRunning(false);
-    };
+    // const handleConfirm = () => {
+    //     setStep(3);
+    //     setIsBookingBottomSheetVisible(false);
+    //     setIsTimerRunning(false);
+    // };
 
     useEffect(() => {
         const fetchAvailableCourts = async () => {
@@ -173,7 +173,7 @@ export default function BookingPage() {
         <div className="p-4">
             <BookingStep
                 currentStep={step}
-                onStepClick={handleStepClick}
+                // onStepClick={handleStepClick}
                 disableNavigation={false} // Set to true if you want to disable navigation in certain conditions
             />
 
@@ -208,7 +208,7 @@ export default function BookingPage() {
                     selectedCourts={selectedCourts}
                     selectedProducts={selectedProducts}
                     onRemoveCourt={handleRemoveCourt}
-                    onConfirm={handleConfirm}
+                    // onConfirm={handleConfirm}
                     onCancel={() => {
                         setSelectedCourts([]);
                         setSelectedProducts([]);
