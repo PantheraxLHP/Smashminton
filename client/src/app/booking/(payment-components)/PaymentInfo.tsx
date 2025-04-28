@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import BookingStep from "@/app/booking/BookingStep";
+import BookingStep from "@/app/booking/(court-booking)/BookingStep";
 import CustomerInfo from "../CustomerInfo";
 import PaymentMethod from "./PaymentMethod";
 

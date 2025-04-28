@@ -1,4 +1,4 @@
-import PaymentInfo from '../(payment)/PaymentInfo';
+import PaymentInfo from '../(payment-components)/PaymentInfo';
 import { SelectedCourt } from '../page';
 
 interface BookingStepThreeProps {

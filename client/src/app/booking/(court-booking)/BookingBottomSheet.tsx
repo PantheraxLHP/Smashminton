@@ -6,11 +6,11 @@ import { SelectedCourt, SelectedProducts } from '../page';
 
 interface BookingBottomSheetProps {
     totalPrice: number;
-    selectedCourts: SelectedCourt[];
-    selectedProducts: SelectedProducts[];
+    selectedCourts?: SelectedCourt[];
+    selectedProducts?: SelectedProducts[];
     onRemoveCourt: (scCourt: SelectedCourt) => void;
-    onConfirm: () => void;
     onCancel: () => void;
+    // onConfirm: () => void;
     onResetTimer(resetTimerFn: () => void): void;
     currentStep: number;
     isTimerRunning: boolean;
@@ -21,8 +21,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedCourts,
     selectedProducts,
     onRemoveCourt,
-    onConfirm,
     onCancel,
+    // onConfirm,
     onResetTimer,
     currentStep,
     isTimerRunning,
@@ -67,7 +67,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        onConfirm();
+        router.push('/booking/payment');
     };
 
     return (
@@ -77,7 +77,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 <div className="max-h-[calc(100vh-150px)] flex-1 overflow-y-auto p-0 sm:max-h-20">
                     <div className="flex flex-col gap-1">
                         {/* Danh sách sân */}
-                        {selectedCourts.map((scCourt) => (
+                        {selectedCourts?.map((scCourt) => (
                             <div
                                 key={`
                                     ${scCourt.courtid}-${scCourt.filters.zone}-${scCourt.filters.date}-
@@ -103,7 +103,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
                         {/* Danh sách sản phẩm */}
                         <div className="flex flex-wrap gap-4">
-                            {selectedProducts.map((scProduct) => (
+                            {selectedProducts?.map((scProduct) => (
                                 <div key={scProduct.productid} className="flex items-center gap-2">
                                     <Icon icon="mdi:racket" className="h-5 w-5" />
                                     <span>
