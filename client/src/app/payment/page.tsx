@@ -1,12 +1,39 @@
-import PaymentInfo from '../(payment-components)/PaymentInfo';
-import { SelectedCourt } from '../page';
+'use client';
 
-interface BookingStepThreeProps {
-    selectedCourts: SelectedCourt[];
-    totalPrice: number;
+import { useCallback, useEffect, useState } from 'react';
+import PaymentInfo from './PaymentInfo';
+
+// Tự định nghĩa lại type ngay tại đây
+interface Filters {
+    duration?: number;
+    startTime?: string;
+    zone?: string;
+    date?: string;
+    fixedCourt?: boolean;
 }
 
-export default function BookingStepThree({ selectedCourts, totalPrice }: BookingStepThreeProps) {
+interface SelectedCourt {
+    courtname: string;
+    courtimgurl?: string;
+    price: string;
+    filters: Filters;
+}
+
+export default function Payment() {
+    const selectedCourts: SelectedCourt[] = [
+        {
+            courtname: "Sân A",
+            courtimgurl: "https://example.com/image.jpg",
+            price: "100,000₫",
+            filters: {
+                duration: 2,
+                startTime: "10:00",
+            },
+        },
+    ];
+
+    const totalPrice = 200000; // Giả sử tổng tiền
+
     return (
         <PaymentInfo
             paymentData={{
@@ -34,4 +61,5 @@ export default function BookingStepThree({ selectedCourts, totalPrice }: Booking
             }}
         />
     );
+
 }
