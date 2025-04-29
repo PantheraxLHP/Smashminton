@@ -1,15 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from 'react';
-import { toast } from 'sonner';
-import BookingStep from '../_components/BookingStep';
 import { getAvailableCourts } from '@/services/booking.service';
 import { Courts, Products } from '@/types/types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import BookingBottomSheet from '../_components/BookingBottomSheet';
 import BookingNavigationButton from '../_components/BookingNavigationButton';
-import { useRouter } from 'next/navigation';
-import BookingFilter from './BookingFilter';
+import BookingStep from '../_components/BookingStep';
 import BookingCourtList from './BookingCourtList';
+import BookingFilter from './BookingFilter';
 
 export interface CourtsWithPrice extends Courts {
     price: string;
@@ -37,14 +36,12 @@ export default function BookingCourtPage() {
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
-    const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
     const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
     const handleResetTimer = useCallback((resetFn: () => void) => {
         resetTimerRef.current = resetFn;
     }, []);
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
-    const [isTimerRunning, setIsTimerRunning] = useState(true);
-    const router = useRouter();
+    const [isTimerRunning] = useState(true);
 
     // Update filters, including fixedCourt
     const handleFilterChange = useCallback((newFilters: Filters) => {
@@ -61,10 +58,6 @@ export default function BookingCourtPage() {
         [handleFilterChange],
     );
 
-    const handleConfirm = () => {
-        router.push('/booking/payment');
-    };
-
     useEffect(() => {
         const fetchAvailableCourts = async () => {
             try {
@@ -76,9 +69,9 @@ export default function BookingCourtPage() {
                     }
                     setCourts(result.data);
                 }
-            } catch (err) {
+            } catch (error) {
                 setCourts([]); // Reset to empty array on error
-                toast.error('Không thể tải danh sách sân. Vui lòng thử lại sau.');
+                toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
             }
         };
 

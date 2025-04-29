@@ -1,6 +1,8 @@
+import { getUnavailableTimes } from '@/services/booking.service';
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { toast } from 'sonner';
 
 interface Filters {
     zone?: string;
@@ -15,30 +17,65 @@ interface BookingFilterProps {
 }
 
 const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
-    const [selectedZone, setSelectedZone] = useState('A');
+    const [selectedZone, setSelectedZone] = useState('');
     const [date, setDate] = useState(new Date());
-    const [duration, setDuration] = useState(2);
-    const [startTime, setStartTime] = useState('09:00');
+    const [duration, setDuration] = useState(0);
+    const [startTime, setStartTime] = useState('');
+    const [disabledTimes, setDisabledTimes] = useState<string[]>([]); // Initialize as empty array
 
     // Format YYYY-MM-DD
     const getLocalDateString = (date: Date): string => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0'); // months are zero-based
         const day = String(date.getDate()).padStart(2, '0');
-      
-        return `${year}-${month}-${day}`;
-      }
 
-    // Cập nhật filters và gửi về BookingPage
+        return `${year}-${month}-${day}`;
+    };
+
+    // Effect to update filters for the parent component
     useEffect(() => {
         const filters: Filters = {
             zone: selectedZone,
-            date: getLocalDateString(date), 
+            date: getLocalDateString(date),
             duration,
             startTime,
         };
         onFilterChange(filters);
-    }, [selectedZone, date, duration, startTime, onFilterChange]);
+    }, [selectedZone, date, duration, startTime, onFilterChange]); // Removed disabledTimes
+
+    // Effect to fetch unavailable times when relevant filters change
+    useEffect(() => {
+        const fetchUnavailableTimes = async () => {
+            // Only fetch if zone, date, and duration are selected
+            if (selectedZone && date && duration > 0) {
+                const filtersForFetch: Pick<Filters, 'zone' | 'date' | 'duration'> = {
+                    zone: selectedZone,
+                    date: getLocalDateString(date),
+                    duration,
+                };
+                try {
+                    // Assuming getUnavailableTimes needs zone, date, and duration
+                    // Adjust the API call parameters if needed
+                    const result = await getUnavailableTimes(filtersForFetch);
+                    if (result.ok) {
+                        setDisabledTimes(Array.isArray(result.data) ? result.data : []);
+                    } else {
+                        toast.error(result.message || 'Không thể tải danh sách giờ trống');
+                        setDisabledTimes([]); // Clear disabled times on error
+                    }
+                } catch (error) {
+                    toast.error(error instanceof Error ? error.message : 'Lỗi khi tải danh sách giờ trống');
+                    setDisabledTimes([]); // Clear disabled times on error
+                }
+            } else {
+                // Reset disabled times if required filters are not set
+                setDisabledTimes([]);
+            }
+        };
+
+        fetchUnavailableTimes();
+        // This effect depends on the filters needed to fetch unavailable times
+    }, [selectedZone, date, duration]); // Only depends on filters needed for fetching
 
     const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
@@ -76,7 +113,6 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
         '21:00',
         '21:30',
     ];
-    const disabledTimes = ['08:30', '12:30', '15:30', '18:30']; // Giờ bị disable
 
     return (
         <div className="w-full max-w-sm rounded-lg border bg-white p-4 shadow-md">
@@ -150,9 +186,9 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
                         <button
                             key={time}
                             onClick={() => setStartTime(time)}
-                            disabled={disabledTimes.includes(time)}
+                            disabled={disabledTimes.includes(time)} // Check if time is in the array
                             className={`rounded-lg border px-3 py-1 text-sm ${
-                                disabledTimes.includes(time)
+                                disabledTimes.includes(time) // Check if time is in the array
                                     ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
                                     : startTime === time
                                       ? 'bg-primary-500 text-white'
