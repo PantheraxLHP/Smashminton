@@ -8,7 +8,7 @@ const mockItems = Array.from({ length: 12 }, (_, index) => ({
     price: '34,000 đ / giờ',
 }));
 
-export default function ServiceList() {
+export default function RentalList() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 flex-1">
             {mockItems.map((item) => (

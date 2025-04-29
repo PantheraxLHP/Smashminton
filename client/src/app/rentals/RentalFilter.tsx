@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 
@@ -7,7 +7,7 @@ const weights = ['2U: 90 - 94g', '3U: 85 - 89g', '4U: 80 - 84g', '5U: 75 - 79g']
 const stiffness = ['Dẻo', 'Trung bình', 'Cứng'];
 const balancePoints = ['Nhẹ đầu', 'Cân bằng', 'Nặng đầu'];
 
-const ServiceFilter = () => {
+const RentalFilter = () => {
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
     const [selectedStiffness, setSelectedStiffness] = useState<string[]>([]);
@@ -25,12 +25,12 @@ const ServiceFilter = () => {
     };
 
     return (
-        <div className="space-y-4 w-full">
+        <div className="w-full space-y-4">
             {/* PHẦN 1: Danh mục sản phẩm */}
             <div className="rounded-lg border bg-white p-4 shadow-sm">
-                <h3 className="text-sm font-semibold border-b pb-1">Danh mục sản phẩm</h3>
+                <h3 className="border-b pb-1 text-sm font-semibold">Danh mục sản phẩm</h3>
                 <ul className="mt-2 space-y-1 text-sm text-gray-700">
-                    <li className="text-primary-600 font-semibold cursor-pointer">Thuê vợt</li>
+                    <li className="text-primary-600 cursor-pointer font-semibold">Thuê vợt</li>
                     <li className="cursor-pointer">Thuê giày</li>
                 </ul>
             </div>
@@ -39,29 +39,20 @@ const ServiceFilter = () => {
             <div className="rounded-lg border bg-white p-4 shadow-sm">
                 {/* Bộ lọc đã chọn */}
                 <div className="mb-4 border-b pb-3">
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-sm font-semibold text-primary-600">Bạn chọn</h3>
-                        <button
-                            onClick={clearAll}
-                            className="text-xs text-gray-500 hover:underline"
-                        >
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-primary-600 text-sm font-semibold">Bạn chọn</h3>
+                        <button onClick={clearAll} className="text-xs text-gray-500 hover:underline">
                             Bỏ hết X
                         </button>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs mt-2">
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
                         {selectedBrands.map((brand) => (
-                            <span
-                                key={brand}
-                                className="bg-green-100 text-primary-600 px-2 py-1 rounded"
-                            >
+                            <span key={brand} className="text-primary-600 rounded bg-green-100 px-2 py-1">
                                 {brand}
                             </span>
                         ))}
                         {selectedStiffness.map((type) => (
-                            <span
-                                key={type}
-                                className="bg-green-100 text-primary-600 px-2 py-1 rounded"
-                            >
+                            <span key={type} className="text-primary-600 rounded bg-green-100 px-2 py-1">
                                 {type}
                             </span>
                         ))}
@@ -71,8 +62,8 @@ const ServiceFilter = () => {
                 {/* Filter sections */}
                 <div className="space-y-4 text-sm">
                     {/* Thương hiệu */}
-                    <div className='border-b pb-3'>
-                        <h3 className="font-semibold mb-2">THƯƠNG HIỆU</h3>
+                    <div className="border-b pb-3">
+                        <h3 className="mb-2 font-semibold">THƯƠNG HIỆU</h3>
                         {brands.map((brand) => (
                             <label key={brand} className="flex items-center space-x-2">
                                 <input
@@ -86,8 +77,8 @@ const ServiceFilter = () => {
                     </div>
 
                     {/* Trọng lượng */}
-                    <div className='border-b pb-3'>
-                        <h3 className="font-semibold mb-2">TRỌNG LƯỢNG</h3>
+                    <div className="border-b pb-3">
+                        <h3 className="mb-2 font-semibold">TRỌNG LƯỢNG</h3>
                         {weights.map((w) => (
                             <label key={w} className="flex items-center space-x-2">
                                 <input
@@ -101,8 +92,8 @@ const ServiceFilter = () => {
                     </div>
 
                     {/* Độ cứng */}
-                    <div className='border-b pb-3'>
-                        <h3 className="font-semibold mb-2">ĐỘ CỨNG ĐŨA</h3>
+                    <div className="border-b pb-3">
+                        <h3 className="mb-2 font-semibold">ĐỘ CỨNG ĐŨA</h3>
                         {stiffness.map((s) => (
                             <label key={s} className="flex items-center space-x-2">
                                 <input
@@ -117,7 +108,7 @@ const ServiceFilter = () => {
 
                     {/* Điểm cân bằng */}
                     <div>
-                        <h3 className="font-semibold mb-2">ĐIỂM CÂN BẰNG</h3>
+                        <h3 className="mb-2 font-semibold">ĐIỂM CÂN BẰNG</h3>
                         {balancePoints.map((b) => (
                             <label key={b} className="flex items-center space-x-2">
                                 <input
@@ -135,4 +126,4 @@ const ServiceFilter = () => {
     );
 };
 
-export default ServiceFilter;
+export default RentalFilter;

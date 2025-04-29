@@ -1,11 +1,11 @@
 export const menus = {
     guest: [
         { label: 'Sản phẩm', link: '/products' },
-        { label: 'Dịch vụ', link: '/services' },
+        { label: 'Dịch vụ', link: '/rentals' },
     ],
     customer: [
         { label: 'Sản phẩm', link: '/products' },
-        { label: 'Dịch vụ', link: '/services' },
+        { label: 'Dịch vụ', link: '/rentals' },
     ],
     employee: [
         { label: 'Hỗ trợ khách hàng', link: '/support' },
