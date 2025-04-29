@@ -37,7 +37,6 @@ export default function BookingCourtPage() {
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
-    const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
     const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
     const handleResetTimer = useCallback((resetFn: () => void) => {
         resetTimerRef.current = resetFn;
