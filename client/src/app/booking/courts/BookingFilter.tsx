@@ -14,13 +14,14 @@ interface Filters {
 
 interface BookingFilterProps {
     onFilterChange: (filters: Filters) => void;
+    initialFilters?: Filters; // Add this line
 }
 
-const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange }) => {
-    const [selectedZone, setSelectedZone] = useState('');
-    const [date, setDate] = useState(new Date());
-    const [duration, setDuration] = useState(0);
-    const [startTime, setStartTime] = useState('');
+const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFilters }) => {
+    const [selectedZone, setSelectedZone] = useState(initialFilters?.zone || '');
+    const [date, setDate] = useState(initialFilters?.date ? new Date(initialFilters.date) : new Date());
+    const [duration, setDuration] = useState(initialFilters?.duration || 0);
+    const [startTime, setStartTime] = useState(initialFilters?.startTime || '');
     const [disabledTimes, setDisabledTimes] = useState<string[]>([]); // Initialize as empty array
 
     // Format YYYY-MM-DD
