@@ -1,20 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
-import BookingStep from '../(court-booking)/BookingStep';
-import BookingStepOne from '../(steps)/BookingStepOne';
+import BookingStep from '../_components/BookingStep';
 import { getAvailableCourts } from '@/services/booking.service';
 import { Courts, Products } from '@/types/types';
-import BookingBottomSheet from '../(court-booking)/BookingBottomSheet';
-import BookingNavigationButton from '../(court-booking)/BookingNavigationButton';
+import BookingBottomSheet from '../_components/BookingBottomSheet';
+import BookingNavigationButton from '../_components/BookingNavigationButton';
 import { useRouter } from 'next/navigation';
+import BookingFilter from './BookingFilter';
+import BookingCourtList from './BookingCourtList';
 
 export interface CourtsWithPrice extends Courts {
     price: string;
 }
 
-export interface SelectedCourt extends CourtsWithPrice {
+export interface SelectedCourts extends CourtsWithPrice {
     filters: Filters;
 }
 
@@ -35,10 +36,11 @@ export default function BookingCourtPage() {
         fixedCourt: false,
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
-    const [selectedCourts, setSelectedCourts] = useState<SelectedCourt[]>([]); // Danh sách sân muốn thuê
+    const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
     const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
+    const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
     const handleResetTimer = useCallback((resetFn: () => void) => {
-        setResetTimer(() => resetFn);
+        resetTimerRef.current = resetFn;
     }, []);
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
     const [isTimerRunning, setIsTimerRunning] = useState(true);
@@ -83,16 +85,14 @@ export default function BookingCourtPage() {
         fetchAvailableCourts();
     }, [filters]); // Dependencies array now includes filters
 
-    const handleAddCourt = (scCourt: SelectedCourt) => {
+    const handleAddCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
 
-        if (resetTimer) {
-            resetTimer();
-        }
+        resetTimerRef.current?.();
     };
 
     // Xóa sân khỏi danh sách thuê
-    const handleRemoveCourt = (scCourt: SelectedCourt) => {
+    const handleRemoveCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) =>
             prev.filter(
                 (court) =>
@@ -107,28 +107,28 @@ export default function BookingCourtPage() {
     };
 
     // Tính tổng giá tiền
-    const totalPrice =
-        selectedCourts?.reduce((sum, scCourt) => sum + parseInt(scCourt.price.replace(/\D/g, '')), 0);
-
+    const totalPrice = selectedCourts?.reduce((sum, scCourt) => sum + parseInt(scCourt.price.replace(/\D/g, '')), 0);
 
     return (
         <div className="p-4">
-            <BookingStep
-                currentStep={1}
-                disableNavigation={false} // Set to true if you want to disable navigation in certain conditions
-            />
-
-            <BookingStepOne
-                courts={courts}
-                selectedCourts={selectedCourts}
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onToggleChange={handleToggleChange}
-                onAddCourt={handleAddCourt}
-                onRemoveCourt={handleRemoveCourt}
-            />
-
+            <BookingStep currentStep={1} disableNavigation={false} />
             <BookingNavigationButton currentStep={1} />
+
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-wrap justify-center gap-4">
+                    <BookingFilter onFilterChange={handleFilterChange} />
+                    <div className="flex-1">
+                        <BookingCourtList
+                            courts={courts}
+                            selectedCourts={selectedCourts}
+                            filters={filters}
+                            onToggleChange={handleToggleChange}
+                            onAddCourt={handleAddCourt}
+                            onRemoveCourt={handleRemoveCourt}
+                        />
+                    </div>
+                </div>
+            </div>
 
             {isBookingBottomSheetVisible && selectedCourts.length > 0 && (
                 <BookingBottomSheet

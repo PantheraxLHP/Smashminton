@@ -1,24 +1,10 @@
 export const menus = {
     guest: [
-        {
-            label: 'Sản phẩm',
-            link: '/products',
-            subMenu: [
-                { label: 'Đồ ăn thức uống', link: '/foods' },
-                { label: 'Phụ kiện cầu lông', link: '/accessories' },
-            ],
-        },
+        { label: 'Sản phẩm', link: '/products' },
         { label: 'Dịch vụ', link: '/services' },
     ],
     customer: [
-        {
-            label: 'Sản phẩm',
-            link: '/products',
-            subMenu: [
-                { label: 'Đồ ăn thức uống', link: '/foods' },
-                { label: 'Phụ kiện cầu lông', link: '/accessories' },
-            ],
-        },
+        { label: 'Sản phẩm', link: '/products' },
         { label: 'Dịch vụ', link: '/services' },
     ],
     employee: [

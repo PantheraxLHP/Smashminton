@@ -2,18 +2,18 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SelectedCourt, SelectedProducts } from '../page';
+import { SelectedCourts, SelectedProducts } from '../courts/page';
 
 interface BookingBottomSheetProps {
     totalPrice: number;
-    selectedCourts?: SelectedCourt[];
+    selectedCourts?: SelectedCourts[];
     selectedProducts?: SelectedProducts[];
-    onRemoveCourt: (scCourt: SelectedCourt) => void;
-    onCancel: () => void;
-    // onConfirm: () => void;
-    onResetTimer(resetTimerFn: () => void): void;
-    currentStep: number;
-    isTimerRunning: boolean;
+    onRemoveCourt?: (scCourt: SelectedCourts) => void;
+    onRemoveProduct?: (productid: number) => void;
+    onCancel?: () => void;
+    onResetTimer?(resetTimerFn: () => void): void;
+    currentStep?: number;
+    isTimerRunning?: boolean;
 }
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
@@ -21,8 +21,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedCourts,
     selectedProducts,
     onRemoveCourt,
+    onRemoveProduct,
     onCancel,
-    // onConfirm,
     onResetTimer,
     currentStep,
     isTimerRunning,
@@ -41,7 +41,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
             if (remainingTime > 0) {
                 requestAnimationFrame(tick);
             } else {
-                onCancel();
+                onCancel?.();
             }
         };
 
@@ -94,7 +94,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 <Icon icon="mdi:timer" className="h-5 w-5" />
                                 <span>{scCourt.filters.duration}h</span>
                                 <Icon
-                                    onClick={() => onRemoveCourt(scCourt)}
+                                    onClick={() => onRemoveCourt?.(scCourt)}
                                     icon="mdi:close-circle"
                                     className="h-5 w-5 cursor-pointer text-red-500"
                                 />
@@ -109,20 +109,26 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                     <span>
                                         {scProduct.quantity} {scProduct.productname}
                                     </span>
-                                    <Icon icon="mdi:close-circle" className="h-5 w-5 cursor-pointer text-red-500" />
+                                    <Icon
+                                        icon="mdi:close-circle"
+                                        className="h-5 w-5 cursor-pointer text-red-500"
+                                        onClick={() => onRemoveProduct?.(scProduct.productid)}
+                                    />
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-between gap-2 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
+                <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
                     <div className="hidden h-full w-1 bg-white sm:block"></div>
                     {/* Countdown Timer */}
-                    <div className="text-primary border-primary flex flex-col items-center rounded-lg border-2 border-solid bg-white p-2">
-                        <span className="text-sm">Thời gian giữ sân:</span>
-                        <span className="w-full text-3xl">{formatTime(timeLeft)}</span>
-                    </div>
+                    {selectedCourts && selectedCourts.length > 0 && (
+                        <div className="text-primary border-primary flex flex-col items-center rounded-lg border-2 border-solid bg-white p-2">
+                            <span className="text-sm">Thời gian giữ sân:</span>
+                            <span className="w-full text-3xl">{formatTime(timeLeft)}</span>
+                        </div>
+                    )}
 
                     {/* Tổng tiền & Đặt sân */}
                     <div className="flex max-w-full flex-col items-center sm:max-w-65">
@@ -131,7 +137,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                             <span className="text-lg font-bold">{totalPrice.toLocaleString('vi-VN')} VND</span>
                         </div>
                         <Button className="bg-primary w-full" onClick={handleConfirm}>
-                            ĐẶT SÂN
+                            THANH TOÁN
                         </Button>
                     </div>
                 </div>

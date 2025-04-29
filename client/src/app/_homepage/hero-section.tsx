@@ -21,8 +21,12 @@ const HeroSection = () => {
                         Thể thao mỗi ngày, sức khỏe mỗi phút
                     </h1>
                     <p className="mt-3 text-lg italic drop-shadow-lg md:text-2xl">Đặt sân cầu lông ngay hôm nay!</p>
-                    <Button variant="outline" className="mt-4" asChild>
-                        <Link href={'booking'}>Đặt lịch cố định →</Link>
+                    <Button
+                        variant="default"
+                        className="bg-primary hover:bg-primary/60 mt-6 transform rounded-lg px-6 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105"
+                        asChild
+                    >
+                        <Link href={'booking/courts'}>ĐẶT SÂN NGAY !!!</Link>
                     </Button>
                 </div>
 

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 interface BookingNavigationButtonProps {
@@ -6,37 +6,37 @@ interface BookingNavigationButtonProps {
 }
 
 const BookingNavigationButton: React.FC<BookingNavigationButtonProps> = ({ currentStep }) => {
-    const router = useRouter();
     const steps = [
         { id: 1, title: 'Đặt sân', link: '/booking/courts' },
         { id: 2, title: 'Sản phẩm', link: '/booking/products' },
         { id: 3, title: 'Dịch vụ', link: '/booking/rentals' },
-        { id: 4, title: 'Thanh toán', link: 'booking/payment' },
+        { id: 4, title: 'Thanh toán', link: '/booking/payment' },
     ];
 
     const handleBackButtonClick = () => {
         if (currentStep > 1) {
-            router.push(steps[currentStep - 2].link);
+            redirect(steps[currentStep - 2].link);
         }
-    }
+    };
 
     const handleNextButtonClick = () => {
         if (currentStep < steps.length) {
-            router.push(steps[currentStep].link);
+            redirect(steps[currentStep].link);
         }
-    }
+    };
 
     return (
-        <div className="mt-4 flex justify-between">
+        <div className="m-4 flex justify-between">
             <Button
-                onClick={handleBackButtonClick}
                 variant={'secondary'}
+                onClick={handleBackButtonClick}
                 className={`${currentStep === 1 ? 'pointer-events-none opacity-0' : ''}`}
             >
                 ← Quay lại
             </Button>
 
             <Button
+                variant={'default'}
                 onClick={handleNextButtonClick}
                 className={`bg-primary-500 text-white ${currentStep === 4 ? 'pointer-events-none opacity-0' : ''}`}
             >
@@ -44,6 +44,6 @@ const BookingNavigationButton: React.FC<BookingNavigationButtonProps> = ({ curre
             </Button>
         </div>
     );
-}
+};
 
 export default BookingNavigationButton;

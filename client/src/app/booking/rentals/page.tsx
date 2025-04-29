@@ -1,21 +1,19 @@
-'use client'
+'use client';
 
-import BookingStep from "../(court-booking)/BookingStep";
-import BookingNavigationButton from "../(court-booking)/BookingNavigationButton";
+import ServicesPage from '@/app/services/page';
+import BookingNavigationButton from '../_components/BookingNavigationButton';
+import BookingStep from '../_components/BookingStep';
 
-const BookingRentalPage = () => {
+const BookingProductPage = () => {
     return (
         <div>
             <BookingStep currentStep={3} disableNavigation={false} />
-
-            <div>
-                <h1>Booking Rental Page </h1>
-                <p> This is the booking rental page.</p>
-            </div>
-
             <BookingNavigationButton currentStep={3} />
-        </div>
-    )
-}
 
-export default BookingRentalPage;
+            <ServicesPage />
+
+        </div>
+    );
+};
+
+export default BookingProductPage;
