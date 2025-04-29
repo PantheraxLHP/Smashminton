@@ -1,15 +1,15 @@
 import BookingFilter from '../(court-booking)/BookingFilter';
 import BookingCourtList from '../(court-booking)/BookingCourtList';
-import { Filters, SelectedCourt, CourtsWithPrice } from '../page';
+import { Filters, SelectedCourts, CourtsWithPrice } from '../page';
 
 interface BookingStepOneProps {
     courts: CourtsWithPrice[];
-    selectedCourts: SelectedCourt[];
+    selectedCourts: SelectedCourts[];
     filters: Filters;
     onFilterChange: (filters: Filters) => void;
     onToggleChange: (isFixed: boolean) => void;
-    onAddCourt: (court: SelectedCourt) => void;
-    onRemoveCourt: (court: SelectedCourt) => void;
+    onAddCourt: (court: SelectedCourts) => void;
+    onRemoveCourt: (court: SelectedCourts) => void;
 }
 
 export default function BookingStepOne({

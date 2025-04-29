@@ -3,17 +3,17 @@ import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/componen
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { CourtsWithPrice, Filters, SelectedCourt } from '../page';
+import { CourtsWithPrice, Filters, SelectedCourts } from '../page';
 import { formatPrice } from '@/lib/utils';
 
 
 interface BookingCourtListProps {
     courts: CourtsWithPrice[];
-    selectedCourts: SelectedCourt[];
+    selectedCourts: SelectedCourts[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
-    onAddCourt: (scCourt: SelectedCourt) => void;
-    onRemoveCourt: (scCourt: SelectedCourt) => void;
+    onAddCourt: (scCourt: SelectedCourts) => void;
+    onRemoveCourt: (scCourt: SelectedCourts) => void;
 }
 
 const BookingCourtList: React.FC<BookingCourtListProps> = ({
@@ -114,7 +114,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                         if (scCourt) {
                                             onRemoveCourt(scCourt);
                                         } else {
-                                            const selectedCourt: SelectedCourt = {
+                                            const selectedCourt: SelectedCourts = {
                                                 ...court,
                                                 filters,
                                             };

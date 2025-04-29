@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import BookingStep from '../(court-booking)/BookingStep';
 import BookingStepOne from '../(steps)/BookingStepOne';
@@ -14,7 +14,7 @@ export interface CourtsWithPrice extends Courts {
     price: string;
 }
 
-export interface SelectedCourt extends CourtsWithPrice {
+export interface SelectedCourts extends CourtsWithPrice {
     filters: Filters;
 }
 
@@ -35,10 +35,11 @@ export default function BookingCourtPage() {
         fixedCourt: false,
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
-    const [selectedCourts, setSelectedCourts] = useState<SelectedCourt[]>([]); // Danh sách sân muốn thuê
+    const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
     const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
+    const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
     const handleResetTimer = useCallback((resetFn: () => void) => {
-        setResetTimer(() => resetFn);
+        resetTimerRef.current = resetFn;
     }, []);
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
     const [isTimerRunning, setIsTimerRunning] = useState(true);
@@ -83,16 +84,14 @@ export default function BookingCourtPage() {
         fetchAvailableCourts();
     }, [filters]); // Dependencies array now includes filters
 
-    const handleAddCourt = (scCourt: SelectedCourt) => {
+    const handleAddCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
 
-        if (resetTimer) {
-            resetTimer();
-        }
+        resetTimerRef.current?.();
     };
 
     // Xóa sân khỏi danh sách thuê
-    const handleRemoveCourt = (scCourt: SelectedCourt) => {
+    const handleRemoveCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) =>
             prev.filter(
                 (court) =>

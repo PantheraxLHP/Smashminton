@@ -1,8 +1,8 @@
 import PaymentInfo from '../(payment-components)/PaymentInfo';
-import { SelectedCourt } from '../page';
+import { SelectedCourts } from '../page';
 
 interface BookingStepThreeProps {
-    selectedCourts: SelectedCourt[];
+    selectedCourts: SelectedCourts[];
     totalPrice: number;
 }
 

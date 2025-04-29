@@ -45,9 +45,9 @@ const ProductBottomSheet: React.FC<ProductBottomSheetProps> = ({
                 </div>
 
 
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-between sm:h-20 sm:min-w-90 sm:max-w-180">
+                <div className="flex flex-col sm:flex-row gap-5 items-center justify-end sm:h-20 sm:min-w-90 sm:max-w-180">
                     <div className="hidden sm:block h-full w-1 bg-white"></div>
-                    {/* Tổng tiền & Đặt sân */}
+                    {/* Tổng tiền & Thanh toán */}
                     <div className="flex flex-col items-center max-w-full sm:max-w-65">
                         <div className="flex mb-2 gap-2 items-center">
                             <span className="text-white">Tạm tính:</span>

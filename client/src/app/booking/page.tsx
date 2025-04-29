@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import BookingStep from './(court-booking)/BookingStep';
@@ -15,7 +15,7 @@ export interface CourtsWithPrice extends Courts {
     price: string;
 }
 
-export interface SelectedCourt extends CourtsWithPrice {
+export interface SelectedCourts extends CourtsWithPrice {
     filters: Filters;
 }
 
@@ -37,12 +37,12 @@ export default function BookingPage() {
         fixedCourt: false,
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
-    const [selectedCourts, setSelectedCourts] = useState<SelectedCourt[]>([]); // Danh sách sân muốn thuê
+    const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
     const [products, setProducts] = useState<Products[]>([]); // Danh sách sản phẩm từ DB
     const [selectedProducts, setSelectedProducts] = useState<SelectedProducts[]>([]); // Danh sách sản phẩm muốn mua
-    const [resetTimer, setResetTimer] = useState<(() => void) | null>(null); // Hàm reset timer
+    const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
     const handleResetTimer = useCallback((resetFn: () => void) => {
-        setResetTimer(() => resetFn);
+        resetTimerRef.current = resetFn;
     }, []);
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
     const [isTimerRunning, setIsTimerRunning] = useState(true);
@@ -98,16 +98,14 @@ export default function BookingPage() {
         fetchAvailableCourts();
     }, [filters]); // Dependencies array now includes filters
 
-    const handleAddCourt = (scCourt: SelectedCourt) => {
+    const handleAddCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
 
-        if (resetTimer) {
-            resetTimer();
-        }
+        resetTimerRef.current?.();
     };
 
     // Xóa sân khỏi danh sách thuê
-    const handleRemoveCourt = (scCourt: SelectedCourt) => {
+    const handleRemoveCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) =>
             prev.filter(
                 (court) =>
