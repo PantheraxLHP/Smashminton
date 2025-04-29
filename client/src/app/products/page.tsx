@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { Products, ProductTypes } from "@/types/types";
-import ProductFilter from "@/app/products/ProductFilter";
-import ProductList from "@/app/products/ProductList";
-import BookingBottomSheet from "../booking/(court-booking)/BookingBottomSheet";
-import ProductTypeFilter from "@/app/products/ProductTypeFitler";
-
-interface AccessoryResponse {
-
-}
+import ProductFilter from '@/app/products/ProductFilter';
+import ProductList from '@/app/products/ProductList';
+import ProductTypeFilter from '@/app/products/ProductTypeFitler';
+import { Products, ProductTypes } from '@/types/types';
+import { useEffect, useState } from 'react';
+import BookingBottomSheet from '../booking/_components/BookingBottomSheet';
 
 interface FoodResponse {
     foods: Products[]; // Danh sách sản phẩm
@@ -23,21 +19,24 @@ export interface SelectedProducts extends Products {
 }
 
 const ProductPage = () => {
-    const [foods, setFoods] = useState<Products[]>(
-        [
-            { productid: 1, productname: "Set cá viên chiên", sellingprice: 105000, productimgurl: "/setcavienchien.png" },
-            { productid: 2, productname: "Set cá viên chiên chua cay", sellingprice: 290000, productimgurl: "/setcavienchienchuacay.png" },
-            { productid: 3, productname: "Bánh snack O'Star", sellingprice: 275000, productimgurl: "/ostar.png" },
-            { productid: 4, productname: "Bánh snack bí đỏ", sellingprice: 245000, productimgurl: "/oishibido.png" },
-            { productid: 5, productname: "Nước uống Revive", sellingprice: 230000, productimgurl: "/revive.png" },
-            { productid: 6, productname: "Nước uống Pocari", sellingprice: 290000, productimgurl: "/pocarisweat.png" },
-        ]
-    ); // State quản lý danh sách sản phẩm
+    const [foods, setFoods] = useState<Products[]>([
+        { productid: 1, productname: 'Set cá viên chiên', sellingprice: 105000, productimgurl: '/setcavienchien.png' },
+        {
+            productid: 2,
+            productname: 'Set cá viên chiên chua cay',
+            sellingprice: 290000,
+            productimgurl: '/setcavienchienchuacay.png',
+        },
+        { productid: 3, productname: "Bánh snack O'Star", sellingprice: 275000, productimgurl: '/ostar.png' },
+        { productid: 4, productname: 'Bánh snack bí đỏ', sellingprice: 245000, productimgurl: '/oishibido.png' },
+        { productid: 5, productname: 'Nước uống Revive', sellingprice: 230000, productimgurl: '/revive.png' },
+        { productid: 6, productname: 'Nước uống Pocari', sellingprice: 290000, productimgurl: '/pocarisweat.png' },
+    ]); // State quản lý danh sách sản phẩm
     const [foodCategories, setFoodCategories] = useState<ProductTypes[]>([
-        { producttypeid: 1, producttypename: "Tất cả", productisfood: true },
-        { producttypeid: 2, producttypename: "Đồ mặn", productisfood: true },
-        { producttypeid: 3, producttypename: "Snack", productisfood: true },
-        { producttypeid: 4, producttypename: "Nước uống", productisfood: true },
+        { producttypeid: 1, producttypename: 'Tất cả', productisfood: true },
+        { producttypeid: 2, producttypename: 'Đồ mặn', productisfood: true },
+        { producttypeid: 3, producttypename: 'Snack', productisfood: true },
+        { producttypeid: 4, producttypename: 'Nước uống', productisfood: true },
     ]); // State quản lý loại đồ ăn - thức uống
     const [accessories, setAccessories] = useState<Products[]>([]); // State quản lý danh sách phụ kiện
     const [accessoryCategories, setAccessoryCategories] = useState<string[]>([]); // State quản lý loại phụ kiện
@@ -47,18 +46,18 @@ const ProductPage = () => {
     const [pageSize, setPageSize] = useState(12);
 
     const productType = [
-        { id: 1, name: "Đồ ăn - Thức uống" },
-        { id: 2, name: "Phụ kiện cầu lông" },
+        { id: 1, name: 'Đồ ăn - Thức uống' },
+        { id: 2, name: 'Phụ kiện cầu lông' },
     ];
 
     const foodExCategories = [
-        { id: 1, name: "Tất cả" },
-        { id: 2, name: "Đồ mặn" },
-        { id: 3, name: "Snack" },
-        { id: 4, name: "Nước uống" },
-    ]
+        { id: 1, name: 'Tất cả' },
+        { id: 2, name: 'Đồ mặn' },
+        { id: 3, name: 'Snack' },
+        { id: 4, name: 'Nước uống' },
+    ];
 
-    const [chosenProductType, setChosenProductType] = useState<number>(1)
+    const [chosenProductType, setChosenProductType] = useState<number>(1);
     const [chosenProductCategory, setChosenProductCategory] = useState<number>(1);
 
     /*
@@ -85,7 +84,7 @@ const ProductPage = () => {
     }, [page, pageSize]); // Chạy lại khi page hoặc itemsPerPage thay đổi
     */
 
-    // State quản lý số lượng sản phẩm 
+    // State quản lý số lượng sản phẩm
     const [productQuantities, setProductQuantities] = useState<{ [key: number]: number }>({});
 
     useEffect(() => {
@@ -121,7 +120,7 @@ const ProductPage = () => {
             ...prev,
             [productid]: 0,
         }));
-    }
+    };
 
     const selectedFoods: SelectedProducts[] = foods
         .filter((food) => productQuantities[food.productid] > 0)
@@ -144,7 +143,7 @@ const ProductPage = () => {
     }, 0);
 
     return (
-        <div className="flex px-2 py-4 gap-4">
+        <div className="flex gap-4 px-2 py-4">
             {chosenProductType === 1 && (
                 <>
                     <div className="flex flex-col gap-5">
@@ -162,7 +161,7 @@ const ProductPage = () => {
                     />
                 </>
             )}
-            {(selectedProducts.length > 0) && (
+            {selectedProducts.length > 0 && (
                 <BookingBottomSheet
                     totalPrice={totalPrice}
                     selectedProducts={selectedProducts}

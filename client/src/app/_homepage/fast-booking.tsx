@@ -90,7 +90,7 @@ const FastBooking = () => {
                     </div>
 
                     <Button size="lg" className="w-full" asChild>
-                        <Link href={'/booking'}>TÌM SÂN TRỐNG</Link>
+                        <Link href={'/booking/courts'}>TÌM SÂN TRỐNG</Link>
                     </Button>
                 </div>
             </div>

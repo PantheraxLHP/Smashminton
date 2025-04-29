@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SelectedCourts, SelectedProducts } from '../page';
+import { SelectedCourts, SelectedProducts } from '../courts/page';
 
 interface BookingBottomSheetProps {
     totalPrice: number;

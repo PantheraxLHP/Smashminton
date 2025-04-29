@@ -3,9 +3,8 @@ import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/componen
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { CourtsWithPrice, Filters, SelectedCourts } from '../page';
+import { CourtsWithPrice, Filters, SelectedCourts } from './page';
 import { formatPrice } from '@/lib/utils';
-
 
 interface BookingCourtListProps {
     courts: CourtsWithPrice[];
@@ -44,7 +43,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                 <Icon icon="mdi:information-outline" className="text-lg text-white" />
                             </button>
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-xs rounded-md bg-white p-2 text-sm shadow-md z-1000">
+                        <TooltipContent className="z-1000 max-w-xs rounded-md bg-white p-2 text-sm shadow-md">
                             <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
                             <ul className="list-disc pl-4">
                                 <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>
@@ -76,8 +75,8 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
 
             {/* Tiêu đề */}
             <h2 className="text-center text-lg font-semibold">
-                Tổng cộng có <span className="text-primary-600 font-bold">{courts?.length || 0} sân</span> có sẵn tại khung
-                giờ này. Đặt bất kỳ sân nào bạn thích nhất.
+                Tổng cộng có <span className="text-primary-600 font-bold">{courts?.length || 0} sân</span> có sẵn tại
+                khung giờ này. Đặt bất kỳ sân nào bạn thích nhất.
             </h2>
 
             {/* Danh sách sân */}
@@ -96,15 +95,15 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                     return (
                         <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
                             <Image
-                                src={"/ZoneA.png"}
-                                alt={court.courtname || "Hình ảnh sân"}
+                                src={'/ZoneA.png'}
+                                alt={court.courtname || 'Hình ảnh sân'}
                                 width={300}
                                 height={200}
                                 className="w-full object-cover"
                             />
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
-                                <p className="py-1 text-lg font-semibold text-primary-500 ">
+                                <p className="text-primary-500 py-1 text-lg font-semibold">
                                     {formatPrice(parseInt(court.price))}
                                 </p>
                                 <Button
