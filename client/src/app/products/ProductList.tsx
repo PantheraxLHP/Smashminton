@@ -13,6 +13,9 @@ interface ProductListProps {
     onSetPage: (page: number) => void;
     onIncrement: (productid: number) => void;
     onDecrement: (productid: number) => void;
+    sortBy: string;
+    sortOrder: string;
+    onSortOrderChange: (orderBy: string, sortBy: string) => void;
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -23,6 +26,9 @@ const ProductList: React.FC<ProductListProps> = ({
     onSetPage,
     onIncrement,
     onDecrement,
+    sortBy,
+    sortOrder,
+    onSortOrderChange,
 }) => {
     return (
         <div className="w-full flex flex-col p-4 gap-2">
@@ -32,13 +38,19 @@ const ProductList: React.FC<ProductListProps> = ({
                     Sắp xếp
                 </div>
                 <div>
-                    <Select>
+                    <Select
+                        defaultValue={sortBy + "-" + sortOrder}
+                        onValueChange={(value) => {
+                            const [sortBy, sortOrder] = value.split("-");
+                            onSortOrderChange(sortBy, sortOrder);
+                        }}
+                    >
                         <SelectTrigger className="border-2 bg-transparent focus:ring-0">
                             <SelectValue placeholder="Mặc định" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="asc">Giá tăng dần</SelectItem>
-                            <SelectItem value="desc">Giá giảm dần</SelectItem>
+                            <SelectItem value="sellingprice-asc">Giá tăng dần</SelectItem>
+                            <SelectItem value="sellingprice-desc">Giá giảm dần</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
