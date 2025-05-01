@@ -148,21 +148,12 @@ const ProductPage = () => {
         }));
     };
 
-    const selectedFoods: SelectedProducts[] = foods
-        .filter((food) => productQuantities[food.productid] > 0)
-        .map((food) => ({
-            ...food,
-            quantity: productQuantities[food.productid],
+    const selectedProducts: SelectedProducts[] = [...foods, ...accessories]
+        .filter((product) => productQuantities[product.productid] > 0)
+        .map((product) => ({
+            ...product,
+            quantity: productQuantities[product.productid],
         }));
-
-    const selectedAccessories: SelectedProducts[] = accessories
-        .filter((accessory) => productQuantities[accessory.productid] > 0)
-        .map((accessory) => ({
-            ...accessory,
-            quantity: productQuantities[accessory.productid],
-        }));
-
-    const selectedProducts = [...selectedFoods, ...selectedAccessories];
 
     const totalPrice = selectedProducts.reduce((acc, food) => {
         return acc + (food.sellingprice ?? 0) * food.quantity;
