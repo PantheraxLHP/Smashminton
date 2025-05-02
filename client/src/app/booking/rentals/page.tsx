@@ -1,6 +1,6 @@
 'use client';
 
-import ServicesPage from '@/app/services/page';
+import RentalsPage from '@/app/rentals/page';
 import BookingNavigationButton from '../_components/BookingNavigationButton';
 import BookingStep from '../_components/BookingStep';
 
@@ -10,7 +10,7 @@ const BookingProductPage = () => {
             <BookingStep currentStep={3} disableNavigation={false} />
             <BookingNavigationButton currentStep={3} />
 
-            <ServicesPage />
+            <RentalsPage />
 
         </div>
     );
