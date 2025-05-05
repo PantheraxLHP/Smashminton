@@ -6,10 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import BookingBottomSheet from '../_components/BookingBottomSheet';
-import BookingNavigationButton from '../_components/BookingNavigationButton';
-import BookingStep from '../_components/BookingStep';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
+import BookingStepper from '../_components/BookingStepper';
 
 export interface CourtsWithPrice extends Courts {
     price: string;
@@ -124,9 +123,6 @@ export default function BookingCourtsPage() {
 
     return (
         <div className="p-4">
-            <BookingStep currentStep={1} disableNavigation={false} />
-            <BookingNavigationButton currentStep={1} />
-
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap justify-center gap-4">
                     <BookingFilter
@@ -135,6 +131,8 @@ export default function BookingCourtsPage() {
                         disableTimes={disableTimes}
                     />
                     <div className="flex-1">
+                        <BookingStepper currentStep={1} />
+
                         <BookingCourtList
                             courts={courts}
                             selectedCourts={selectedCourts}

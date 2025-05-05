@@ -1,14 +1,12 @@
 'use client';
 
-import BookingStep from '../_components/BookingStep';
-import BookingNavigationButton from '../_components/BookingNavigationButton';
 import ProductPage from '@/app/products/page';
+import BookingStepper from '../_components/BookingStepper';
 
 const BookingProductPage = () => {
     return (
         <div>
-            <BookingStep currentStep={2} disableNavigation={false} />
-            <BookingNavigationButton currentStep={2} />
+            <BookingStepper currentStep={2} />
 
             <ProductPage />
         </div>
