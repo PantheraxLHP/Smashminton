@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../courts/page';
 import { toast } from 'sonner';
 
-interface BookingBottomSheetProps {
+export interface BookingBottomSheetProps {
     totalPrice: number;
     selectedCourts?: SelectedCourts[];
     selectedProducts?: SelectedProducts[];
@@ -67,7 +67,11 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        onConfirm ? onConfirm() : router.push('/payment');
+        if (onConfirm) {
+            onConfirm();
+        } else {
+            router.push('/payment');
+        }
     };
 
     return (

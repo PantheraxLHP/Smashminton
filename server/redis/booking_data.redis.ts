@@ -4,28 +4,28 @@ import { CacheBooking } from "../src/interfaces/bookings.interface";
 import Redis from 'ioredis';
 import { CacheCourtBooking } from "../src/interfaces/bookings.interface";
 // Kết nối Keyv với Redis
-const redisUrl = "redis://localhost:6379"; // Định nghĩa redisUrl
+const redisUrl = "redis://localhost:6379";
 const booking_keyv = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'booking' }); // Sử dụng Keyv với KeyvRedis
 // Khởi tạo Redis client
 const redisClient = new Redis(redisUrl);
 // Hàm lưu dữ liệu vào Keyv
 async function saveCacheBooking(username: string, data: CacheBooking): Promise<void> {
-  // Kiểm tra và xóa dữ liệu nếu đã tồn tại
-  const existingData = await booking_keyv.get(username);
-  if (existingData) {
-    console.log(`Data for user ${username} already exists. Deleting...`);
-    await booking_keyv.delete(username); // Xóa dữ liệu cũ
-  }
+    // Kiểm tra và xóa dữ liệu nếu đã tồn tại
+    const existingData = await booking_keyv.get(username);
+    if (existingData) {
+        console.log(`Data for user ${username} already exists. Deleting...`);
+        await booking_keyv.delete(username); // Xóa dữ liệu cũ
+    }
 
-  // Lưu dữ liệu mới
-  await booking_keyv.set(username, data);
-  console.log(`Data saved for user: ${username}`);
+    // Lưu dữ liệu mới
+    await booking_keyv.set(username, data,);
+    console.log(`Data saved for user: ${username}`);
 }
 
 // Hàm lấy dữ liệu từ Keyv
 async function getCacheBooking(username: string): Promise<CacheBooking | null> {
-  const data = await booking_keyv.get(username); // Lấy dữ liệu từ Keyv
-  return data || null; // Nếu không có dữ liệu, trả về null
+    const data = await booking_keyv.get(username); // Lấy dữ liệu từ Keyv
+    return data || null; // Nếu không có dữ liệu, trả về null
 }
 
 async function getAllBookings(): Promise<any[]> {
@@ -55,76 +55,85 @@ async function getAllBookings(): Promise<any[]> {
     // Dữ liệu mẫu cho user "nguyenvun"
     const bookingData1: CacheBooking = {
         court_booking: [
-        {
-            zoneid: 1,
-            courtid: 2,
-            date: "2025-05-15",
-            starttime: '09:00',
-            duration: 1.5,
-            endtime: '10:30',
-            price: 150000,
-        },
-        {
-            zoneid: 1,
-            courtid: 3,
-            date: "2025-05-15",
-            starttime: '09:00',
-            duration: 3,
-            endtime: '12:00',
-            price: 300000,
-        },
+            {
+                zoneid: 1,
+                courtid: 2,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
+                date: "2025-05-15",
+                starttime: '09:00',
+                duration: 1.5,
+                endtime: '10:30',
+                price: 150000,
+            },
+            {
+                zoneid: 1,
+                courtid: 3,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
+                date: "2025-05-15",
+                starttime: '09:00',
+                duration: 3,
+                endtime: '12:00',
+                price: 300000,
+            },
         ],
-        totalprice: 650000, // Tổng giá
+        totalprice: 450000, // Tổng giá
+        TTL: -1 , // Thời gian sống của cache (giây)
     };
 
     // Dữ liệu mẫu cho user "phamthuyo"
     const bookingData2: CacheBooking = {
         court_booking: [
-        {
-            zoneid: 1,
-            courtid: 5,
-            date: "2025-05-15",
-            starttime: '14:00',
-            duration: 2,
-            endtime: '16:00',
-            price: 200000,
-        },
-        {
-            zoneid: 1,
-            courtid: 6,
-            date: "2025-05-15",
-            starttime: '16:30',
-            duration: 1.5,
-            endtime: '18:00',
-            price: 150000,
-        },
+            {
+                zoneid: 1,
+                courtid: 5,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
+                date: "2025-05-15",
+                starttime: '14:00',
+                duration: 2,
+                endtime: '16:00',
+                price: 200000,
+            },
+            {
+                zoneid: 1,
+                courtid: 6,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg', // Added courtimgurl
+                date: "2025-05-15",
+                starttime: '16:30',
+                duration: 1.5,
+                endtime: '18:00',
+                price: 150000,
+            },
         ],
         totalprice: 350000, // Tổng giá
+        TTL: -1, // Thời gian sống của cache
     };
 
     // Dữ liệu mẫu cho user "phamthuyo"
     const bookingData3: CacheBooking = {
         court_booking: [
-        {
-            zoneid: 1,
-            courtid: 3,
-            date: "2025-05-30",
-            starttime: '14:00',
-            duration: 2,
-            endtime: '16:00',
-            price: 200000,
-        },
-        {
-            zoneid: 1,
-            courtid: 6,
-            date: "2025-05-30",
-            starttime: '16:30',
-            duration: 1.5,
-            endtime: '18:00',
-            price: 150000,
-        },
+            {
+                zoneid: 1,
+                courtid: 3,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
+                date: "2025-05-30",
+                starttime: '14:00',
+                duration: 2,
+                endtime: '16:00',
+                price: 200000,
+            },
+            {
+                zoneid: 1,
+                courtid: 6,
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg', // Added courtimgurl
+                date: "2025-05-30",
+                starttime: '16:30',
+                duration: 1.5,
+                endtime: '18:00',
+                price: 150000,
+            },
         ],
         totalprice: 350000, // Tổng giá
+        TTL: -1, // Thời gian sống của cache
     };
 
     // Lưu dữ liệu vào Keyv
@@ -135,7 +144,7 @@ async function getAllBookings(): Promise<any[]> {
     // Lấy tất cả dữ liệu từ Redis
     const allBookings = await getAllBookings();
     console.log("All bookings in Redis:", allBookings);
-    
+
     // Đóng kết nối Redis
     await redisClient.quit();
 

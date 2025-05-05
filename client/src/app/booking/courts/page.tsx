@@ -1,15 +1,14 @@
 'use client';
 
-import { getAvailableCourts } from '@/services/booking.service';
+import { getCourtsAndDisableStartTimes } from '@/services/booking.service';
 import { Courts, Products } from '@/types/types';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useSearchParams } from 'next/navigation';
 import BookingBottomSheet from '../_components/BookingBottomSheet';
-import BookingNavigationButton from '../_components/BookingNavigationButton';
-import BookingStep from '../_components/BookingStep';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
+import BookingStepper from '../_components/BookingStepper';
 
 export interface CourtsWithPrice extends Courts {
     price: string;
@@ -49,7 +48,8 @@ export default function BookingCourtsPage() {
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
-    const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
+    const [disableTimes, setDisableTimes] = useState<string[]>([]);
+    const resetTimerRef = useRef<(() => void) | null>(null);
     const handleResetTimer = useCallback((resetFn: () => void) => {
         resetTimerRef.current = resetFn;
     }, []);
@@ -70,27 +70,46 @@ export default function BookingCourtsPage() {
         [handleFilterChange],
     );
 
+    // Use to fetch courts and disable start times when filters change
     useEffect(() => {
-        const fetchAvailableCourts = async () => {
+        const fetchCourtsAndDisableStartTimes = async () => {
             try {
                 if (filters.zone && filters.date && filters.startTime && filters.duration !== undefined) {
-                    const result = await getAvailableCourts(filters);
+                    const result = await getCourtsAndDisableStartTimes(filters);
                     if (!result.ok) {
-                        setCourts([]); // Reset to empty array if no data
+                        setDisableTimes([]);
+                        setCourts([]);
                         toast.error(result.message || 'Không thể tải danh sách sân');
+                    } else {
+                        setCourts(result.data.availableCourts);
+                        setDisableTimes(result.data.unavailableStartTimes);
                     }
-                    setCourts(result.data);
                 }
             } catch (error) {
-                setCourts([]); // Reset to empty array on error
+                setDisableTimes([]);
+                setCourts([]);
                 toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
             }
         };
 
-        fetchAvailableCourts();
-    }, [filters]); // Dependencies array now includes filters
+        fetchCourtsAndDisableStartTimes();
+    }, [filters]);
 
     const handleAddCourt = (scCourt: SelectedCourts) => {
+        // save it to redis
+        const existingCourt = selectedCourts.find(
+            (court) =>
+                court.courtid === scCourt.courtid &&
+                court.filters.zone === scCourt.filters.zone &&
+                court.filters.date === scCourt.filters.date &&
+                court.filters.duration === scCourt.filters.duration &&
+                court.filters.startTime === scCourt.filters.startTime &&
+                court.filters.fixedCourt === scCourt.filters.fixedCourt,
+        );
+        if (existingCourt) {
+            toast.error('Sân đã được chọn');
+            return;
+        }
         setSelectedCourts((prev) => [...prev, scCourt]);
         if (!isBookingBottomSheetVisible) {
             setIsBookingBottomSheetVisible(true);
@@ -118,13 +137,16 @@ export default function BookingCourtsPage() {
 
     return (
         <div className="p-4">
-            <BookingStep currentStep={1} disableNavigation={false} />
-            <BookingNavigationButton currentStep={1} />
-
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap justify-center gap-4">
-                    <BookingFilter initialFilters={filters} onFilterChange={handleFilterChange} />
+                    <BookingFilter
+                        initialFilters={filters}
+                        onFilterChange={handleFilterChange}
+                        disableTimes={disableTimes}
+                    />
                     <div className="flex-1">
+                        <BookingStepper currentStep={1} />
+
                         <BookingCourtList
                             courts={courts}
                             selectedCourts={selectedCourts}

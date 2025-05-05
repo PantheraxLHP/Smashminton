@@ -1,6 +1,3 @@
-import { ProductTypes } from "@/types/types";
-import { useState, useEffect } from "react";
-
 interface ProductTypeFilterProps {
     chosenProductTypeId: number;
     onTypeFilterChange: (typeId: number) => void;
@@ -25,7 +22,7 @@ const ProductTypeFilter: React.FC<ProductTypeFilterProps> = ({
                     {productTypeCategories.map((type) => (
                         <div
                             key={type.id}
-                            className={`pl-2 text-md cursor-pointer hover:text-primary ${type.id === chosenProductTypeId ? "bg-primary-200 text-white rounded-sm" : ""}`}
+                            className={`pl-2 text-md cursor-pointer hover:text-primary ${type.id === chosenProductTypeId ? "text-primary" : ""}`}
                             onClick={() => onTypeFilterChange(type.id)}
                         >
                             {type.name}

@@ -8,11 +8,6 @@ import { ApiQuery } from '@nestjs/swagger';
 export class CourtBookingController {
   constructor(private readonly courtBookingService: CourtBookingService) {}
 
-  @Post()
-  create(@Body() createCourtBookingDto: CreateCourtBookingDto) {
-    return this.courtBookingService.create(createCourtBookingDto);
-  }
-
   @Get('available-courts')
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
   @ApiQuery({ name: 'date', type: String, example: '2025-05-16', description: 'Ngày đặt sân (YYYY-MM-DD)' })

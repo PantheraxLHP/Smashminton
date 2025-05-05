@@ -2,7 +2,7 @@ import { ApiResponse } from '@/lib/apiResponse';
 
 export async function GET() {
     try {
-        const response = await fetch(`${process.env.SERVER}/api/v1/zones`, {
+        const response = await fetch(`${process.env.SERVER}/api/v1/bookings/cache-booking`, {
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -11,10 +11,9 @@ export async function GET() {
         if (!response.ok) {
             return ApiResponse.error(`HTTP error! Status: ${response.status}`);
         }
-
-        const data = await response.json();
-        return ApiResponse.success({ zones: data });
+        const result = await response.json();
+        return ApiResponse.success(result);
     } catch (error) {
-        return ApiResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+        return ApiResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 }
