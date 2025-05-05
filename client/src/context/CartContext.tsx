@@ -7,12 +7,13 @@ interface CartContextProps {
     selectedCourts: SelectedCourts[];
     setSelectedCourts: (courts: SelectedCourts[]) => void;
     totalPrice: number;
-    addProduct: (product: SelectedProducts) => void;
-    updateProductQuantity: (products: SelectedProducts[]) => void;
-    removeProduct: (productId: number) => void;
+    addProduct: (productId: number, productName: string, quantity: number) => void;
+    removeProductOne: (productId: number) => void;
+    removeProductAll: (productId: number) => void;
     addCourt: (court: SelectedCourts) => void;
     removeCourt: (court: SelectedCourts) => void;
     fetchCart: () => Promise<void>;
+    TTL: number;
 }
 
 const CartContext = createContext<CartContextProps>({
@@ -22,16 +23,19 @@ const CartContext = createContext<CartContextProps>({
     setSelectedCourts: () => { },
     totalPrice: 0,
     addProduct: () => { },
-    updateProductQuantity: () => { },
-    removeProduct: () => { },
+    removeProductOne: () => { },
+    removeProductAll: () => { },
     addCourt: () => { },
     removeCourt: () => { },
     fetchCart: async () => { },
+    TTL: 0,
 });
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const [selectedProducts, setSelectedProducts] = useState<SelectedProducts[]>([]);
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]);
+    const [TTL, setTTL] = useState(300);
+    const [totalPrice, setTotalPrice] = useState(0);
 
     const fetchCart = async () => {
         try {
@@ -43,6 +47,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 const data = await response.json();
                 setSelectedProducts(data.products);
                 setSelectedCourts(data.courts);
+                setTTL(data.TTL);
+                setTotalPrice(data.totalPrice);
             } else {
                 console.error("Failed to fetch cart data");
             }
@@ -55,51 +61,63 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         fetchCart();
     }, []);
 
-    const addCourt = (court: SelectedCourts) => {
-        setSelectedCourts((prev) => [...prev, court]);
+    const addCourt = async (court: SelectedCourts) => {
+        await fetch(`/api/cart/courts`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(court),
+            credentials: "include",
+        });
+        await fetchCart();
     }
 
-    const removeCourt = (court: SelectedCourts) => {
-        setSelectedCourts((prev) =>
-            prev.filter(
-                (c) =>
-                    c.courtid !== court.courtid ||
-                    c.filters.zone !== court.filters.zone ||
-                    c.filters.date !== court.filters.date ||
-                    c.filters.duration !== court.filters.duration ||
-                    c.filters.startTime !== court.filters.startTime ||
-                    c.filters.fixedCourt !== court.filters.fixedCourt,
-            ),
-        );
+    const removeCourt = async (court: SelectedCourts) => {
+        await fetch(`/api/cart/courts`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(court),
+            credentials: "include",
+        });
+        await fetchCart();
     }
 
-    const addProduct = (product: SelectedProducts) => {
-        const existingProduct = selectedProducts.find((p) => p.productid === product.productid);
-        if (existingProduct) {
-            setSelectedProducts((prev) =>
-                prev.map((p) =>
-                    p.productid === product.productid ? { ...p, quantity: p.quantity + 1 } : p,
-                ),
-            );
-        } else {
-            setSelectedProducts((prev) => [...prev, { ...product, quantity: 1 }]);
+    const addProduct = async (productId: number, productName: string, quantity: number) => {
+        const body = {
+            productId,
+            productName,
+            quantity,
         }
+
+        await fetch(`/api/cart/products/${productId}/increment`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+            credentials: "include",
+        });
+        await fetchCart();
     }
 
-    const updateProductQuantity = (products: SelectedProducts[]) => {
-        setSelectedProducts((prev) =>
-            prev.map((product) => {
-                const updatedProduct = products.find((p) => p.productid === product.productid);
-                return updatedProduct ? { ...product, quantity: updatedProduct.quantity } : product;
-            }),
-        );
+    const removeProductOne = async (productId: number) => {
+        await fetch(`/api/cart/products/${productId}/decrement`, {
+            method: "POST",
+            credentials: "include",
+        });
+        await fetchCart();
     }
 
-    const removeProduct = (productId: number) => {
-        setSelectedProducts((prev) => prev.filter((product) => product.productid !== productId));
+    const removeProductAll = async (productId: number) => {
+        await fetch(`/api/cart/products/${productId}/remove`, {
+            method: "DELETE",
+            credentials: "include",
+        });
+        await fetchCart();
     }
-
-    const totalPrice = selectedCourts?.reduce((sum, scCourt) => sum + parseInt(scCourt.price.replace(/\D/g, '')), 0) + selectedProducts?.reduce((sum, product) => sum + ((product.sellingprice || 0) + (product.rentalprice || 0)) * product.quantity, 0);
 
     return (
         <CartContext.Provider
@@ -110,11 +128,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
                 setSelectedCourts,
                 totalPrice,
                 addProduct,
-                updateProductQuantity,
-                removeProduct,
+                removeProductOne,
+                removeProductAll,
                 addCourt,
                 removeCourt,
                 fetchCart,
+                TTL,
             }}
         >
             {children}
