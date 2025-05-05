@@ -14,6 +14,7 @@ export interface CacheCourtBooking {
 export interface CacheBooking {  
   court_booking: CacheCourtBooking[];
   totalprice: number;
+  TTL: number; // Thời gian sống của cache
 }
 
 export interface AvailableCourtsAndUnavailableStartTime {

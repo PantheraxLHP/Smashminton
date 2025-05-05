@@ -106,9 +106,10 @@ export class ProductsController {
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
         const user={ id:1, name:'test'};
-        await this.cacheService.setStudentCard('test-key', user, 1000);
+        //await this.cacheService.setStudentCard('test-key', user, 300);
+        console.log('user', await this.cacheService.getTTL('studentCard::studentCard:test-key'));
         const result = await this.cacheService.getStudentCard('test-key');
-        console.log(result);
+
         if (!product) {
             throw new NotFoundException('Product not found');
         }
