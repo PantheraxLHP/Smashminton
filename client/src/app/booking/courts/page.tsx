@@ -70,11 +70,11 @@ export default function BookingCourtsPage() {
         [handleFilterChange],
     );
 
+    // Use to fetch courts and disable start times when filters change
     useEffect(() => {
         const fetchCourtsAndDisableStartTimes = async () => {
             try {
                 if (filters.zone && filters.date && filters.startTime && filters.duration !== undefined) {
-                    console.log('Fetching courts and disable start times with filters:', filters.duration);
                     const result = await getCourtsAndDisableStartTimes(filters);
                     if (!result.ok) {
                         setDisableTimes([]);
@@ -96,6 +96,20 @@ export default function BookingCourtsPage() {
     }, [filters]);
 
     const handleAddCourt = (scCourt: SelectedCourts) => {
+        // save it to redis
+        const existingCourt = selectedCourts.find(
+            (court) =>
+                court.courtid === scCourt.courtid &&
+                court.filters.zone === scCourt.filters.zone &&
+                court.filters.date === scCourt.filters.date &&
+                court.filters.duration === scCourt.filters.duration &&
+                court.filters.startTime === scCourt.filters.startTime &&
+                court.filters.fixedCourt === scCourt.filters.fixedCourt,
+        );
+        if (existingCourt) {
+            toast.error('Sân đã được chọn');
+            return;
+        }
         setSelectedCourts((prev) => [...prev, scCourt]);
         if (!isBookingBottomSheetVisible) {
             setIsBookingBottomSheetVisible(true);

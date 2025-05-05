@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../courts/page';
 import { toast } from 'sonner';
 
-interface BookingBottomSheetProps {
+export interface BookingBottomSheetProps {
     totalPrice: number;
     selectedCourts?: SelectedCourts[];
     selectedProducts?: SelectedProducts[];
