@@ -7,12 +7,13 @@ const HeroSection = () => {
     return (
         <div className="relative max-h-screen w-full">
             <Image
-                src="/homebg.png"
+                // src="/homebg.png"
+                src="https://res.cloudinary.com/dnagyxwcl/image/upload/v1746248985/What_is_the_Weight_of_a_Plastic_Shuttlecock__-_BadmintonBites_cwgpxi.jpg"
                 alt="Badminton Court"
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="absolute inset-0 -z-10 object-cover brightness-75"
+                quality={100}
+                className="absolute inset-0 -z-10 object-cover"
             />
             <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8">
                 {/* Left Section: Text */}

@@ -7,7 +7,7 @@ interface CartContextProps {
     selectedCourts: SelectedCourts[];
     setSelectedCourts: (courts: SelectedCourts[]) => void;
     totalPrice: number;
-    addProduct: (productId: number) => void;
+    addProduct: (productId: number, productName: string, quantity: number) => void;
     removeProductOne: (productId: number) => void;
     removeProductAll: (productId: number) => void;
     addCourt: (court: SelectedCourts) => void;
@@ -85,9 +85,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         await fetchCart();
     }
 
-    const addProduct = async (productId: number) => {
+    const addProduct = async (productId: number, productName: string, quantity: number) => {
+        const body = {
+            productId,
+            productName,
+            quantity,
+        }
+
         await fetch(`/api/cart/products/${productId}/increment`, {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
             credentials: "include",
         });
         await fetchCart();
