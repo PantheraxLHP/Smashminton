@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../courts/page';
+import { toast } from 'sonner';
 
 interface BookingBottomSheetProps {
     totalPrice: number;
@@ -10,10 +11,10 @@ interface BookingBottomSheetProps {
     selectedProducts?: SelectedProducts[];
     onRemoveCourt?: (scCourt: SelectedCourts) => void;
     onRemoveProduct?: (productid: number) => void;
+    onConfirm?: () => void;
     onCancel?: () => void;
     onResetTimer?(resetTimerFn: () => void): void;
-    currentStep?: number;
-    isTimerRunning?: boolean;
+    TTL?: number;
 }
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
@@ -22,18 +23,16 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedProducts,
     onRemoveCourt,
     onRemoveProduct,
+    onConfirm,
     onCancel,
     onResetTimer,
-    currentStep,
-    isTimerRunning,
+    TTL,
 }) => {
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
-    const endTimeRef = useRef<number>(Date.now() + 300 * 1000); // 5 phút => milli giây
+    const endTimeRef = useRef<number>(Date.now() + (TTL ?? 0) * 1000); // 5 phút => milli giây
     const router = useRouter();
 
     useEffect(() => {
-        if (currentStep === 3 || !isTimerRunning) return; // Nếu là bước 3 hoặc bộ đếm giờ không chạy, dừng bộ đếm giờ
-
         const tick = () => {
             const remainingTime = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
             setTimeLeft(remainingTime);
@@ -42,12 +41,13 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 requestAnimationFrame(tick);
             } else {
                 onCancel?.();
+                toast.error('Thời gian giữ sân đã hết!');
             }
         };
 
         const animationFrame = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(animationFrame);
-    }, [currentStep, onCancel, isTimerRunning]);
+    }, []);
 
     const resetTimer = useCallback(() => {
         endTimeRef.current = Date.now() + 300 * 1000;
@@ -67,7 +67,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        router.push('/booking/payment');
+        onConfirm ? onConfirm() : router.push('/payment');
     };
 
     return (
@@ -123,7 +123,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
                     <div className="hidden h-full w-1 bg-white sm:block"></div>
                     {/* Countdown Timer */}
-                    {selectedCourts && selectedCourts.length > 0 && (
+                    {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (
                         <div className="text-primary border-primary flex flex-col items-center rounded-lg border-2 border-solid bg-white p-2">
                             <span className="text-sm">Thời gian giữ sân:</span>
                             <span className="w-full text-3xl">{formatTime(timeLeft)}</span>

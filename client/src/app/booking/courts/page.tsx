@@ -54,7 +54,6 @@ export default function BookingCourtsPage() {
         resetTimerRef.current = resetFn;
     }, []);
     const [isBookingBottomSheetVisible, setIsBookingBottomSheetVisible] = useState(true); // Điều khiển việc hiển thị BookingBottomSheet
-    const [isTimerRunning] = useState(true);
 
     // Update filters, including fixedCourt
     const handleFilterChange = useCallback((newFilters: Filters) => {
@@ -93,7 +92,9 @@ export default function BookingCourtsPage() {
 
     const handleAddCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
-
+        if (!isBookingBottomSheetVisible) {
+            setIsBookingBottomSheetVisible(true);
+        }
         resetTimerRef.current?.();
     };
 
@@ -140,14 +141,11 @@ export default function BookingCourtsPage() {
                 <BookingBottomSheet
                     onRemoveCourt={handleRemoveCourt}
                     onCancel={() => {
-                        setIsBookingBottomSheetVisible(false);
                         setSelectedCourts([]);
                     }}
                     selectedCourts={selectedCourts}
                     totalPrice={totalPrice}
                     onResetTimer={handleResetTimer}
-                    isTimerRunning={isTimerRunning}
-                    currentStep={1}
                 />
             )}
         </div>

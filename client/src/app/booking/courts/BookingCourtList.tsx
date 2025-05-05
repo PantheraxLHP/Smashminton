@@ -95,7 +95,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                     return (
                         <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
                             <Image
-                                src={'/ZoneA.png'}
+                                src={court.courtimgurl || 'default-court.png'}
                                 alt={court.courtname || 'Hình ảnh sân'}
                                 width={300}
                                 height={200}
