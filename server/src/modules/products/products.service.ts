@@ -46,6 +46,74 @@ export class ProductsService {
         });
     }
 
+    // Find all shoe bags
+    findAllShoeBags() {
+        return this.prisma.products.findMany({
+            where: {
+                product_types: {
+                    producttypename: {
+                        in: ["Shoe bag"] // Lọc theo tên loại sản phẩm
+                    }
+                }
+            },
+            select: {
+                productname: true,
+                sellingprice: true
+            }
+        });
+    }
+
+    // Find all badminton racket grips
+    findAllRacketGrips() {
+        return this.prisma.products.findMany({
+            where: {
+                product_types: {
+                    producttypename: {
+                        in: ["Badminton racket grip"] // Lọc theo tên loại sản phẩm
+                    }
+                }
+            },
+            select: {
+                productname: true,
+                sellingprice: true
+            }
+        });
+    }
+
+    // Find all badminton strings
+    findAllBadmintonStrings() {
+        return this.prisma.products.findMany({
+            where: {
+                product_types: {
+                    producttypename: {
+                        in: ["Badminton string"] // Lọc theo tên loại sản phẩm
+                    }
+                }
+            },
+            select: {
+                productname: true,
+                sellingprice: true
+            }
+        });
+    }
+
+    // Find all badminton socks
+    findAllBadmintonSocks() {
+        return this.prisma.products.findMany({
+            where: {
+                product_types: {
+                    producttypename: {
+                        in: ["Badminton sock"] // Lọc theo tên loại sản phẩm
+                    }
+                }
+            },
+            select: {
+                productname: true,
+                sellingprice: true
+            }
+        });
+    }
+
     // Find all foods, snacks and breverages
     findAllFoodsSnacksBeverages() {
         return this.prisma.products.findMany({

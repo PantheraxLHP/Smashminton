@@ -53,6 +53,50 @@ export class ProductsController {
         return products;
     }
 
+    @Get('shoe-bags')
+    @ApiOperation({ summary: 'Find all shoe bags' })
+    @ApiOkResponse({ description: 'Find all shoe bags' })
+    async findAllShoeBags() {
+        const products = await this.productsService.findAllShoeBags();
+        if (!products) {
+            throw new NotFoundException('No shoe bags');
+        }
+        return products;
+    }
+
+    @Get('badminton-racket-grips')
+    @ApiOperation({ summary: 'Find all badminton racket grips' })
+    @ApiOkResponse({ description: 'Find all badminton racket grips' })
+    async findAllRacketGrips() {
+        const products = await this.productsService.findAllRacketGrips();
+        if (!products) {
+            throw new NotFoundException('No badminton racket grips');
+        }
+        return products;
+    }
+
+    @Get('badminton-socks')
+    @ApiOperation({ summary: 'Find all badminton socks' })
+    @ApiOkResponse({ description: 'Find all badminton socks' })
+    async findAllBadmintonSocks() {
+        const products = await this.productsService.findAllBadmintonSocks();
+        if (!products) {
+            throw new NotFoundException('No badminton socks');
+        }
+        return products;
+    }
+
+    @Get('badminton-strings')
+    @ApiOperation({ summary: 'Find all badminton strings' })
+    @ApiOkResponse({ description: 'Find all badminton strings' })
+    async findAllBadmintonStrings() {
+        const products = await this.productsService.findAllBadmintonStrings();
+        if (!products) {
+            throw new NotFoundException('No badminton socks');
+        }
+        return products;
+    }
+
     @Get('foods-snacks-beverages')
     @ApiOperation({ summary: 'Find all foods, snacks and beverages' })
     @ApiOkResponse({ description: 'Find all foods, snacks and beverages' })
