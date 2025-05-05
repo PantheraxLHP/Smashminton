@@ -1,10 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO } from './dto/create-cache-booking.dto';
-import { calculateEndTime_HHMM } from '../../utilities/date.utilities';
 import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
 @Injectable()
@@ -51,6 +49,7 @@ export class BookingsService {
 			const newCacheBooking: CacheBooking = {
 				court_booking: [],
 				totalprice: 0,
+				TTL: 0,
 			};
 
 			// Lặp qua từng phần tử trong separatedCourts và thêm vào cache
@@ -71,11 +70,15 @@ export class BookingsService {
 			}
 
 			// Lưu cache mới vào Redis
-			const isSuccess = await this.cacheService.setBooking(username, newCacheBooking);
+			const isSuccess = await this.cacheService.setBooking(username, newCacheBooking, 300);
 
 			if (!isSuccess) {
 				throw new BadRequestException('Failed to add booking to cache');
 			}
+
+			const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+
+			newCacheBooking.TTL = TTL;
 
 			return newCacheBooking;
 		}
@@ -99,11 +102,14 @@ export class BookingsService {
 		}
 
 		// Ghi đè lại dữ liệu trong Redis
-		const isSuccess = await this.cacheService.setBooking(username, bookingUserCache);
+		const isSuccess = await this.cacheService.setBooking(username, bookingUserCache, 300);
 
 		if (!isSuccess) {
 			throw new BadRequestException('Failed to update booking in cache');
 		}
+
+		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+		bookingUserCache.TTL = TTL;
 
 		return bookingUserCache;
 	}
@@ -119,9 +125,12 @@ export class BookingsService {
 			throw new BadRequestException('No booking found in cache for this user');
 		}
 
+		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+		bookingUserCache.TTL = TTL;
+
 		return bookingUserCache;
 	}
-	
+
 	findAll() {
 		return `This action returns all bookings`;
 	}

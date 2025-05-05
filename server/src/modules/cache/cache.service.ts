@@ -31,6 +31,8 @@ export class CacheService {
         return this.booking.set(key, value, ttl*1000);
     }
 
+
+    // Lấy tất cả các today booking từ Redis để xác định sân unavailable
     async getAllCacheBookings(date: string): Promise<CacheCourtBooking[]> {
         // Lấy tất cả các key trong namespace 'booking'
         const keys = await this.redisClient.keys('booking:*');
@@ -58,12 +60,19 @@ export class CacheService {
                 endtime: court.endtime,
             })));
         
-        console.log("courtBookings", courtBookings);
         // Lọc `courtBookings` theo `date`
         const filteredCourtBookings = courtBookings.filter((court) => court.date === date);
-
-        console.log("filteredCourtBookings", filteredCourtBookings);
         return filteredCourtBookings;
+    }
+
+    async getTTL(key: string): Promise<number> {
+        // Sử dụng Redis client để lấy TTL của key
+        const ttl = await this.redisClient.ttl(key);
+    
+        // TTL trả về:
+        // -1: Key không có TTL (key tồn tại mãi mãi)
+        // -2: Key không tồn tại
+        return ttl;
     }
 
     async set(key: string, value: any, ttl: number = 0): Promise<boolean> {
