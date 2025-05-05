@@ -67,7 +67,11 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleConfirm = () => {
-        onConfirm ? onConfirm() : router.push('/payment');
+        if (onConfirm) {
+            onConfirm();
+        } else {
+            router.push('/payment');
+        }
     };
 
     return (
