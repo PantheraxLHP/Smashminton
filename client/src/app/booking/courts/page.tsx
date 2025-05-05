@@ -1,10 +1,10 @@
 'use client';
 
-import { getAvailableCourts } from '@/services/booking.service';
+import { getCourtsAndDisableStartTimes } from '@/services/booking.service';
 import { Courts, Products } from '@/types/types';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useSearchParams } from 'next/navigation';
 import BookingBottomSheet from '../_components/BookingBottomSheet';
 import BookingNavigationButton from '../_components/BookingNavigationButton';
 import BookingStep from '../_components/BookingStep';
@@ -49,7 +49,8 @@ export default function BookingCourtsPage() {
     });
     const [courts, setCourts] = useState<CourtsWithPrice[]>([]); // Initialize with empty array
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]); // Danh sách sân muốn thuê
-    const resetTimerRef = useRef<(() => void) | null>(null); // Hàm reset timer
+    const [disableTimes, setDisableTimes] = useState<string[]>([]);
+    const resetTimerRef = useRef<(() => void) | null>(null);
     const handleResetTimer = useCallback((resetFn: () => void) => {
         resetTimerRef.current = resetFn;
     }, []);
@@ -71,24 +72,29 @@ export default function BookingCourtsPage() {
     );
 
     useEffect(() => {
-        const fetchAvailableCourts = async () => {
+        const fetchCourtsAndDisableStartTimes = async () => {
             try {
                 if (filters.zone && filters.date && filters.startTime && filters.duration !== undefined) {
-                    const result = await getAvailableCourts(filters);
+                    console.log('Fetching courts and disable start times with filters:', filters.duration);
+                    const result = await getCourtsAndDisableStartTimes(filters);
                     if (!result.ok) {
-                        setCourts([]); // Reset to empty array if no data
+                        setDisableTimes([]);
+                        setCourts([]);
                         toast.error(result.message || 'Không thể tải danh sách sân');
+                    } else {
+                        setCourts(result.data.availableCourts);
+                        setDisableTimes(result.data.unavailableStartTimes);
                     }
-                    setCourts(result.data);
                 }
             } catch (error) {
-                setCourts([]); // Reset to empty array on error
+                setDisableTimes([]);
+                setCourts([]);
                 toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
             }
         };
 
-        fetchAvailableCourts();
-    }, [filters]); // Dependencies array now includes filters
+        fetchCourtsAndDisableStartTimes();
+    }, [filters]);
 
     const handleAddCourt = (scCourt: SelectedCourts) => {
         setSelectedCourts((prev) => [...prev, scCourt]);
@@ -123,7 +129,11 @@ export default function BookingCourtsPage() {
 
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap justify-center gap-4">
-                    <BookingFilter initialFilters={filters} onFilterChange={handleFilterChange} />
+                    <BookingFilter
+                        initialFilters={filters}
+                        onFilterChange={handleFilterChange}
+                        disableTimes={disableTimes}
+                    />
                     <div className="flex-1">
                         <BookingCourtList
                             courts={courts}

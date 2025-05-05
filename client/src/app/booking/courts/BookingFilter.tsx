@@ -1,8 +1,7 @@
-import { getUnavailableTimes } from '@/services/booking.service';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { toast } from 'sonner';
+import { set } from 'zod';
 
 interface Filters {
     zone?: string;
@@ -13,16 +12,16 @@ interface Filters {
 }
 
 interface BookingFilterProps {
+    initialFilters: Filters;
     onFilterChange: (filters: Filters) => void;
-    initialFilters?: Filters; // Add this line
+    disableTimes: string[];
 }
 
-const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFilters }) => {
+const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFilters, disableTimes }) => {
     const [selectedZone, setSelectedZone] = useState(initialFilters?.zone || '');
     const [date, setDate] = useState(initialFilters?.date ? new Date(initialFilters.date) : new Date());
     const [duration, setDuration] = useState(initialFilters?.duration || 0);
     const [startTime, setStartTime] = useState(initialFilters?.startTime || '');
-    const [disabledTimes, setDisabledTimes] = useState<string[]>([]); // Initialize as empty array
 
     // Format YYYY-MM-DD
     const getLocalDateString = (date: Date): string => {
@@ -42,41 +41,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
             startTime,
         };
         onFilterChange(filters);
-    }, [selectedZone, date, duration, startTime, onFilterChange]); // Removed disabledTimes
-
-    // Effect to fetch unavailable times when relevant filters change
-    useEffect(() => {
-        const fetchUnavailableTimes = async () => {
-            // Only fetch if zone, date, and duration are selected
-            if (selectedZone && date && duration > 0) {
-                const filtersForFetch: Pick<Filters, 'zone' | 'date' | 'duration'> = {
-                    zone: selectedZone,
-                    date: getLocalDateString(date),
-                    duration,
-                };
-                try {
-                    // Assuming getUnavailableTimes needs zone, date, and duration
-                    // Adjust the API call parameters if needed
-                    const result = await getUnavailableTimes(filtersForFetch);
-                    if (result.ok) {
-                        setDisabledTimes(Array.isArray(result.data) ? result.data : []);
-                    } else {
-                        toast.error(result.message || 'Không thể tải danh sách giờ trống');
-                        setDisabledTimes([]); // Clear disabled times on error
-                    }
-                } catch (error) {
-                    toast.error(error instanceof Error ? error.message : 'Lỗi khi tải danh sách giờ trống');
-                    setDisabledTimes([]); // Clear disabled times on error
-                }
-            } else {
-                // Reset disabled times if required filters are not set
-                setDisabledTimes([]);
-            }
-        };
-
-        fetchUnavailableTimes();
-        // This effect depends on the filters needed to fetch unavailable times
-    }, [selectedZone, date, duration]); // Only depends on filters needed for fetching
+    }, [selectedZone, date, duration, startTime, onFilterChange]);
 
     const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
@@ -187,9 +152,9 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                         <button
                             key={time}
                             onClick={() => setStartTime(time)}
-                            disabled={disabledTimes.includes(time)} // Check if time is in the array
+                            disabled={disableTimes.includes(time)} // Check if time is in the array
                             className={`rounded-lg border px-3 py-1 text-sm ${
-                                disabledTimes.includes(time) // Check if time is in the array
+                                disableTimes.includes(time) // Check if time is in the array
                                     ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
                                     : startTime === time
                                       ? 'bg-primary-500 text-white'
