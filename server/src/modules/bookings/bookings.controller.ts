@@ -32,6 +32,15 @@ export class BookingsController {
   ) {
     return this.bookingsService.getAvailableCourtsAndUnavailableStartTime(zoneid, date, starttime, duration, fixedCourt);
   }
+
+  @Get('cache-booking')
+  @ApiOperation({ summary: 'Get booking from redis' })
+  @ApiQuery({ name: 'username', type: String, example: 'nguyenvun', description: 'Tên người dùng' })
+  getBookingFromCache(@Query('username') username: string) {
+    return this.bookingsService.getBookingFromCache(username);
+  }
+
+
   @Get()
   findAll() {
     return this.bookingsService.findAll();

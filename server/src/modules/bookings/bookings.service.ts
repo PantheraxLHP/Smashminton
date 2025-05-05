@@ -107,6 +107,21 @@ export class BookingsService {
 
 		return bookingUserCache;
 	}
+
+	async getBookingFromCache(username: string): Promise<CacheBooking> {
+		if (!username) {
+			throw new BadRequestException('Username is required to get booking from cache');
+		}
+
+		const bookingUserCache = await this.cacheService.getBooking(username);
+
+		if (!bookingUserCache) {
+			throw new BadRequestException('No booking found in cache for this user');
+		}
+
+		return bookingUserCache;
+	}
+	
 	findAll() {
 		return `This action returns all bookings`;
 	}

@@ -54,11 +54,15 @@ export class CacheService {
                 date: court.date,
                 courtid: court.courtid,
                 starttime: court.starttime,
+                duration: court.duration,
                 endtime: court.endtime,
             })));
-            
+        
+        console.log("courtBookings", courtBookings);
         // Lọc `courtBookings` theo `date`
         const filteredCourtBookings = courtBookings.filter((court) => court.date === date);
+
+        console.log("filteredCourtBookings", filteredCourtBookings);
         return filteredCourtBookings;
     }
 
