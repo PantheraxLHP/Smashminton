@@ -288,15 +288,15 @@ async function main() {
     }
 
     const accountIds = await prisma.accounts.findMany({
-            select: {
-                accountid: true,
-                accounttype: true,
-            },
-        })
+        select: {
+            accountid: true,
+            accounttype: true,
+        },
+    })
 
     const employeeIds = accountIds.filter((account) => account.accounttype === 'Employee').map((account) => account.accountid);
     const customerIds = accountIds.filter((account) => account.accounttype === 'Customer').map((account) => account.accountid);
-    
+
     const defaultRoles = ['admin', 'hr_manager', 'wh_manager', 'employee'];
 
     customerIds.forEach(async (customerId) => {
@@ -750,7 +750,7 @@ async function main() {
             },
             {
                 courtname: 'Court A2',
-                courtimgurl:'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
                 zoneid: 1,
             },
             {
@@ -776,7 +776,7 @@ async function main() {
             {
                 courtname: 'Court A7',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_7_ptadlq.jpg',
-                
+
                 zoneid: 1,
             },
             {
@@ -859,7 +859,8 @@ async function main() {
         // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
         // 6: Food, 7: Beverage, 8: Snack
         {
-            productname: 'Yonex Badminton Grip',
+            productname: 'Quấn cán cầu lông Yonex AC147EX',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
@@ -870,7 +871,32 @@ async function main() {
             costprice: 100.0,
         },
         {
-            productname: 'Li-Ning Shuttlecock',
+            productname: 'Túi đựng giày cầu lông',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
+            batch: 'B001',
+            expirydate: null,
+            status: 'Available',
+            producttypeid: 1,
+            stockquantity: 30,
+            sellingprice: 150.0,
+            rentalprice: 20.0,
+            costprice: 100.0,
+        },
+        {
+            productname: 'Vớ cầu lông Yonex',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+            batch: 'B001',
+            expirydate: null,
+            status: 'Available',
+            producttypeid: 4,
+            stockquantity: 30,
+            sellingprice: 150.0,
+            rentalprice: 20.0,
+            costprice: 100.0,
+        },
+        {
+            productname: 'Ống cầu lông Lining AYQN024',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
             batch: 'B002',
             expirydate: null,
             status: 'Available',
@@ -881,7 +907,8 @@ async function main() {
             costprice: 15.0,
         },
         {
-            productname: 'Yonex Shuttlecock',
+            productname: 'Ống cầu lông Yonex AS40',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
             batch: 'B002',
             expirydate: null,
             status: 'Available',
@@ -892,7 +919,8 @@ async function main() {
             costprice: 15.0,
         },
         {
-            productname: 'Yonex pro string',
+            productname: 'Cước Yonex pro',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
             batch: 'B003',
             expirydate: null,
             status: 'Available',
@@ -903,7 +931,8 @@ async function main() {
             costprice: 30.0,
         },
         {
-            productname: 'Energy Drink',
+            productname: 'Nước uống tăng lực Monster bạc',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447734/monster-drink_edoi6w.jpg',
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
@@ -914,7 +943,8 @@ async function main() {
             costprice: 1.5,
         },
         {
-            productname: 'Protein Bar',
+            productname: 'Thanh protein block chocolate',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
@@ -926,6 +956,7 @@ async function main() {
         },
         {
             productname: 'Cá viên chiên xiên bẩn',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447470/cavienchien_vetkew.jpg',
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
@@ -934,7 +965,55 @@ async function main() {
             sellingprice: 3.0,
             rentalprice: null,
             costprice: 2.0,
-        }
+        },
+        {
+            productname: 'Nước uống revive',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
+            batch: 'D001',
+            expirydate: new Date('2025-12-31'),
+            status: 'Available',
+            producttypeid: 7,
+            stockquantity: 200,
+            sellingprice: 2.5,
+            rentalprice: null,
+            costprice: 1.5,
+        },
+        {
+            productname: 'Nước uống pocari',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
+            batch: 'D001',
+            expirydate: new Date('2025-12-31'),
+            status: 'Available',
+            producttypeid: 7,
+            stockquantity: 200,
+            sellingprice: 2.5,
+            rentalprice: null,
+            costprice: 1.5,
+        },
+        {
+            productname: 'Bánh snack OSea',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448378/orion-post-new-24_lzha5b.png',
+            batch: 'D002',
+            expirydate: new Date('2024-06-30'),
+            status: 'Available',
+            producttypeid: 8,
+            stockquantity: 150,
+            sellingprice: 3.0,
+            rentalprice: null,
+            costprice: 2.0,
+        },
+        {
+            productname: 'Bánh snack bí đỏ',
+            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
+            batch: 'D002',
+            expirydate: new Date('2024-06-30'),
+            status: 'Available',
+            producttypeid: 8,
+            stockquantity: 150,
+            sellingprice: 3.0,
+            rentalprice: null,
+            costprice: 2.0,
+        },
     ];
 
     for (const product of products) {
