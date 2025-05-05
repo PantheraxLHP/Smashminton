@@ -7,7 +7,8 @@ const HeroSection = () => {
     return (
         <div className="relative max-h-screen w-full">
             <Image
-                src="/homebg.png"
+                // src="/homebg.png"
+                src="https://res.cloudinary.com/dnagyxwcl/image/upload/v1746248985/What_is_the_Weight_of_a_Plastic_Shuttlecock__-_BadmintonBites_cwgpxi.jpg"
                 alt="Badminton Court"
                 fill
                 priority
