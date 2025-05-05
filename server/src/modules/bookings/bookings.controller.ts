@@ -2,11 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { BookingsService } from './bookings.service';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { cacheBookingDTO } from './dto/create-cache-booking.dto';
+import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
 
 @Controller('bookings')
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(private readonly bookingsService: BookingsService) { }
 
   @Post('cache-booking')
   @ApiOperation({ summary: 'Add booking to redis' })
@@ -36,9 +36,21 @@ export class BookingsController {
   @Get('cache-booking')
   @ApiOperation({ summary: 'Get booking from redis' })
   @ApiQuery({ name: 'username', type: String, example: 'nguyenvun', description: 'Tên người dùng' })
+  @ApiResponse({ status: 200, description: 'Get successful' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
   getBookingFromCache(@Query('username') username: string) {
     return this.bookingsService.getBookingFromCache(username);
   }
+
+  @Delete('cache-booking')
+  @ApiOperation({ summary: 'Delete court booking from redis' })
+  @ApiBody({ type: deleteCourtBookingDto })
+  @ApiResponse({ status: 200, description: 'Delete successful' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  deleteCourtBookingFromCache(@Body() DeleteCourtBookingDto: deleteCourtBookingDto) {
+    return this.bookingsService.removeCourtBookingFromCache(DeleteCourtBookingDto);
+  }
+
 
 
   @Get()

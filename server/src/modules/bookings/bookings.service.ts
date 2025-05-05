@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
-import { cacheBookingDTO } from './dto/create-cache-booking.dto';
+import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
 import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
 @Injectable()
@@ -55,7 +55,7 @@ export class BookingsService {
 			// Lặp qua từng phần tử trong separatedCourts và thêm vào cache
 			for (const court of separatedCourts) {
 				const newCourtBooking: CacheCourtBooking = {
-					zoneid: court_booking.zoneid,
+					zoneid: court_booking.zoneid ?? 0,
 					courtid: court.courtid,
 					courtimgurl: court.courtimgurl ?? '',
 					date: court_booking.date,
@@ -87,7 +87,7 @@ export class BookingsService {
 		for (const court of separatedCourts) {
 
 			const newCourtBooking: CacheCourtBooking = {
-				zoneid: court_booking.zoneid,
+				zoneid: court_booking.zoneid || 0,
 				courtid: court.courtid,
 				courtimgurl: court.courtimgurl ?? '',
 				date: court_booking.date,
@@ -131,6 +131,49 @@ export class BookingsService {
 		return bookingUserCache;
 	}
 
+	async removeCourtBookingFromCache(DeleteCourtBookingDto: deleteCourtBookingDto): Promise<CacheBooking> {
+		const { username, courtBooking } = DeleteCourtBookingDto;
+		if (!username) {
+			throw new BadRequestException('Username is required to remove booking from cache');
+		}
+
+		const bookingUserCache = await this.cacheService.getBooking(username);
+
+		if (!bookingUserCache) {
+			throw new BadRequestException('No booking found in cache for this user');
+		}
+
+		const { courtid, date, starttime, duration } = courtBooking;
+		console.log('courtBooking', courtBooking);
+
+		const courtBookingToRemove = bookingUserCache.court_booking.find((court) =>
+			court.courtid === courtid &&
+			court.date === date &&
+			court.starttime === starttime &&
+			court.duration === duration
+		);
+
+		if (!courtBookingToRemove) {
+			throw new BadRequestException('Court booking not found in cache');
+		}
+
+		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+		bookingUserCache.TTL = TTL;
+
+		const index = bookingUserCache.court_booking.indexOf(courtBookingToRemove);
+		if (index > -1) {
+			bookingUserCache.court_booking.splice(index, 1);
+			bookingUserCache.totalprice -= courtBookingToRemove.price;
+		}
+
+		const isSuccess = await this.cacheService.setBooking(username, bookingUserCache, TTL);
+
+		if (!isSuccess) {
+			throw new BadRequestException('Failed to update booking in cache');
+		}
+
+		return bookingUserCache;
+	}
 	findAll() {
 		return `This action returns all bookings`;
 	}

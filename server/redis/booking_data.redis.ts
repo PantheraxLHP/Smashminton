@@ -76,8 +76,8 @@ async function getAllBookings(): Promise<any[]> {
                 price: 300000,
             },
         ],
-        totalprice: 650000, // Tổng giá
-        TTL: -1, // Thời gian sống của cache (giây)
+        totalprice: 450000, // Tổng giá
+        TTL: -1 , // Thời gian sống của cache (giây)
     };
 
     // Dữ liệu mẫu cho user "phamthuyo"
