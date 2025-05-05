@@ -13,8 +13,8 @@ import { ApiProperty } from '@nestjs/swagger';
 export class courtBookingDto {
     @ApiProperty({ example: 1 })
     @IsInt()
-    @IsNotEmpty()
-    zoneid: number;
+    @IsOptional()
+    zoneid?: number;
     
     @ApiProperty({ example: 8 })
     @IsInt()
@@ -23,8 +23,8 @@ export class courtBookingDto {
 
     @ApiProperty({ example: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg' }) // example image URL
     @IsString()
-    @IsNotEmpty()
-    courtimgurl: string; // optional
+    @IsOptional()
+    courtimgurl?: string; // optional
 
     @ApiProperty({ example: '2025-05-15' }) // example date
     @IsDateString()
@@ -36,7 +36,7 @@ export class courtBookingDto {
     @IsNotEmpty()
     starttime: string; // e.g. '09:00'
 
-    @ApiProperty({ example: 2 }) // example duration
+    @ApiProperty({ example: 1 }) // example duration
     @IsNumber()
     @IsNotEmpty()
     duration: number; // in hours, e.g. 1.5
@@ -53,7 +53,7 @@ export class courtBookingDto {
 }
 
 export class cacheBookingDTO {
-    @ApiProperty({ example: 'huyenvup' }) // example username
+    @ApiProperty({ example: 'nguyenvun' }) // example username
     @IsString()
     @IsNotEmpty()
     username: string;
@@ -63,4 +63,16 @@ export class cacheBookingDTO {
     @ValidateNested()
     @Type(() => courtBookingDto)
     court_booking: courtBookingDto;
+}
+export class deleteCourtBookingDto {
+    @ApiProperty({ example: 'nguyenvun' }) // example username
+    @IsNotEmpty()
+    @IsString()
+    username: string;
+
+    @ApiProperty({ type: courtBookingDto })
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => courtBookingDto)
+    courtBooking: courtBookingDto;
 }
