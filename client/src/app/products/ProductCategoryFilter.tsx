@@ -1,5 +1,4 @@
 import { ProductTypes } from "@/types/types";
-import { useState, useEffect } from "react";
 
 interface ProductFilterProps {
     chosenProductCategoryId: number;
@@ -23,7 +22,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
                         <div className="flex flex-col gap-5">
                             <div
                                 key={0}
-                                className={`pl-2 text-md cursor-pointer hover:text-primary ${0 === chosenProductCategoryId ? "bg-primary-200 text-white rounded-sm" : ""}`}
+                                className={`pl-2 text-md cursor-pointer hover:text-primary ${0 === chosenProductCategoryId ? "text-primary" : ""}`}
                                 onClick={() => onCategoryFilterChange(0)}
                             >
                                 Tất cả
@@ -31,7 +30,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
                             {productCategories.map((category) => (
                                 <div
                                     key={category.producttypeid}
-                                    className={`pl-2 text-md cursor-pointer hover:text-primary ${category.producttypeid === chosenProductCategoryId ? "bg-primary-200 text-white rounded-sm" : ""}`}
+                                    className={`pl-2 text-md cursor-pointer hover:text-primary ${category.producttypeid === chosenProductCategoryId ? "text-primary" : ""}`}
                                     onClick={() => onCategoryFilterChange(category.producttypeid)}
                                 >
                                     {category.producttypename}
