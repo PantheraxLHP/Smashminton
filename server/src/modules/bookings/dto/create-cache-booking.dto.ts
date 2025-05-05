@@ -10,7 +10,7 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-class courtBookingDto {
+export class courtBookingDto {
     @ApiProperty({ example: 1 })
     @IsInt()
     @IsNotEmpty()
@@ -20,6 +20,11 @@ class courtBookingDto {
     @IsInt()
     @IsNotEmpty()
     courtid: number;
+
+    @ApiProperty({ example: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg' }) // example image URL
+    @IsString()
+    @IsNotEmpty()
+    courtimgurl: string; // optional
 
     @ApiProperty({ example: '2025-05-15' }) // example date
     @IsDateString()

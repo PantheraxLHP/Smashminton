@@ -58,6 +58,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 2,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
             date: "2025-05-15",
             starttime: '09:00',
             duration: 1.5,
@@ -67,6 +68,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 3,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
             date: "2025-05-15",
             starttime: '09:00',
             duration: 3,
@@ -83,6 +85,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 5,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
             date: "2025-05-15",
             starttime: '14:00',
             duration: 2,
@@ -92,6 +95,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 6,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg', // Added courtimgurl
             date: "2025-05-15",
             starttime: '16:30',
             duration: 1.5,
@@ -108,6 +112,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 3,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
             date: "2025-05-30",
             starttime: '14:00',
             duration: 2,
@@ -117,6 +122,7 @@ async function getAllBookings(): Promise<any[]> {
         {
             zoneid: 1,
             courtid: 6,
+            courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg', // Added courtimgurl
             date: "2025-05-30",
             starttime: '16:30',
             duration: 1.5,

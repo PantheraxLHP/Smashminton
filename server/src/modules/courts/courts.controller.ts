@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { CourtsService } from './courts.service';
 import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiQuery } from '@nestjs/swagger';
+import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
 
 @Controller('courts')
 export class CourtsController {
@@ -42,6 +43,14 @@ export class CourtsController {
         return this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
     }
 
+    @Post('separate-court-price')
+    @ApiBody({
+        description: 'Thông tin đặt sân',
+        type: courtBookingDto
+    })
+    async getSeparateCourtPrice(@Body() courtBookingDTO: courtBookingDto) {
+        return this.courtsService.separateCourtPrice(courtBookingDTO);
+    }
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.courtsService.findOne(+id);

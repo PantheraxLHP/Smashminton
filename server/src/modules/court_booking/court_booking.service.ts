@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateCourtBookingDto } from './dto/create-court_booking.dto';
 import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { convertUTCToVNTime } from 'src/utilities/date.utilities';
@@ -7,6 +6,7 @@ import dayjs from 'dayjs';
 import { CourtsService } from '../courts/courts.service';
 import { AvailableCourts } from 'src/interfaces/court_booking.interface';
 import { CacheService } from '../cache/cache.service';
+import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
 @Injectable()
 export class CourtBookingService {
   constructor(
@@ -165,12 +165,8 @@ export class CourtBookingService {
     return unavailableTimes;
   }
 
-  create(createCourtBookingDto: CreateCourtBookingDto) {
-    return 'This action adds a new courtBooking';
-  }
-
-  getBlockedTimes(zoneid: number, date: string) {
-
+  async getSeparatedCourtPrices(courtBookingDTO: courtBookingDto): Promise<AvailableCourts[]> {
+    return await this.courtsService.separateCourtPrice(courtBookingDTO);
   }
   findAll() {
     return this.prisma.court_booking.findMany();

@@ -9,65 +9,94 @@ import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking
 import { CourtBookingService } from '../court_booking/court_booking.service';
 @Injectable()
 export class BookingsService {
-  constructor(
-	private prisma: PrismaService,
-	private cacheService: CacheService,
-	private courtBookingService: CourtBookingService,
-  ) { }
-  async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean) : Promise<AvailableCourtsAndUnavailableStartTime> {
-	if (!zoneid || !date || !starttime || !duration || fixedCourt === undefined) {
-	  throw new BadRequestException('Missing query parameters');
-	}
-    const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
-    const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
-    
-    return {
-      availableCourts: availableCourts,
-      unavailableStartTimes: unavailableStartTimes,
-    };
-  }
+	constructor(
+		private prisma: PrismaService,
+		private cacheService: CacheService,
+		private courtBookingService: CourtBookingService,
+	) { }
+	async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean): Promise<AvailableCourtsAndUnavailableStartTime> {
+		if (!zoneid || !date || !starttime || !duration || fixedCourt === undefined) {
+			throw new BadRequestException('Missing query parameters');
+		}
+		const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
+		const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
 
-  async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
+		return {
+			availableCourts: availableCourts,
+			unavailableStartTimes: unavailableStartTimes,
+		};
+	}
+
+	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
 		const { username, court_booking } = CacheBookingDTO;
+
+		// Gọi hàm getSeparatedCourtPrices để lấy danh sách các khoảng giá đã tách
+		const separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
 
 		// Kiểm tra nếu không có username
 		if (!username) {
 			throw new BadRequestException('Username is required to add booking to cache');
 		}
-		const endtime = calculateEndTime_HHMM(court_booking.starttime, court_booking.duration);
-		// Tạo đối tượng `courtBooking`
-		const newCourtBooking: CacheCourtBooking = {
-			zoneid: court_booking.zoneid,
-			courtid: court_booking.courtid,
-			date: court_booking.date,
-			starttime: court_booking.starttime,
-			duration: court_booking.duration,
-			endtime: endtime,
-			price: court_booking.price ?? 0,
-		};
-		//Kiểm tra nếu không có key là username này trong redis
-		const bookingUserCache = await this.cacheService.getBooking(CacheBookingDTO.username);
+
+		// Kiểm tra nếu không có dữ liệu trả về từ separatedCourts
+		if (!separatedCourts || separatedCourts.length === 0) {
+			throw new BadRequestException('No separated court prices found');
+		}
+
+		// Lấy cache của người dùng từ Redis
+		const bookingUserCache = await this.cacheService.getBooking(username);
+
+		// Nếu không có cache, tạo mới
 		if (!bookingUserCache) {
-			// Tạo JSON cacheBooking
-			const cacheBooking: CacheBooking = {
-				court_booking: [newCourtBooking], // Đưa vào mảng
-				totalprice: newCourtBooking.price,
+			const newCacheBooking: CacheBooking = {
+				court_booking: [],
+				totalprice: 0,
 			};
 
-			const isSuccess = await this.cacheService.setBooking(username, cacheBooking);
+			// Lặp qua từng phần tử trong separatedCourts và thêm vào cache
+			for (const court of separatedCourts) {
+				const newCourtBooking: CacheCourtBooking = {
+					zoneid: court_booking.zoneid,
+					courtid: court.courtid,
+					courtimgurl: court.courtimgurl ?? '',
+					date: court_booking.date,
+					starttime: court.starttime,
+					duration: court.duration ?? 0, 
+					endtime: court.endtime,
+					price: parseFloat(court.price), // Chuyển giá thành số
+				};
+
+				newCacheBooking.court_booking.push(newCourtBooking);
+				newCacheBooking.totalprice += newCourtBooking.price;
+			}
+
+			// Lưu cache mới vào Redis
+			const isSuccess = await this.cacheService.setBooking(username, newCacheBooking);
 
 			if (!isSuccess) {
 				throw new BadRequestException('Failed to add booking to cache');
 			}
-			// Trả về JSON cacheBooking
-			return cacheBooking;
+
+			return newCacheBooking;
 		}
 
-		// Nếu đã tồn tại, thêm `newCourtBooking` vào danh sách `court_booking`
-		bookingUserCache.court_booking.push(newCourtBooking);
+		// Nếu đã có cache, cập nhật cache
+		for (const court of separatedCourts) {
 
-		// Cập nhật `totalprice`
-		bookingUserCache.totalprice += newCourtBooking.price;
+			const newCourtBooking: CacheCourtBooking = {
+				zoneid: court_booking.zoneid,
+				courtid: court.courtid,
+				courtimgurl: court.courtimgurl ?? '',
+				date: court_booking.date,
+				starttime: court.starttime,
+				duration: court.duration ?? 0, 
+				endtime: court.endtime,
+				price: parseFloat(court.price), // Chuyển giá thành số
+			};
+
+			bookingUserCache.court_booking.push(newCourtBooking);
+			bookingUserCache.totalprice += newCourtBooking.price;
+		}
 
 		// Ghi đè lại dữ liệu trong Redis
 		const isSuccess = await this.cacheService.setBooking(username, bookingUserCache);

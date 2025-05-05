@@ -7,6 +7,7 @@ import { CourtPrices } from 'src/interfaces/courts.interface';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
+import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
 @Injectable()
 export class CourtsService {
     constructor(private prisma: PrismaService) { }
@@ -181,6 +182,96 @@ export class CourtsService {
         }));
 
         return availableCourts;
+    }
+
+    async separateCourtPrice(CourtBookingDTO: courtBookingDto): Promise<CourtPrices[]> {
+        const { zoneid, starttime, endtime, date, courtid } = CourtBookingDTO;
+        const parsedStartTime = dayjs(starttime, 'HH:mm');
+
+        const parsedEndTime = dayjs(endtime, 'HH:mm');
+    
+        const parsedZoneId = Number(zoneid);
+        const dayOfWeek = getEnglishDayName(date);
+    
+        let DayFrom: string = '';
+        let DayTo: string = '';
+    
+        // Xác định khoảng thời gian theo ngày trong tuần
+        if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(dayOfWeek)) {
+            DayFrom = 'Monday';
+            DayTo = 'Friday';
+        } else {
+            DayFrom = 'Saturday';
+            DayTo = 'Sunday';
+        }
+    
+        // Truy vấn tất cả các giá sân phù hợp
+        const zonePricesByAllCourts = await this.prisma.courts.findMany({
+            where: {
+                zoneid: parsedZoneId,
+                courtid: courtid,
+            },
+            select: {
+                courtid: true,
+                courtname: true,
+                courtimgurl: true,
+                zones: {
+                    select: {
+                        zone_prices: {
+                            where: {
+                                dayfrom: DayFrom,
+                                dayto: DayTo,
+                            },
+                            select: {
+                                starttime: true,
+                                endtime: true,
+                                price: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    
+        // Gộp tất cả zone_prices vào một mảng duy nhất
+        const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
+            court.zones?.zone_prices.map((zonePrice) => ({
+                courtid: court.courtid,
+                courtname: court.courtname,
+                courtimgurl: court.courtimgurl,
+                starttime: zonePrice.starttime,
+                endtime: zonePrice.endtime,
+                price: zonePrice.price,
+            })) || []
+        );
+    
+        const separatedPrices: CourtPrices[] = [];
+    
+        for (const zone of allZonePrices) {
+            const zoneStart = dayjs(zone.starttime, 'HH:mm');
+            const zoneEnd = dayjs(zone.endtime, 'HH:mm');
+    
+            // Tính khoảng giao nhau giữa thời gian người dùng và khung giờ của zone
+            const actualStart = parsedStartTime.isAfter(zoneStart) ? parsedStartTime : zoneStart;
+            const actualEnd = parsedEndTime.isBefore(zoneEnd) ? parsedEndTime : zoneEnd;
+    
+            if (actualStart.isBefore(actualEnd)) {
+                const durationInHours = actualEnd.diff(actualStart, 'minutes') / 60; // phút -> giờ
+                const priceForDuration = durationInHours * parseFloat((zone.price ?? '0').toString());
+    
+                separatedPrices.push({
+                    courtid: zone.courtid,
+                    courtname: zone.courtname ?? '',
+                    courtimgurl: zone.courtimgurl ?? '',
+                    starttime: actualStart.format('HH:mm'),
+                    endtime: actualEnd.format('HH:mm'),
+                    duration: durationInHours,
+                    price: priceForDuration.toFixed(0), // Làm tròn giá trị tiền
+                });
+            }
+        }
+    
+        return separatedPrices;
     }
 
     findOne(id: number) {

@@ -3,6 +3,7 @@ import { AvailableCourts } from "./court_booking.interface";
 export interface CacheCourtBooking {
     zoneid: number;
     courtid: number;
+    courtimgurl: string; // Hình ảnh sân
     date: string; // Ngày đặt sân
     starttime: string;      
     duration: number;       
