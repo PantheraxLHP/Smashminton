@@ -25,6 +25,7 @@ async function main() {
         'zones',
         'product_descriptions',
         'products',
+        'product_types',
         'suppliers',
     ];
 
@@ -282,7 +283,7 @@ async function main() {
                 status: 'Active',
                 fullname: `User ${i}`,
                 accounttype: 'Employee',
-                gender: i % 2 === 0 ? 'Male' : 'Female'
+                gender: i % 2 === 0 ? 'Male' : 'Female',
             },
         });
     }
@@ -292,10 +293,14 @@ async function main() {
             accountid: true,
             accounttype: true,
         },
-    })
+    });
 
-    const employeeIds = accountIds.filter((account) => account.accounttype === 'Employee').map((account) => account.accountid);
-    const customerIds = accountIds.filter((account) => account.accounttype === 'Customer').map((account) => account.accountid);
+    const employeeIds = accountIds
+        .filter((account) => account.accounttype === 'Employee')
+        .map((account) => account.accountid);
+    const customerIds = accountIds
+        .filter((account) => account.accounttype === 'Customer')
+        .map((account) => account.accountid);
 
     const defaultRoles = ['admin', 'hr_manager', 'wh_manager', 'employee'];
 
@@ -424,15 +429,15 @@ async function main() {
     await prisma.autoassignment_rules.createMany({
         data: [
             {
-                rulename: "Số ca tối đa 1 ngày",
-                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 ngày",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "2",
-                ruleappliedfor: "Employee",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số ca tối đa 1 ngày',
+                ruledescription:
+                    'Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 ngày',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '2',
+                ruleappliedfor: 'Employee',
+                ruletype: 'WHERE',
+                rulesql: `
                     daily_shift_counts AS (
                         SELECT 
                             ae.employeeid,
@@ -449,22 +454,21 @@ async function main() {
                         GROUP BY ae.employeeid, sd.shiftdate
                     )
                 `,
-                columnname: "dsc.assigned_shifts_in_day,dsc.shiftdate",
-                ctename: "daily_shift_counts dsc",
-                condition: "assigned_shifts_in_day < rulevalue AND shiftdate = $shiftdate",
+                columnname: 'dsc.assigned_shifts_in_day,dsc.shiftdate',
+                ctename: 'daily_shift_counts dsc',
+                condition: 'assigned_shifts_in_day < rulevalue AND shiftdate = $shiftdate',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Sắp xếp theo điểm ưu tiên",
-                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có điểm ưu tiên cao hơn",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "DESC",
-                ruleappliedfor: "Employee",
-                ruletype: "ORDER",
-                rulesql:
-                    `
+                rulename: 'Sắp xếp theo điểm ưu tiên',
+                ruledescription: 'Khi có đụng độ, ưu tiên phân công nhân viên có điểm ưu tiên cao hơn',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: 'DESC',
+                ruleappliedfor: 'Employee',
+                ruletype: 'ORDER',
+                rulesql: `
                     late_counts AS (
                         SELECT 
                             pr.employeeid, 
@@ -500,22 +504,22 @@ async function main() {
                         LEFT JOIN absence_counts ac ON ae.employeeid = ac.employeeid
                     )
                 `,
-                columnname: "ep.priority_score",
-                ctename: "employee_priority ep",
-                condition: "priority_score rulevalue",
+                columnname: 'ep.priority_score',
+                ctename: 'employee_priority ep',
+                condition: 'priority_score rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Số ca tối đa 1 tuần",
-                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 tuần",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "12",
-                ruleappliedfor: "Employee",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số ca tối đa 1 tuần',
+                ruledescription:
+                    'Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 tuần',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '12',
+                ruleappliedfor: 'Employee',
+                ruletype: 'WHERE',
+                rulesql: `
                     shift_counts AS (
                         SELECT 
                             ae.employeeid, 
@@ -528,23 +532,22 @@ async function main() {
                         GROUP BY ae.employeeid
                     )  
                 `,
-                columnname: "sc.assigned_shifts",
-                ctename: "shift_counts sc",
+                columnname: 'sc.assigned_shifts',
+                ctename: 'shift_counts sc',
                 canbecollided: true,
-                condition: "assigned_shifts < rulevalue",
+                condition: 'assigned_shifts < rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Sắp xếp theo số ca làm trong tuần",
-                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có số ca làm trong tuần ít hơn",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "ASC",
-                ruleappliedfor: "Employee",
-                ruletype: "ORDER",
-                rulesql:
-                    `
+                rulename: 'Sắp xếp theo số ca làm trong tuần',
+                ruledescription: 'Khi có đụng độ, ưu tiên phân công nhân viên có số ca làm trong tuần ít hơn',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: 'ASC',
+                ruleappliedfor: 'Employee',
+                ruletype: 'ORDER',
+                rulesql: `
                     shift_counts AS (
                         SELECT 
                             ae.employeeid, 
@@ -557,23 +560,22 @@ async function main() {
                         GROUP BY ae.employeeid
                     )
                 `,
-                columnname: "sc.assigned_shifts",
-                ctename: "shift_counts sc",
+                columnname: 'sc.assigned_shifts',
+                ctename: 'shift_counts sc',
                 canbecollided: true,
-                condition: "assigned_shifts rulevalue",
+                condition: 'assigned_shifts rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Số nhân viên tối đa trong 1 ca",
-                ruledescription: "Số nhân viên tối đa có thể được phân công trong 1 ca làm việc bán thời gian",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "2",
-                ruleappliedfor: "Shift",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số nhân viên tối đa trong 1 ca',
+                ruledescription: 'Số nhân viên tối đa có thể được phân công trong 1 ca làm việc bán thời gian',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '2',
+                ruleappliedfor: 'Shift',
+                ruletype: 'WHERE',
+                rulesql: `
                     employee_counts AS (
                         SELECT
                             nws.shiftid,
@@ -585,9 +587,9 @@ async function main() {
                         GROUP BY nws.shiftid, nws.shiftdate
                     )
                 `,
-                columnname: "ec.assigned_employees",
-                ctename: "employee_counts ec",
-                condition: "assigned_employees < rulevalue",
+                columnname: 'ec.assigned_employees',
+                ctename: 'employee_counts ec',
+                condition: 'assigned_employees < rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -623,19 +625,19 @@ async function main() {
                 zonename: 'Zone A',
                 zonetype: 'Normal',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
-                zonedescription: 'Thông thoáng, không gian rộng, giá hợp lý'
+                zonedescription: 'Thông thoáng, không gian rộng, giá hợp lý',
             },
             {
                 zonename: 'Zone B',
                 zonetype: 'AirConditioner',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
-                zonedescription: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP'
+                zonedescription: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP',
             },
             {
                 zonename: 'Zone C',
                 zonetype: 'Private',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
-                zonedescription: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu'
+                zonedescription: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu',
             },
         ],
     });
@@ -851,7 +853,7 @@ async function main() {
             {
                 producttypename: 'Snack',
                 productisfood: true,
-            }
+            },
         ],
     });
 
@@ -860,7 +862,8 @@ async function main() {
         // 6: Food, 7: Beverage, 8: Snack
         {
             productname: 'Quấn cán cầu lông Yonex AC147EX',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
@@ -872,7 +875,8 @@ async function main() {
         },
         {
             productname: 'Túi đựng giày cầu lông',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
@@ -884,7 +888,8 @@ async function main() {
         },
         {
             productname: 'Vớ cầu lông Yonex',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
             batch: 'B001',
             expirydate: null,
             status: 'Available',
@@ -896,7 +901,8 @@ async function main() {
         },
         {
             productname: 'Ống cầu lông Lining AYQN024',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
             batch: 'B002',
             expirydate: null,
             status: 'Available',
@@ -920,7 +926,8 @@ async function main() {
         },
         {
             productname: 'Cước Yonex pro',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
             batch: 'B003',
             expirydate: null,
             status: 'Available',
@@ -944,7 +951,8 @@ async function main() {
         },
         {
             productname: 'Thanh protein block chocolate',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
@@ -968,7 +976,8 @@ async function main() {
         },
         {
             productname: 'Nước uống revive',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
@@ -980,7 +989,8 @@ async function main() {
         },
         {
             productname: 'Nước uống pocari',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
             batch: 'D001',
             expirydate: new Date('2025-12-31'),
             status: 'Available',
@@ -1004,7 +1014,8 @@ async function main() {
         },
         {
             productname: 'Bánh snack bí đỏ',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
+            productimgurl:
+                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
             batch: 'D002',
             expirydate: new Date('2024-06-30'),
             status: 'Available',
@@ -1073,14 +1084,16 @@ async function main() {
         ],
     });
 
-    const parttimeEmployeeIds = (await prisma.employees.findMany({
-        select: {
-            employeeid: true,
-        },
-        where: {
-            employee_type: 'Part-time',
-        },
-    })).map((employee) => employee.employeeid);
+    const parttimeEmployeeIds = (
+        await prisma.employees.findMany({
+            select: {
+                employeeid: true,
+            },
+            where: {
+                employee_type: 'Part-time',
+            },
+        })
+    ).map((employee) => employee.employeeid);
 
     const shiftdates = await prisma.shift_date.findMany({
         select: {

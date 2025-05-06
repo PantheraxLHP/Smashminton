@@ -37,7 +37,7 @@ const BookingStepper: React.FC<BookingStepperProps> = ({ currentStep, disableNav
             {/* Back Button */}
             <Button
                 variant={'secondary'}
-                size={'sm'}
+                size={'xs'}
                 onClick={handleBackButtonClick}
                 className={`${currentStep === 1 ? 'pointer-events-none opacity-0' : ''}`}
             >
@@ -81,7 +81,7 @@ const BookingStepper: React.FC<BookingStepperProps> = ({ currentStep, disableNav
             {/* Next Button */}
             <Button
                 variant={'default'}
-                size={'sm'}
+                size={'xs'}
                 onClick={handleNextButtonClick}
                 className={`${currentStep === steps.length ? 'pointer-events-none opacity-0' : ''}`}
             >
