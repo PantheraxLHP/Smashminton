@@ -244,7 +244,7 @@ const WeekPicker: React.FC<WeekPickerProps> = ({
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <div className="w-[200px] cursor-pointer text-primary hover:bg-primary-500 hover:text-white flex justify-between items-center p-2 border-2 border-primary-500 rounded-lg">
+                <Button variant="outline" className="w-[200px] text-lg">
                     <>
                         {weekNumber && year ? (
                             <div>
@@ -254,8 +254,8 @@ const WeekPicker: React.FC<WeekPickerProps> = ({
                             <div>Chọn tuần</div>
                         )}
                     </>
-                    <Icon icon="mdi:calendar-outline" className=" text-2xl" />
-                </div>
+                    <Icon icon="mdi:calendar-outline" className="size-5" />
+                </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" sideOffset={5}>
                 <WeekPickerCalendar

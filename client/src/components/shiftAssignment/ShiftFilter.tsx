@@ -1,4 +1,6 @@
 import WeekPicker, { WeekPickerProps } from "./WeekPicker";
+import { Button } from "@/components/ui/button"
+import { Icon } from "@iconify/react";
 
 interface ShiftFilterProps extends WeekPickerProps {
 
@@ -13,7 +15,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
     setYear
 }) => {
     return (
-        <div className="p-4 border border-grey-200 rounded-lg flex flex-col gap-2 w-fit">
+        <div className="p-4 border rounded-lg flex flex-col gap-4 w-fit">
             <WeekPicker
                 selectedWeek={selectedWeek}
                 setSelectedWeek={setSelectedWeek}
@@ -22,7 +24,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 year={year}
                 setYear={setYear}
             />
-            <div className="border border-gray-200"></div>
+            <div className="border border-gray-500"></div>
             <div className="flex flex-col justify-left">
                 <div className="flex items-center gap-2 text-sm">
                     <div className="w-3.5 h-3.5 rounded-xs bg-yellow-500"></div>
@@ -41,6 +43,11 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     Ca tối: 18:00 - 22:00
                 </div>
             </div>
+            <Button variant="outline" className="text-md">Phân công tự động</Button>
+            <Button variant="outline" className="text-md">
+                <Icon icon="uil:setting" className="size-4"/>
+                Tùy chỉnh
+            </Button>
         </div>
     );
 };
