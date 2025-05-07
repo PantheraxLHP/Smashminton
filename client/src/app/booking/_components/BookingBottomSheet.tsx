@@ -4,32 +4,26 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../courts/page';
 import { toast } from 'sonner';
+import { useBooking } from '@/context/BookingContext';
 
 export interface BookingBottomSheetProps {
-    totalPrice: number;
-    selectedCourts?: SelectedCourts[];
-    selectedProducts?: SelectedProducts[];
-    onRemoveCourt?: (scCourt: SelectedCourts) => void;
-    onRemoveProduct?: (productid: number) => void;
     onConfirm?: () => void;
-    onCancel?: () => void;
     onResetTimer?(resetTimerFn: () => void): void;
-    TTL?: number;
 }
 
-const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
-    totalPrice,
-    selectedCourts,
-    selectedProducts,
-    onRemoveCourt,
-    onRemoveProduct,
-    onConfirm,
-    onCancel,
-    onResetTimer,
-    TTL,
-}) => {
+const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onResetTimer }) => {
+    const {
+        selectedCourts,
+        selectedProducts,
+        totalPrice,
+        TTL,
+        removeCourtByIndex,
+        removeProductByIndex,
+        clearCourts,
+        clearProducts,
+    } = useBooking();
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
-    const endTimeRef = useRef<number>(Date.now() + (TTL ?? 0) * 1000); // 5 phút => milli giây
+    const endTimeRef = useRef<number>(Date.now() + (TTL ?? 15) * 1000); // 5 phút => milli giây
     const router = useRouter();
 
     useEffect(() => {
@@ -40,7 +34,6 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
             if (remainingTime > 0) {
                 requestAnimationFrame(tick);
             } else {
-                onCancel?.();
                 toast.error('Thời gian giữ sân đã hết!');
             }
         };
@@ -66,6 +59,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // onConfirm function use for booking page, if not set, it will redirect to payment page
     const handleConfirm = () => {
         if (onConfirm) {
             onConfirm();
@@ -74,14 +68,22 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         }
     };
 
+    const handleClearAll = () => {
+        clearCourts();
+        clearProducts();
+    };
+
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
             <div className="flex flex-col items-center gap-2 sm:max-h-20 sm:flex-row">
                 {/* Scrollable Content */}
                 <div className="max-h-[calc(100vh-150px)] flex-1 overflow-y-auto p-0 sm:max-h-20">
                     <div className="flex flex-col gap-1">
+                        <Button className="text-white" variant="link" onClick={handleClearAll}>
+                            Xoá tất cả
+                        </Button>
                         {/* Danh sách sân */}
-                        {selectedCourts?.map((scCourt) => (
+                        {selectedCourts?.map((scCourt: SelectedCourts, index: number) => (
                             <div
                                 key={`
                                     ${scCourt.courtid}-${scCourt.filters.zone}-${scCourt.filters.date}-
@@ -98,7 +100,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 <Icon icon="mdi:timer" className="h-5 w-5" />
                                 <span>{scCourt.filters.duration}h</span>
                                 <Icon
-                                    onClick={() => onRemoveCourt?.(scCourt)}
+                                    onClick={() => removeCourtByIndex(index)}
                                     icon="mdi:close-circle"
                                     className="h-5 w-5 cursor-pointer text-red-500"
                                 />
@@ -107,7 +109,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
                         {/* Danh sách sản phẩm */}
                         <div className="flex flex-wrap gap-4">
-                            {selectedProducts?.map((scProduct) => (
+                            {selectedProducts?.map((scProduct: SelectedProducts, index: number) => (
                                 <div key={scProduct.productid} className="flex items-center gap-2">
                                     <Icon icon="mdi:racket" className="h-5 w-5" />
                                     <span>
@@ -116,7 +118,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                     <Icon
                                         icon="mdi:close-circle"
                                         className="h-5 w-5 cursor-pointer text-red-500"
-                                        onClick={() => onRemoveProduct?.(scProduct.productid)}
+                                        onClick={() => removeProductByIndex(index)}
                                     />
                                 </div>
                             ))}
@@ -140,9 +142,11 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                             <span className="text-white">Tạm tính:</span>
                             <span className="text-lg font-bold">{totalPrice.toLocaleString('vi-VN')} VND</span>
                         </div>
-                        <Button className="bg-primary w-full" onClick={handleConfirm}>
-                            THANH TOÁN
-                        </Button>
+                        <div className="flex w-full gap-2">
+                            <Button className="bg-primary w-full" onClick={handleConfirm}>
+                                THANH TOÁN
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
