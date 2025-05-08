@@ -154,13 +154,6 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
                             <Button variant="link" className="text-xs p-0" onClick={handleCurrentWeekClick}>
                                 Tuần hiện tại
                             </Button>
-                            {
-                                selectedWeek && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {`Tuần ${weekNumber}, ${year} (${selectedWeek?.from?.toLocaleDateString()} - ${selectedWeek?.to?.toLocaleDateString()})`}
-                                    </p>
-                                )
-                            }
                         </div>
                     }
                 />
