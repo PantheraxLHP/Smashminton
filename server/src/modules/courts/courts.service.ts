@@ -178,8 +178,7 @@ export class CourtsService {
             courtid: court.courtid,
             courtname: court.courtname,
             courtimgurl: court.courtimgurl,
-            dayfrom: court.dayfrom,
-            dayto: court.dayto,
+            duration: duration,
             starttime: starttime,
             endtime: endtime,
             price: court.totalPrice.toFixed(0), // Làm tròn giá trị tiền
