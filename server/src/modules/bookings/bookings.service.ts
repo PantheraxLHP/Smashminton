@@ -57,6 +57,7 @@ export class BookingsService {
 				const newCourtBooking: CacheCourtBooking = {
 					zoneid: court_booking.zoneid ?? 0,
 					courtid: court.courtid,
+					courtname: court.courtname ?? '',
 					courtimgurl: court.courtimgurl ?? '',
 					date: court_booking.date,
 					starttime: court.starttime,
@@ -89,6 +90,7 @@ export class BookingsService {
 			const newCourtBooking: CacheCourtBooking = {
 				zoneid: court_booking.zoneid || 0,
 				courtid: court.courtid,
+				courtname: court.courtname ?? '',
 				courtimgurl: court.courtimgurl ?? '',
 				date: court_booking.date,
 				starttime: court.starttime,

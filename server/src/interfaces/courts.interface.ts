@@ -5,6 +5,7 @@ export interface CourtPrices {
   courtimgurl: string | null;
   dayfrom?: string | null;
   dayto?: string | null;
+  date?: string;
   starttime: string;
   endtime: string;
   duration?: number;
