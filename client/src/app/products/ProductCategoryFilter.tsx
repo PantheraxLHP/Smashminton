@@ -14,7 +14,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
     return (
         <>
             {productCategories && productCategories.length > 0 && (
-                <div className="border-grey-200 flex h-full max-w-sm min-w-3xs flex-col gap-5 rounded-lg border-2 p-4">
+                <div className="min-w-3xs max-w-sm p-4 border-2 border-gray-200 rounded-lg flex flex-col gap-5 h-full">
                     <div className="flex flex-col gap-5">
                         <div className="border-b-2 border-gray-800 pb-1">
                             <h2 className="text-lg font-semibold">Loại sản phẩm</h2>
