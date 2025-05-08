@@ -1,5 +1,15 @@
 import WeekPicker, { WeekPickerProps } from "./WeekPicker";
 import { Button } from "@/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog";
+import NewAssignmentRuleForm from "./NewAssignmentRuleForm";
 import { Icon } from "@iconify/react";
 
 interface ShiftFilterProps extends WeekPickerProps {
@@ -43,11 +53,49 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     Ca tối: 18:00 - 22:00
                 </div>
             </div>
-            <Button variant="outline" className="text-md">Phân công tự động</Button>
-            <Button variant="outline" className="text-md">
-                <Icon icon="uil:setting" className="size-4"/>
-                Tùy chỉnh
-            </Button>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="outline" className="text-md">Phân công tự động</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Phân công tự động</DialogTitle>
+                        <DialogDescription>
+                            Bạn muốn thực hiện phân công tự động cho nhân viên trong tuần tiếp theo ?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogTrigger asChild>
+                            <Button variant="secondary">Thoát</Button>
+                        </DialogTrigger>
+                        <Button>Thực hiện phân công</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="outline" className="text-md">
+                        <Icon icon="uil:setting" className="size-4"/>
+                        Tùy chỉnh
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[80vw] overflow-y-auto max-h-[80vh]">
+                    <DialogHeader>
+                        <DialogTitle>Tùy chỉnh quy tắc phân công tự động</DialogTitle>
+                        <DialogDescription>
+                            Bạn có thể tùy chỉnh quy tắc phân công ca làm việc tự động cho nhân viên bán thời gian tại đây
+                        </DialogDescription>
+                    </DialogHeader>
+                    <NewAssignmentRuleForm />
+                    <DialogFooter>
+                        <DialogTrigger asChild>
+                            <Button variant="secondary">Thoát</Button>
+                        </DialogTrigger>
+                        <Button>Thực hiện phân công</Button>
+                        <Button>Lưu tùy chỉnh</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
