@@ -1,4 +1,5 @@
 export interface CourtPrices {
+  zoneid: number;
   courtid: number;
   courtname: string | null;
   courtimgurl: string | null;
