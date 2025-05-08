@@ -22,42 +22,48 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onRe
         clearCourts,
         clearProducts,
     } = useBooking();
-    const [timeLeft, setTimeLeft] = useState(300); // 5 phút => 300 giây
-    const endTimeRef = useRef<number>(Date.now() + (TTL ?? 15) * 1000); // 5 phút => milli giây
+    const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
+    const prevCourtsLengthRef = useRef<number>(0);
 
     useEffect(() => {
-        const tick = () => {
-            const remainingTime = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
-            setTimeLeft(remainingTime);
-
-            if (remainingTime > 0) {
-                requestAnimationFrame(tick);
-            } else {
-                toast.error('Thời gian giữ sân đã hết!');
-            }
-        };
-
-        const animationFrame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(animationFrame);
-    }, []);
-
-    const resetTimer = useCallback(() => {
-        endTimeRef.current = Date.now() + 300 * 1000;
-        setTimeLeft(300);
-    }, []);
-
-    useEffect(() => {
-        if (onResetTimer) {
-            onResetTimer(resetTimer);
+        if (selectedCourts && selectedCourts.length > 0 && !prevCourtsLengthRef.current) {
+            setTimeLeft(TTL);
         }
-    }, [onResetTimer, resetTimer]);
+        prevCourtsLengthRef.current = selectedCourts ? selectedCourts.length : 0;
+    }, [TTL, selectedCourts]);
 
-    const formatTime = (seconds: number) => {
+    // Timer countdown logic
+    useEffect(() => {
+        if (timeLeft <= 0 || !selectedCourts || selectedCourts.length === 0) {
+            return;
+        }
+        const timerId = setInterval(() => {
+            setTimeLeft((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timerId);
+                    toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
+                    clearCourts();
+                    clearProducts();
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
+
+        // Pass reset function to parent if onResetTimer is provided
+        if (onResetTimer) {
+            onResetTimer(() => setTimeLeft(TTL));
+        }
+
+        return () => clearInterval(timerId);
+    }, [TTL, selectedCourts, timeLeft, onResetTimer, clearCourts, clearProducts]);
+
+    const formatTime = useCallback((seconds: number) => {
         const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }, []);
 
     // onConfirm function use for booking page, if not set, it will redirect to payment page
     const handleConfirm = () => {

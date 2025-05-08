@@ -1,9 +1,13 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { SelectedProducts, SelectedCourts } from '@/app/booking/courts/page';
+import { getBookingRedis, postBookingCourt } from '@/services/booking.service';
+import { toast } from 'sonner';
+import { useAuth } from './AuthContext';
+import { useRouter } from 'next/navigation';
 
-interface BookingContextProps {
+export interface BookingContextProps {
     selectedProducts: SelectedProducts[];
     setSelectedProducts: (products: SelectedProducts[]) => void;
     selectedCourts: SelectedCourts[];
@@ -11,12 +15,10 @@ interface BookingContextProps {
     totalPrice: number;
     TTL: number;
     addCourt: (court: SelectedCourts) => void;
-    removeCourt: (court: SelectedCourts) => void;
     removeCourtByIndex: (index: number) => void;
     addProduct: (product: SelectedProducts) => void;
-    removeProduct: (product: SelectedProducts) => void;
     removeProductByIndex: (index: number) => void;
-    fetchCart: () => Promise<void>;
+    fetchBooking: () => Promise<void>;
     clearCourts: () => void;
     clearProducts: () => void;
 }
@@ -30,10 +32,8 @@ const BookingContext = createContext<BookingContextProps>({
     TTL: 0,
     addProduct: () => {},
     addCourt: () => {},
-    removeCourt: () => {},
     removeCourtByIndex: () => {},
-    fetchCart: async () => {},
-    removeProduct: () => {},
+    fetchBooking: async () => {},
     removeProductByIndex: () => {},
     clearCourts: () => {},
     clearProducts: () => {},
@@ -42,54 +42,64 @@ const BookingContext = createContext<BookingContextProps>({
 export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
     const [selectedProducts, setSelectedProducts] = useState<SelectedProducts[]>([]);
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]);
-    const [TTL] = useState(300);
+    const [TTL, setTTL] = useState(300);
     const [totalPrice] = useState(0);
+    const { user } = useAuth();
+    const router = useRouter();
 
-    // Add the addCourt function
     const addCourt = (court: SelectedCourts) => {
-        setSelectedCourts((prev) => [...prev, court]);
+        setSelectedCourts((prev) => (prev ? [...prev, court] : [court]));
+        postBookingCourt({
+            username: user?.username,
+            court_booking: selectedCourts,
+        });
+        toast.success('Thêm sân thành công');
     };
 
-    // Add the removeCourt function
-    const removeCourt = (court: SelectedCourts) => {
-        setSelectedCourts((prev) => prev.filter((c) => c !== court));
-    };
-
-    // Add the removeCourtByIndex function
     const removeCourtByIndex = (index: number) => {
         setSelectedCourts((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Add the addProduct function
     const addProduct = (product: SelectedProducts) => {
-        setSelectedProducts((prev) => [...prev, product]);
+        setSelectedProducts((prev) => (prev ? [...prev, product] : [product]));
     };
 
-    // Add the removeProduct function
-    const removeProduct = (product: SelectedProducts) => {
-        setSelectedProducts((prev) => prev.filter((p) => p !== product));
-    };
-
-    // Add the removeProductByIndex function
     const removeProductByIndex = (index: number) => {
         setSelectedProducts((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Add the clearCourts function
     const clearCourts = () => {
         setSelectedCourts([]);
     };
 
-    // Add the clearProducts function
     const clearProducts = () => {
         setSelectedProducts([]);
     };
 
-    // Add the fetchCart function (dummy implementation)
-    const fetchCart = async () => {
-        // Implement fetch logic here if needed
-    };
+    const fetchBooking = useCallback(async () => {
+        try {
+            if (user) {
+                const result = await getBookingRedis(user.username);
+                if (!result.ok) {
+                    toast.error(result.message || 'Không thể tải danh sách sân');
+                } else {
+                    setSelectedCourts(result.data.court_booking);
+                    setSelectedProducts(result.data.products);
+                    setTTL(result.data.TTL);
+                    toast.success('Tải dữ liệu thành công');
+                }
+            } else {
+                toast.error('Vui lòng đăng nhập');
+                router.push('/signin');
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+        }
+    }, [user, router]);
 
+    useEffect(() => {
+        fetchBooking();
+    }, [user, selectedCourts, selectedProducts, fetchBooking]);
     return (
         <BookingContext.Provider
             value={{
@@ -100,12 +110,10 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 totalPrice,
                 TTL,
                 addCourt,
-                removeCourt,
                 removeCourtByIndex,
                 addProduct,
-                removeProduct,
                 removeProductByIndex,
-                fetchCart,
+                fetchBooking,
                 clearCourts,
                 clearProducts,
             }}

@@ -1,8 +1,8 @@
-import { SigninSchema } from '@/app/(auth)/auth.schema';
 import { ApiResponse } from '@/lib/apiResponse';
+import { NextRequest } from 'next/server';
 
-export async function POST(req: Request) {
-    const signinData: SigninSchema = await req.json();
+export async function POST(request: NextRequest) {
+    const signinData = await request.json();
 
     const nestRes = await fetch(`${process.env.SERVER}/api/v1/auth/signin`, {
         method: 'POST',

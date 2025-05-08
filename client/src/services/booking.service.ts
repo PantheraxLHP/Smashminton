@@ -1,8 +1,8 @@
-import { BookingBottomSheetProps } from '@/app/booking/_components/BookingBottomSheet';
-import { Filters } from '@/app/booking/courts/page';
+import { Filters, SelectedCourts } from '@/app/booking/courts/page';
+import { BookingContextProps } from '@/context/BookingContext';
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export type BookingData = Pick<BookingBottomSheetProps, 'selectedCourts' | 'selectedProducts' | 'totalPrice' | 'TTL'>;
+export type BookingData = Pick<BookingContextProps, 'selectedCourts' | 'selectedProducts' | 'totalPrice' | 'TTL'>;
 
 export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
     try {
@@ -29,9 +29,13 @@ export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
     }
 };
 
-export const getBookingRedis = async () => {
+export const getBookingRedis = async (username: string) => {
     try {
-        const response = await fetch('/api/booking/get-booking', {
+        const queryParams = new URLSearchParams({
+            username: username || '',
+        });
+
+        const response = await fetch(`/api/booking/get-booking?${queryParams.toString()}`, {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
         });
@@ -47,12 +51,21 @@ export const getBookingRedis = async () => {
     }
 };
 
-export const postBookingRedis = async (bookingData: BookingData) => {
+export const postBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts[] }) => {
     try {
+        const cleanedBookingData = {
+            ...bookingData,
+            court_booking: bookingData.court_booking.map((court) => {
+                const { filters, ...courtCopy } = court;
+                return courtCopy;
+            }),
+        };
+        console.log('data dem di post booking', cleanedBookingData);
+
         const response = await fetch('/api/booking/post-booking', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingData),
+            body: JSON.stringify(cleanedBookingData),
             credentials: 'include',
         });
         const result = await response.json();

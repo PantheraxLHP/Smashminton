@@ -100,7 +100,7 @@ export default function BookingCourtsPage() {
         router.push('/booking/payment');
     };
 
-    const hasSelectedItems = selectedCourts.length > 0 || selectedProducts.length > 0;
+    const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
     return (
         <div className="p-4">

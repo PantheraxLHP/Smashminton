@@ -86,15 +86,16 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
             {/* Danh sách sân */}
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts?.map((court) => {
-                    const scCourtIndex = selectedCourts?.findIndex(
-                        (selected) =>
-                            selected.courtid === court.courtid &&
-                            selected.filters.zone === filters.zone &&
-                            selected.filters.date === filters.date &&
-                            selected.filters.duration === filters.duration &&
-                            selected.filters.startTime === filters.startTime &&
-                            selected.filters.fixedCourt === filters.fixedCourt,
-                    ) ?? -1;
+                    const scCourtIndex =
+                        selectedCourts?.findIndex(
+                            (selected) =>
+                                selected.courtid === court.courtid &&
+                                selected.filters.zone === filters.zone &&
+                                selected.filters.date === filters.date &&
+                                selected.filters.duration === filters.duration &&
+                                selected.filters.startTime === filters.startTime &&
+                                selected.filters.fixedCourt === filters.fixedCourt,
+                        ) ?? -1;
                     const isSelected = scCourtIndex !== -1;
 
                     return (
