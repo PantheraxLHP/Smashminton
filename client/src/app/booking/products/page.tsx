@@ -6,7 +6,9 @@ import BookingStepper from '../_components/BookingStepper';
 const BookingProductPage = () => {
     return (
         <div>
-            <BookingStepper currentStep={2} />
+            <div className="p-4">
+                <BookingStepper currentStep={2} />
+            </div>
 
             <ProductPage />
         </div>

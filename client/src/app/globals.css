@@ -60,7 +60,7 @@
     --popover-foreground: var(--black);
     --primary: var(--color-primary-500);
     --primary-foreground: var(--white);
-    --secondary: var(--color-grey-300);
+    --secondary: var(--color-gray-300);
     --secondary-foreground: var(--black);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);

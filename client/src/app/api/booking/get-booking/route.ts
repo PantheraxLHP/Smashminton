@@ -1,10 +1,14 @@
 import { ApiResponse } from '@/lib/apiResponse';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const response = await fetch(`${process.env.SERVER}/api/v1/bookings/cache-booking`, {
+        const queryParams = new URLSearchParams(request.url.split('?')[1]);
+        const username = queryParams.get('username');
+
+        const response = await fetch(`${process.env.SERVER}/api/v1/bookings/cache-booking?username=${username}`, {
             headers: {
                 'Content-Type': 'application/json',
+                credentials: 'include',
             },
         });
 
