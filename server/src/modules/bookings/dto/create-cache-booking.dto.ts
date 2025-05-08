@@ -79,5 +79,5 @@ export class deleteCourtBookingDto {
     @IsNotEmpty()
     @ValidateNested()
     @Type(() => courtBookingDto)
-    courtBooking: courtBookingDto;
+    court_booking: courtBookingDto;
 }
