@@ -22,9 +22,10 @@ import { CacheController } from './cache.controller';
                 const keyv = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: '' });
                 const studentCard = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'studentCard' });
                 const booking = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'booking' });
+                const order = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'order' });
 
                 // Truyền Redis client và Keyv vào CacheService
-                return new CacheService(keyv, studentCard, booking, redisClient);
+                return new CacheService(keyv, studentCard, booking, redisClient, order);
             },
         },
     ],

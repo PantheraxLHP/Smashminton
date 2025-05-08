@@ -21,6 +21,11 @@ export class courtBookingDto {
     @IsNotEmpty()
     courtid: number;
 
+    @ApiProperty({ example: 'Court A8' }) // example court name
+    @IsString()
+    @IsNotEmpty()
+    courtname: string; // e.g. 'Sân 1'
+
     @ApiProperty({ example: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg' }) // example image URL
     @IsString()
     @IsOptional()

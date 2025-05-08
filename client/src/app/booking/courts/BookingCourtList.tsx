@@ -5,25 +5,29 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { CourtsWithPrice, Filters, SelectedCourts } from './page';
 import { formatPrice } from '@/lib/utils';
+import { useBooking } from '@/context/BookingContext';
 
 interface BookingCourtListProps {
     courts: CourtsWithPrice[];
-    selectedCourts: SelectedCourts[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
-    onAddCourt: (scCourt: SelectedCourts) => void;
-    onRemoveCourt: (scCourt: SelectedCourts) => void;
 }
 
 const BookingCourtList: React.FC<BookingCourtListProps> = ({
     courts = [], // Provide default empty array
-    selectedCourts = [],
     filters,
     onToggleChange,
-    onAddCourt,
-    onRemoveCourt,
 }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false); // Trạng thái mở/đóng tooltip
+    const { selectedCourts, addCourt, removeCourtByIndex } = useBooking();
+
+    const handleAddCourt = (scCourt: SelectedCourts) => {
+        addCourt(scCourt);
+    };
+
+    const handleRemoveCourtByIndex = (index: number) => {
+        removeCourtByIndex(index);
+    };
 
     return (
         <div className="px-4">
@@ -82,15 +86,17 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
             {/* Danh sách sân */}
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts?.map((court) => {
-                    const scCourt = selectedCourts?.find(
-                        (selected) =>
-                            selected.courtid === court.courtid &&
-                            selected.filters.zone === filters.zone &&
-                            selected.filters.date === filters.date &&
-                            selected.filters.duration === filters.duration &&
-                            selected.filters.startTime === filters.startTime &&
-                            selected.filters.fixedCourt === filters.fixedCourt,
-                    );
+                    const scCourtIndex =
+                        selectedCourts?.findIndex(
+                            (selected) =>
+                                selected.courtid === court.courtid &&
+                                selected.filters.zone === filters.zone &&
+                                selected.filters.date === filters.date &&
+                                selected.filters.duration === filters.duration &&
+                                selected.filters.startTime === filters.startTime &&
+                                selected.filters.fixedCourt === filters.fixedCourt,
+                        ) ?? -1;
+                    const isSelected = scCourtIndex !== -1;
 
                     return (
                         <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
@@ -108,20 +114,20 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                 </p>
                                 <Button
                                     className="w-full"
-                                    variant={scCourt ? 'destructive' : 'default'}
+                                    variant={isSelected ? 'destructive' : 'default'}
                                     onClick={() => {
-                                        if (scCourt) {
-                                            onRemoveCourt(scCourt);
+                                        if (isSelected) {
+                                            handleRemoveCourtByIndex(scCourtIndex);
                                         } else {
                                             const selectedCourt: SelectedCourts = {
                                                 ...court,
                                                 filters,
                                             };
-                                            onAddCourt(selectedCourt);
+                                            handleAddCourt(selectedCourt);
                                         }
                                     }}
                                 >
-                                    {scCourt ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
+                                    {isSelected ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
                                 </Button>
                             </div>
                         </div>

@@ -19,7 +19,6 @@ export class CourtsService {
         return `This action returns all courts`;
     }
 
-    // Tạm thời không sử dụng hàm này
     async getCourtsIDByDayFrom_To(zoneid: number, date: string) {
         const parsedZoneId = Number(zoneid);
         const dayOfWeek = getEnglishDayName(date);
@@ -91,6 +90,7 @@ export class CourtsService {
                 zoneid: parsedZoneId,
             },
             select: {
+                zoneid: true,
                 courtid: true,
                 courtname: true,
                 courtimgurl: true,
@@ -117,6 +117,7 @@ export class CourtsService {
         // Gộp tất cả zone_prices vào một mảng duy nhất
         const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
             court.zones?.zone_prices.map((zonePrice) => ({
+                zoneid: court.zoneid,
                 courtid: court.courtid,
                 courtname: court.courtname,
                 courtimgurl: court.courtimgurl,
@@ -130,6 +131,7 @@ export class CourtsService {
 
         // Sử dụng Map để nhóm kết quả theo courtid
         const courtResults = new Map<number, {
+            zoneid: number;
             courtid: number;
             courtname: string;
             courtimgurl: string;
@@ -159,6 +161,7 @@ export class CourtsService {
                 } else {
                     // Nếu chưa tồn tại, khởi tạo dữ liệu cho courtid
                     courtResults.set(zone.courtid, {
+                        zoneid: zone.zoneid ?? 0,
                         courtid: zone.courtid,
                         courtname: zone.courtname ?? '',
                         courtimgurl: zone.courtimgurl ?? '',
@@ -171,11 +174,12 @@ export class CourtsService {
         }
         // Chuyển Map thành mảng kết quả
         const availableCourts = Array.from(courtResults.values()).map((court) => ({
+            zoneid: court.zoneid,
             courtid: court.courtid,
             courtname: court.courtname,
             courtimgurl: court.courtimgurl,
-            dayfrom: court.dayfrom,
-            dayto: court.dayto,
+            date: date,
+            duration: duration,
             starttime: starttime,
             endtime: endtime,
             price: court.totalPrice.toFixed(0), // Làm tròn giá trị tiền
@@ -212,6 +216,7 @@ export class CourtsService {
                 courtid: courtid,
             },
             select: {
+                zoneid: true,
                 courtid: true,
                 courtname: true,
                 courtimgurl: true,
@@ -236,6 +241,7 @@ export class CourtsService {
         // Gộp tất cả zone_prices vào một mảng duy nhất
         const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
             court.zones?.zone_prices.map((zonePrice) => ({
+                zoneid: court.zoneid,
                 courtid: court.courtid,
                 courtname: court.courtname,
                 courtimgurl: court.courtimgurl,
@@ -260,9 +266,11 @@ export class CourtsService {
                 const priceForDuration = durationInHours * parseFloat((zone.price ?? '0').toString());
     
                 separatedPrices.push({
+                    zoneid: zone.zoneid ?? 0,
                     courtid: zone.courtid,
                     courtname: zone.courtname ?? '',
                     courtimgurl: zone.courtimgurl ?? '',
+                    date: date,
                     starttime: actualStart.format('HH:mm'),
                     endtime: actualEnd.format('HH:mm'),
                     duration: durationInHours,
