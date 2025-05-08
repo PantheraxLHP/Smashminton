@@ -2,7 +2,7 @@
 
 import { useBooking } from '@/context/BookingContext';
 import { getCourtsAndDisableStartTimes } from '@/services/booking.service';
-import { Courts, Products } from '@/types/types';
+import { Products } from '@/types/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +11,17 @@ import BookingStepper from '../_components/BookingStepper';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
 
-export interface CourtsWithPrice extends Courts {
+export interface CourtsWithPrice {
+    zoneid: number;
+    courtid: number;
+    courtname: string | null;
+    courtimgurl: string | null;
+    dayfrom?: string | null;
+    dayto?: string | null;
+    date?: string;
+    starttime: string;
+    endtime: string;
+    duration?: number;
     price: string;
 }
 

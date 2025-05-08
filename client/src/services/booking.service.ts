@@ -51,21 +51,52 @@ export const getBookingRedis = async (username: string) => {
     }
 };
 
-export const postBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts[] }) => {
+export const postBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts }) => {
     try {
-        const cleanedBookingData = {
+        const modifiedBookingData = {
             ...bookingData,
-            court_booking: bookingData.court_booking.map((court) => {
-                const { filters, ...courtCopy } = court;
-                return courtCopy;
-            }),
+            court_booking: {
+                ...bookingData.court_booking,
+                filters: undefined,
+                price: Number(bookingData.court_booking.price) || 0,
+                duration: Number(bookingData.court_booking.duration) || 0,
+            },
         };
-        console.log('data dem di post booking', cleanedBookingData);
 
         const response = await fetch('/api/booking/post-booking', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cleanedBookingData),
+            body: JSON.stringify(modifiedBookingData),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện đặt sân');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện đặt sân');
+    }
+};
+
+export const deleteBookingCourt = async (bookingData: { username?: string; courtBooking: SelectedCourts }) => {
+    try {
+        const modifiedBookingData = {
+            ...bookingData,
+            courtBooking: {
+                ...bookingData.courtBooking,
+                filters: undefined,
+                price: Number(bookingData.courtBooking.price) || 0,
+                duration: Number(bookingData.courtBooking.duration) || 0,
+            },
+        };
+
+        const response = await fetch('/api/booking/delete-booking', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(modifiedBookingData),
             credentials: 'include',
         });
         const result = await response.json();

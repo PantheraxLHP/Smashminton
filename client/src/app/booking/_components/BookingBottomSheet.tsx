@@ -92,19 +92,23 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onRe
                         {selectedCourts?.map((scCourt: SelectedCourts, index: number) => (
                             <div
                                 key={`
-                                    ${scCourt.courtid}-${scCourt.filters.zone}-${scCourt.filters.date}-
-                                    ${scCourt.filters.startTime}-${scCourt.filters.duration}-
-                                    ${scCourt.filters.fixedCourt}
+                                    ${scCourt.courtid}-${scCourt.zoneid}-${scCourt.date}-
+                                    ${scCourt.starttime}-${scCourt.duration}
                                 `}
                                 className="flex items-center gap-2"
                             >
+                                <span className="font-bold">
+                                    {'Zone ' + String.fromCharCode(64 + (scCourt.zoneid || 1))}
+                                </span>
+
+                                <Icon icon="mdi:badminton" className="h-5 w-5" />
                                 <span className="font-bold">{scCourt.courtname}</span>
                                 <Icon icon="mdi:calendar" className="h-5 w-5" />
-                                <span>{scCourt.filters.date}</span>
+                                <span>{scCourt.date || ''}</span>
                                 <Icon icon="mdi:clock-outline" className="h-5 w-5" />
-                                <span>{scCourt.filters.startTime}</span>
+                                <span>{scCourt.starttime || ''}</span>
                                 <Icon icon="mdi:timer" className="h-5 w-5" />
-                                <span>{scCourt.filters.duration}h</span>
+                                <span>{scCourt.duration || ''}h</span>
                                 <Icon
                                     onClick={() => removeCourtByIndex(index)}
                                     icon="mdi:close-circle"

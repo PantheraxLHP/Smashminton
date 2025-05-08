@@ -39,6 +39,7 @@ export interface Employees {
     fingerprintid?: number;
     last_week_shift_type?: string;
     employee_type?: string;
+    role?: string;
     bank_detail?: BankDetail[];
     bookings?: Bookings[];
     accounts?: Accounts;
@@ -49,7 +50,6 @@ export interface Employees {
     shift_assignment?: ShiftAssignment[];
     shift_enrollment?: ShiftEnrollment[];
     timesheet?: Timesheet[];
-    autoassignment_rules?: AutoassignmentRules[];
 }
 
 export interface AutoassignmentRules {
@@ -164,8 +164,6 @@ export interface PenaltyRules {
     incrementalpenalty?: number;
     maxiumpenalty?: number;
     disciplineaction?: string;
-    createdat?: Date;
-    updatedat?: Date;
     penalty_records?: PenaltyRecords[];
 }
 
@@ -175,8 +173,7 @@ export interface ProductDescriptions {
     size?: string;
     gripsize?: string;
     shaftstiffness?: string;
-    productid?: number;
-    products?: Products;
+    products?: Products[];
 }
 
 export interface Products {
@@ -251,8 +248,6 @@ export interface RewardRules {
     rewarddescription?: string;
     rewardtype?: string;
     rewardvalue?: number;
-    createdat?: Date;
-    updatedat?: Date;
     reward_records?: RewardRecords[];
 }
 
@@ -338,6 +333,7 @@ export interface Zones {
     zonename?: string;
     zonetype?: string;
     zoneimgurl?: string;
+    zonedescription?: string;
     courts?: Courts[];
     zone_prices?: ZonePrices[];
 }

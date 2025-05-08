@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { SelectedProducts, SelectedCourts } from '@/app/booking/courts/page';
-import { getBookingRedis, postBookingCourt } from '@/services/booking.service';
+import { getBookingRedis, postBookingCourt, deleteBookingCourt } from '@/services/booking.service';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/navigation';
@@ -51,13 +51,18 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         setSelectedCourts((prev) => (prev ? [...prev, court] : [court]));
         postBookingCourt({
             username: user?.username,
-            court_booking: selectedCourts,
+            court_booking: court,
         });
         toast.success('Thêm sân thành công');
     };
 
     const removeCourtByIndex = (index: number) => {
         setSelectedCourts((prev) => prev.filter((_, i) => i !== index));
+        deleteBookingCourt({
+            username: user?.username,
+            courtBooking: selectedCourts[index],
+        });
+        toast.success('Xóa sân thành công');
     };
 
     const addProduct = (product: SelectedProducts) => {
@@ -76,30 +81,26 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         setSelectedProducts([]);
     };
 
-    const fetchBooking = useCallback(async () => {
-        try {
-            if (user) {
-                const result = await getBookingRedis(user.username);
-                if (!result.ok) {
-                    toast.error(result.message || 'Không thể tải danh sách sân');
-                } else {
-                    setSelectedCourts(result.data.court_booking);
-                    setSelectedProducts(result.data.products);
-                    setTTL(result.data.TTL);
-                    toast.success('Tải dữ liệu thành công');
-                }
+    const fetchBooking = async () => {
+        if (user) {
+            const result = await getBookingRedis(user.username);
+            console.log('result', result.data.court_booking);
+            if (!result.ok) {
+                toast.error(result.message || 'Không thể tải danh sách sân');
             } else {
-                toast.error('Vui lòng đăng nhập');
-                router.push('/signin');
+                setSelectedCourts(result.data.court_booking);
+                setSelectedProducts(result.data.products);
+                setTTL(result.data.TTL);
             }
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+        } else {
+            toast.warning('Vui lòng đăng nhập');
+            router.push('/signin');
         }
-    }, [user, router]);
+    };
 
     useEffect(() => {
         fetchBooking();
-    }, [user, selectedCourts, selectedProducts, fetchBooking]);
+    }, []);
     return (
         <BookingContext.Provider
             value={{
