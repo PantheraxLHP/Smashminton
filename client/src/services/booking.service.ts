@@ -81,15 +81,15 @@ export const postBookingCourt = async (bookingData: { username?: string; court_b
     }
 };
 
-export const deleteBookingCourt = async (bookingData: { username?: string; courtBooking: SelectedCourts }) => {
+export const deleteBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts }) => {
     try {
         const modifiedBookingData = {
             ...bookingData,
             courtBooking: {
-                ...bookingData.courtBooking,
+                ...bookingData.court_booking,
                 filters: undefined,
-                price: Number(bookingData.courtBooking.price) || 0,
-                duration: Number(bookingData.courtBooking.duration) || 0,
+                price: Number(bookingData.court_booking.price) || 0,
+                duration: Number(bookingData.court_booking.duration) || 0,
             },
         };
 

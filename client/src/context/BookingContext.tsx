@@ -60,7 +60,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         setSelectedCourts((prev) => prev.filter((_, i) => i !== index));
         deleteBookingCourt({
             username: user?.username,
-            courtBooking: selectedCourts[index],
+            court_booking: selectedCourts[index],
         });
         toast.success('Xóa sân thành công');
     };
