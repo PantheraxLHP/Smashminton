@@ -134,7 +134,7 @@ export class BookingsService {
 	}
 
 	async removeCourtBookingFromCache(DeleteCourtBookingDto: deleteCourtBookingDto): Promise<CacheBooking> {
-		const { username, courtBooking } = DeleteCourtBookingDto;
+		const { username, court_booking } = DeleteCourtBookingDto;
 		if (!username) {
 			throw new BadRequestException('Username is required to remove booking from cache');
 		}
@@ -145,8 +145,8 @@ export class BookingsService {
 			throw new BadRequestException('No booking found in cache for this user');
 		}
 
-		const { courtid, date, starttime, duration } = courtBooking;
-		console.log('courtBooking', courtBooking);
+		const { courtid, date, starttime, duration } = court_booking;
+		console.log('court_booking', court_booking);
 
 		const courtBookingToRemove = bookingUserCache.court_booking.find((court) =>
 			court.courtid === courtid &&
