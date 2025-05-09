@@ -4,7 +4,6 @@ import { NextRequest } from 'next/server';
 export async function DELETE(request: NextRequest) {
     try {
         const body = await request.json();
-        console.log('body', JSON.stringify(body));
         const response = await fetch(`${process.env.SERVER}/api/v1/bookings/cache-booking`, {
             headers: {
                 'Content-Type': 'application/json',
