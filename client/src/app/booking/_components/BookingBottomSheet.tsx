@@ -9,19 +9,21 @@ import { useBooking } from '@/context/BookingContext';
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
     onResetTimer?(resetTimerFn: () => void): void;
+    selectedCourts: SelectedCourts[];
+    selectedProducts: SelectedProducts[];
+    totalPrice: number;
+    TTL: number;
 }
 
-const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onResetTimer }) => {
-    const {
-        selectedCourts,
-        selectedProducts,
-        totalPrice,
-        TTL,
-        removeCourtByIndex,
-        removeProductByIndex,
-        clearCourts,
-        clearProducts,
-    } = useBooking();
+const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
+    onConfirm,
+    onResetTimer,
+    selectedCourts,
+    selectedProducts,
+    totalPrice,
+    TTL,
+}) => {
+    const { removeCourtByIndex, removeProductByIndex } = useBooking();
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
     const prevCourtsLengthRef = useRef<number>(0);
@@ -43,8 +45,6 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onRe
                 if (prevTime <= 1) {
                     clearInterval(timerId);
                     toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
-                    clearCourts();
-                    clearProducts();
                     return 0;
                 }
                 return prevTime - 1;
@@ -57,7 +57,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onRe
         }
 
         return () => clearInterval(timerId);
-    }, [TTL, selectedCourts, timeLeft, onResetTimer, clearCourts, clearProducts]);
+    }, [TTL, selectedCourts, timeLeft, onResetTimer]);
 
     const formatTime = useCallback((seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -74,10 +74,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, onRe
         }
     };
 
-    const handleClearAll = () => {
-        clearCourts();
-        clearProducts();
-    };
+    const handleClearAll = () => {};
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">

@@ -84,7 +84,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const fetchBooking = async () => {
         if (user) {
             const result = await getBookingRedis(user.username);
-            console.log('result', result.data.court_booking);
             if (!result.ok) {
                 toast.error(result.message || 'Không thể tải danh sách sân');
             } else {

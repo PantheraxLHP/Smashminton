@@ -44,7 +44,7 @@ export interface Filters {
 export default function BookingCourtsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { selectedCourts, selectedProducts } = useBooking();
+    const { selectedCourts, selectedProducts, totalPrice, TTL } = useBooking();
 
     // Parse params and convert to correct types
     const zone = searchParams.get('zone') || '';
@@ -112,6 +112,8 @@ export default function BookingCourtsPage() {
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
+    const bookingTotalPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
+
     return (
         <div className="p-4">
             <div className="flex flex-col gap-4">
@@ -129,7 +131,16 @@ export default function BookingCourtsPage() {
                 </div>
             </div>
 
-            {hasSelectedItems && <BookingBottomSheet onConfirm={handleConfirm} onResetTimer={handleResetTimer} />}
+            {hasSelectedItems && (
+                <BookingBottomSheet
+                    onConfirm={handleConfirm}
+                    onResetTimer={handleResetTimer}
+                    selectedCourts={selectedCourts}
+                    selectedProducts={selectedProducts}
+                    totalPrice={bookingTotalPrice}
+                    TTL={TTL}
+                />
+            )}
         </div>
     );
 }
