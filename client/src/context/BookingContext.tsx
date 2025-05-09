@@ -48,21 +48,21 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const router = useRouter();
 
     const addCourt = async (court: SelectedCourts) => {
-        setSelectedCourts((prev) => (prev ? [...prev, court] : [court]));
         await postBookingCourt({
             username: user?.username,
             court_booking: court,
         });
+        fetchBooking();
         toast.success('Thêm sân thành công');
     };
 
     const removeCourtByIndex = async (index: number) => {
-        setSelectedCourts((prev) => prev.filter((_, i) => i !== index));
         const court = selectedCourts[index];
         await deleteBookingCourt({
             username: user?.username,
             court_booking: court,
         });
+        fetchBooking();
         toast.success('Xóa sân thành công');
     };
 
@@ -99,6 +99,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     useEffect(() => {
         fetchBooking();
     }, []);
+
     return (
         <BookingContext.Provider
             value={{
