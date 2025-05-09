@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@/components/ui/dialog";
-import NewAssignmentRuleForm from "./NewAssignmentRuleForm";
+import RuleOptions from "./RuleOptions";
 import { Icon } from "@iconify/react";
 
 interface ShiftFilterProps extends WeekPickerProps {
@@ -57,7 +57,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 <DialogTrigger asChild>
                     <Button variant="outline" className="text-md">Phân công tự động</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[50vh]">
                     <DialogHeader>
                         <DialogTitle>Phân công tự động</DialogTitle>
                         <DialogDescription>
@@ -79,19 +79,21 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                         Tùy chỉnh
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[80vw] overflow-y-auto max-h-[80vh]">
+                <DialogContent className="!max-w-[80vw] overflow-y-auto max-h-[80vh]">
                     <DialogHeader>
                         <DialogTitle>Tùy chỉnh quy tắc phân công tự động</DialogTitle>
                         <DialogDescription>
                             Bạn có thể tùy chỉnh quy tắc phân công ca làm việc tự động cho nhân viên bán thời gian tại đây
                         </DialogDescription>
                     </DialogHeader>
-                    <NewAssignmentRuleForm />
+                    <RuleOptions />
                     <DialogFooter>
                         <DialogTrigger asChild>
                             <Button variant="secondary">Thoát</Button>
                         </DialogTrigger>
-                        <Button>Thực hiện phân công</Button>
+                        <DialogTrigger asChild>
+                            <Button>Thực hiện phân công</Button>
+                        </DialogTrigger>
                         <Button>Lưu tùy chỉnh</Button>
                     </DialogFooter>
                 </DialogContent>

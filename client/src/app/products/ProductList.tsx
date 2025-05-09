@@ -70,14 +70,14 @@ const ProductList: React.FC<ProductListProps> = ({
                             <p className="text-primary-600 font-bold">{item.sellingprice?.toLocaleString()} đ</p>
                             <div className="flex items-center">
                                 <button
-                                    className="w-6 h-6 bg-primary-100 rounded items-center flex justify-center cursor-pointer active:bg-primary"
+                                    className="w-6 h-6 bg-primary-50 rounded items-center flex justify-center cursor-pointer active:bg-primary"
                                     onClick={() => onDecrement(item.productid)}
                                 >
                                     <Icon icon="ic:baseline-minus" className="text-lg text-gray-500 active:text-white" />
                                 </button>
                                 <span className="text-lg mx-4">{productQuantities[item.productid]}</span>
                                 <button
-                                    className="w-6 h-6 bg-primary-100 rounded items-center flex justify-center cursor-pointer active:bg-primary"
+                                    className="w-6 h-6 bg-primary-50 rounded items-center flex justify-center cursor-pointer active:bg-primary"
                                     onClick={() => onIncrement(item.productid)}
                                 >
                                     <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 active:text-white" />

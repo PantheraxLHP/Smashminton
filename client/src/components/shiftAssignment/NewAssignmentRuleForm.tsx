@@ -99,7 +99,7 @@ export default function NewAssignmentRuleForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 max-w-full mx-auto">
+            <form id="new-assignment-rule-form" onSubmit={form.handleSubmit(onSubmit)} className="mt-2 space-y-5 w-full mx-auto">
 
                 <div className="grid grid-cols-12 gap-4">
 
@@ -270,6 +270,9 @@ export default function NewAssignmentRuleForm() {
                     )}
                 />
 
+                <div className="flex justify-end">
+                    <Button type="button" variant="outline">Kiểm tra SQL</Button>
+                </div>
 
                 <FormField
                     control={form.control}
@@ -279,7 +282,7 @@ export default function NewAssignmentRuleForm() {
                             <FormLabel>Định nghĩa quy tắc (SQL dưới dạng Common Table Expression)</FormLabel>
                             <FormControl>
                                 <Textarea
-                                    placeholder="newCTE  AS (...)"
+                                    placeholder="newCTE AS (...)"
                                     className="resize-none"
                                     {...field}
                                 />
@@ -346,7 +349,6 @@ export default function NewAssignmentRuleForm() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit">Submit</Button>
             </form>
         </Form>
     )
