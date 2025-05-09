@@ -11,7 +11,7 @@ import BookingStepper from '../_components/BookingStepper';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
 
-export interface CourtsWithPrice {
+export interface SelectedCourts {
     zoneid: number;
     courtid: number;
     courtname: string | null;
@@ -23,10 +23,7 @@ export interface CourtsWithPrice {
     endtime: string;
     duration?: number;
     price: string;
-}
-
-export interface SelectedCourts extends CourtsWithPrice {
-    filters: Filters;
+    fixedCourt?: boolean;
 }
 
 export interface SelectedProducts extends Products {
@@ -44,7 +41,7 @@ export interface Filters {
 export default function BookingCourtsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { selectedCourts, selectedProducts, totalPrice, TTL } = useBooking();
+    const { selectedCourts, selectedProducts, TTL } = useBooking();
 
     // Parse params and convert to correct types
     const zone = searchParams.get('zone') || '';
@@ -59,7 +56,7 @@ export default function BookingCourtsPage() {
         startTime,
         fixedCourt: false,
     });
-    const [courts, setCourts] = useState<CourtsWithPrice[]>([]);
+    const [courts, setCourts] = useState<SelectedCourts[]>([]);
     const [disableTimes, setDisableTimes] = useState<string[]>([]);
     const resetTimerRef = useRef<(() => void) | null>(null);
     const handleResetTimer = useCallback((resetFn: () => void) => {

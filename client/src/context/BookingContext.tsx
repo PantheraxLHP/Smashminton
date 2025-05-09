@@ -1,11 +1,11 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { SelectedProducts, SelectedCourts } from '@/app/booking/courts/page';
-import { getBookingRedis, postBookingCourt, deleteBookingCourt } from '@/services/booking.service';
+import { SelectedCourts, SelectedProducts } from '@/app/booking/courts/page';
+import { deleteBookingCourt, getBookingRedis, postBookingCourt } from '@/services/booking.service';
+import { useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
-import { useRouter } from 'next/navigation';
 
 export interface BookingContextProps {
     selectedProducts: SelectedProducts[];
@@ -47,20 +47,21 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const { user } = useAuth();
     const router = useRouter();
 
-    const addCourt = (court: SelectedCourts) => {
+    const addCourt = async (court: SelectedCourts) => {
         setSelectedCourts((prev) => (prev ? [...prev, court] : [court]));
-        postBookingCourt({
+        await postBookingCourt({
             username: user?.username,
             court_booking: court,
         });
         toast.success('Thêm sân thành công');
     };
 
-    const removeCourtByIndex = (index: number) => {
+    const removeCourtByIndex = async (index: number) => {
         setSelectedCourts((prev) => prev.filter((_, i) => i !== index));
-        deleteBookingCourt({
+        const court = selectedCourts[index];
+        await deleteBookingCourt({
             username: user?.username,
-            court_booking: selectedCourts[index],
+            court_booking: court,
         });
         toast.success('Xóa sân thành công');
     };
@@ -84,9 +85,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const fetchBooking = async () => {
         if (user) {
             const result = await getBookingRedis(user.username);
-            if (!result.ok) {
-                toast.error(result.message || 'Không thể tải danh sách sân');
-            } else {
+            if (result.ok) {
                 setSelectedCourts(result.data.court_booking);
                 setSelectedProducts(result.data.products);
                 setTTL(result.data.TTL);
