@@ -21,7 +21,12 @@ export interface SelectedProducts extends Products {
 const ProductPage = () => {
     const [foods, setFoods] = useState<Products[]>([
         { productid: 1, productname: 'Set cá viên chiên', sellingprice: 105000, productimgurl: '/setcavienchien.png' },
-        { productid: 2, productname: 'Set cá viên chiên chua cay', sellingprice: 290000, productimgurl: '/setcavienchienchuacay.png', },
+        {
+            productid: 2,
+            productname: 'Set cá viên chiên chua cay',
+            sellingprice: 290000,
+            productimgurl: '/setcavienchienchuacay.png',
+        },
         { productid: 3, productname: "Bánh snack O'Star", sellingprice: 275000, productimgurl: '/ostar.png' },
         { productid: 4, productname: 'Bánh snack bí đỏ', sellingprice: 245000, productimgurl: '/oishibido.png' },
         { productid: 5, productname: 'Nước uống Revive', sellingprice: 230000, productimgurl: '/revive.png' },
@@ -34,8 +39,13 @@ const ProductPage = () => {
     ]); // State quản lý loại đồ ăn - thức uống
     const [accessories, setAccessories] = useState<Products[]>([
         { productid: 7, productname: 'Ống cầu lồng Taro xanh', sellingprice: 105000, productimgurl: '/oishibido.png' },
-        { productid: 8, productname: 'Ống cầu lông Kamito K10 Pro', sellingprice: 290000, productimgurl: '/revive.png', },
-        { productid: 9, productname: "Ống cầu lông Kamito K10", sellingprice: 275000, productimgurl: '/ostar.png' },
+        {
+            productid: 8,
+            productname: 'Ống cầu lông Kamito K10 Pro',
+            sellingprice: 290000,
+            productimgurl: '/revive.png',
+        },
+        { productid: 9, productname: 'Ống cầu lông Kamito K10', sellingprice: 275000, productimgurl: '/ostar.png' },
     ]); // State quản lý danh sách phụ kiện
     const [accessoryCategories, setAccessoryCategories] = useState<ProductTypes[]>([
         { producttypeid: 4, producttypename: 'Túi đựng giày cầu lông', productisfood: false },
@@ -51,32 +61,32 @@ const ProductPage = () => {
     const [chosenProductType, setChosenProductType] = useState<number>(1);
     const [chosenProductCategory, setChosenProductCategory] = useState<number>(0);
     const [sortOrder, setSortOrder] = useState('asc'); // State quản lý thứ tự sắp xếp (tăng dần hoặc giảm dần)
-    const [sortBy, setSortBy] = useState("sellingprice"); // State quản lý trường sắp xếp (theo giá, tên, ...)
+    const [sortBy, setSortBy] = useState('sellingprice'); // State quản lý trường sắp xếp (theo giá, tên, ...)
 
     useEffect(() => {
         const fetchFoods = async () => {
             try {
-                let url = `/api/foods?page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+                let url = `/api/foods?page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
                 // Trường hợp chọn "Tất cả"
                 if (chosenProductCategory !== 0) {
                     url += `&producttypeid=${chosenProductCategory}`;
                 }
                 const response = await fetch(url);
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch foods');
                 }
-    
+
                 const data: ProductResponse = await response.json();
                 setFoods(data.products); // Cập nhật danh sách sản phẩm
                 setTotalPages(data.totalPages); // Cập nhật tổng số trang
                 // Trường hợp page > totalPages thì backend sẽ trả về page đúng (page cuối cùng)
-                if (page !== data.page) { 
+                if (page !== data.page) {
                     setPage(data.page); // Cập nhật trang hiện tại
                 }
                 setFoodCategories(data.productCategories); // Cập nhật danh mục sản phẩm
             } catch (error) {
-                console.error("Error fetching foods:", error);
+                console.error('Error fetching foods:', error);
             }
         };
 
@@ -98,14 +108,13 @@ const ProductPage = () => {
                 setPage(data.page); // Cập nhật trang hiện tại
                 setAccessoryCategories(data.productCategories); // Cập nhật danh mục sản phẩm
             } catch (error) {
-                console.error("Error fetching accessories:", error);
+                console.error('Error fetching accessories:', error);
             }
         };
 
         if (chosenProductType === 1) {
             fetchFoods();
-        }
-        else if (chosenProductType === 2) {
+        } else if (chosenProductType === 2) {
             fetchAccessories();
         }
     }, [page, pageSize, chosenProductCategory, chosenProductType, sortBy, sortOrder]);
@@ -174,7 +183,7 @@ const ProductPage = () => {
         setSortOrder(orderBy);
         setSortBy(sortBy);
         setPage(1);
-    }
+    };
 
     const pageComponentRender = () => {
         if (chosenProductType === 1) {
@@ -205,8 +214,7 @@ const ProductPage = () => {
                     />
                 </>
             );
-        }
-        else if (chosenProductType === 2) {
+        } else if (chosenProductType === 2) {
             return (
                 <>
                     <div className="flex flex-col gap-5">
@@ -239,13 +247,16 @@ const ProductPage = () => {
     };
 
     return (
-        <div className="flex flex-col sm:flex-row gap-4 px-2 py-4">
+        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
             {pageComponentRender()}
             {selectedProducts.length > 0 && (
                 <BookingBottomSheet
                     totalPrice={totalPrice}
                     selectedProducts={selectedProducts}
-                    onRemoveProduct={handleRemove}
+                    selectedCourts={[]}
+                    TTL={0}
+                    onResetTimer={() => {}}
+                    onConfirm={() => {}}
                 />
             )}
         </div>

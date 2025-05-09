@@ -3,21 +3,17 @@ import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/componen
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
-import { CourtsWithPrice, Filters, SelectedCourts } from './page';
 import { formatPrice } from '@/lib/utils';
 import { useBooking } from '@/context/BookingContext';
+import { Filters, SelectedCourts } from './page';
 
 interface BookingCourtListProps {
-    courts: CourtsWithPrice[];
+    courts: SelectedCourts[];
     filters: Filters;
     onToggleChange: (isFixed: boolean) => void;
 }
 
-const BookingCourtList: React.FC<BookingCourtListProps> = ({
-    courts = [], // Provide default empty array
-    filters,
-    onToggleChange,
-}) => {
+const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filters, onToggleChange }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false); // Trạng thái mở/đóng tooltip
     const { selectedCourts, addCourt, removeCourtByIndex } = useBooking();
 
@@ -120,7 +116,6 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({
                                         } else {
                                             const selectedCourt: SelectedCourts = {
                                                 ...court,
-                                                filters,
                                             };
                                             handleAddCourt(selectedCourt);
                                         }
