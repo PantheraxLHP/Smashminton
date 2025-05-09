@@ -28,6 +28,11 @@ export class cacheOrderDTO {
     @IsNotEmpty()
     @ApiProperty({ example: 'nguyenvun' }) // example username
     username: string;
-    productOrder: productOrderDto[];
+    
+    product_order: productOrderDto[];
+
+    @IsNumber()
+    @IsNotEmpty()
+    @ApiProperty({ example: 100 }) // example total price
     totalprice: number;
 }

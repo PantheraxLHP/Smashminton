@@ -1,12 +1,13 @@
 export interface CacheProductOrder {
-    id: number;
-    item: string;
+    productid: number;
+    productname: string;
+    productimgurl: string;
+    unitprice?: number;
     quantity: number;
-    price: number;
+    totalamount?: number;
 }
 
 export interface CacheOrder {
-    username: string;
-    productOrder: CacheProductOrder[];
-    totalPrice: number;
+    product_order: CacheProductOrder[];
+    totalprice: number;
 }

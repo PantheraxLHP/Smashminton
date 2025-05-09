@@ -179,10 +179,10 @@ export class CourtsService {
             courtname: court.courtname,
             courtimgurl: court.courtimgurl,
             date: date,
-            duration: duration,
+            duration: Number(duration),
             starttime: starttime,
             endtime: endtime,
-            price: court.totalPrice.toFixed(0), // Làm tròn giá trị tiền
+            price: court.totalPrice, // Làm tròn giá trị tiền
         }));
 
         return availableCourts;
@@ -274,7 +274,7 @@ export class CourtsService {
                     starttime: actualStart.format('HH:mm'),
                     endtime: actualEnd.format('HH:mm'),
                     duration: durationInHours,
-                    price: priceForDuration.toFixed(0), // Làm tròn giá trị tiền
+                    price: priceForDuration, // Làm tròn giá trị tiền
                 });
             }
         }

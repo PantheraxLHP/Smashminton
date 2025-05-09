@@ -63,7 +63,7 @@ export class BookingsService {
 					starttime: court.starttime,
 					duration: court.duration ?? 0, 
 					endtime: court.endtime,
-					price: parseFloat(court.price), // Chuyển giá thành số
+					price: Number(court.price), // Chuyển giá thành số
 				};
 
 				newCacheBooking.court_booking.push(newCourtBooking);
@@ -96,7 +96,7 @@ export class BookingsService {
 				starttime: court.starttime,
 				duration: court.duration ?? 0, 
 				endtime: court.endtime,
-				price: parseFloat(court.price), // Chuyển giá thành số
+				price: Number(court.price), // Chuyển giá thành số
 			};
 
 			bookingUserCache.court_booking.push(newCourtBooking);
