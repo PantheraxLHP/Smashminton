@@ -8,6 +8,6 @@ export interface CourtPrices {
   date?: string;
   starttime: string;
   endtime: string;
-  duration?: number;
-  price: string;
+  duration: number;
+  price: number;
 }

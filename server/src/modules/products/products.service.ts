@@ -7,6 +7,15 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductsService {
     constructor(private prisma: PrismaService) {}
 
+    // Get product price
+    async getProductPrice(productid: number): Promise<number> {
+        const product = await this.prisma.products.findUnique({
+            where: { productid },
+            select: { sellingprice: true },
+        });
+        return product && product.sellingprice !== null ? Number(product.sellingprice) : 0;
+    }
+
     // CRUD operations
     create(createProductDto: CreateProductDto) {
         return this.prisma.products.create({ data: createProductDto });
