@@ -18,7 +18,7 @@ const CalendarTimeline = () => {
                 return;
             }
 
-            const passedHours = hours + minutes / 60 - startHour;
+            const passedHours = 1 + hours + minutes / 60 - startHour;
             const pixelsPerHour = 44; // h-11 = 44px
             setTopOffset(passedHours * pixelsPerHour);
         };
