@@ -22,9 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </head>
             <body>
                 <AuthProvider>
-                    <BookingProvider>
-                        <LayoutContent>{children}</LayoutContent>
-                    </BookingProvider>
+                    <LayoutContent>{children}</LayoutContent>
                 </AuthProvider>
             </body>
         </html>
