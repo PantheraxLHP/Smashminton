@@ -8,7 +8,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog";
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import RuleOptions from "./RuleOptions";
 import { Icon } from "@iconify/react";
 
@@ -34,6 +36,17 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 year={year}
                 setYear={setYear}
             />
+            <RadioGroup defaultValue="fulltime">
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fulltime" id="fulltime" />
+                    <Label htmlFor="fulltime">Toàn thời gian</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="parttime" id="parttime" />
+                    <Label htmlFor="parttime">Bán thời gian</Label>
+                </div>
+            </RadioGroup>
+
             <div className="border border-gray-500"></div>
             <div className="flex flex-col justify-left">
                 <div className="flex items-center gap-2 text-sm">
