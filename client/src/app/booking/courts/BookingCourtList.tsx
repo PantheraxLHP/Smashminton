@@ -2,10 +2,30 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { formatPrice } from '@/lib/utils';
 import { useBooking } from '@/context/BookingContext';
 import { Filters, SelectedCourts } from './page';
+
+// Custom debounce hook
+const useDebounce = <T extends (...args: any[]) => void>(callback: T, delay: number) => {
+    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+    return useCallback(
+        (...args: Parameters<T>) => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            const newTimeoutId = setTimeout(() => {
+                callback(...args);
+            }, delay);
+
+            setTimeoutId(newTimeoutId);
+        },
+        [callback, delay, timeoutId],
+    );
+};
 
 interface BookingCourtListProps {
     courts: SelectedCourts[];
@@ -24,6 +44,15 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
     const handleRemoveCourtByIndex = (index: number) => {
         removeCourtByIndex(index);
     };
+
+    // Debounced click handler
+    const debouncedHandleClick = useDebounce((court: SelectedCourts, isSelected: boolean, scCourtIndex: number) => {
+        if (isSelected) {
+            handleRemoveCourtByIndex(scCourtIndex);
+        } else {
+            handleAddCourt(court);
+        }
+    }, 300); // 300ms delay
 
     return (
         <div className="px-4">
@@ -110,16 +139,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
                                 <Button
                                     className="w-full"
                                     variant={isSelected ? 'destructive' : 'default'}
-                                    onClick={() => {
-                                        if (isSelected) {
-                                            handleRemoveCourtByIndex(scCourtIndex);
-                                        } else {
-                                            const selectedCourt: SelectedCourts = {
-                                                ...court,
-                                            };
-                                            handleAddCourt(selectedCourt);
-                                        }
-                                    }}
+                                    onClick={() => debouncedHandleClick(court, isSelected, scCourtIndex)}
                                 >
                                     {isSelected ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
                                 </Button>
