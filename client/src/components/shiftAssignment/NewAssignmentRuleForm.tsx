@@ -20,11 +20,11 @@ const formSchema = z.object({
     ruledescription: z.string().optional(),
     ruleappliedfor: z.string({ required_error: "Bạn phải chọn 1 đối tượng áp dụng" }),
     ruletype: z.string({ required_error: "Bạn phải chọn 1 loại quy tắc" }),
-    rulevalue: z.string({ required_error: "Giá trị quy tắc không được để trống" }),
+    rulevalue: z.string({ required_error: "Giá trị quy tắc không được để trống" }).min(1, "Giá trị quy tắc không được để trống"),
     rulesql: z.string({ required_error: "Bạn phải nhập SQL CTE" }),
-    ctename: z.string({ required_error: "Bạn phải nhập tên CTE" }),
-    columnname: z.string({ required_error: "Bạn phải nhập tên cột" }),
-    condition: z.string({ required_error: "Bạn phải nhập điều kiện" }),
+    ctename: z.string({ required_error: "Bạn phải nhập tên CTE" }).min(1, "Tên CTE không được để trống"),
+    columnname: z.string({ required_error: "Bạn phải nhập tên cột" }).min(1, "Tên cột không được để trống"),
+    condition: z.string({ required_error: "Bạn phải nhập điều kiện" }).min(1, "Điều kiện không được để trống"),
 });
 
 export default function NewAssignmentRuleForm() {
