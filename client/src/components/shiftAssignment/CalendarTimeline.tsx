@@ -1,6 +1,8 @@
 import { useEffect, useState, Fragment } from "react";
 
 const CalendarTimeline = () => {
+    const today = new Date().getDay();
+    const todayIndex = today === 0 ? 6 : today - 1;
     const timesInDay = Array.from({ length: 17 }, (_, i) => `${6 + i}:00`);
     const [topOffset, setTopOffset] = useState(0);
 
@@ -41,13 +43,13 @@ const CalendarTimeline = () => {
             <div className="grid grid-cols-[100px_repeat(7,minmax(0px,_1fr))] border-b border-l border-r rounded-b-lg">
                 {timesInDay.map((time, index) => (
                     <Fragment key={`time-${index}`}>
-                        <div className="text-sm p-2 flex items-end justify-end border-b border-r h-11">
+                        <div className="text-sm pt-2 pl-2 pr-1 flex items-end justify-end border-b border-r h-11">
                             {time}
                         </div>
                         {Array.from({ length: 7 }).map((_, i) => (
                             <div
                                 key={`cell-${index}-${i}`}
-                                className={`h-11 border-b ${i !== 6 ? "border-r" : ""}`}
+                                className={`h-11 border-b ${i !== 6 ? "border-r" : ""} ${todayIndex === i ? "bg-primary-50" : ""}`}
                             />
                         ))}
                     </Fragment>
