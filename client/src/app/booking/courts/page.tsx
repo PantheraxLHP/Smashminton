@@ -6,7 +6,7 @@ import { Products } from '@/types/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import BookingBottomSheet from '../_components/BookingBottomSheet';
+import BookingBottomSheet from '../../../components/atomic/BottomSheet';
 import BookingStepper from '../_components/BookingStepper';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
@@ -109,8 +109,6 @@ export default function BookingCourtsPage() {
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
-    const bookingTotalPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
-
     return (
         <div className="p-4">
             <div className="flex flex-col gap-4">
@@ -134,7 +132,6 @@ export default function BookingCourtsPage() {
                     onResetTimer={handleResetTimer}
                     selectedCourts={selectedCourts}
                     selectedProducts={selectedProducts}
-                    totalPrice={bookingTotalPrice}
                     TTL={TTL}
                 />
             )}

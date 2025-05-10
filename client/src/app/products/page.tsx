@@ -5,7 +5,7 @@ import ProductList from '@/app/products/ProductList';
 import ProductTypeFilter from '@/app/products/ProductTypeFilter';
 import { Products, ProductTypes } from '@/types/types';
 import { useEffect, useState } from 'react';
-import BookingBottomSheet from '../booking/_components/BookingBottomSheet';
+import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
 interface ProductResponse {
     products: Products[]; // Danh sách sản phẩm
@@ -251,7 +251,6 @@ const ProductPage = () => {
             {pageComponentRender()}
             {selectedProducts.length > 0 && (
                 <BookingBottomSheet
-                    totalPrice={totalPrice}
                     selectedProducts={selectedProducts}
                     selectedCourts={[]}
                     TTL={0}

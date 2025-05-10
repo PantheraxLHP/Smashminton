@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import RentalFilter from './RentalFilter';
 import RentalList from './RentalList';
-import BookingBottomSheet from '../booking/_components/BookingBottomSheet';
+import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
 type Racket = {
     productid: number;
@@ -29,7 +29,6 @@ type Shoe = {
     quantity: number;
     productName: string;
 };
-
 
 export default function RentalsPage() {
     const [selectedCategory, setSelectedCategory] = useState<'Thuê vợt' | 'Thuê giày'>('Thuê vợt');
@@ -69,7 +68,6 @@ export default function RentalsPage() {
             productname: item.name,
         }));
 
-
     const totalPrice = selectedItems.reduce((sum, item) => {
         return sum + (item.price || 0) * item.quantity;
     }, 0);
@@ -107,8 +105,8 @@ export default function RentalsPage() {
                     selectedProducts={selectedItems}
                     selectedCourts={[]}
                     TTL={0}
-                    onResetTimer={() => { }}
-                    onConfirm={() => { }}
+                    onResetTimer={() => {}}
+                    onConfirm={() => {}}
                 />
             )}
         </div>
