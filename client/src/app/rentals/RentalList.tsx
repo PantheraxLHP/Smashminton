@@ -1,7 +1,7 @@
 'use client';
-import { FaSortAmountDownAlt } from 'react-icons/fa';
 
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { FaSortAmountDownAlt } from 'react-icons/fa';
 
 type Props = {
     selectedCategory: 'Thuê vợt' | 'Thuê giày';
@@ -13,6 +13,11 @@ type Props = {
         forms?: string[];
         sizes?: string[];
     };
+    rentalQuantities: { [id: number]: number };
+    onIncrement: (id: number) => void;
+    onDecrement: (id: number) => void;
+    setRackets: (items: Racket[]) => void;
+    setShoes: (items: Shoe[]) => void;
 };
 
 type Item = {
@@ -27,6 +32,32 @@ type Item = {
     form?: string;
     size?: string;
 };
+
+type Racket = {
+    productid: number;
+    id: number;
+    name: string;
+    price: number;
+    brand: string;
+    weight: string;
+    stiffness: string;
+    balance: string;
+    quantity: number;
+    productName: string;
+};
+
+type Shoe = {
+    productid: number;
+    id: number;
+    name: string;
+    price: number;
+    brand: string;
+    form: string;
+    size: string;
+    quantity: number;
+    productName: string;
+};
+
 
 const racketItems: Item[] = Array.from({ length: 12 }, (_, index) => ({
     id: index,
@@ -49,8 +80,15 @@ const shoeItems: Item[] = Array.from({ length: 12 }, (_, index) => ({
     size: '42',
 }));
 
-export default function RentalList({ selectedCategory, filters }: Props) {
-    const [quantities, setQuantities] = useState<{ [id: number]: number }>({});
+export default function RentalList({
+    selectedCategory,
+    filters,
+    rentalQuantities,
+    onIncrement,
+    onDecrement,
+    setRackets,
+    setShoes,
+}: Props) {
     const [sortOption, setSortOption] = useState<'default' | 'priceAsc' | 'priceDesc' | 'nameAsc'>('default');
 
     const items = selectedCategory === 'Thuê giày' ? shoeItems : racketItems;
@@ -71,8 +109,8 @@ export default function RentalList({ selectedCategory, filters }: Props) {
     });
 
     const sortedItems = [...filteredItems].sort((a, b) => {
+        const getPrice = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''));
         if (sortOption === 'priceAsc' || sortOption === 'priceDesc') {
-            const getPrice = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''));
             const priceA = getPrice(a.price);
             const priceB = getPrice(b.price);
             return sortOption === 'priceAsc' ? priceA - priceB : priceB - priceA;
@@ -83,16 +121,52 @@ export default function RentalList({ selectedCategory, filters }: Props) {
         return 0;
     });
 
-    const handleQuantityChange = (id: number, delta: number) => {
-        setQuantities((prev) => {
-            const newQuantity = Math.max(0, (prev[id] || 0) + delta);
-            return { ...prev, [id]: newQuantity };
-        });
-    };
+    const prevDataRef = useRef<string>('');
+
+    useEffect(() => {
+        const parsePrice = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''));
+
+        if (selectedCategory === 'Thuê vợt') {
+            const rackets: Racket[] = sortedItems.map(item => ({
+                productid: item.id,
+                id: item.id,
+                name: item.name,
+                price: parsePrice(item.price),
+                brand: item.brand,
+                weight: item.weight!,
+                stiffness: item.stiffness!,
+                balance: item.balance!,
+                quantity: rentalQuantities[item.id] || 0,
+                productName: item.name,
+            }));
+            const newDataStr = JSON.stringify(rackets);
+            if (newDataStr !== prevDataRef.current) {
+                prevDataRef.current = newDataStr;
+                setRackets(rackets);
+            }
+        } else {
+            const shoes: Shoe[] = sortedItems.map(item => ({
+                productid: item.id,
+                id: item.id,
+                name: item.name,
+                price: parsePrice(item.price),
+                brand: item.brand,
+                form: item.form!,
+                size: item.size!,
+                quantity: rentalQuantities[item.id] || 0,
+                productName: item.name,
+            }));
+            const newDataStr = JSON.stringify(shoes);
+            if (newDataStr !== prevDataRef.current) {
+                prevDataRef.current = newDataStr;
+                setShoes(shoes);
+            }
+        }
+    }, [sortedItems, selectedCategory, setRackets, setShoes, rentalQuantities]);
+
 
     return (
         <div className="flex flex-col flex-1">
-            {/* Dropdown sắp xếp */}
             <div className="flex justify-end px-4 mb-4">
                 <div className="flex items-center gap-2">
                     <FaSortAmountDownAlt className="text-gray-700 text-sm" />
@@ -105,12 +179,11 @@ export default function RentalList({ selectedCategory, filters }: Props) {
                         <option value="default">Mặc định</option>
                         <option value="priceAsc">Giá tăng dần</option>
                         <option value="priceDesc">Giá giảm dần</option>
-                        <option value="nameAsc">Sắp xếp theo tên (A-Z)</option>
+                        <option value="nameAsc">Theo tên (A-Z)</option>
                     </select>
                 </div>
             </div>
 
-            {/* Danh sách sản phẩm */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 flex-1">
                 {sortedItems.map((item) => (
                     <div
@@ -126,14 +199,14 @@ export default function RentalList({ selectedCategory, filters }: Props) {
                         <p className="text-primary-600 font-semibold">{item.price}</p>
                         <div className="flex items-center gap-2 mt-2">
                             <button
-                                onClick={() => handleQuantityChange(item.id, -1)}
+                                onClick={() => onDecrement(item.id)}
                                 className="px-2 border rounded hover:bg-gray-100"
                             >
                                 -
                             </button>
-                            <span>{quantities[item.id] || 0}</span>
+                            <span>{rentalQuantities[item.id] || 0}</span>
                             <button
-                                onClick={() => handleQuantityChange(item.id, 1)}
+                                onClick={() => onIncrement(item.id)}
                                 className="px-2 border rounded hover:bg-gray-100"
                             >
                                 +
@@ -142,7 +215,9 @@ export default function RentalList({ selectedCategory, filters }: Props) {
                     </div>
                 ))}
                 {sortedItems.length === 0 && (
-                    <p className="col-span-full text-center text-sm text-gray-500">Không tìm thấy sản phẩm phù hợp.</p>
+                    <p className="col-span-full text-center text-sm text-gray-500">
+                        Không tìm thấy sản phẩm phù hợp.
+                    </p>
                 )}
             </div>
         </div>

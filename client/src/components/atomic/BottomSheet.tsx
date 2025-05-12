@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SelectedCourts, SelectedProducts } from '../courts/page';
+import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
 import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
 
@@ -11,7 +11,6 @@ export interface BookingBottomSheetProps {
     onResetTimer?(resetTimerFn: () => void): void;
     selectedCourts: SelectedCourts[];
     selectedProducts: SelectedProducts[];
-    totalPrice: number;
     TTL: number;
 }
 
@@ -20,7 +19,6 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     onResetTimer,
     selectedCourts,
     selectedProducts,
-    totalPrice,
     TTL,
 }) => {
     const { removeCourtByIndex, removeProductByIndex } = useBooking();
@@ -75,6 +73,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     };
 
     const handleClearAll = () => {};
+
+    const TotalPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
@@ -147,7 +147,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                     <div className="flex max-w-full flex-col items-center sm:max-w-65">
                         <div className="mb-2 flex items-center gap-2">
                             <span className="text-white">Tạm tính:</span>
-                            <span className="text-lg font-bold">{totalPrice.toLocaleString('vi-VN')} VND</span>
+                            <span className="text-lg font-bold">{TotalPrice.toLocaleString('vi-VN')} VND</span>
                         </div>
                         <div className="flex w-full gap-2">
                             <Button className="bg-primary w-full" onClick={handleConfirm}>

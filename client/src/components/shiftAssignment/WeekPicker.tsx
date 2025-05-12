@@ -250,7 +250,7 @@ const WeekPicker: React.FC<WeekPickerProps> = ({
                     <Icon icon="mdi:calendar-outline" className="size-5" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" sideOffset={5}>
+            <PopoverContent className="w-auto p-0 !z-1" sideOffset={5}>
                 <WeekPickerCalendar
                     selectedWeek={selectedWeek}
                     setSelectedWeek={setSelectedWeek}

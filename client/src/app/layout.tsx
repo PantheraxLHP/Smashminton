@@ -1,5 +1,6 @@
 // app/layout.tsx
 import { AuthProvider } from '@/context/AuthContext';
+import { BookingProvider } from '@/context/BookingContext';
 import type { Metadata } from 'next';
 import './globals.css';
 import LayoutContent from './LayoutContent';

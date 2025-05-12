@@ -15,31 +15,53 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Check, ChevronsUpDown } from 'lucide-react';
 
 const formSchema = z.object({
-    rulename: z.string().min(1),
+    rulename: z.string({ required_error: "Tên quy tắc không được để trống" }).min(1, "Tên quy tắc phải có ít nhất 1 ký tự"),
     rulestatus: z.boolean().default(true).optional(),
     ruledescription: z.string().optional(),
-    ruleappliedfor: z.string(),
-    ruletype: z.string().min(1),
-    rulevalue: z.string().min(1),
-    rulesql: z.string(),
-    ctename: z.string().min(1),
-    columnname: z.string().min(1),
-    condition: z.string().min(1),
+    ruleappliedfor: z.string({ required_error: "Bạn phải chọn 1 đối tượng áp dụng" }),
+    ruletype: z.string({ required_error: "Bạn phải chọn 1 loại quy tắc" }),
+    rulevalue: z.string({ required_error: "Giá trị quy tắc không được để trống" }).min(1, "Giá trị quy tắc không được để trống"),
+    rulesql: z.string({ required_error: "Bạn phải nhập SQL CTE" }),
+    ctename: z.string({ required_error: "Bạn phải nhập tên CTE" }).min(1, "Tên CTE không được để trống"),
+    columnname: z.string({ required_error: "Bạn phải nhập tên cột" }).min(1, "Tên cột không được để trống"),
+    condition: z.string({ required_error: "Bạn phải nhập điều kiện" }).min(1, "Điều kiện không được để trống"),
 });
 
 export default function NewAssignmentRuleForm() {
     const ruleappliedfor = [
         {
-            label: 'Nhân viên',
-            value: 'Employee',
+            label: "Nhân viên",
+            value: "Employee",
         },
         {
-            label: 'Ca làm việc',
-            value: 'Shift',
+            label: "Ca làm việc",
+            value: "Shift",
+        },
+    ] as const;
+    const ruletype = [
+        {
+            label: "So sánh điều kiện (WHERE)",
+            value: "WHERE",
+        },
+        {
+            label: "Sắp xếp thứ tự (ORDER)",
+            value: "ORDER",
         },
     ] as const;
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
+        defaultValues: {
+            rulename: "",
+            rulestatus: true,
+            ruledescription: "",
+            ruleappliedfor: "",
+            ruletype: "",
+            rulevalue: "",
+            rulesql: "",
+            ctename: "",
+            columnname: "",
+            condition: "",
+        },
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
@@ -61,7 +83,7 @@ export default function NewAssignmentRuleForm() {
             <form
                 id="new-assignment-rule-form"
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="mx-auto mt-2 w-full space-y-5"
+                className="mx-auto pt-2 w-full space-y-5 overflow-y-auto max-h-[60vh]"
             >
                 <div className="grid grid-cols-12 gap-4">
                     <div className="col-span-6">
@@ -182,11 +204,56 @@ export default function NewAssignmentRuleForm() {
                     control={form.control}
                     name="ruletype"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Loại quy tắc</FormLabel>
-                            <FormControl>
-                                <Input placeholder="WHERE, WHERE, ORDER" type="text" {...field} />
-                            </FormControl>
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Quy tắc áp dụng cho</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className={cn(
+                                                'w-[200px] justify-between',
+                                                !field.value && 'text-muted-foreground',
+                                            )}
+                                        >
+                                            {field.value
+                                                ? ruletype.find((forobj) => forobj.value === field.value)?.label
+                                                : 'Chọn loại quy tắc'}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Tìm kiếm loại quy tắc" />
+                                        <CommandList>
+                                            <CommandEmpty>Không tìm thấy loại quy tắc</CommandEmpty>
+                                            <CommandGroup>
+                                                {ruletype.map((forobj) => (
+                                                    <CommandItem
+                                                        value={forobj.label}
+                                                        key={forobj.value}
+                                                        onSelect={() => {
+                                                            form.setValue('ruletype', forobj.value);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                'mr-2 h-4 w-4',
+                                                                forobj.value === field.value
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0',
+                                                            )}
+                                                        />
+                                                        {forobj.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
 
                             <FormMessage />
                         </FormItem>
@@ -200,7 +267,7 @@ export default function NewAssignmentRuleForm() {
                         <FormItem>
                             <FormLabel>Giá trị của quy tắc</FormLabel>
                             <FormControl>
-                                <Input placeholder="2, 10, ASC" type="text" {...field} />
+                                <Input placeholder="Loại WHERE: a, 1; Loại ORDER: ASC, DESC" type="text" {...field} />
                             </FormControl>
 
                             <FormMessage />
@@ -266,7 +333,7 @@ export default function NewAssignmentRuleForm() {
                         <FormItem>
                             <FormLabel>Cấu trúc áp dụng của quy tắc</FormLabel>
                             <FormControl>
-                                <Input placeholder="comparecolumn < rulevalue" type="text" {...field} />
+                                <Input placeholder="Loại WHERE: comparecolumn < rulevalue AND comparecolumn = rulevalue, Loại ORDER: comparecolumn rulevalue" type="text" {...field} />
                             </FormControl>
 
                             <FormMessage />
