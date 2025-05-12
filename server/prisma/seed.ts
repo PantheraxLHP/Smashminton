@@ -820,229 +820,167 @@ async function main() {
             },
         ],
     });
-    await prisma.product_types.createMany({
+
+    await prisma.products.createMany({
         data: [
+            // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
+            // 6: Food, 7: Beverage, 8: Snack
             {
-                producttypename: 'Shoe bag',
-                productisfood: false,
+                productname: 'Quấn cán cầu lông Yonex AC147EX',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton tube',
-                productisfood: false,
+                productname: 'Túi đựng giày cầu lông',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton racket grip',
-                productisfood: false,
+                productname: 'Vớ cầu lông Yonex',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton sock',
-                productisfood: false,
+                productname: 'Ống cầu lông Lining AYQN024',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
+                batch: 'B002',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 100,
+                sellingprice: 25.0,
+                rentalprice: null,
+                costprice: 15.0,
             },
             {
-                producttypename: 'Badminton string',
-                productisfood: false,
+                productname: 'Ống cầu lông Yonex AS40',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
+                batch: 'B002',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 100,
+                sellingprice: 25.0,
+                rentalprice: null,
+                costprice: 15.0,
             },
             {
-                producttypename: 'Food',
-                productisfood: true,
+                productname: 'Cước Yonex pro',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
+                batch: 'B003',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 10,
+                sellingprice: 50.0,
+                rentalprice: 10.0,
+                costprice: 30.0,
             },
             {
-                producttypename: 'Beverage',
-                productisfood: true,
+                productname: 'Nước uống tăng lực Monster bạc',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447734/monster-drink_edoi6w.jpg',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
             },
             {
-                producttypename: 'Snack',
-                productisfood: true,
+                productname: 'Thanh protein block chocolate',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Cá viên chiên xiên bẩn',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447470/cavienchien_vetkew.jpg',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Nước uống revive',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
+            },
+            {
+                productname: 'Nước uống pocari',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
+            },
+            {
+                productname: 'Bánh snack OSea',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448378/orion-post-new-24_lzha5b.png',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Bánh snack bí đỏ',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
             },
         ],
     });
-
-    const products = [
-        // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
-        // 6: Food, 7: Beverage, 8: Snack
-        {
-            productname: 'Quấn cán cầu lông Yonex AC147EX',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
-            batch: 'B001',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 3,
-            stockquantity: 30,
-            sellingprice: 150.0,
-            rentalprice: 20.0,
-            costprice: 100.0,
-        },
-        {
-            productname: 'Túi đựng giày cầu lông',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
-            batch: 'B001',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 1,
-            stockquantity: 30,
-            sellingprice: 150.0,
-            rentalprice: 20.0,
-            costprice: 100.0,
-        },
-        {
-            productname: 'Vớ cầu lông Yonex',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
-            batch: 'B001',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 4,
-            stockquantity: 30,
-            sellingprice: 150.0,
-            rentalprice: 20.0,
-            costprice: 100.0,
-        },
-        {
-            productname: 'Ống cầu lông Lining AYQN024',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
-            batch: 'B002',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 2,
-            stockquantity: 100,
-            sellingprice: 25.0,
-            rentalprice: null,
-            costprice: 15.0,
-        },
-        {
-            productname: 'Ống cầu lông Yonex AS40',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
-            batch: 'B002',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 2,
-            stockquantity: 100,
-            sellingprice: 25.0,
-            rentalprice: null,
-            costprice: 15.0,
-        },
-        {
-            productname: 'Cước Yonex pro',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
-            batch: 'B003',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 5,
-            stockquantity: 10,
-            sellingprice: 50.0,
-            rentalprice: 10.0,
-            costprice: 30.0,
-        },
-        {
-            productname: 'Nước uống tăng lực Monster bạc',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447734/monster-drink_edoi6w.jpg',
-            batch: 'D001',
-            expirydate: new Date('2025-12-31'),
-            status: 'Available',
-            producttypeid: 7,
-            stockquantity: 200,
-            sellingprice: 2.5,
-            rentalprice: null,
-            costprice: 1.5,
-        },
-        {
-            productname: 'Thanh protein block chocolate',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 8,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        },
-        {
-            productname: 'Cá viên chiên xiên bẩn',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447470/cavienchien_vetkew.jpg',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 6,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        },
-        {
-            productname: 'Nước uống revive',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
-            batch: 'D001',
-            expirydate: new Date('2025-12-31'),
-            status: 'Available',
-            producttypeid: 7,
-            stockquantity: 200,
-            sellingprice: 2.5,
-            rentalprice: null,
-            costprice: 1.5,
-        },
-        {
-            productname: 'Nước uống pocari',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
-            batch: 'D001',
-            expirydate: new Date('2025-12-31'),
-            status: 'Available',
-            producttypeid: 7,
-            stockquantity: 200,
-            sellingprice: 2.5,
-            rentalprice: null,
-            costprice: 1.5,
-        },
-        {
-            productname: 'Bánh snack OSea',
-            productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448378/orion-post-new-24_lzha5b.png',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 8,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        },
-        {
-            productname: 'Bánh snack bí đỏ',
-            productimgurl:
-                'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 8,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        },
-    ];
-
-    for (const product of products) {
-        await prisma.products.create({
-            data: product,
-        });
-
-        if (product.producttypeid === 1) {
-            await prisma.product_descriptions.create({
-                data: {
-                    weight: product.productname.includes('Racket') ? 85.0 : null,
-                    size: product.productname.includes('Net') ? 'Standard' : null,
-                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
-                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
-                },
-            });
-        }
-    }
 
     await prisma.suppliers.createMany({
         data: [
@@ -1111,6 +1049,243 @@ async function main() {
                 shiftdate: randomShiftDate.shiftdate,
             },
         });
+    });
+
+    await prisma.bookings.createMany({
+        data: [
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-15'),
+                totalprice: 400000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T09:22:19.422Z'),
+                updatedat: new Date('2025-05-14T09:22:19.422Z'),
+                employeeid: 3,
+                customerid: 16,
+                voucherid: null,
+            },
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-15'),
+                totalprice: 300000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T10:00:00.000Z'),
+                updatedat: new Date('2025-05-14T10:00:00.000Z'),
+                employeeid: 2,
+                customerid: 16,
+                voucherid: null,
+            },
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-16'),
+                totalprice: 500000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T11:00:00.000Z'),
+                updatedat: new Date('2025-05-14T11:00:00.000Z'),
+                employeeid: 1,
+                customerid: 16,
+                voucherid: null,
+            },
+        ],
+    });
+
+    // Lấy tất cả các bookingid từ bảng bookings
+    const bookings = await prisma.bookings.findMany({
+        select: { bookingid: true },
+    });
+
+    // Tạo court_booking với các bookingid vừa lấy
+    await prisma.court_booking.createMany({
+        data: [
+            // Trường hợp 2: Một số khung giờ bị block hoàn toàn
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 07:00:00'),
+                duration: 1,
+                bookingid: bookings[0].bookingid,
+                courtid: 1,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 07:30:00'),
+                duration: 1.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 2,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 08:00:00'),
+                duration: 2,
+                bookingid: bookings[0].bookingid,
+                courtid: 3,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 08:30:00'),
+                duration: 2.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 4,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 09:00:00'),
+                duration: 3,
+                bookingid: bookings[0].bookingid,
+                courtid: 5,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 09:30:00'),
+                duration: 3.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 6,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 10:00:00'),
+                duration: 4,
+                bookingid: bookings[0].bookingid,
+                courtid: 7,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 11:00:00'),
+                duration: 5,
+                bookingid: bookings[0].bookingid,
+                courtid: 8,
+            },
+
+            // Trường hợp 3: Một số khung giờ bị block một phần
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 13:30:00'),
+                endtime: new Date('2025-05-15 15:30:00'),
+                duration: 2,
+                bookingid: bookings[1].bookingid,
+                courtid: 1,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 13:30:00'),
+                endtime: new Date('2025-05-15 15:30:00'),
+                duration: 2,
+                bookingid: bookings[1].bookingid,
+                courtid: 2,
+            },
+
+            // Trường hợp 4: Khung giờ không liên quan đến ngày được kiểm tra
+            {
+                date: new Date('2025-05-16'),
+                starttime: new Date('2025-05-16 06:00:00'),
+                endtime: new Date('2025-05-16 07:00:00'),
+                duration: 1,
+                bookingid: bookings[2].bookingid,
+                courtid: 1,
+            },
+        ],
+    });
+
+    await prisma.product_types.createMany({
+        data: [
+            {
+                producttypename: 'Foods and Drinks',
+            },
+            {
+                producttypename: 'Accessories',
+            },
+            {
+                producttypename: 'Racket Rental',
+            },
+            {
+                producttypename: 'Shoes Rental',
+            },
+        ],
+    });
+
+    await prisma.product_filter.createMany({
+        data: [
+            {
+                productfiltername: 'Loại đồ ăn - thức uống',
+                producttypeid: 1,
+            },
+            {
+                productfiltername: 'Loại phụ kiện',
+                producttypeid: 2,
+            },
+            {
+                productfiltername: 'Trọng lượng',
+                producttypeid: 3,
+            },
+            {
+                productfiltername: 'Size',
+                producttypeid: 4,
+            },
+        ],
+    });
+
+    await prisma.product_filter_values.createMany({
+        data: [
+            {
+                productfilterid: 1,
+                value: 'Đồ mặn',
+            },
+            {
+                productfilterid: 1,
+                value: 'Snack',
+            },
+            {
+                productfilterid: 1,
+                value: 'Đồ uống',
+            },
+            {
+                productfilterid: 2,
+                value: 'Ốngcầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Quấn cán',
+            },
+            {
+                productfilterid: 3,
+                value: '3U (85-89g)',
+            },
+            {
+                productfilterid: 3,
+                value: '4U (80-84g)',
+            },
+            {
+                productfilterid: 3,
+                value: '5U (75-79g)',
+            },
+            {
+                productfilterid: 4,
+                value: '40',
+            },
+            {
+                productfilterid: 4,
+                value: '41',
+            },
+            {
+                productfilterid: 4,
+                value: '42',
+            },
+            {
+                productfilterid: 4,
+                value: '43',
+            },
+            {
+                productfilterid: 4,
+                value: '44',
+            },
+        ],
     });
 }
 

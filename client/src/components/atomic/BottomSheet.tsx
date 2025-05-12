@@ -106,6 +106,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 <span>{scCourt.starttime || ''}</span>
                                 <Icon icon="mdi:timer" className="h-5 w-5" />
                                 <span>{scCourt.duration || ''}h</span>
+                                <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
+                                <span>{scCourt.price.toLocaleString()} VND</span>
                                 <Icon
                                     onClick={() => removeCourtByIndex(index)}
                                     icon="mdi:close-circle"
