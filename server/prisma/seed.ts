@@ -23,7 +23,6 @@ async function main() {
         'zone_prices',
         'courts',
         'zones',
-        'product_descriptions',
         'products',
         'product_types',
         'suppliers',
