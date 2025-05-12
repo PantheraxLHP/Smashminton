@@ -1,11 +1,10 @@
 'use client'
 
-import ShiftFilter from "@/components/shiftAssignment/ShiftFilter";
 import { useState } from "react";
 import { startOfWeek, endOfWeek, getWeek } from "date-fns";
 import { DateRange } from "react-day-picker";
-import CalendarHeader from "@/components/shiftAssignment/CalendarHeader";
-import CalendarTimeline from "@/components/shiftAssignment/CalendarTimeline";
+import ShiftFilter from "@/components/shiftAssignment/ShiftFilter";
+import AssignmentCalendar from "@/components/shiftAssignment/AssignmentCalendar";
 
 const ShiftAssignmentPage = () => {
     const today = new Date();
@@ -17,7 +16,7 @@ const ShiftAssignmentPage = () => {
     const [year, setYear] = useState<number>(today.getFullYear());
 
     return (
-        <div className="p-4 flex flex-col sm:flex-row gap-5 w-full">
+        <div className="p-4 flex flex-col items-center sm:items-start sm:flex-row gap-5 w-full justify-center">
             <ShiftFilter
                 selectedWeek={selectedWeek}
                 setSelectedWeek={setSelectedWeek}
@@ -26,14 +25,11 @@ const ShiftAssignmentPage = () => {
                 year={year}
                 setYear={setYear}
             />
-            <div className="w-full">
-                <CalendarHeader
-                    selectedWeek={selectedWeek}
-                    weekNumber={weekNumber}
-                    year={year}
-                />
-                <CalendarTimeline />
-            </div>
+            <AssignmentCalendar
+                selectedWeek={selectedWeek}
+                weekNumber={weekNumber}
+                year={year}
+            />
         </div>
     );
 }

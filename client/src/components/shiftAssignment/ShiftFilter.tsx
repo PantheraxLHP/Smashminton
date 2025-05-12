@@ -38,12 +38,12 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
             />
             <RadioGroup defaultValue="fulltime">
                 <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fulltime" id="fulltime" />
-                    <Label htmlFor="fulltime">Toàn thời gian</Label>
+                    <RadioGroupItem className="cursor-pointer" value="fulltime" id="fulltime" />
+                    <Label className="cursor-pointer" htmlFor="fulltime">Toàn thời gian</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="parttime" id="parttime" />
-                    <Label htmlFor="parttime">Bán thời gian</Label>
+                    <RadioGroupItem className="cursor-pointer" value="parttime" id="parttime" />
+                    <Label className="cursor-pointer" htmlFor="parttime">Bán thời gian</Label>
                 </div>
             </RadioGroup>
 
