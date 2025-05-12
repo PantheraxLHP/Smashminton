@@ -3,9 +3,11 @@ import KeyvRedis from '@keyv/redis';
 import { CacheBooking } from "../src/interfaces/bookings.interface";
 import Redis from 'ioredis';
 import { CacheCourtBooking } from "../src/interfaces/bookings.interface";
+import { CacheOrder } from "src/interfaces/orders.interface";
 // Kết nối Keyv với Redis
 const redisUrl = "redis://localhost:6379";
 const booking_keyv = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'booking' }); // Sử dụng Keyv với KeyvRedis
+const order_keyv = new Keyv({ store: new KeyvRedis({ url: redisUrl }), namespace: 'order' }); // Sử dụng Keyv với KeyvRedis
 // Khởi tạo Redis client
 const redisClient = new Redis(redisUrl);
 // Hàm lưu dữ liệu vào Keyv
@@ -22,6 +24,18 @@ async function saveCacheBooking(username: string, data: CacheBooking): Promise<v
     console.log(`Data saved for user: ${username}`);
 }
 
+async function saveCacheOrder(username: string, data: CacheOrder): Promise<void> {
+    // Kiểm tra và xóa dữ liệu nếu đã tồn tại
+    const existingData = await order_keyv.get(username);
+    if (existingData) {
+        console.log(`Data for user ${username} already exists. Deleting...`);
+        await order_keyv.delete(username); // Xóa dữ liệu cũ
+    }
+
+    // Lưu dữ liệu mới
+    await order_keyv.set(username, data,);
+    console.log(`Data saved for user: ${username}`);
+}
 // Hàm lấy dữ liệu từ Keyv
 async function getCacheBooking(username: string): Promise<CacheBooking | null> {
     const data = await booking_keyv.get(username); // Lấy dữ liệu từ Keyv
@@ -46,6 +60,23 @@ async function getAllBookings(): Promise<any[]> {
     return bookings
 }
 
+async function getAllOrders(): Promise<any[]> {
+    // Lấy tất cả các key trong namespace 'order'
+    const keys = await redisClient.keys('order:*');
+    const orders: CacheOrder[] = [];
+
+    for (const key of keys) {
+        // Loại bỏ prefix 'order:' để lấy key gốc
+        const actualKey = key.replace('order::order:', ''); // Loại bỏ prefix 'order:'
+        const value = await order_keyv.get(actualKey); // Lấy giá trị từ Keyv
+        console.log("Key:", actualKey, "Value:", value); // In key và value ra console
+        if (value) {
+            orders.push(value); // Thêm key và value vào danh sách
+        }
+    }
+    // Trả về danh sách đầy đủ thông tin
+    return orders;
+}
 // Ví dụ sử dụng
 (async () => {
     const username1 = "nguyenvun";
@@ -142,11 +173,48 @@ async function getAllBookings(): Promise<any[]> {
         TTL: -1, // Thời gian sống của cache
     };
 
+    const orderData1: CacheOrder = {
+        product_order: [
+            {
+                productid: 1,
+                productname: 'Quấn cán cầu lông Yonex AC147EX',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
+                unitprice: 150000,
+                quantity: 2,
+                totalamount: 300000,
+            },
+            {
+                productid: 2,
+                productname: 'Túi đựng giày cầu lông',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
+                unitprice: 150000,
+                quantity: 1,
+                totalamount: 150000,
+            },
+        ],
+        totalprice: 450000, // Tổng giá
+    };
+    const orderData2: CacheOrder = {
+        product_order: [
+            {
+                productid: 3,
+                productname: 'Vớ cầu lông Yonex',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+                unitprice: 150000,
+                quantity: 1,
+                totalamount: 150000,
+            },
+        ],
+        totalprice: 150000,
+    };
+
     // Lưu dữ liệu vào Keyv
     await saveCacheBooking(username1, bookingData1);
     await saveCacheBooking(username2, bookingData2);
-    await saveCacheBooking(username3, bookingData3); // Lưu dữ liệu cho user "john_doe"
+    await saveCacheBooking(username3, bookingData3); 
 
+    await saveCacheOrder(username1, orderData1);
+    await saveCacheOrder(username2, orderData2);
     // Lấy tất cả dữ liệu từ Redis
     const allBookings = await getAllBookings();
     console.log("All bookings in Redis:", allBookings);

@@ -47,7 +47,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
 }) => {
     return (
         <div
-            className={`group flex flex-col mx-2 cursor-pointer ${isColStart(shiftDate) ? "col-start-2" : ""}`}
+            className={`group flex flex-col mx-2 z-2 cursor-pointer ${isColStart(shiftDate) ? "col-start-2" : ""}`}
             style={{
                 height: `${getHeight(shiftDate)}px`,
             }}

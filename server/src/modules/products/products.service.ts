@@ -195,6 +195,18 @@ export class ProductsService {
         return this.prisma.products.findUnique({ where: { productid: id } });
     }
 
+    findOneForCache(id: number) {
+        return this.prisma.products.findUnique({
+            where: { productid: id },
+            select: {
+                productid: true,
+                productname: true,
+                productimgurl: true,
+                sellingprice: true
+            }
+        });
+    }
+
     update(id: number, updateProductDto: UpdateProductDto) {
         return this.prisma.products.update({
             where: { productid: id },

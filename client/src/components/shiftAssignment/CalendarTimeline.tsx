@@ -71,7 +71,7 @@ const CalendarTimeline = () => {
     });
 
     return (
-        <div className="relative">
+        <div className="relative min-w-max">
             {/*Time indicator line*/}
             {topOffset >= 0 && (
                 <div
@@ -80,7 +80,7 @@ const CalendarTimeline = () => {
                 />
             )}
 
-            <div className="grid grid-cols-[100px_repeat(7,minmax(0px,_1fr))] border-b border-l border-r rounded-b-lg">
+            <div className="grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] border-b border-l border-r rounded-b-lg">
                 {timesInDay.map((time, index) => (
                     <Fragment key={`time-${index}`}>
                         <div className="text-sm pt-2 pl-2 pr-1 flex items-end justify-end border-b border-r h-11">
@@ -97,7 +97,7 @@ const CalendarTimeline = () => {
             </div>
 
             {/* Shift cards */}
-            <div className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(0px,_1fr))] w-full">
+            <div className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full">
                 {parttimeShiftDates.map((shiftDate, index) => (
                     <Fragment key={`shift-${index}`}>
                         <ShiftCard

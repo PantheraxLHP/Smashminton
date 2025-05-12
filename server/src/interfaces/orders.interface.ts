@@ -3,7 +3,7 @@ export interface CacheProductOrder {
     productname: string;
     productimgurl: string;
     unitprice?: number;
-    quantity: number;
+    quantity?: number;
     totalamount?: number;
 }
 

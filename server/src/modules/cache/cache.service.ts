@@ -69,7 +69,7 @@ export class CacheService {
         for (const key of keys) {
             // Loại bỏ prefix 'booking:' để lấy key gốc
             const actualKey = key.replace('order::order:', ''); // Loại bỏ prefix 'booking:'
-            const value = await this.booking.get(actualKey);
+            const value = await this.order.get(actualKey);
             if (value) {
                 orders.push(value); // Thêm key và value vào danh sách
             }
@@ -77,16 +77,17 @@ export class CacheService {
         // Gộp tất cả các court_booking thành một mảng duy nhất và chỉ lấy các trường cần thiết
         const productOrder = orders.flatMap((order) =>
             order.court_booking.map((court: any) => ({
-                date: court.date,
-                courtid: court.courtid,
-                starttime: court.starttime,
-                duration: court.duration,
-                endtime: court.endtime,
+                productid: court.productid,
+                productname: court.productname,
+                productimgurl: court.productimgurl,
+                unitprice: court.unitprice,
+                quantity: court.quantity,
+                totalamount: court.totalamount,
             })));
         
         // Lọc `productOrder` theo `date`
-        const filteredCourtBookings = productOrder.filter((product) => product.date === date);
-        return filteredCourtBookings;
+        const filteredProductOrder = productOrder.filter((product) => product.date === date);
+        return filteredProductOrder;
     }
 
     // Lấy tất cả các today booking từ Redis để xác định sân unavailable

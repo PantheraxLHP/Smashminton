@@ -30,7 +30,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     const weekDayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
     const today = new Date().getDate();
     return (
-        <div className="grid grid-cols-[100px_repeat(7,minmax(0px,_1fr))] border-t border-l border-r rounded-t-lg">
+        <div className="min-w-max grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] border-t border-l border-r rounded-t-lg">
             <div className="border-r border-b p-2">
                 <div className="bg-primary rounded-lg w-full h-full flex flex-col items-center justify-center text-white">
                     <div className="text-xs">{year}</div>
