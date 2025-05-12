@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { useRouter } from 'next/navigation';
 
 interface Filters {
     zone?: string;
@@ -17,6 +18,7 @@ interface BookingFilterProps {
 }
 
 const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFilters, disableTimes }) => {
+    const router = useRouter();
     const [selectedZone, setSelectedZone] = useState(initialFilters?.zone || '');
     const [date, setDate] = useState(initialFilters?.date ? new Date(initialFilters.date) : new Date());
     const [duration, setDuration] = useState(initialFilters?.duration || 0);
@@ -31,6 +33,18 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
         return `${year}-${month}-${day}`;
     };
 
+    // Update URL search params when filters change
+    const updateSearchParams = (filters: Filters) => {
+        const params = new URLSearchParams();
+        if (filters.zone) params.append('zone', filters.zone);
+        if (filters.date) params.append('date', filters.date);
+        if (filters.duration) params.append('duration', filters.duration.toString());
+        if (filters.startTime) params.append('startTime', filters.startTime);
+
+        // Update URL without refreshing the page
+        router.push(`/booking/courts?${params.toString()}`, { scroll: false });
+    };
+
     // Effect to update filters for the parent component
     useEffect(() => {
         const filters: Filters = {
@@ -40,7 +54,8 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
             startTime,
         };
         onFilterChange(filters);
-    }, [selectedZone, date, duration, startTime, onFilterChange]);
+        updateSearchParams(filters);
+    }, [selectedZone, date, duration, startTime, onFilterChange, router]);
 
     const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
