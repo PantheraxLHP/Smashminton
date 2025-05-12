@@ -123,13 +123,13 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
                     const isSelected = scCourtIndex !== -1;
 
                     return (
-                        <div key={court.courtid} className="overflow-hidden rounded-lg border shadow-lg">
+                        <div key={court.courtid} className="flex flex-col h-full rounded-lg border shadow-lg">
                             <Image
                                 src={court.courtimgurl || 'default-court.png'}
                                 alt={court.courtname || 'Hình ảnh sân'}
-                                width={300}
-                                height={200}
-                                className="w-full object-cover"
+                                width={200}
+                                height={400}
+                                className="object-cover rounded-t-lg w-full !h-[350px]"
                             />
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
