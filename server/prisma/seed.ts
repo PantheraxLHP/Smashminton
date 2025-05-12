@@ -25,6 +25,8 @@ async function main() {
         'zones',
         'products',
         'product_types',
+        'product_filter',
+        'product_filter_values',
         'suppliers',
     ];
 
@@ -1195,16 +1197,16 @@ async function main() {
     await prisma.product_types.createMany({
         data: [
             {
-                producttypename: 'Foods and Drinks',
+                producttypename: 'Đồ ăn - Thức uống',
             },
             {
-                producttypename: 'Accessories',
+                producttypename: 'Phụ kiện cầu lông',
             },
             {
-                producttypename: 'Racket Rental',
+                producttypename: 'Thuê vợt',
             },
             {
-                producttypename: 'Shoes Rental',
+                producttypename: 'Thuê giày',
             },
         ],
     });
@@ -1246,11 +1248,23 @@ async function main() {
             },
             {
                 productfilterid: 2,
-                value: 'Ốngcầu lông',
+                value: 'Ống cầu lông',
             },
             {
                 productfilterid: 2,
-                value: 'Quấn cán',
+                value: 'Quấn cán cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Túi đựng giày cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Vớ cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Cước đan vợt',
             },
             {
                 productfilterid: 3,
