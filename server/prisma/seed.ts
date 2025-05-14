@@ -824,8 +824,10 @@ async function main() {
 
     await prisma.products.createMany({
         data: [
-            // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
-            // 6: Food, 7: Beverage, 8: Snack
+            // 1: Quấn cán, 2: Túi đựng giày, 3: Ống cầu lông, 4: Bóng cầu lông, 5: Dây cầu lông
+            // 6: Thức ăn, 7: Nước uống, 8: Snack
+            // 9,10,11,12,13: Giày cầu lông
+            // 14,15,16,17,18: Vợt cầu lông
             {
                 productname: 'Quấn cán cầu lông Yonex AC147EX',
                 productimgurl:
@@ -979,6 +981,150 @@ async function main() {
                 sellingprice: 3.0,
                 rentalprice: null,
                 costprice: 2.0,
+            },
+            {
+                productname: 'Giày cầu lông Yonex 88 Dial Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/prt6j6d0hmp9aohg5m1x.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185363/Products/ckyxoe5p0meazsnusob6.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185370/Products/o4urkqmscj8yuwqflaxb.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185368/Products/co1chmyu83mbqexeuvxy.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Arcsaber 11 Play',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/ho0w2hlxyepm0higwmo0.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Arcsaber 88 Play 2024',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/nwnqx8dnkyh9fmiaqkbq.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Nanoflare StarBucks Xanh',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/djkikwpw1dhwqa7wjdeo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186470/Products/rswfqf6psadj1yjinouo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
             },
         ],
     });
@@ -1297,6 +1443,31 @@ async function main() {
             {
                 productfilterid: 4,
                 value: '44',
+            },
+        ],
+    });
+
+    await prisma.product_attributes.createMany({
+        data: [
+            {
+                productid: 9,
+                productfiltervalueid: 9,
+            },
+            {
+                productid: 10,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 11,
+                productfiltervalueid: 11,
+            },
+            {
+                productid: 14,
+                productfiltervalueid: 14,
+            },
+            {
+                productid: 15,
+                productfiltervalueid: 15,
             },
         ],
     });
