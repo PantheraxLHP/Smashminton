@@ -16,6 +16,7 @@ import { CourtsModule } from './modules/courts/courts.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ProductTypesModule } from './modules/product_types/product_types.module';
+import { ProductFilterModule } from './modules/product_filter/product_filter.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { ProductTypesModule } from './modules/product_types/product_types.module
         BookingsModule,
         OrdersModule,
         ProductTypesModule,
+        ProductFilterModule,
     ],
     controllers: [AppController],
     providers: [AppService],
