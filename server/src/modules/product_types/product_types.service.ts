@@ -23,7 +23,7 @@ export class ProductTypesService {
     });
   }
 
-  async findAllProductsFromProductType(productTypeId: number) {
+  async findAllProductsFromProductType(productTypeId: number, filterValueIds?: number[]) {
     const productTypes = await this.prisma.product_types.findUnique({
       where: {
         producttypeid: productTypeId,
@@ -32,6 +32,9 @@ export class ProductTypesService {
         product_filter: {
           include: {
             product_filter_values: {
+              where: filterValueIds
+                ? { productfiltervalueid: { in: filterValueIds } }
+                : undefined,
               include: {
                 product_attributes: {
                   include: {
