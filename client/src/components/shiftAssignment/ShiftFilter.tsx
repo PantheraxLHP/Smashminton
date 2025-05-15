@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import RuleOptions from "./RuleOptions";
 import { Icon } from "@iconify/react";
+import AssignmentRuleList from "./AssignmentRuleList";
 
 interface ShiftFilterProps extends WeekPickerProps {
 
@@ -99,15 +100,15 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                             Bạn có thể tùy chỉnh quy tắc phân công ca làm việc tự động cho nhân viên bán thời gian tại đây
                         </DialogDescription>
                     </DialogHeader>
-                    <RuleOptions />
+                    {/* <RuleOptions /> */}
+                    <AssignmentRuleList />
                     <DialogFooter>
                         <DialogTrigger asChild>
-                            <Button variant="secondary">Thoát</Button>
+                            <Button variant="secondary">
+                                <Icon icon="material-symbols:arrow-back-rounded" />
+                                Quay về
+                            </Button>
                         </DialogTrigger>
-                        <DialogTrigger asChild>
-                            <Button>Thực hiện phân công</Button>
-                        </DialogTrigger>
-                        <Button>Lưu tùy chỉnh</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
