@@ -3,8 +3,6 @@ import { OrdersService } from './orders.service';
 import { addProductOrderDto, cacheOrderDTO, deleteProductOrderDto } from './dto/create-cache-order.dto';
 import { CacheOrder } from 'src/interfaces/orders.interface';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { cacheBookingDTO } from '../bookings/dto/create-cache-booking.dto';
-
 @Controller('orders')
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
