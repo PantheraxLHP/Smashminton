@@ -61,7 +61,7 @@ export class BookingsService {
 					courtimgurl: court.courtimgurl ?? '',
 					date: court_booking.date,
 					starttime: court.starttime,
-					duration: court.duration ?? 0, 
+					duration: court.duration ?? 0,
 					endtime: court.endtime,
 					price: Number(court.price), // Chuyển giá thành số
 				};
@@ -94,7 +94,7 @@ export class BookingsService {
 				courtimgurl: court.courtimgurl ?? '',
 				date: court_booking.date,
 				starttime: court.starttime,
-				duration: court.duration ?? 0, 
+				duration: court.duration ?? 0,
 				endtime: court.endtime,
 				price: Number(court.price), // Chuyển giá thành số
 			};
@@ -160,6 +160,22 @@ export class BookingsService {
 		}
 
 		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+
+		if (TTL === -1) {
+			const index = bookingUserCache.court_booking.indexOf(courtBookingToRemove);
+			if (index > -1) {
+				bookingUserCache.court_booking.splice(index, 1);
+				bookingUserCache.totalprice -= courtBookingToRemove.price;
+			}
+
+			const isSuccess = await this.cacheService.setBooking(username, bookingUserCache);
+
+			if (!isSuccess) {
+				throw new BadRequestException('Failed to update booking in cache');
+			}
+
+			return bookingUserCache;
+		}
 		bookingUserCache.TTL = TTL;
 
 		const index = bookingUserCache.court_booking.indexOf(courtBookingToRemove);

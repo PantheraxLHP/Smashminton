@@ -9,16 +9,6 @@ import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
 export class CourtsController {
     constructor(private readonly courtsService: CourtsService) { }
 
-    @Post()
-    create(@Body() createCourtDto: CreateCourtDto) {
-        return this.courtsService.create(createCourtDto);
-    }
-
-    @Get()
-    findAll() {
-        return this.courtsService.findAll();
-    }
-
     @Get('filtered-courts-dayfromto')
     @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
     @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
@@ -50,19 +40,5 @@ export class CourtsController {
     })
     async getSeparateCourtPrice(@Body() courtBookingDTO: courtBookingDto) {
         return this.courtsService.separateCourtPrice(courtBookingDTO);
-    }
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.courtsService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updateCourtDto: UpdateCourtDto) {
-        return this.courtsService.update(+id, updateCourtDto);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.courtsService.remove(+id);
     }
 }

@@ -16,7 +16,11 @@ import { CourtsModule } from './modules/courts/courts.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ProductTypesModule } from './modules/product_types/product_types.module';
+<<<<<<< Updated upstream
 import { ProductFilterModule } from './modules/product_filter/product_filter.module';
+=======
+import { PaymentModule } from './modules/payment/payment.module';
+>>>>>>> Stashed changes
 
 @Module({
     imports: [
@@ -36,7 +40,11 @@ import { ProductFilterModule } from './modules/product_filter/product_filter.mod
         BookingsModule,
         OrdersModule,
         ProductTypesModule,
+<<<<<<< Updated upstream
         ProductFilterModule,
+=======
+        PaymentModule,
+>>>>>>> Stashed changes
     ],
     controllers: [AppController],
     providers: [AppService],
