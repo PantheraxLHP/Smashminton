@@ -45,7 +45,6 @@ export class ProductTypesService {
       },
     });
 
-    // Tách lấy products từ mấy tầng lồng nhau
     const allProductsMap = new Map();
 
     productTypes?.product_filter.forEach((filter) => {
