@@ -13,6 +13,9 @@ import { TesseractOcrModule } from './modules/tesseract-ocr/tesseract-ocr.module
 import { StudentCardModule } from './modules/student_card/student_card.module';
 import { CourtBookingModule } from './modules/court_booking/court_booking.module';
 import { CourtsModule } from './modules/courts/courts.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ProductTypesModule } from './modules/product_types/product_types.module';
 
 @Module({
     imports: [
@@ -29,6 +32,9 @@ import { CourtsModule } from './modules/courts/courts.module';
         StudentCardModule,
         CourtBookingModule,
         CourtsModule,
+        BookingsModule,
+        OrdersModule,
+        ProductTypesModule,
     ],
     controllers: [AppController],
     providers: [AppService],

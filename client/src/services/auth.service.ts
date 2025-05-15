@@ -1,7 +1,10 @@
 import type { SigninSchema } from '@/app/(auth)/auth.schema';
 import { ServiceResponse } from '@/lib/serviceResponse';
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> dev
 export async function handleSignin(signinData: SigninSchema) {
     try {
         const response = await fetch('/api/auth/signin', {

@@ -176,41 +176,29 @@ model penalty_rules {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model product_descriptions {
-  productdescid  Int        @id @default(autoincrement())
-  weight         Decimal?   @db.Decimal
-  size           String?
-  gripsize       String?
-  shaftstiffness String?
-  products       products[]
-}
 
 model product_types {
-  producttypeid   Int        @id @default(autoincrement())
+  producttypeid   Int              @id @default(autoincrement())
   producttypename String?
-  productisfood   Boolean?
-  products        products[]
+  product_filter  product_filter[]
 }
 
 model products {
-  productid            Int                   @id @default(autoincrement())
-  productname          String?
-  batch                String?
-  expirydate           DateTime?             @db.Timestamptz(6)
-  status               String?
-  stockquantity        Int?
-  sellingprice         Decimal?              @db.Decimal
-  rentalprice          Decimal?              @db.Decimal
-  costprice            Decimal?              @db.Decimal
-  productimgurl        String?
-  producttypeid        Int?
-  productdescid        Int?
-  createdat            DateTime?             @default(now()) @db.Timestamptz(6)
-  updatedat            DateTime?             @default(now()) @db.Timestamptz(6)
-  order_product        order_product[]
-  product_descriptions product_descriptions? @relation(fields: [productdescid], references: [productdescid], onDelete: NoAction, onUpdate: NoAction, map: "fk_products_productdescriptions")
-  product_types        product_types?        @relation(fields: [producttypeid], references: [producttypeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_products_producttype")
-  purchase_order       purchase_order[]
+  productid          Int                  @id @default(autoincrement())
+  productname        String?
+  batch              String?
+  expirydate         DateTime?            @db.Timestamptz(6)
+  status             String?
+  stockquantity      Int?
+  sellingprice       Decimal?             @db.Decimal
+  rentalprice        Decimal?             @db.Decimal
+  costprice          Decimal?             @db.Decimal
+  productimgurl      String?
+  createdat          DateTime?            @default(now()) @db.Timestamptz(6)
+  updatedat          DateTime?            @default(now()) @db.Timestamptz(6)
+  order_product      order_product[]
+  product_attributes product_attributes[]
+  purchase_order     purchase_order[]
 }
 
 model purchase_order {
@@ -353,10 +341,36 @@ model zone_prices {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model zones {
-  zoneid      Int           @id @default(autoincrement())
-  zonename    String?
-  zonetype    String?
-  zoneimgurl  String?
-  courts      courts[]
-  zone_prices zone_prices[]
+  zoneid          Int           @id @default(autoincrement())
+  zonename        String?
+  zonetype        String?
+  zoneimgurl      String?
+  zonedescription String?
+  courts          courts[]
+  zone_prices     zone_prices[]
+}
+
+model product_attributes {
+  productid             Int
+  productfiltervalueid  Int
+  product_filter_values product_filter_values @relation(fields: [productfiltervalueid], references: [productfiltervalueid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_productfiltervalues")
+  products              products              @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_products")
+
+  @@id([productid, productfiltervalueid], map: "pk_productattributes")
+}
+
+model product_filter {
+  productfilterid       Int                     @id @default(autoincrement())
+  productfiltername     String?
+  producttypeid         Int?
+  product_types         product_types?          @relation(fields: [producttypeid], references: [producttypeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productfilter_producttypes")
+  product_filter_values product_filter_values[]
+}
+
+model product_filter_values {
+  productfiltervalueid Int                  @id @default(autoincrement())
+  value                String?
+  productfilterid      Int?
+  product_attributes   product_attributes[]
+  product_filter       product_filter?      @relation(fields: [productfilterid], references: [productfilterid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productfiltervalues_productfilter")
 }

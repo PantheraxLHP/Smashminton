@@ -1,9 +1,13 @@
-export interface AvailableCourt {
-    courtid: number;
-    courtname: string | null;
-    dayfrom: string | null;
-    dayto: string | null;
-    starttime: string;
-    endtime: string;
-    price: string;
-  }
+export interface CourtPrices {
+  zoneid: number;
+  courtid: number;
+  courtname: string | null;
+  courtimgurl: string | null;
+  dayfrom?: string | null;
+  dayto?: string | null;
+  date?: string;
+  starttime: string;
+  endtime: string;
+  duration: number;
+  price: number;
+}

@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
-type User = {
+export type User = {
     id: string;
     username: string;
     accounttype: string;

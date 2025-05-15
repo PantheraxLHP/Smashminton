@@ -7,12 +7,13 @@ const HeroSection = () => {
     return (
         <div className="relative max-h-screen w-full">
             <Image
-                src="/homebg.png"
+                // src="/homebg.png"
+                src="https://res.cloudinary.com/dnagyxwcl/image/upload/v1746248985/What_is_the_Weight_of_a_Plastic_Shuttlecock__-_BadmintonBites_cwgpxi.jpg"
                 alt="Badminton Court"
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="absolute inset-0 -z-10 object-cover brightness-75"
+                quality={100}
+                className="absolute inset-0 -z-10 object-cover"
             />
             <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8">
                 {/* Left Section: Text */}
@@ -21,8 +22,12 @@ const HeroSection = () => {
                         Thể thao mỗi ngày, sức khỏe mỗi phút
                     </h1>
                     <p className="mt-3 text-lg italic drop-shadow-lg md:text-2xl">Đặt sân cầu lông ngay hôm nay!</p>
-                    <Button variant="outline" className="mt-4" asChild>
-                        <Link href={'booking'}>Đặt lịch cố định →</Link>
+                    <Button
+                        variant="default"
+                        className="bg-primary hover:bg-primary/60 mt-6 transform rounded-lg px-6 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105"
+                        asChild
+                    >
+                        <Link href={'booking/courts'}>ĐẶT SÂN NGAY !!!</Link>
                     </Button>
                 </div>
 

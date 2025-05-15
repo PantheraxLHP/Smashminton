@@ -8,5 +8,6 @@ import { CacheModule } from '../cache/cache.module';
     controllers: [ProductsController],
     providers: [ProductsService],
     imports: [PrismaModule, CacheModule],
+    exports: [ProductsService],
 })
 export class ProductsModule {}

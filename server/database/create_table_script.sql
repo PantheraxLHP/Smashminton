@@ -1,35 +1,34 @@
-drop table if exists accounts CASCADE;
-drop table if exists account CASCADE;
-drop table if exists employees CASCADE;
-drop table if exists employee CASCADE;
-drop table if exists bank_detail CASCADE;
-drop table if exists shift CASCADE;
-drop table if exists shift_date CASCADE;
-drop table if exists shift_enrollment CASCADE;
-drop table if exists shift_assignment CASCADE;
-drop table if exists penalty_rules CASCADE;
-drop table if exists penalty_records CASCADE;
-drop table if exists reward_rules CASCADE;
-drop table if exists reward_records CASCADE;
-drop table if exists autoassignment_rules CASCADE;
-drop table if exists timesheet CASCADE;
-drop table if exists customers CASCADE;
-drop table if exists customer CASCADE;
-drop table if exists student_card CASCADE;
-drop table if exists zones CASCADE;
-drop table if exists zone_prices CASCADE;
-drop table if exists courts CASCADE;
-drop table if exists voucher CASCADE;
-drop table if exists bookings CASCADE;
-drop table if exists court_booking CASCADE;
-drop table if exists suppliers CASCADE;
-drop table if exists products CASCADE;
-drop table if exists purchase_order CASCADE;
-drop table if exists product_descriptions CASCADE;
-drop table if exists orders CASCADE;
-drop table if exists order_product CASCADE;
 drop table if exists receipts CASCADE;
+drop table if exists order_product CASCADE;
+drop table if exists orders CASCADE;
+drop table if exists purchase_order CASCADE;
+drop table if exists products CASCADE;
 drop table if exists product_types CASCADE;
+drop table if exists product_filter CASCADE;
+drop table if exists product_filter_values CASCADE;
+drop table if exists product_attributes CASCADE;
+drop table if exists suppliers CASCADE;
+drop table if exists court_booking CASCADE;
+drop table if exists bookings CASCADE;
+drop table if exists voucher CASCADE;
+drop table if exists courts CASCADE;
+drop table if exists zone_prices CASCADE;
+drop table if exists zones CASCADE;
+drop table if exists student_card CASCADE;
+drop table if exists customers CASCADE;
+drop table if exists timesheet CASCADE;
+drop table if exists autoassignment_rules CASCADE;
+drop table if exists reward_records CASCADE;
+drop table if exists reward_rules CASCADE;
+drop table if exists penalty_records CASCADE;
+drop table if exists penalty_rules CASCADE;
+drop table if exists shift_assignment CASCADE;
+drop table if exists shift_enrollment CASCADE;
+drop table if exists shift_date CASCADE;
+drop table if exists shift CASCADE;
+drop table if exists bank_detail CASCADE;
+drop table if exists employees CASCADE;
+drop table if exists accounts CASCADE;
 
 create table if not exists accounts (
 	accountid integer generated always as identity primary key,
@@ -186,7 +185,8 @@ create table if not exists zones (
 	zoneid integer generated always as identity primary key,
 	zonename text,
 	zonetype text check (zonetype in ('Normal', 'AirConditioner', 'Private')),
-	zoneimgurl text
+	zoneimgurl text,
+	zonedescription text
 );
 
 create table if not exists zone_prices (
@@ -260,20 +260,6 @@ create table if not exists suppliers (
 	updatedat timestamptz default now()
 );
 
-create table if not exists product_descriptions (
-	productdescid integer generated always as identity primary key,
-	weight numeric,
-	size text,
-	gripsize text check (gripsize in ('4U', '5U')),
-	shaftstiffness text check (shaftstiffness in ('Dẻo', 'Cứng'))
-);
-
-create table if not exists product_types (
-	producttypeid integer generated always as identity primary key,
-	producttypename text,
-	productisfood boolean
-);
-
 create table if not exists products (
 	productid integer generated always as identity primary key,
 	productname text,
@@ -285,12 +271,35 @@ create table if not exists products (
 	rentalprice numeric,
 	costprice numeric,
 	productimgurl text,
-	producttypeid integer,
-	productdescid integer,
 	createdat timestamptz default now(),
-	updatedat timestamptz default now(),
-	constraint fk_products_producttype foreign key (producttypeid) references product_types(producttypeid),
-	constraint fk_products_productdescriptions foreign key (productdescid) references product_descriptions(productdescid)
+	updatedat timestamptz default now()
+);
+
+create table if not exists product_types (
+	producttypeid integer generated always as identity primary key,
+	producttypename text
+);
+
+create table if not exists product_filter (
+	productfilterid integer generated always as identity primary key,
+	productfiltername text,
+	producttypeid integer,
+	constraint fk_productfilter_producttypes foreign key (producttypeid) references product_types(producttypeid)
+);
+
+create table if not exists product_filter_values (
+	productfiltervalueid integer generated always as identity primary key,
+	value text,
+	productfilterid integer,
+	constraint fk_productfiltervalues_productfilter foreign key (productfilterid) references product_filter(productfilterid)
+);
+
+create table if not exists product_attributes (
+	productid integer,
+	productfiltervalueid integer,
+	constraint pk_productattributes primary key (productid, productfiltervalueid),
+	constraint fk_productattributes_products foreign key (productid) references products(productid),
+	constraint fk_productattributes_productfiltervalues foreign key (productfiltervalueid) references product_filter_values(productfiltervalueid)
 );
 
 create table if not exists purchase_order (

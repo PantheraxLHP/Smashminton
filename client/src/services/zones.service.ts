@@ -13,8 +13,11 @@ const featureTranslations: Record<string, string> = {
 
 export const getZones = async () => {
     try {
+<<<<<<< HEAD
         // Get ApiResponse from /api/zones
 
+=======
+>>>>>>> dev
         const res = await fetch('/api/zones');
         const result = await res.json();
 

@@ -23,6 +23,7 @@ const ProfileIcon = () => {
         setUser(null);
         setIsAuthenticated(false);
         window.location.reload();
+        window.location.href = '/';
     };
 
     return (

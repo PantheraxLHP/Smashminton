@@ -23,8 +23,10 @@ async function main() {
         'zone_prices',
         'courts',
         'zones',
-        'product_descriptions',
         'products',
+        'product_types',
+        'product_filter',
+        'product_filter_values',
         'suppliers',
     ];
 
@@ -282,21 +284,25 @@ async function main() {
                 status: 'Active',
                 fullname: `User ${i}`,
                 accounttype: 'Employee',
-                gender: i % 2 === 0 ? 'Male' : 'Female'
+                gender: i % 2 === 0 ? 'Male' : 'Female',
             },
         });
     }
 
     const accountIds = await prisma.accounts.findMany({
-            select: {
-                accountid: true,
-                accounttype: true,
-            },
-        })
+        select: {
+            accountid: true,
+            accounttype: true,
+        },
+    });
 
-    const employeeIds = accountIds.filter((account) => account.accounttype === 'Employee').map((account) => account.accountid);
-    const customerIds = accountIds.filter((account) => account.accounttype === 'Customer').map((account) => account.accountid);
-    
+    const employeeIds = accountIds
+        .filter((account) => account.accounttype === 'Employee')
+        .map((account) => account.accountid);
+    const customerIds = accountIds
+        .filter((account) => account.accounttype === 'Customer')
+        .map((account) => account.accountid);
+
     const defaultRoles = ['admin', 'hr_manager', 'wh_manager', 'employee'];
 
     customerIds.forEach(async (customerId) => {
@@ -424,15 +430,15 @@ async function main() {
     await prisma.autoassignment_rules.createMany({
         data: [
             {
-                rulename: "Số ca tối đa 1 ngày",
-                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 ngày",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "2",
-                ruleappliedfor: "Employee",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số ca tối đa 1 ngày',
+                ruledescription:
+                    'Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 ngày',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '2',
+                ruleappliedfor: 'Employee',
+                ruletype: 'WHERE',
+                rulesql: `
                     daily_shift_counts AS (
                         SELECT 
                             ae.employeeid,
@@ -449,22 +455,21 @@ async function main() {
                         GROUP BY ae.employeeid, sd.shiftdate
                     )
                 `,
-                columnname: "dsc.assigned_shifts_in_day,dsc.shiftdate",
-                ctename: "daily_shift_counts dsc",
-                condition: "assigned_shifts_in_day < rulevalue AND shiftdate = $shiftdate",
+                columnname: 'dsc.assigned_shifts_in_day,dsc.shiftdate',
+                ctename: 'daily_shift_counts dsc',
+                condition: 'assigned_shifts_in_day < rulevalue AND shiftdate = $shiftdate',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Sắp xếp theo điểm ưu tiên",
-                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có điểm ưu tiên cao hơn",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "DESC",
-                ruleappliedfor: "Employee",
-                ruletype: "ORDER",
-                rulesql:
-                    `
+                rulename: 'Sắp xếp theo điểm ưu tiên',
+                ruledescription: 'Khi có đụng độ, ưu tiên phân công nhân viên có điểm ưu tiên cao hơn',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: 'DESC',
+                ruleappliedfor: 'Employee',
+                ruletype: 'ORDER',
+                rulesql: `
                     late_counts AS (
                         SELECT 
                             pr.employeeid, 
@@ -500,22 +505,22 @@ async function main() {
                         LEFT JOIN absence_counts ac ON ae.employeeid = ac.employeeid
                     )
                 `,
-                columnname: "ep.priority_score",
-                ctename: "employee_priority ep",
-                condition: "priority_score rulevalue",
+                columnname: 'ep.priority_score',
+                ctename: 'employee_priority ep',
+                condition: 'priority_score rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Số ca tối đa 1 tuần",
-                ruledescription: "Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 tuần",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "12",
-                ruleappliedfor: "Employee",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số ca tối đa 1 tuần',
+                ruledescription:
+                    'Số ca làm việc tối đa có thể được phân công cho 1 nhân viên bán thời gian trong 1 tuần',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '12',
+                ruleappliedfor: 'Employee',
+                ruletype: 'WHERE',
+                rulesql: `
                     shift_counts AS (
                         SELECT 
                             ae.employeeid, 
@@ -528,23 +533,22 @@ async function main() {
                         GROUP BY ae.employeeid
                     )  
                 `,
-                columnname: "sc.assigned_shifts",
-                ctename: "shift_counts sc",
+                columnname: 'sc.assigned_shifts',
+                ctename: 'shift_counts sc',
                 canbecollided: true,
-                condition: "assigned_shifts < rulevalue",
+                condition: 'assigned_shifts < rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Sắp xếp theo số ca làm trong tuần",
-                ruledescription: "Khi có đụng độ, ưu tiên phân công nhân viên có số ca làm trong tuần ít hơn",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "ASC",
-                ruleappliedfor: "Employee",
-                ruletype: "ORDER",
-                rulesql:
-                    `
+                rulename: 'Sắp xếp theo số ca làm trong tuần',
+                ruledescription: 'Khi có đụng độ, ưu tiên phân công nhân viên có số ca làm trong tuần ít hơn',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: 'ASC',
+                ruleappliedfor: 'Employee',
+                ruletype: 'ORDER',
+                rulesql: `
                     shift_counts AS (
                         SELECT 
                             ae.employeeid, 
@@ -557,23 +561,22 @@ async function main() {
                         GROUP BY ae.employeeid
                     )
                 `,
-                columnname: "sc.assigned_shifts",
-                ctename: "shift_counts sc",
+                columnname: 'sc.assigned_shifts',
+                ctename: 'shift_counts sc',
                 canbecollided: true,
-                condition: "assigned_shifts rulevalue",
+                condition: 'assigned_shifts rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
             {
-                rulename: "Số nhân viên tối đa trong 1 ca",
-                ruledescription: "Số nhân viên tối đa có thể được phân công trong 1 ca làm việc bán thời gian",
-                rulestatus: "Active",
-                ruleforemptype: "Part-time",
-                rulevalue: "2",
-                ruleappliedfor: "Shift",
-                ruletype: "WHERE",
-                rulesql:
-                    `
+                rulename: 'Số nhân viên tối đa trong 1 ca',
+                ruledescription: 'Số nhân viên tối đa có thể được phân công trong 1 ca làm việc bán thời gian',
+                rulestatus: 'Active',
+                ruleforemptype: 'Part-time',
+                rulevalue: '2',
+                ruleappliedfor: 'Shift',
+                ruletype: 'WHERE',
+                rulesql: `
                     employee_counts AS (
                         SELECT
                             nws.shiftid,
@@ -585,9 +588,9 @@ async function main() {
                         GROUP BY nws.shiftid, nws.shiftdate
                     )
                 `,
-                columnname: "ec.assigned_employees",
-                ctename: "employee_counts ec",
-                condition: "assigned_employees < rulevalue",
+                columnname: 'ec.assigned_employees',
+                ctename: 'employee_counts ec',
+                condition: 'assigned_employees < rulevalue',
                 createdat: new Date(),
                 updatedat: new Date(),
             },
@@ -623,16 +626,19 @@ async function main() {
                 zonename: 'Zone A',
                 zonetype: 'Normal',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
+                zonedescription: 'Thông thoáng, không gian rộng, giá hợp lý',
             },
             {
                 zonename: 'Zone B',
                 zonetype: 'AirConditioner',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
+                zonedescription: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP',
             },
             {
                 zonename: 'Zone C',
                 zonetype: 'Private',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
+                zonedescription: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu',
             },
         ],
     });
@@ -742,205 +748,386 @@ async function main() {
         data: [
             {
                 courtname: 'Court A1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court B1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court C1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court D1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court E1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court F1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court G1',
-                zoneid: 1,
-            },
-            {
-                courtname: 'Court H1',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_1_gmluce.jpg',
                 zoneid: 1,
             },
             {
                 courtname: 'Court A2',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A3',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A4',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_4_x3ymi1.jpg',
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A5',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A6',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg',
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A7',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_7_ptadlq.jpg',
+
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court A8',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg',
+
+                zoneid: 1,
+            },
+            {
+                courtname: 'Court B1',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_1_bebuc2.jpg',
+
                 zoneid: 2,
             },
             {
                 courtname: 'Court B2',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_2_nmoioi.jpg',
                 zoneid: 2,
-            },
-            {
-                courtname: 'Court C2',
-                zoneid: 2,
-            },
-            {
-                courtname: 'Court A3',
-                zoneid: 3,
             },
             {
                 courtname: 'Court B3',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_3_pgmtsr.jpg',
+                zoneid: 2,
+            },
+            {
+                courtname: 'Court C1',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C1_h8yho8.jpg',
+                zoneid: 3,
+            },
+            {
+                courtname: 'Court C2',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C2_nd5cgp.jpg',
                 zoneid: 3,
             },
             {
                 courtname: 'Court C3',
-                zoneid: 3,
-            },
-            {
-                courtname: 'Court D3',
-                zoneid: 3,
-            },
-            {
-                courtname: 'Court E3',
+                courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669812/C3_w4danq.jpg',
                 zoneid: 3,
             },
         ],
     });
-    await prisma.product_types.createMany({
+
+    await prisma.products.createMany({
         data: [
+            // 1: Quấn cán, 2: Túi đựng giày, 3: Ống cầu lông, 4: Bóng cầu lông, 5: Dây cầu lông
+            // 6: Thức ăn, 7: Nước uống, 8: Snack
+            // 9,10,11,12,13: Giày cầu lông
+            // 14,15,16,17,18: Vợt cầu lông
             {
-                producttypename: 'Shoe bag',
-                productisfood: false,
+                productname: 'Quấn cán cầu lông Yonex AC147EX',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton tube',
-                productisfood: false,
+                productname: 'Túi đựng giày cầu lông',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449426/tui-dung-giay-kamito_ruyqgy.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton racket grip',
-                productisfood: false,
+                productname: 'Vớ cầu lông Yonex',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+                batch: 'B001',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 30,
+                sellingprice: 150.0,
+                rentalprice: 20.0,
+                costprice: 100.0,
             },
             {
-                producttypename: 'Badminton sock',
-                productisfood: false,
+                productname: 'Ống cầu lông Lining AYQN024',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
+                batch: 'B002',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 100,
+                sellingprice: 25.0,
+                rentalprice: null,
+                costprice: 15.0,
             },
             {
-                producttypename: 'Badminton string',
-                productisfood: false,
+                productname: 'Ống cầu lông Yonex AS40',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
+                batch: 'B002',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 100,
+                sellingprice: 25.0,
+                rentalprice: null,
+                costprice: 15.0,
             },
             {
-                producttypename: 'Food',
-                productisfood: true,
+                productname: 'Cước Yonex pro',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
+                batch: 'B003',
+                expirydate: null,
+                status: 'Available',
+                stockquantity: 10,
+                sellingprice: 50.0,
+                rentalprice: 10.0,
+                costprice: 30.0,
             },
             {
-                producttypename: 'Beverage',
-                productisfood: true,
+                productname: 'Nước uống tăng lực Monster bạc',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447734/monster-drink_edoi6w.jpg',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
             },
             {
-                producttypename: 'Snack',
-                productisfood: true,
-            }
+                productname: 'Thanh protein block chocolate',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447817/protein-block-chocolate-90-g-riegel-jpeg_pwd4ro.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Cá viên chiên xiên bẩn',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447470/cavienchien_vetkew.jpg',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Nước uống revive',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
+            },
+            {
+                productname: 'Nước uống pocari',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
+                batch: 'D001',
+                expirydate: new Date('2025-12-31'),
+                status: 'Available',
+                stockquantity: 200,
+                sellingprice: 2.5,
+                rentalprice: null,
+                costprice: 1.5,
+            },
+            {
+                productname: 'Bánh snack OSea',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448378/orion-post-new-24_lzha5b.png',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Bánh snack bí đỏ',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 150,
+                sellingprice: 3.0,
+                rentalprice: null,
+                costprice: 2.0,
+            },
+            {
+                productname: 'Giày cầu lông Yonex 88 Dial Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/prt6j6d0hmp9aohg5m1x.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185363/Products/ckyxoe5p0meazsnusob6.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185370/Products/o4urkqmscj8yuwqflaxb.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185368/Products/co1chmyu83mbqexeuvxy.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Arcsaber 11 Play',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/ho0w2hlxyepm0higwmo0.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Arcsaber 88 Play 2024',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/nwnqx8dnkyh9fmiaqkbq.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Nanoflare StarBucks Xanh',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/djkikwpw1dhwqa7wjdeo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186470/Products/rswfqf6psadj1yjinouo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
         ],
     });
-
-    const products = [
-        // 1: Shoe bag, 2: Badminton tube, 3: Badminton racket grip, 4: Badminton sock, 5: Badminton string
-        // 6: Food, 7: Beverage, 8: Snack
-        {
-            productname: 'Yonex Badminton Grip',
-            batch: 'B001',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 3,
-            stockquantity: 30,
-            sellingprice: 150.0,
-            rentalprice: 20.0,
-            costprice: 100.0,
-        },
-        {
-            productname: 'Li-Ning Shuttlecock',
-            batch: 'B002',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 2,
-            stockquantity: 100,
-            sellingprice: 25.0,
-            rentalprice: null,
-            costprice: 15.0,
-        },
-        {
-            productname: 'Yonex Shuttlecock',
-            batch: 'B002',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 2,
-            stockquantity: 100,
-            sellingprice: 25.0,
-            rentalprice: null,
-            costprice: 15.0,
-        },
-        {
-            productname: 'Yonex pro string',
-            batch: 'B003',
-            expirydate: null,
-            status: 'Available',
-            producttypeid: 5,
-            stockquantity: 10,
-            sellingprice: 50.0,
-            rentalprice: 10.0,
-            costprice: 30.0,
-        },
-        {
-            productname: 'Energy Drink',
-            batch: 'D001',
-            expirydate: new Date('2025-12-31'),
-            status: 'Available',
-            producttypeid: 7,
-            stockquantity: 200,
-            sellingprice: 2.5,
-            rentalprice: null,
-            costprice: 1.5,
-        },
-        {
-            productname: 'Protein Bar',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 8,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        },
-        {
-            productname: 'Cá viên chiên xiên bẩn',
-            batch: 'D002',
-            expirydate: new Date('2024-06-30'),
-            status: 'Available',
-            producttypeid: 6,
-            stockquantity: 150,
-            sellingprice: 3.0,
-            rentalprice: null,
-            costprice: 2.0,
-        }
-    ];
-
-    for (const product of products) {
-        await prisma.products.create({
-            data: product,
-        });
-
-        if (product.producttypeid === 1) {
-            await prisma.product_descriptions.create({
-                data: {
-                    weight: product.productname.includes('Racket') ? 85.0 : null,
-                    size: product.productname.includes('Net') ? 'Standard' : null,
-                    gripsize: product.productname.includes('Racket') ? 'G4' : null,
-                    shaftstiffness: product.productname.includes('Racket') ? 'Medium' : null,
-                },
-            });
-        }
-    }
 
     await prisma.suppliers.createMany({
         data: [
@@ -982,14 +1169,16 @@ async function main() {
         ],
     });
 
-    const parttimeEmployeeIds = (await prisma.employees.findMany({
-        select: {
-            employeeid: true,
-        },
-        where: {
-            employee_type: 'Part-time',
-        },
-    })).map((employee) => employee.employeeid);
+    const parttimeEmployeeIds = (
+        await prisma.employees.findMany({
+            select: {
+                employeeid: true,
+            },
+            where: {
+                employee_type: 'Part-time',
+            },
+        })
+    ).map((employee) => employee.employeeid);
 
     const shiftdates = await prisma.shift_date.findMany({
         select: {
@@ -1007,6 +1196,280 @@ async function main() {
                 shiftdate: randomShiftDate.shiftdate,
             },
         });
+    });
+
+    await prisma.bookings.createMany({
+        data: [
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-15'),
+                totalprice: 400000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T09:22:19.422Z'),
+                updatedat: new Date('2025-05-14T09:22:19.422Z'),
+                employeeid: 3,
+                customerid: 16,
+                voucherid: null,
+            },
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-15'),
+                totalprice: 300000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T10:00:00.000Z'),
+                updatedat: new Date('2025-05-14T10:00:00.000Z'),
+                employeeid: 2,
+                customerid: 16,
+                voucherid: null,
+            },
+            {
+                guestphone: '0987654321',
+                bookingdate: new Date('2025-05-16'),
+                totalprice: 500000.0,
+                bookingstatus: 'Schedule',
+                createdat: new Date('2025-05-14T11:00:00.000Z'),
+                updatedat: new Date('2025-05-14T11:00:00.000Z'),
+                employeeid: 1,
+                customerid: 16,
+                voucherid: null,
+            },
+        ],
+    });
+
+    // Lấy tất cả các bookingid từ bảng bookings
+    const bookings = await prisma.bookings.findMany({
+        select: { bookingid: true },
+    });
+
+    // Tạo court_booking với các bookingid vừa lấy
+    await prisma.court_booking.createMany({
+        data: [
+            // Trường hợp 2: Một số khung giờ bị block hoàn toàn
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 07:00:00'),
+                duration: 1,
+                bookingid: bookings[0].bookingid,
+                courtid: 1,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 07:30:00'),
+                duration: 1.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 2,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 08:00:00'),
+                duration: 2,
+                bookingid: bookings[0].bookingid,
+                courtid: 3,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 08:30:00'),
+                duration: 2.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 4,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 09:00:00'),
+                duration: 3,
+                bookingid: bookings[0].bookingid,
+                courtid: 5,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 09:30:00'),
+                duration: 3.5,
+                bookingid: bookings[0].bookingid,
+                courtid: 6,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 10:00:00'),
+                duration: 4,
+                bookingid: bookings[0].bookingid,
+                courtid: 7,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 06:00:00'),
+                endtime: new Date('2025-05-15 11:00:00'),
+                duration: 5,
+                bookingid: bookings[0].bookingid,
+                courtid: 8,
+            },
+
+            // Trường hợp 3: Một số khung giờ bị block một phần
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 13:30:00'),
+                endtime: new Date('2025-05-15 15:30:00'),
+                duration: 2,
+                bookingid: bookings[1].bookingid,
+                courtid: 1,
+            },
+            {
+                date: new Date('2025-05-15'),
+                starttime: new Date('2025-05-15 13:30:00'),
+                endtime: new Date('2025-05-15 15:30:00'),
+                duration: 2,
+                bookingid: bookings[1].bookingid,
+                courtid: 2,
+            },
+
+            // Trường hợp 4: Khung giờ không liên quan đến ngày được kiểm tra
+            {
+                date: new Date('2025-05-16'),
+                starttime: new Date('2025-05-16 06:00:00'),
+                endtime: new Date('2025-05-16 07:00:00'),
+                duration: 1,
+                bookingid: bookings[2].bookingid,
+                courtid: 1,
+            },
+        ],
+    });
+
+    await prisma.product_types.createMany({
+        data: [
+            {
+                producttypename: 'Đồ ăn - Thức uống',
+            },
+            {
+                producttypename: 'Phụ kiện cầu lông',
+            },
+            {
+                producttypename: 'Thuê vợt',
+            },
+            {
+                producttypename: 'Thuê giày',
+            },
+        ],
+    });
+
+    await prisma.product_filter.createMany({
+        data: [
+            {
+                productfiltername: 'Loại đồ ăn - thức uống',
+                producttypeid: 1,
+            },
+            {
+                productfiltername: 'Loại phụ kiện',
+                producttypeid: 2,
+            },
+            {
+                productfiltername: 'Trọng lượng',
+                producttypeid: 3,
+            },
+            {
+                productfiltername: 'Size',
+                producttypeid: 4,
+            },
+        ],
+    });
+
+    await prisma.product_filter_values.createMany({
+        data: [
+            {
+                productfilterid: 1,
+                value: 'Đồ mặn',
+            },
+            {
+                productfilterid: 1,
+                value: 'Snack',
+            },
+            {
+                productfilterid: 1,
+                value: 'Đồ uống',
+            },
+            {
+                productfilterid: 2,
+                value: 'Ống cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Quấn cán cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Túi đựng giày cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Vớ cầu lông',
+            },
+            {
+                productfilterid: 2,
+                value: 'Cước đan vợt',
+            },
+            {
+                productfilterid: 3,
+                value: '3U (85-89g)',
+            },
+            {
+                productfilterid: 3,
+                value: '4U (80-84g)',
+            },
+            {
+                productfilterid: 3,
+                value: '5U (75-79g)',
+            },
+            {
+                productfilterid: 4,
+                value: '40',
+            },
+            {
+                productfilterid: 4,
+                value: '41',
+            },
+            {
+                productfilterid: 4,
+                value: '42',
+            },
+            {
+                productfilterid: 4,
+                value: '43',
+            },
+            {
+                productfilterid: 4,
+                value: '44',
+            },
+        ],
+    });
+
+    await prisma.product_attributes.createMany({
+        data: [
+            {
+                productid: 9,
+                productfiltervalueid: 9,
+            },
+            {
+                productid: 10,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 11,
+                productfiltervalueid: 11,
+            },
+            {
+                productid: 14,
+                productfiltervalueid: 14,
+            },
+            {
+                productid: 15,
+                productfiltervalueid: 15,
+            },
+        ],
     });
 }
 
