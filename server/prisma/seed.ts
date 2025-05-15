@@ -1019,30 +1019,6 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
-                batch: 'D002',
-                expirydate: new Date('2024-06-30'),
-                status: 'Available',
-                stockquantity: 2,
-                sellingprice: null,
-                rentalprice: 50000,
-                costprice: 40000,
-            },
-            {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
-                batch: 'D002',
-                expirydate: new Date('2024-06-30'),
-                status: 'Available',
-                stockquantity: 2,
-                sellingprice: null,
-                rentalprice: 50000,
-                costprice: 40000,
-            },
-            {
                 productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185370/Products/o4urkqmscj8yuwqflaxb.webp',
@@ -1450,25 +1426,77 @@ async function main() {
     await prisma.product_attributes.createMany({
         data: [
             {
+                productid: 1,
+                productfiltervalueid: 5,
+            },
+            {
+                productid: 2,
+                productfiltervalueid: 6,
+            },
+            {
+                productid: 3,
+                productfiltervalueid: 7,
+            },
+            {
+                productid: 4,
+                productfiltervalueid: 4,
+            },
+            {
+                productid: 5,
+                productfiltervalueid: 4,
+            },
+            {
+                productid: 6,
+                productfiltervalueid: 8,
+            },
+            {
+                productid: 7,
+                productfiltervalueid: 3,
+            },
+            {
+                productid: 8,
+                productfiltervalueid: 2,
+            },
+            {
                 productid: 9,
-                productfiltervalueid: 9,
+                productfiltervalueid: 1,
             },
             {
                 productid: 10,
-                productfiltervalueid: 10,
+                productfiltervalueid: 3,
             },
             {
                 productid: 11,
-                productfiltervalueid: 11,
+                productfiltervalueid: 3,
+            },
+            {
+                productid: 12,
+                productfiltervalueid: 2,
+            },
+            {
+                productid: 13,
+                productfiltervalueid: 2,
             },
             {
                 productid: 14,
-                productfiltervalueid: 14,
+                productfiltervalueid: 15,
             },
             {
                 productid: 15,
                 productfiltervalueid: 15,
             },
+            {
+                productid: 16,
+                productfiltervalueid: 15,
+            },
+            {
+                productid: 17,
+                productfiltervalueid: 15,
+            },
+            {
+                productid: 18,
+                productfiltervalueid: 15,
+            }
         ],
     });
 }
