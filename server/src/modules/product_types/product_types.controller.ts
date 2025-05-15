@@ -23,14 +23,14 @@ export class ProductTypesController {
     return this.productTypesService.create(createProductTypeDto);
   }
 
-  @Get()
-  findAll() {
-    return this.productTypesService.findAll();
+  @Get('all-product-filters')
+  findAllProductFilters() {
+    return this.productTypesService.findAllProductFilters();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productTypesService.findOne(+id);
+  @Get('/:id/products')
+  findAllProductsFromProductType(@Param('id') id: number) {
+    return this.productTypesService.findAllProductsFromProductType(+id);
   }
 
   @Patch(':id')

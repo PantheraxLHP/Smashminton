@@ -13,7 +13,11 @@ export class ProductFilterService {
   }
 
   findAll() {
-    return `This action returns all productFilter`;
+    return this.prisma.product_filter.findMany({
+      include: {
+        product_filter_values: true,
+      },
+    });
   }
 
   findOne(id: number) {

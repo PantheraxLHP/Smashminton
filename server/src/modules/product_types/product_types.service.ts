@@ -11,12 +11,56 @@ export class ProductTypesService {
     return 'This action adds a new productType';
   }
 
-  findAll() {
-    return `This action returns all productTypes`;
+  findAllProductFilters() {
+    return this.prisma.product_types.findMany({
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: true,
+          },
+        },
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productType`;
+  async findAllProductsFromProductType(productTypeId: number) {
+    const productTypes = await this.prisma.product_types.findUnique({
+      where: {
+        producttypeid: productTypeId,
+      },
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: {
+              include: {
+                product_attributes: {
+                  include: {
+                    products: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Tách lấy products từ mấy tầng lồng nhau
+    const allProductsMap = new Map();
+
+    productTypes?.product_filter.forEach((filter) => {
+      filter.product_filter_values.forEach((value) => {
+        value.product_attributes.forEach((attr) => {
+          const product = attr.products;
+          if (product && !allProductsMap.has(product.productid)) {
+            allProductsMap.set(product.productid, product);
+          }
+        });
+      });
+    });
+
+    const allProducts = Array.from(allProductsMap.values());
+    return allProducts;
   }
 
   update(id: number, updateProductTypeDto: UpdateProductTypeDto) {
