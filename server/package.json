@@ -13,11 +13,7 @@
         "redis:dev": "tsx redis/booking_data.redis.ts",
         "dev": "tsx dev.ts",
         "start:debug": "nest start --debug --watch",
-<<<<<<< HEAD
         "start:prod": "node dist/src/main.js",
-=======
-        "start:prod": "node dist/src/main",
->>>>>>> dev
         "test": "jest",
         "test:watch": "jest --watch",
         "test:cov": "jest --coverage",
