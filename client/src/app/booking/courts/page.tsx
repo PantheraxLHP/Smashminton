@@ -78,6 +78,17 @@ export default function BookingCourtsPage() {
         [handleFilterChange],
     );
 
+    // Update filters when search params change
+    useEffect(() => {
+        setFilters({
+            zone: searchParams.get('zone') || '',
+            date: searchParams.get('date') || '',
+            duration: parseFloat(searchParams.get('duration') || '0'),
+            startTime: searchParams.get('startTime') || '',
+            fixedCourt: filters.fixedCourt,
+        });
+    }, [searchParams]);
+
     // Use to fetch courts and disable start times when filters change
     useEffect(() => {
         const fetchCourtsAndDisableStartTimes = async () => {

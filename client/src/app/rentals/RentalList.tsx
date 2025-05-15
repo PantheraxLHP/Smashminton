@@ -58,8 +58,7 @@ type Shoe = {
     productName: string;
 };
 
-
-const racketItems: Item[] = Array.from({ length: 12 }, (_, index) => ({
+const racketItems: Item[] = Array.from({ length: 36 }, (_, index) => ({
     id: index,
     name: 'Vợt Yonex Nanoflare 001F 2025',
     image: '/ZoneC.png',
@@ -70,7 +69,7 @@ const racketItems: Item[] = Array.from({ length: 12 }, (_, index) => ({
     balance: 'Cân bằng',
 }));
 
-const shoeItems: Item[] = Array.from({ length: 12 }, (_, index) => ({
+const shoeItems: Item[] = Array.from({ length: 36 }, (_, index) => ({
     id: index + 100,
     name: 'Giày Lining Ranger V',
     image: '/ZoneA.png',
@@ -90,6 +89,9 @@ export default function RentalList({
     setShoes,
 }: Props) {
     const [sortOption, setSortOption] = useState<'default' | 'priceAsc' | 'priceDesc' | 'nameAsc'>('default');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12;
+    const prevDataRef = useRef<string>('');
 
     const items = selectedCategory === 'Thuê giày' ? shoeItems : racketItems;
 
@@ -121,7 +123,8 @@ export default function RentalList({
         return 0;
     });
 
-    const prevDataRef = useRef<string>('');
+    const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+    const currentItems = sortedItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     useEffect(() => {
         const parsePrice = (priceStr: string) => parseInt(priceStr.replace(/[^\d]/g, ''));
@@ -164,9 +167,9 @@ export default function RentalList({
         }
     }, [sortedItems, selectedCategory, setRackets, setShoes, rentalQuantities]);
 
-
     return (
         <div className="flex flex-col flex-1">
+            {/* Sort dropdown */}
             <div className="flex justify-end px-4 mb-4">
                 <div className="flex items-center gap-2">
                     <FaSortAmountDownAlt className="text-gray-700 text-sm" />
@@ -174,7 +177,10 @@ export default function RentalList({
                     <select
                         className="w-28 border border-gray-300 rounded px-3 py-1 text-sm outline-none focus:ring focus:ring-blue-200"
                         value={sortOption}
-                        onChange={(e) => setSortOption(e.target.value as typeof sortOption)}
+                        onChange={(e) => {
+                            setSortOption(e.target.value as typeof sortOption);
+                            setCurrentPage(1); // Reset page khi sắp xếp lại
+                        }}
                     >
                         <option value="default">Mặc định</option>
                         <option value="priceAsc">Giá tăng dần</option>
@@ -184,8 +190,9 @@ export default function RentalList({
                 </div>
             </div>
 
+            {/* Items grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 flex-1">
-                {sortedItems.map((item) => (
+                {currentItems.map((item) => (
                     <div
                         key={item.id}
                         className="p-2 text-center flex flex-col items-center border rounded-lg shadow-sm bg-white"
@@ -214,11 +221,32 @@ export default function RentalList({
                         </div>
                     </div>
                 ))}
-                {sortedItems.length === 0 && (
+                {currentItems.length === 0 && (
                     <p className="col-span-full text-center text-sm text-gray-500">
                         Không tìm thấy sản phẩm phù hợp.
                     </p>
                 )}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-center items-center gap-4 py-4">
+                <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white"
+                >
+                    &lt;
+                </button>
+                <span className="text-sm text-primary-600">
+                    Trang {currentPage} / {totalPages}
+                </span>
+                <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white"
+                >
+                    &gt;
+                </button>
             </div>
         </div>
     );
