@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUser, FaVenusMars, FaPhone, FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa';
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import Link from 'next/link'; // Import Link from next/link
+import EditProfile from './EditProfile';
 
 interface User {
     name: string;
@@ -75,6 +76,8 @@ const UserProfilePage = () => {
     const [mounted, setMounted] = useState(false); // To ensure client-side rendering
     const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(false);
     const [showStudentPopup, setShowStudentPopup] = useState(false);
+    const [showEditProfile, setShowEditProfile] = useState(false);
+    const [userInfo, setUserInfo] = useState(user);
 
     // Ensure that component is only mounted on client-side
     useEffect(() => {
@@ -119,7 +122,10 @@ const UserProfilePage = () => {
                         </div>
                     </div>
                     <div>
-                        <button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-4 py-2 rounded">
+                        <button
+                            className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-4 py-2 rounded"
+                            onClick={() => setShowEditProfile(true)}
+                        >
                             Chỉnh sửa
                         </button>
                     </div>
@@ -188,7 +194,7 @@ const UserProfilePage = () => {
                     <div className="mt-4 space-y-4 max-h-80 overflow-y-auto">
                         {pastBookings.length > 0 ? (
                             pastBookings.map((booking, index) => (
-                                <div key={index} className="border rounded p-4 shadow-sm relative border-primary-500">
+                                <div key={index} className="border rounded p-4 shadow-sm relative border-gray-500">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="text-sm text-gray-500 font-medium">{booking.time}</p>
@@ -257,6 +263,15 @@ const UserProfilePage = () => {
                 )}
 
             </div>
+            {showEditProfile && (
+                <EditProfile
+                    user={userInfo}
+                    onClose={() => setShowEditProfile(false)}
+                    onSave={(updatedUser) => {
+                        setUserInfo(updatedUser);
+                    }}
+                />
+            )}
         </div>
     );
 };
