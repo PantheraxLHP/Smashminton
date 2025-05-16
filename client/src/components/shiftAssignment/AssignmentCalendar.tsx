@@ -6,12 +6,14 @@ interface AssignmentCalendarProps {
     selectedWeek: DateRange;
     weekNumber: number;
     year: number;
+    selectedRadio: string;
 }
 
 const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
     selectedWeek,
     weekNumber,
     year,
+    selectedRadio,
 }) => {
     return (
         <div className="w-full overflow-x-auto">
@@ -20,7 +22,9 @@ const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
                 weekNumber={weekNumber}
                 year={year}
             />
-            <CalendarTimeline />
+            <CalendarTimeline 
+                selectedRadio={selectedRadio}
+            />
         </div>
     );
 }
