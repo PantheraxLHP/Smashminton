@@ -18,6 +18,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ProductTypesModule } from './modules/product_types/product_types.module';
 import { ProductFilterModule } from './modules/product_filter/product_filter.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { ProductFilterValuesModule } from './modules/product_filter_values/product_filter_values.module';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import { PaymentModule } from './modules/payment/payment.module';
         OrdersModule,
         ProductTypesModule,
         ProductFilterModule,
+        ProductFilterValuesModule,
         PaymentModule,
     ],
     controllers: [AppController],

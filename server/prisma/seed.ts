@@ -23,11 +23,12 @@ async function main() {
         'zone_prices',
         'courts',
         'zones',
+        'suppliers',
         'products',
         'product_types',
         'product_filter',
         'product_filter_values',
-        'suppliers',
+        'product_attributes',
     ];
 
     await deleteAllData(tableList);
@@ -983,7 +984,7 @@ async function main() {
                 costprice: 2.0,
             },
             {
-                productname: 'Giày cầu lông Yonex 88 Dial Trắng',
+                productname: 'Giày cầu lông Yonex 88 Dial Trắng - S41',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/prt6j6d0hmp9aohg5m1x.webp',
                 batch: 'D002',
@@ -995,7 +996,19 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Trắng',
+                productname: 'Giày cầu lông Yonex 88 Dial Trắng - S42',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/prt6j6d0hmp9aohg5m1x.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Giày cầu lông Yonex Comfort Z3 Trắng - S41',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185363/Products/ckyxoe5p0meazsnusob6.webp',
                 batch: 'D002',
@@ -1007,7 +1020,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
+                productname: 'Giày cầu lông Yonex Comfort Z3 Đen - S42',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
                 batch: 'D002',
@@ -1019,31 +1032,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
-                batch: 'D002',
-                expirydate: new Date('2024-06-30'),
-                status: 'Available',
-                stockquantity: 2,
-                sellingprice: null,
-                rentalprice: 50000,
-                costprice: 40000,
-            },
-            {
-                productname: 'Giày cầu lông Yonex Comfort Z3 Đen',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185361/Products/txovkmniwx1ne3kgps4t.webp',
-                batch: 'D002',
-                expirydate: new Date('2024-06-30'),
-                status: 'Available',
-                stockquantity: 2,
-                sellingprice: null,
-                rentalprice: 50000,
-                costprice: 40000,
-            },
-            {
-                productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ',
+                productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ - S43',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185370/Products/o4urkqmscj8yuwqflaxb.webp',
                 batch: 'D002',
@@ -1055,7 +1044,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen',
+                productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen - S42',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185368/Products/co1chmyu83mbqexeuvxy.webp',
                 batch: 'D002',
@@ -1067,7 +1056,19 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Vợt cầu lông Yonex Arcsaber 11 Play',
+                productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen - S43',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747185368/Products/co1chmyu83mbqexeuvxy.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Yonex Arcsaber 11 Play - 4U (80-84g)',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/ho0w2hlxyepm0higwmo0.webp',
                 batch: 'D002',
@@ -1079,7 +1080,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Vợt cầu lông Yonex Arcsaber 88 Play 2024',
+                productname: 'Vợt cầu lông Yonex Arcsaber 88 Play 2024 - 4U (80-84g)',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/nwnqx8dnkyh9fmiaqkbq.webp',
                 batch: 'D002',
@@ -1091,7 +1092,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Vợt cầu lông Yonex Nanoflare StarBucks Xanh',
+                productname: 'Vợt cầu lông Yonex Nanoflare StarBucks Xanh - 3U (85-89g)',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/djkikwpw1dhwqa7wjdeo.webp',
                 batch: 'D002',
@@ -1103,7 +1104,7 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Vợt cầu lông Lining Axforce 10 Trắng',
+                productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 3U (85-89g)',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186470/Products/rswfqf6psadj1yjinouo.webp',
                 batch: 'D002',
@@ -1115,7 +1116,55 @@ async function main() {
                 costprice: 40000,
             },
             {
-                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen',
+                productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 4U (80-84g)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186470/Products/rswfqf6psadj1yjinouo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 5U (75-79g)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186470/Products/rswfqf6psadj1yjinouo.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 3U (85-89g)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
+                batch: 'D002',
+                expirydate: new Date('2024-06-30'),
+                status: 'Available',
+                stockquantity: 2,
+                sellingprice: null,
+                rentalprice: 50000,
+                costprice: 40000,
+            },
+            {
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
                 batch: 'D002',
@@ -1450,24 +1499,120 @@ async function main() {
     await prisma.product_attributes.createMany({
         data: [
             {
+                productid: 1,
+                productfiltervalueid: 5,
+            },
+            {
+                productid: 2,
+                productfiltervalueid: 6,
+            },
+            {
+                productid: 3,
+                productfiltervalueid: 7,
+            },
+            {
+                productid: 4,
+                productfiltervalueid: 4,
+            },
+            {
+                productid: 5,
+                productfiltervalueid: 4,
+            },
+            {
+                productid: 6,
+                productfiltervalueid: 8,
+            },
+            {
+                productid: 7,
+                productfiltervalueid: 3,
+            },
+            {
+                productid: 8,
+                productfiltervalueid: 2,
+            },
+            {
                 productid: 9,
-                productfiltervalueid: 9,
+                productfiltervalueid: 1,
             },
             {
                 productid: 10,
-                productfiltervalueid: 10,
+                productfiltervalueid: 3,
             },
             {
                 productid: 11,
-                productfiltervalueid: 11,
+                productfiltervalueid: 3,
+            },
+            {
+                productid: 12,
+                productfiltervalueid: 2,
+            },
+            {
+                productid: 13,
+                productfiltervalueid: 2,
             },
             {
                 productid: 14,
-                productfiltervalueid: 14,
+                productfiltervalueid: 13,
             },
             {
                 productid: 15,
+                productfiltervalueid: 14,
+            },
+            {
+                productid: 16,
+                productfiltervalueid: 13,
+            },
+            {
+                productid: 17,
+                productfiltervalueid: 14,
+            },
+            {
+                productid: 18,
                 productfiltervalueid: 15,
+            },
+            {
+                productid: 19,
+                productfiltervalueid: 14,
+            },
+            {
+                productid: 20,
+                productfiltervalueid: 15,
+            },
+            {
+                productid: 21,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 22,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 23,
+                productfiltervalueid: 9,
+            },
+            {
+                productid: 24,
+                productfiltervalueid: 9,
+            },
+            {
+                productid: 25,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 26,
+                productfiltervalueid: 11,
+            },
+            {
+                productid: 27,
+                productfiltervalueid: 9,
+            },
+            {
+                productid: 28,
+                productfiltervalueid: 10,
+            },
+            {
+                productid: 29,
+                productfiltervalueid: 11,
             },
         ],
     });
@@ -1480,4 +1625,5 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
+        
     });
