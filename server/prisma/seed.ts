@@ -23,11 +23,12 @@ async function main() {
         'zone_prices',
         'courts',
         'zones',
+        'suppliers',
         'products',
         'product_types',
         'product_filter',
         'product_filter_values',
-        'suppliers',
+        'product_attributes',
     ];
 
     await deleteAllData(tableList);
@@ -1612,7 +1613,7 @@ async function main() {
             {
                 productid: 29,
                 productfiltervalueid: 11,
-            }
+            },
         ],
     });
 }
