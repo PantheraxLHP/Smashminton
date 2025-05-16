@@ -10,16 +10,17 @@ import { StudentCardService } from '../student_card/student_card.service';
 import { TesseractOcrService } from '../tesseract-ocr/tesseract-ocr.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CacheService } from '../cache/cache.service';
+import { Accounts } from 'src/interfaces/accounts.interface';
 @Injectable()
 export class AccountsService {
     constructor(
         private prisma: PrismaService,
         private customerService: CustomerService,
-        private employeeService: EmployeesService, // Assuming you have an EmployeesModule
-        private studentCardService: StudentCardService, // Assuming you have a StudentCardModule
-        private tesseractOcrService: TesseractOcrService, // Assuming you have a TesseractOcrModule
-        private cloudinaryService: CloudinaryService, // Assuming you have a CloudinaryModule
-        private cacheService: CacheService, // Assuming you have a CacheModule
+        private employeeService: EmployeesService,
+        private studentCardService: StudentCardService,
+        private tesseractOcrService: TesseractOcrService,
+        private cloudinaryService: CloudinaryService,
+        private cacheService: CacheService,
     ) {}
 
     //CRUD operations
@@ -133,11 +134,38 @@ export class AccountsService {
     findRoleByEmployeeId(employeeId: number) {
         return this.employeeService.getEmployeeRoles(employeeId);
     }
-    update(id: number, updateAccountDto: UpdateAccountDto) {
-        return this.prisma.accounts.update({
+    async update(id: number, updateAccountDto: UpdateAccountDto, file: Express.Multer.File): Promise<any> {
+        const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
+        if (!existingAccount) {
+            throw new BadRequestException('Account not found');
+        }
+
+        let url_avatar: string = existingAccount.avatarurl || '';
+        if (file) {
+            // If files are provided, upload them to Cloudinary
+            const uploadResults = await this.cloudinaryService.uploadAvatar(file); // Changed to handle multiple files
+            url_avatar = uploadResults.secure_url || '';
+            if (!url_avatar) {  
+                throw new BadRequestException('Failed to upload files');
+            }
+        }
+        // Map updateAccountDto into a variable named updatedInfo with data type Accounts
+        const updatedInfo: Accounts = {
+            ...updateAccountDto,
+            avatarurl: url_avatar,
+        };
+        
+        // Update account details in the database
+        const updatedAccount = await this.prisma.accounts.update({
             where: { accountid: id },
-            data: updateAccountDto,
+            data: updatedInfo,
         });
+
+        if (!updatedAccount) {
+            throw new BadRequestException('Failed to update account');
+        }
+
+        return updatedAccount;
     }
 
     remove(id: number) {
