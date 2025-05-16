@@ -12,13 +12,6 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 
-@ApiQuery({
-  name: 'productfiltervalue',
-  required: false,
-  type: String,
-  description: 'Comma-separated list of productfiltervalue IDs',
-})
-
 @Controller('product-types')
 export class ProductTypesController {
   constructor(private readonly productTypesService: ProductTypesService) {}
@@ -34,6 +27,12 @@ export class ProductTypesController {
   }
 
   @Get('/:id/products')
+    @ApiQuery({
+    name: 'productfiltervalue',
+    required: false,
+    type: String,
+    description: 'Comma-separated list of productfiltervalue IDs',
+  })
   findAllProductsFromProductType(@Param('id') id: number,
                                 @Query('productfiltervalue') productFilterValueQuery?: string)
   {
