@@ -161,6 +161,9 @@ const AssignmentRuleDetail = () => {
                                 <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
                                     Giá trị so sánh
                                 </div>
+                                <div className="border-b-1 border-b-gray-500 w-8 flex-shrink-0">
+                                    {/*Cột chứa nút xóa */}
+                                </div>
                             </div>
                             {ruleConditions.length > 0 ? ruleConditions.map((rule, index) => (
                                 <div
@@ -194,6 +197,12 @@ const AssignmentRuleDetail = () => {
                                             className="w-full border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50"
                                         />
                                     </div>
+                                    <div className="w-8 flex-shrink-0 flex items-center justify-center">
+                                        <Icon
+                                            icon="material-symbols:delete-outline-rounded"
+                                            className="cursor-pointer size-6 transition-all duration-300 hover:text-red-500 hover:size-7"
+                                        />
+                                    </div>
                                 </div>
                             )) : (
                                 <div className="flex w-full items-center">
@@ -225,6 +234,9 @@ const AssignmentRuleDetail = () => {
                                 <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
                                     Giá trị hành động
                                 </div>
+                                <div className="border-b-1 border-b-gray-500 w-8 flex-shrink-0">
+                                    {/*Cột chứa nút xóa */}
+                                </div>
                             </div>
                             <div className="flex flex-col h-full max-h-[40vh] overflow-y-auto">
                                 {ruleActions.length > 0 ? ruleActions.map((rule, index) => (
@@ -238,13 +250,19 @@ const AssignmentRuleDetail = () => {
                                         <div className="w-full p-2">
                                             <Select defaultValue={rule.ruleactionvalue}>
                                                 <SelectTrigger className="border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50">
-                                                    <SelectValue placeholder={"Toán tử so sánh"} />
+                                                    <SelectValue placeholder={"Chọn hành động"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={"true"}>{"Có thể phân công / Có thể xóa"}</SelectItem>
-                                                    <SelectItem value={"false"}>{"Không thể phân công / Không thể xóa"}</SelectItem>
+                                                    <SelectItem value={"true"}>{"Có thể phân công hoặc xóa"}</SelectItem>
+                                                    <SelectItem value={"false"}>{"Không thể phân công hoặc xóa"}</SelectItem>
                                                 </SelectContent>
                                             </Select>
+                                        </div>
+                                        <div className="w-8 flex-shrink-0 flex items-center justify-center">
+                                            <Icon
+                                                icon="material-symbols:delete-outline-rounded"
+                                                className="cursor-pointer size-6 transition-all duration-300 hover:text-red-500 hover:size-7"
+                                            />
                                         </div>
                                     </div>
                                 )) : (
