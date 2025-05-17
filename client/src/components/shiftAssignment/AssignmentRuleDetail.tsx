@@ -10,6 +10,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 enum CompareOperator {
     LessThan = "<",
@@ -69,6 +74,21 @@ const AssignmentRuleDetail = () => {
             ruleactionname: "Xóa khỏi danh sách được xem xét phân công",
             ruleactiontype: ActionType.SetDeletable,
             ruleactionvalue: "false",
+        },
+    ]);
+
+    const [nonScRuleConditions, setNonScRuleConditions] = useState<CustomRuleDetailCondition[]>([
+        {
+            ruleconditionid: 3,
+            ruleconditionname: "Điểm ưu tiên của nhân viên trong tháng",
+            ruleconditioncompareoperator: CompareOperator.GreaterThanOrEqualTo,
+            ruleconditioncomparevalue: 20,
+        },
+        {
+            ruleconditionid: 4,
+            ruleconditionname: "Điểm ABC XYZ",
+            ruleconditioncompareoperator: CompareOperator.NotEqualTo,
+            ruleconditioncomparevalue: 0,
         },
     ]);
 
@@ -145,10 +165,26 @@ const AssignmentRuleDetail = () => {
                                 <span className="text-lg">Điều kiện của quy tắc</span>
                                 <span className="text-xs font-light">Định nghĩa các điều kiện cần đạt để quy tắc được kích hoạt</span>
                             </div>
-                            <Button variant="outline">
-                                <Icon icon="ic:baseline-plus" className="" />
-                                Thêm điều kiện
-                            </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline">
+                                        <Icon icon="ic:baseline-plus" className="" />
+                                        Thêm điều kiện
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" className="w-50">
+                                    <div className="flex flex-col">
+                                        {nonScRuleConditions.map((rule, index) => (
+                                            <div
+                                                key={`rulecondition-${rule.ruleconditionid}`}
+                                                className="flex w-full items-center justify-center p-2 border-b-2 hover:bg-primary-50 cursor-pointer"
+                                            >
+                                                {rule.ruleconditionname}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="flex flex-col max-w-full overflow-x-auto">
                             <div className="flex w-full">
