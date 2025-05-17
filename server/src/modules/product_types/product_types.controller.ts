@@ -27,7 +27,7 @@ export class ProductTypesController {
   }
 
   @Get('/:id/products')
-    @ApiQuery({
+  @ApiQuery({
     name: 'productfiltervalue',
     required: false,
     type: String,
