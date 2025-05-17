@@ -89,13 +89,19 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
     }
 
     const handleWeekNumberClick = (week: CalendarWeek) => {
-        setSelectedWeek?.({
-            from: week.days[0].date,
-            to: week.days[week.days.length - 1].date
-        });
-        setYear?.(week.days[0].date.getFullYear());
-        setWeekNumber?.(week.weekNumber);
-        setSelectedDay(undefined);
+        const weekStart = week.days[0].date;
+        const weekEnd = week.days[week.days.length - 1].date;
+        const today = new Date();
+
+        if (weekStart <= today || weekEnd <= today) {
+            setSelectedWeek?.({
+                from: weekStart,
+                to: weekEnd
+            });
+            setYear?.(weekStart.getFullYear());
+            setWeekNumber?.(week.weekNumber);
+            setSelectedDay(undefined);
+        }
     }
 
     return (

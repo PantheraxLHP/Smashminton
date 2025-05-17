@@ -3,7 +3,13 @@ import { ShiftDate, ShiftAssignment } from "@/types/types";
 import { getDay, addDays } from "date-fns";
 import ShiftCard from "./ShiftCard";
 
-const CalendarTimeline = () => {
+interface CalendarTimelineProps {
+    selectedRadio: string;
+}
+
+const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
+    selectedRadio,
+}) => {
     const today = getDay(new Date());
     const todayIndex = today === 0 ? 6 : today - 1;
     const timesInDay = Array.from({ length: 17 }, (_, i) => `${6 + i}:00`);
@@ -75,7 +81,7 @@ const CalendarTimeline = () => {
             {/*Time indicator line*/}
             {topOffset >= 0 && (
                 <div
-                    className="absolute left-0 right-0 h-[2px] bg-primary z-1"
+                    className="absolute left-0 right-0 h-[4px] bg-primary z-1"
                     style={{ top: `${topOffset}px` }}
                 />
             )}
@@ -98,8 +104,16 @@ const CalendarTimeline = () => {
 
             {/* Shift cards */}
             <div className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full">
-                {parttimeShiftDates.map((shiftDate, index) => (
-                    <Fragment key={`shift-${index}`}>
+                {selectedRadio === "parttime" && parttimeShiftDates.map((shiftDate, index) => (
+                    <Fragment key={`parttimeshift-${index}`}>
+                        <ShiftCard
+                            shiftDate={shiftDate}
+                            shiftAssignments={[]}
+                        />
+                    </Fragment>
+                ))}
+                {selectedRadio === "fulltime" && fulltimeShiftDates.map((shiftDate, index) => (
+                    <Fragment key={`fulltimeshift-${index}`}>
                         <ShiftCard
                             shiftDate={shiftDate}
                             shiftAssignments={[]}

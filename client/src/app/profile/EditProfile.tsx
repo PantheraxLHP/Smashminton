@@ -64,7 +64,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onClose, onSave }) => {
                 </div>
                 <div className="overflow-y-auto max-h-[80vh] mr-2">
                     <div className="p-2 md:p-4">
-                        <h2 className="text-xl font-semibold mb-6 text-center text-primary-600">CHỈNH SỬA HỒ SƠ</h2>
+                        <h2 className="text-xl font-semibold mb-6 text-center text-primary-600">CẬP NHẬT THÔNG TIN CÁ NHÂN</h2>
                         <div className="space-y-4">
                             {/* Avatar */}
                             <div className="flex flex-col items-center">

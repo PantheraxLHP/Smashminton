@@ -14,6 +14,7 @@ const ShiftAssignmentPage = () => {
     });
     const [weekNumber, setWeekNumber] = useState<number>(getWeek(today, { weekStartsOn: 1 }));
     const [year, setYear] = useState<number>(today.getFullYear());
+    const [selectedRadio, setSelectedRadio] = useState<string>("fulltime");
 
     return (
         <div className="p-4 flex flex-col items-center sm:items-start sm:flex-row gap-5 w-full justify-center">
@@ -24,11 +25,14 @@ const ShiftAssignmentPage = () => {
                 setWeekNumber={setWeekNumber}
                 year={year}
                 setYear={setYear}
+                selectedRadio={selectedRadio}
+                onRadioChange={setSelectedRadio}
             />
             <AssignmentCalendar
                 selectedWeek={selectedWeek}
                 weekNumber={weekNumber}
                 year={year}
+                selectedRadio={selectedRadio}
             />
         </div>
     );

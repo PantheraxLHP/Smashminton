@@ -18,7 +18,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState, Fragment } from "react";
-import AssignmentRuleDetail from "./AssignRuleDetail";
+import AssignmentRuleDetail from "./AssignmentRuleDetail";
 
 interface CustomRuleList {
     ruleid: number;
@@ -75,7 +75,7 @@ const AssignmentRuleList = () => {
     ]);
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-full">
             <div className="flex items-center justify-end gap-4">
                 <Dialog>
                     <DialogTrigger asChild>
@@ -84,11 +84,13 @@ const AssignmentRuleList = () => {
                             Thêm quy tắc
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="!max-w-[600px] overflow-y-auto max-h-[80vh]">
+                    <DialogContent className="!max-w-[700px] overflow-y-auto max-h-[80vh]">
                         <DialogHeader>
                             <DialogTitle>
                                 Thêm quy tắc phân công mới
                             </DialogTitle>
+                            <DialogDescription>
+                            </DialogDescription>
                         </DialogHeader>
                         <AssignmentRuleDetail />
                         <DialogFooter>
@@ -106,7 +108,7 @@ const AssignmentRuleList = () => {
                 </Dialog>
                 <Button variant="outline">
                     <Icon icon="vscode-icons:file-type-excel2" className="" />
-                    Xuất file Excel (.drl.xlsx)
+                    {"Xuất file Excel (.drl.xlsx)"}
                 </Button>
             </div>
             <div className="w-full flex items-end gap-10">
@@ -179,6 +181,8 @@ const AssignmentRuleList = () => {
                                             <DialogTitle>
                                                 Chỉnh sửa quy tắc phân công
                                             </DialogTitle>
+                                            <DialogDescription>
+                                            </DialogDescription>
                                         </DialogHeader>
                                         <AssignmentRuleDetail />
                                         <DialogFooter>
