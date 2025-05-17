@@ -109,7 +109,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
             </h2>
 
             {/* Danh sách sân */}
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 w-full grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts?.map((court) => {
                     const scCourtIndex =
                         selectedCourts?.findIndex(
@@ -123,7 +123,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
                     const isSelected = scCourtIndex !== -1;
 
                     return (
-                        <div key={court.courtid} className="flex flex-col h-full rounded-lg border shadow-lg">
+                        <div key={court.courtid} className="w-full flex flex-col h-full rounded-lg border shadow-lg">
                             <Image
                                 src={court.courtimgurl || 'default-court.png'}
                                 alt={court.courtname || 'Hình ảnh sân'}

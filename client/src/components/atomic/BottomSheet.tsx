@@ -135,7 +135,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
+                <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:flex-row">
                     <div className="hidden h-full w-1 bg-white sm:block"></div>
                     {/* Countdown Timer */}
                     {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (

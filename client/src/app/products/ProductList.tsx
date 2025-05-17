@@ -55,27 +55,27 @@ const ProductList: React.FC<ProductListProps> = ({
                             alt={item.productname || 'Hình ảnh sản phẩm'}
                             width={300}
                             height={200}
-                            className="w-full object-cover"
+                            className="w-full object-scale-down !h-[200px]"
                         />
                         <h3 className="text-md font-semibold">{item.productname}</h3>
                         <div className="flex items-center justify-between">
                             <p className="text-primary-600 font-bold">{item.sellingprice?.toLocaleString()} đ</p>
                             <div className="flex items-center">
                                 <button
-                                    className="bg-primary-50 active:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
                                     onClick={() => onDecrement(item.productid)}
                                 >
                                     <Icon
                                         icon="ic:baseline-minus"
-                                        className="text-lg text-gray-500 active:text-white"
+                                        className="text-lg text-gray-500 group-hover:text-white"
                                     />
                                 </button>
                                 <span className="mx-4 text-lg">{productQuantities[item.productid]}</span>
                                 <button
-                                    className="bg-primary-50 active:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
                                     onClick={() => onIncrement(item.productid)}
                                 >
-                                    <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 active:text-white" />
+                                    <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 group-hover:text-white" />
                                 </button>
                             </div>
                         </div>
