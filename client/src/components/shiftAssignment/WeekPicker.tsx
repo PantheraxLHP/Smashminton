@@ -88,12 +88,23 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
         setSelectedDay(undefined);
     }
 
-    const handleWeekNumberClick = (week: CalendarWeek) => {
+    const isClickableWeek = (week: CalendarWeek) => {
         const weekStart = week.days[0].date;
         const weekEnd = week.days[week.days.length - 1].date;
         const today = new Date();
-
         if (weekStart <= today || weekEnd <= today) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    const handleWeekNumberClick = (week: CalendarWeek) => {
+        const weekStart = week.days[0].date;
+        const weekEnd = week.days[week.days.length - 1].date;
+
+        if (isClickableWeek(week)) {
             setSelectedWeek?.({
                 from: weekStart,
                 to: weekEnd
@@ -128,7 +139,7 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
                         Dropdown: CustomSelectDropdown,
                         WeekNumber: ({ week }) => (
                             <td
-                                className={`rdp-week_number cursor-pointer ${week.weekNumber === weekNumber ? 'bg-primary-500 text-white' : ''}`}
+                                className={`rdp-week_number ${week.weekNumber === weekNumber ? 'bg-primary-500 text-white' : ''} ${isClickableWeek(week) ? "cursor-pointer" : ""}`}
                                 onClick={() => handleWeekNumberClick(week)}
                             >
                                 {week.weekNumber}
