@@ -1,7 +1,5 @@
 import { ShiftDate, ShiftAssignment } from "@/types/types";
 import { getDay } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react";
 
 const colorIndex = [
     "bg-yellow-500",
@@ -23,10 +21,6 @@ const pixelsPerHourH = 44;
 const pixelsPerParttimeShiftH = pixelsPerHourH * 4;
 const pixelsPerFulltimeShiftH = pixelsPerHourH * 8;
 
-const isColStart = (shiftDate: ShiftDate) => {
-    return getDay(shiftDate.shiftdate) === 1 ? true : false;
-}
-
 const getHeight = (shiftDate: ShiftDate) => {
     if (shiftDate.shiftid < 3) {
         return pixelsPerFulltimeShiftH;
@@ -47,7 +41,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
 }) => {
     return (
         <div
-            className={`group flex flex-col mx-2 z-2 cursor-pointer ${isColStart(shiftDate) ? "col-start-2" : ""}`}
+            className={`group flex flex-col z-2 cursor-pointer`}
             style={{
                 height: `${getHeight(shiftDate)}px`,
             }}
@@ -59,18 +53,13 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
             </div>
             <div
                 className={`flex flex-col gap-2 p-2 rounded-b-lg h-full border-l-2 border-b-2 border-r-2 bg-white z-2 hover:${borderColorIndex[shiftDate.shiftid - 1]}`}>
-                {/* <span>WTF1</span>
-                <span>WTF2</span>
-                <span>WTF3</span> */}
-                {shiftAssignments.length > 0 && (
+                {shiftAssignments.length > 0 ? (
                     <>
                     </>
-                )}
-                {shiftAssignments.length === 0 && (
-                    <Button variant="outline_destructive" className="text-sm gap-0.5">
-                        <Icon icon="ic:baseline-plus" className="" />
-                        Cần phân công
-                    </Button>
+                ) : (
+                    <div className="h-full flex justify-center text-sm text-red-500 p-2">
+                        Chưa có phân công
+                    </div>
                 )}
             </div>
         </div>

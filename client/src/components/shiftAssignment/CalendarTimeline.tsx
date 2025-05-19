@@ -1,7 +1,7 @@
 import { useEffect, useState, Fragment } from "react";
 import { ShiftDate, ShiftAssignment } from "@/types/types";
 import { getDay, addDays } from "date-fns";
-import ShiftCard from "./ShiftCard";
+import ShiftCardDialog from "./ShiftCardDialog";
 
 interface CalendarTimelineProps {
     selectedRadio: string;
@@ -106,7 +106,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
             <div className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full">
                 {selectedRadio === "parttime" && parttimeShiftDates.map((shiftDate, index) => (
                     <Fragment key={`parttimeshift-${index}`}>
-                        <ShiftCard
+                        <ShiftCardDialog
                             shiftDate={shiftDate}
                             shiftAssignments={[]}
                         />
@@ -114,14 +114,13 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
                 ))}
                 {selectedRadio === "fulltime" && fulltimeShiftDates.map((shiftDate, index) => (
                     <Fragment key={`fulltimeshift-${index}`}>
-                        <ShiftCard
+                        <ShiftCardDialog
                             shiftDate={shiftDate}
                             shiftAssignments={[]}
                         />
                     </Fragment>
                 ))}
             </div>
-
         </div>
     );
 };
