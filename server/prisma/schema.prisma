@@ -281,7 +281,7 @@ model shift_date {
   shift_assignment shift_assignment[]
   shift            shift              @relation(fields: [shiftid], references: [shiftid], onDelete: Cascade, onUpdate: NoAction, map: "fk_shiftdate_shift")
   shift_enrollment shift_enrollment[]
-
+  
   @@id([shiftid, shiftdate], map: "pk_shiftdate")
 }
 

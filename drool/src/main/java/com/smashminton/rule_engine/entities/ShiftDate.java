@@ -5,7 +5,7 @@ import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "shift_date")
-@IdClass(ShiftDateId.class)
+@IdClass(ShiftDate.ShiftDateId.class)
 public class ShiftDate {
     @Id
     @Column(name = "shiftid")
@@ -24,24 +24,24 @@ public class ShiftDate {
     @Column(name = "shiftdate")
     private LocalDateTime shiftDate;
 
+    @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "shift_id")
-    @JsonIgnoreProperties({"shiftDates", "shiftAssignments", "shiftEnrollments"})
+    @JoinColumn(name = "shiftid", insertable = false, updatable = false)
     private Shift shift;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "shiftDateEntity", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("shiftDateEntity")
     private List<ShiftAssignment> shiftAssignments = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "shiftDateEntity", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("shiftDateEntity")
     private List<ShiftEnrollment> shiftEnrollments = new ArrayList<>();
-}
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class ShiftDateId implements java.io.Serializable {
-    private Integer shiftId;
-    private LocalDateTime shiftDate;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ShiftDateId implements java.io.Serializable {
+        private Integer shiftId;
+        private LocalDateTime shiftDate;
+    }
 } 

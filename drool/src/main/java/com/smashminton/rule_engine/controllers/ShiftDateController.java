@@ -103,7 +103,7 @@ public class ShiftDateController {
     public ResponseEntity<List<ShiftDate>> getShiftDatesByDate(
             @Parameter(description = "Date", required = true, example = "2024-03-20")
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(shiftDateService.getShiftDatesByDate(date));
+        return ResponseEntity.ok(shiftDateService.getShiftDatesByDate(date.atStartOfDay()));
     }
 
     @GetMapping("/between")
@@ -134,7 +134,7 @@ public class ShiftDateController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @Parameter(description = "End date", required = true, example = "2024-03-31")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(shiftDateService.getShiftDatesBetween(startDate, endDate));
+        return ResponseEntity.ok(shiftDateService.getShiftDatesBetween(startDate.atStartOfDay(), endDate.atStartOfDay()));
     }
 
     @PostMapping
