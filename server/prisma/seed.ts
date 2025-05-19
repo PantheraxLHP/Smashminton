@@ -1247,6 +1247,17 @@ async function main() {
         });
     });
 
+    parttimeEmployeeIds.forEach(async (employeeId) => {
+        const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
+        await prisma.shift_assignment.create({
+            data: {
+                employeeid: employeeId,
+                shiftid: randomShiftDate.shiftid,
+                shiftdate: randomShiftDate.shiftdate,
+            },
+        });
+    });
+
     await prisma.bookings.createMany({
         data: [
             {
