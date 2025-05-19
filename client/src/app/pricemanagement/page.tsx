@@ -5,21 +5,13 @@ import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
 import ServiceModal from "./AddService";
 import ServiceActionsMenu from "./MoreActionsMenu";
-
-// Interface cho dịch vụ
-interface Service {
-    name: string;
-    product: string;
-    price: string;
-    startTime: string;
-    endTime: string;
-    image: string;
-}
+import { Service } from "./type";
 
 // Dữ liệu dịch vụ
 const services: Service[] = [
     {
         name: "Thuê sân",
+        type: "Thuê sân",
         product: "Zone A",
         price: "100.000 VND",
         startTime: "5:00",
@@ -28,6 +20,7 @@ const services: Service[] = [
     },
     {
         name: "Thuê sân",
+        type: "Thuê sân",
         product: "Zone B",
         price: "150.000 VND",
         startTime: "5:00",
@@ -36,6 +29,7 @@ const services: Service[] = [
     },
     {
         name: "Thuê vợt",
+        type: "Thuê vợt",
         product: "001F",
         price: "200.000 VND",
         startTime: "6:00",
@@ -44,6 +38,7 @@ const services: Service[] = [
     },
     {
         name: "Thuê giày",
+        type: "Thuê giày",
         product: "Atlas",
         price: "200.000 VND",
         startTime: "6:00",
@@ -52,6 +47,7 @@ const services: Service[] = [
     },
     {
         name: "Thuê sân",
+        type: "Thuê sân",
         product: "Zone A",
         price: "150.000 VND",
         startTime: "18:00",
@@ -64,6 +60,10 @@ export default function ServicePriceManager() {
     const [showModal, setShowModal] = useState(false);
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
+    const [editData, setEditData] = useState<Service | null>(null);
+    const [selectedServiceIndex, setSelectedServiceIndex] = useState<number | null>(null);
+    const [servicesState, setServicesState] = useState<Service[]>(services);
+
 
     return (
         <div className="p-4 sm:p-6">
@@ -85,7 +85,7 @@ export default function ServicePriceManager() {
                         </tr>
                     </thead>
                     <tbody>
-                        {services.map((s, index) => (
+                        {servicesState.map((s, index) => (
                             <tr
                                 key={index}
                                 className="border-t hover:bg-gray-50 transition"
@@ -111,11 +111,12 @@ export default function ServicePriceManager() {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             const rect = e.currentTarget.getBoundingClientRect();
+                                            setSelectedServiceIndex(index); // lưu index đúng
                                             setMenuPosition({
-                                                x: rect.left - 38, // đẩy sang phải
-                                                y: rect.bottom + 5, // đẩy xuống dưới
+                                                x: rect.left - 38,
+                                                y: rect.bottom + 5,
                                             });
-                                          }}
+                                        }}
                                     >
                                         <MoreVertical size={18} />
                                     </button>
@@ -123,7 +124,13 @@ export default function ServicePriceManager() {
                                         <ServiceActionsMenu
                                             position={menuPosition}
                                             onClose={() => setMenuPosition(null)}
-                                        />
+                                            onEdit={() => {
+                                                if (selectedServiceIndex !== null) {
+                                                    setEditData(services[selectedServiceIndex]);
+                                                }
+                                                setShowModal(true);
+                                            }}
+                                    />
                                     )}
                                 </td>
                             </tr>
@@ -133,12 +140,31 @@ export default function ServicePriceManager() {
             </div>
             <ServiceModal
                 open={showModal}
-                onClose={() => setShowModal(false)}
-                onSubmit={() => {
-                    // TODO: xử lý submit
+                onClose={() => {
                     setShowModal(false);
+                    setEditData(null); // clear sau khi đóng
                 }}
+                onSubmit={(updatedService) => {
+                    if (editData) {
+                        // đang sửa -> cập nhật dịch vụ đúng index
+                        setServicesState(prev =>
+                            prev.map((s, i) =>
+                                i === selectedServiceIndex ? updatedService : s
+                            )
+                        );
+                    } else {
+                        // đang thêm mới
+                        setServicesState(prev => [...prev, updatedService]);
+                    }
+
+                    setShowModal(false);
+                    setEditData(null);
+                    setSelectedServiceIndex(null);
+                }}
+                
+                editData={editData}
             />
+
         </div>
     );
 }
