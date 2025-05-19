@@ -32,12 +32,10 @@ const getHeight = (shiftDate: ShiftDate) => {
 
 interface ShiftCardProps {
     shiftDate: ShiftDate;
-    shiftAssignments: ShiftAssignment[];
 }
 
 const ShiftCard: React.FC<ShiftCardProps> = ({
     shiftDate,
-    shiftAssignments,
 }) => {
     return (
         <div
@@ -53,7 +51,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
             </div>
             <div
                 className={`flex flex-col gap-2 p-2 rounded-b-lg h-full border-l-2 border-b-2 border-r-2 bg-white z-2 hover:${borderColorIndex[shiftDate.shiftid - 1]}`}>
-                {shiftAssignments.length > 0 ? (
+                {shiftDate.shift_assignment?.length || 0 > 0 ? (
                     <>
                     </>
                 ) : (
