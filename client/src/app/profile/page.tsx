@@ -5,6 +5,7 @@ import { FaUser, FaVenusMars, FaPhone, FaMapMarkerAlt, FaEnvelope } from 'react-
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import Link from 'next/link'; // Import Link from next/link
 import EditProfile from './EditProfile';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface User {
     name: string;
@@ -71,6 +72,7 @@ const pastBookings: Booking[] = [
     },
 ];
 
+
 const UserProfilePage = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const [mounted, setMounted] = useState(false); // To ensure client-side rendering
@@ -78,10 +80,16 @@ const UserProfilePage = () => {
     const [showStudentPopup, setShowStudentPopup] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [userInfo, setUserInfo] = useState(user);
+    const searchParams = useSearchParams();
+    const router = useRouter();
 
     // Ensure that component is only mounted on client-side
     useEffect(() => {
         setMounted(true);
+        const tabParam = searchParams.get('tab');
+        if (tabParam) {
+            setActiveTab(tabParam);
+        }
     }, []);
 
     // Don't render the component until mounted
@@ -93,6 +101,19 @@ const UserProfilePage = () => {
         setIsStudentStatusUpdated(true);
         setShowStudentPopup(false);
     };
+
+
+    const handleTabClick = (tabName: string) => {
+        setActiveTab(tabName);
+
+        // Xoá ?tab=... khỏi URL
+        const params = new URLSearchParams(window.location.search);
+        params.delete('tab');
+
+        const newPath = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        router.replace(newPath);
+    };
+    
 
     return (
         <div className="min-h-screen bg-full bg-center p-8" style={{ backgroundImage: 'url(homebg.png)' }}>
@@ -134,22 +155,28 @@ const UserProfilePage = () => {
                 {/* Tabs */}
                 <div className="flex gap-8 border-b mt-4 text-sm font-semibold">
                     <button
-                        onClick={() => setActiveTab('upcoming')}
+                        onClick={() => handleTabClick('upcoming')}
                         className={`py-2 ${activeTab === 'upcoming' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
                     >
                         Sân & Dịch vụ sắp diễn ra
                     </button>
                     <button
-                        onClick={() => setActiveTab('past')}
+                        onClick={() => handleTabClick('past')}
                         className={`py-2 ${activeTab === 'past' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
                     >
                         Sân & Dịch vụ đã sử dụng
                     </button>
                     <button
-                        onClick={() => setActiveTab('student')}
+                        onClick={() => handleTabClick('student')}
                         className={`py-2 ${activeTab === 'student' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
                     >
                         Học sinh/Sinh viên
+                    </button>
+                    <button
+                        onClick={() => handleTabClick('changepassword')}
+                        className={`py-2 ${activeTab === 'changepassword' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
+                    >
+                        Thay đổi mật khẩu
                     </button>
                 </div>
 
@@ -239,6 +266,39 @@ const UserProfilePage = () => {
                         )}
                     </div>
                 )}
+
+                {activeTab === 'changepassword' && (
+                    <div className="flex justify-center">
+                        <div className="mt-4 space-y-4 max-w-md w-full">
+                            <div>
+                                <label className="block font-medium text-md py-2">Mật khẩu mới</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-medium text-md py-2">Nhập lại mật khẩu</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+
+                            <button
+                                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold px-4 py-2 rounded cursor-pointer"
+                            >
+                                Xác nhận thay đổi mật khẩu
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+
+
 
                 {/* Popup to Update Student Status */}
                 {showStudentPopup && (
