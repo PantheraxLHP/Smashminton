@@ -278,7 +278,8 @@ create table if not exists product_batch (
 	expirydate timestamptz,
 	stockquantity integer,
 	poid integer,
-	constraint fk_productbatch_purchaseorder foreign key (poid) references purchase_order(poid)
+	createdat timestamptz default now(),
+	updatedat timestamptz default now()
 );
 
 create table if not exists product_types (
@@ -312,12 +313,13 @@ create table if not exists purchase_order (
 	poid integer generated always as identity primary key,
 	quantity integer,
 	deliverydate timestamptz,
-	status text,
 	createdat timestamptz default now(),
 	updatedat timestamptz default now(),
 	productid integer,
 	employeeid integer,
 	supplierid integer,
+	batchid integer,
+	constraint fk_purchaseorder_productbatch foreign key (batchid) references product_batch(batchid),
 	constraint fk_purchaseorder_products foreign key (productid) references products(productid),
 	constraint fk_purchaseorder_employees foreign key (employeeid) references employees(employeeid),
 	constraint fk_purchaseorder_suppliers foreign key (supplierid) references suppliers(supplierid)
