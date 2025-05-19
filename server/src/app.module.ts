@@ -19,6 +19,7 @@ import { ProductTypesModule } from './modules/product_types/product_types.module
 import { ProductFilterModule } from './modules/product_filter/product_filter.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ProductFilterValuesModule } from './modules/product_filter_values/product_filter_values.module';
+import { ShiftDateModule } from './modules/shift_date/shift_date.module';
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { ProductFilterValuesModule } from './modules/product_filter_values/produ
         ProductFilterModule,
         ProductFilterValuesModule,
         PaymentModule,
+        ShiftDateModule
     ],
     controllers: [AppController],
     providers: [AppService],

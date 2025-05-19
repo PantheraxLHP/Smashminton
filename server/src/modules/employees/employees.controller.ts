@@ -7,11 +7,6 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
-  @Post()
-  create(@Body() createEmployeeDto: CreateEmployeeDto) {
-    return this.employeesService.create(createEmployeeDto);
-  }
-
   @Get()
   findAll() {
     return this.employeesService.findAll();

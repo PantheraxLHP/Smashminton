@@ -30,7 +30,7 @@ export class BookingsService {
 
 		// Gọi hàm getSeparatedCourtPrices để lấy danh sách các khoảng giá đã tách
 		const separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
-
+		console.log('separatedCourts1', separatedCourts);
 		// Kiểm tra nếu không có username
 		if (!username) {
 			throw new BadRequestException('Username is required to add booking to cache');
@@ -40,6 +40,8 @@ export class BookingsService {
 		if (!separatedCourts || separatedCourts.length === 0) {
 			throw new BadRequestException('No separated court prices found');
 		}
+
+		console.log('separatedCourts2', separatedCourts);
 
 		// Lấy cache của người dùng từ Redis
 		const bookingUserCache = await this.cacheService.getBooking(username);
@@ -81,6 +83,8 @@ export class BookingsService {
 
 			newCacheBooking.TTL = TTL;
 
+			console.log('newCacheBooking', newCacheBooking);
+
 			return newCacheBooking;
 		}
 
@@ -101,6 +105,8 @@ export class BookingsService {
 
 			bookingUserCache.court_booking.push(newCourtBooking);
 			bookingUserCache.totalprice += newCourtBooking.price;
+
+			console.log('newCourtBooking', newCourtBooking);
 		}
 
 		// Ghi đè lại dữ liệu trong Redis
