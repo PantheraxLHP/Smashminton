@@ -108,7 +108,6 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
                     <Fragment key={`parttimeshift-${index}`}>
                         <ShiftCardDialog
                             shiftDate={shiftDate}
-                            shiftAssignments={[]}
                         />
                     </Fragment>
                 ))}
@@ -116,7 +115,6 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
                     <Fragment key={`fulltimeshift-${index}`}>
                         <ShiftCardDialog
                             shiftDate={shiftDate}
-                            shiftAssignments={[]}
                         />
                     </Fragment>
                 ))}
