@@ -16,6 +16,11 @@ function normalizeTimeString(time: string) {
     return `${pad(hour)}:${pad(minute)}`;
 }
 
+function formatPrice(price: string): string {
+    const number = Number(price.replace(/\D/g, ""));
+    return new Intl.NumberFormat("vi-VN").format(number) + " VND";
+}
+
 export default function ServiceModal({ open, onClose, onSubmit, editData }: ServiceModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
@@ -29,13 +34,14 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         image: "",
     });
 
-    // Set form khi mở modal với editData
     useEffect(() => {
         if (editData) {
             setFormData({
                 ...editData,
+                price: editData.price.replace(/[^\d]/g, ""), // loại bỏ dấu và VND
                 startTime: normalizeTimeString(editData.startTime),
                 endTime: normalizeTimeString(editData.endTime),
+                image: editData.image || "", // tránh lỗi src=""
             });
         } else {
             setFormData({
@@ -50,7 +56,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         }
     }, [editData, open]);
 
-    // Đóng modal khi click ra ngoài
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -73,7 +78,15 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     }
 
     function handleSubmit() {
-        if (onSubmit) onSubmit(formData);
+        if (onSubmit) {
+            onSubmit({
+                ...formData,
+                price: formatPrice(formData.price),
+                startTime: normalizeTimeString(formData.startTime),
+                endTime: normalizeTimeString(formData.endTime),
+                image: formData.image || "", // luôn gán rỗng để tránh warning
+            });
+        }
         onClose();
     }
 

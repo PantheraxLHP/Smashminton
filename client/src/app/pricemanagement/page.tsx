@@ -8,7 +8,7 @@ import ServiceActionsMenu from "./MoreActionsMenu";
 import { Service } from "./type";
 
 // Dữ liệu dịch vụ
-const services: Service[] = [
+const rawServices: Service[] = [
     {
         name: "Thuê sân",
         type: "Thuê sân",
@@ -56,6 +56,18 @@ const services: Service[] = [
     },
 ];
 
+function normalizeTimeString(time: string) {
+    const [hour, minute] = time.split(":").map(Number);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${pad(hour)}:${pad(minute)}`;
+}
+
+const services: Service[] = rawServices.map((s) => ({
+    ...s,
+    startTime: normalizeTimeString(s.startTime),
+    endTime: normalizeTimeString(s.endTime),
+}));
+
 export default function ServicePriceManager() {
     const [showModal, setShowModal] = useState(false);
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
@@ -96,7 +108,7 @@ export default function ServicePriceManager() {
                                         className="mr-2 accent-primary-600"
                                     />
                                     <img
-                                        src={s.image}
+                                        src={s.image || "/.png"}
                                         alt=""
                                         className="w-8 h-8 rounded object-cover"
                                     />
@@ -104,7 +116,9 @@ export default function ServicePriceManager() {
                                 </td>
                                 <td className="px-3 py-3">{s.product}</td>
                                 <td className="px-3 py-3">{s.price}</td>
-                                <td className="px-3 py-3">{`${s.startTime} - ${s.endTime}`}</td>
+                                <td className="px-3 py-3">
+                                    {`${normalizeTimeString(s.startTime)} - ${normalizeTimeString(s.endTime)}`}
+                                </td>
                                 <td className="px-3 py-3 text-right relative">
                                     <button
                                         className="text-gray-500 hover:text-gray-700 cursor-pointer"
@@ -130,7 +144,7 @@ export default function ServicePriceManager() {
                                                 }
                                                 setShowModal(true);
                                             }}
-                                    />
+                                        />
                                     )}
                                 </td>
                             </tr>
@@ -161,7 +175,7 @@ export default function ServicePriceManager() {
                     setEditData(null);
                     setSelectedServiceIndex(null);
                 }}
-                
+
                 editData={editData}
             />
 
