@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { FaSortAmountDownAlt } from 'react-icons/fa';
+import Image from 'next/image';
+import { Icon } from '@iconify/react';
 
 type Props = {
     selectedCategory: 'Thuê vợt' | 'Thuê giày';
@@ -61,7 +63,7 @@ type Shoe = {
 const racketItems: Item[] = Array.from({ length: 36 }, (_, index) => ({
     id: index,
     name: 'Vợt Yonex Nanoflare 001F 2025',
-    image: '/ZoneC.png',
+    image: '/YonexRacket1.png',
     price: '34,000 đ / giờ',
     brand: 'Yonex',
     weight: '4U: 80 - 84g',
@@ -72,7 +74,7 @@ const racketItems: Item[] = Array.from({ length: 36 }, (_, index) => ({
 const shoeItems: Item[] = Array.from({ length: 36 }, (_, index) => ({
     id: index + 100,
     name: 'Giày Lining Ranger V',
-    image: '/ZoneA.png',
+    image: '/YonexRacket1.png',
     price: '22,000 đ / giờ',
     brand: 'Lining',
     form: 'Unisex - Bản chân thường',
@@ -170,12 +172,12 @@ export default function RentalList({
     return (
         <div className="flex flex-col flex-1">
             {/* Sort dropdown */}
-            <div className="flex justify-end px-4 mb-4">
+            <div className="flex justify-end px-6 py-2 mb-4">
                 <div className="flex items-center gap-2">
-                    <FaSortAmountDownAlt className="text-gray-700 text-sm" />
-                    <span className="text-sm font-medium">Sắp xếp</span>
+                    <FaSortAmountDownAlt className="text-md flex items-center gap-2 font-semibold" />
+                    <span className="text-md font-semibold">Sắp xếp</span>
                     <select
-                        className="w-28 border border-gray-300 rounded px-3 py-1 text-sm outline-none focus:ring focus:ring-blue-200"
+                        className="w-28 border border-gray-300 rounded py-1 text-md outline-none focus:ring focus:ring-blue-200"
                         value={sortOption}
                         onChange={(e) => {
                             setSortOption(e.target.value as typeof sortOption);
@@ -191,33 +193,37 @@ export default function RentalList({
             </div>
 
             {/* Items grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-12 p-4 flex-1">
                 {currentItems.map((item) => (
                     <div
                         key={item.id}
-                        className="p-2 text-center flex flex-col items-center border rounded-lg shadow-sm bg-white"
+                        className=""
                     >
-                        <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-24 h-40 object-contain mb-2"
+                        <Image
+                            src={item.image || '/YonexRacket1.png'}
+                            alt={item.name || 'Tên sản phẩm'}
+                            width={300}
+                            height={200}
+                            className="w-full object-scale-down !h-[200px]"
                         />
-                        <h4 className="text-sm font-medium">{item.name}</h4>
-                        <p className="text-primary-600 font-semibold">{item.price}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                            <button
-                                onClick={() => onDecrement(item.id)}
-                                className="px-2 border rounded hover:bg-gray-100"
-                            >
-                                -
-                            </button>
-                            <span>{rentalQuantities[item.id] || 0}</span>
-                            <button
-                                onClick={() => onIncrement(item.id)}
-                                className="px-2 border rounded hover:bg-gray-100"
-                            >
-                                +
-                            </button>
+                        <h4 className="text-md font-semibold">{item.name}</h4>
+                        <div className="flex items-center justify-between">
+                            <p className="text-primary-600 font-bold">{item.price}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => onDecrement(item.id)}
+                                    className="group bg-gray-50 border border-gray-100 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                >
+                                    <Icon icon="ic:baseline-minus" className="text-lg text-gray-500 group-hover:text-white" />
+                                </button>
+                                <span className='mx-4 text-lg'>{rentalQuantities[item.id] || 0}</span>
+                                <button
+                                    onClick={() => onIncrement(item.id)}
+                                    className="group bg-gray-50 border border-gray-100 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                >
+                                    <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 group-hover:text-white" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -233,7 +239,9 @@ export default function RentalList({
                 <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white"
+                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 
+                    disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white
+                    cursor-pointer disabled:cursor-default"
                 >
                     &lt;
                 </button>
@@ -243,7 +251,9 @@ export default function RentalList({
                 <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white"
+                    className="px-3 py-1 border-2 border-primary-500 rounded disabled:text-primary-50 disabled:border-primary-50 
+                    disabled:hover:bg-white disabled:hover:text-primary-50 text-primary-500 hover:bg-primary-500 hover:text-white
+                    cursor-pointer disabled:cursor-default"
                 >
                     &gt;
                 </button>

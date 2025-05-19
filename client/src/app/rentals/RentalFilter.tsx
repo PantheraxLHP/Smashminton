@@ -50,17 +50,17 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
         <div className="w-full space-y-4">
             {/* PHẦN 1: Danh mục sản phẩm */}
             <div className="rounded-lg border bg-white p-4 shadow-sm">
-                <h3 className="border-b pb-1 text-sm font-semibold">Danh mục sản phẩm</h3>
-                <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                <h3 className="border-b-2 border-gray-800 pb-1 text-lg font-semibold">Danh mục sản phẩm</h3>
+                <ul className="mt-2 space-y-1 text-md text-gray-700">
                     <li
                         onClick={() => setSelectedCategory('Thuê vợt')}
-                        className={`cursor-pointer ${selectedCategory === 'Thuê vợt' ? 'text-primary-600 font-semibold' : ''}`}
+                        className={`hover:text-primary-600 cursor-pointer ${selectedCategory === 'Thuê vợt' ? 'text-primary-600' : ''}`}
                     >
                         Thuê vợt
                     </li>
                     <li
                         onClick={() => setSelectedCategory('Thuê giày')}
-                        className={`cursor-pointer ${selectedCategory === 'Thuê giày' ? 'text-primary-600 font-semibold' : ''}`}
+                        className={`hover:text-primary-600 cursor-pointer ${selectedCategory === 'Thuê giày' ? 'text-primary-600' : ''}`}
                     >
                         Thuê giày
                     </li>
@@ -70,10 +70,10 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
             {/* PHẦN 2: Bộ lọc */}
             <div className="rounded-lg border bg-white p-4 shadow-sm">
                 {/* Bộ lọc đã chọn */}
-                <div className="mb-4 border-b pb-3">
+                <div className="mb-4 border-b-2 border-gray-800 pb-3">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-primary-600 text-sm font-semibold">Bạn chọn</h3>
-                        <button onClick={clearAll} className="text-xs text-gray-500 hover:underline">
+                        <h3 className="text-primary text-lg">Đã chọn</h3>
+                        <button onClick={clearAll} className="text-sm text-gray-500 hover:underline">
                             Bỏ hết X
                         </button>
                     </div>
@@ -110,14 +110,15 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
                 {/* Filter Sections */}
                 <div className="space-y-4 text-sm">
                     {/* Thương hiệu */}
-                    <div className="border-b pb-3">
-                        <h3 className="mb-2 font-semibold">THƯƠNG HIỆU</h3>
+                    <div className="border-b-2 border-gray-800 pb-3">
+                        <h3 className="mb-2 text-lg font-semibold">THƯƠNG HIỆU</h3>
                         {brands.map((brand) => (
-                            <label key={brand} className="flex items-center space-x-2">
+                            <label key={brand} className="flex items-center space-x-2 cursor-pointer text-md">
                                 <input
                                     type="checkbox"
                                     checked={filters.brands.includes(brand)}
                                     onChange={() => handleToggle('brands', brand)}
+                                    className="cursor-pointer"
                                 />
                                 <span>{brand}</span>
                             </label>
@@ -127,14 +128,15 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
                     {selectedCategory === 'Thuê vợt' ? (
                         <>
                             {/* Trọng lượng */}
-                            <div className="border-b pb-3">
-                                <h3 className="mb-2 font-semibold">TRỌNG LƯỢNG</h3>
+                            <div className="border-b-2 border-gray-800 pb-3">
+                                <h3 className="mb-2 text-lg font-semibold">TRỌNG LƯỢNG</h3>
                                 {weights.map((item) => (
-                                    <label key={item} className="flex items-center space-x-2">
+                                    <label key={item} className="flex items-center space-x-2 cursor-pointer text-md">
                                         <input
                                             type="checkbox"
                                             checked={filters.weights.includes(item)}
                                             onChange={() => handleToggle('weights', item)}
+                                            className="cursor-pointer"
                                         />
                                         <span>{item}</span>
                                     </label>
@@ -142,14 +144,15 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
                             </div>
 
                             {/* Độ cứng đũa */}
-                            <div className="border-b pb-3">
-                                <h3 className="mb-2 font-semibold">ĐỘ CỨNG ĐŨA</h3>
+                            <div className="border-b-2 border-gray-800 pb-3">
+                                <h3 className="mb-2 text-lg font-semibold">ĐỘ CỨNG ĐŨA</h3>
                                 {stiffness.map((item) => (
-                                    <label key={item} className="flex items-center space-x-2">
+                                    <label key={item} className="flex items-center space-x-2 cursor-pointer text-md">
                                         <input
                                             type="checkbox"
                                             checked={filters.stiffness.includes(item)}
                                             onChange={() => handleToggle('stiffness', item)}
+                                            className="cursor-pointer"
                                         />
                                         <span>{item}</span>
                                     </label>
@@ -158,13 +161,14 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
 
                             {/* Điểm cân bằng */}
                             <div>
-                                <h3 className="mb-2 font-semibold">ĐIỂM CÂN BẰNG</h3>
+                                <h3 className="mb-2 text-lg font-semibold">ĐIỂM CÂN BẰNG</h3>
                                 {balancePoints.map((item) => (
-                                    <label key={item} className="flex items-center space-x-2">
+                                    <label key={item} className="flex items-center space-x-2 cursor-pointer text-md">
                                         <input
                                             type="checkbox"
                                             checked={filters.balance.includes(item)}
                                             onChange={() => handleToggle('balance', item)}
+                                            className="cursor-pointer"
                                         />
                                         <span>{item}</span>
                                     </label>
@@ -174,14 +178,15 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
                     ) : (
                         <>
                             {/* Form giày */}
-                            <div className="border-b pb-3">
-                                <h3 className="mb-2 font-semibold">FORM GIÀY</h3>
+                                <div className="border-b-2 border-gray-800 pb-3">
+                                    <h3 className="mb-2 text-lg font-semibold">FORM GIÀY</h3>
                                 {shoeForms.map((item) => (
-                                    <label key={item} className="flex items-center space-x-2">
+                                    <label key={item} className="flex items-center space-x-2 cursor-pointer text-md">
                                         <input
                                             type="checkbox"
                                             checked={filters.forms.includes(item)}
                                             onChange={() => handleToggle('forms', item)}
+                                            className="cursor-pointer"
                                         />
                                         <span>{item}</span>
                                     </label>
@@ -190,13 +195,14 @@ const RentalFilter = ({ selectedCategory, setSelectedCategory, filters, setFilte
 
                             {/* Size giày */}
                             <div>
-                                <h3 className="mb-2 font-semibold">SIZE GIÀY</h3>
+                                    <h3 className="mb-2 text-lg font-semibold">SIZE GIÀY</h3>
                                 {shoeSizes.map((item) => (
-                                    <label key={item} className="flex items-center space-x-2">
+                                    <label key={item} className="flex items-center space-x-2 cursor-pointer text-md">
                                         <input
                                             type="checkbox"
                                             checked={filters.sizes.includes(item)}
                                             onChange={() => handleToggle('sizes', item)}
+                                            className="cursor-pointer"
                                         />
                                         <span>{item}</span>
                                     </label>

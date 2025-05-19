@@ -73,10 +73,10 @@ export default function RentalsPage() {
     }, 0);
 
     return (
-        <div className="max-w-8xl mx-auto px-4 py-6 md:px-8 lg:px-12">
+        <div className="max-w-8xl mx-auto px-4 py-2 md:px-8 lg:px-2">
             <div className="flex flex-col gap-2 lg:flex-row">
                 {/* Filter bên trái */}
-                <aside className="w-full pt-2 lg:w-1/4">
+                <aside className="w-full pt-2 lg:w-1/6">
                     <RentalFilter
                         selectedCategory={selectedCategory}
                         setSelectedCategory={setSelectedCategory}
@@ -86,7 +86,7 @@ export default function RentalsPage() {
                 </aside>
 
                 {/* Danh sách sản phẩm bên phải */}
-                <main className="w-full pt-4 lg:w-3/4">
+                <main className="w-full pt-4 lg:w-5/6">
                     <RentalList
                         selectedCategory={selectedCategory}
                         filters={filters}
