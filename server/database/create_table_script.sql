@@ -263,16 +263,22 @@ create table if not exists suppliers (
 create table if not exists products (
 	productid integer generated always as identity primary key,
 	productname text,
-	batch text,
-	expirydate timestamptz,
 	status text,
-	stockquantity integer,
 	sellingprice numeric,
 	rentalprice numeric,
 	costprice numeric,
 	productimgurl text,
 	createdat timestamptz default now(),
 	updatedat timestamptz default now()
+);
+
+create table if not exists product_batch (
+	batchid integer generated always as identity primary key,
+	batchname text,
+	expirydate timestamptz,
+	stockquantity integer,
+	poid integer,
+	constraint fk_productbatch_purchaseorder foreign key (poid) references purchase_order(poid)
 );
 
 create table if not exists product_types (

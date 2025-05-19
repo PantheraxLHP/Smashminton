@@ -186,10 +186,7 @@ model product_types {
 model products {
   productid          Int                  @id @default(autoincrement())
   productname        String?
-  batch              String?
-  expirydate         DateTime?            @db.Timestamptz(6)
   status             String?
-  stockquantity      Int?
   sellingprice       Decimal?             @db.Decimal
   rentalprice        Decimal?             @db.Decimal
   costprice          Decimal?             @db.Decimal
@@ -199,6 +196,15 @@ model products {
   order_product      order_product[]
   product_attributes product_attributes[]
   purchase_order     purchase_order[]
+}
+
+model product_batch {
+  batchid          Int                  @id @default(autoincrement())
+  batchname        String?
+  expirydate       DateTime?            @default(now()) @db.Timestamptz(6)
+  stockquantity    Int?
+  poid             Int?
+  purchase_order   purchase_order?    @relation(fields: [poid], references: [poid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productbatch_purchaseorder")
 }
 
 model purchase_order {
@@ -211,6 +217,7 @@ model purchase_order {
   productid    Int?
   employeeid   Int?
   supplierid   Int?
+  product_batch product_batch[]
   employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
   products     products?  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
   suppliers    suppliers? @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
