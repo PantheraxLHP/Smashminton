@@ -5,14 +5,14 @@ import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "shift_enrollment")
-@IdClass(ShiftEnrollmentId.class)
+@IdClass(ShiftEnrollment.ShiftEnrollmentId.class)
 public class ShiftEnrollment {
     @Id
     @Column(name = "employeeid")
@@ -29,30 +29,30 @@ public class ShiftEnrollment {
     @Column(name = "enrollmentdate")
     private LocalDateTime enrollmentDate;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employeeid", insertable = false, updatable = false)
-    @JsonIgnoreProperties({"shiftAssignments", "shiftEnrollments"})
     private Employee employee;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "shift_id")
-    @JsonIgnoreProperties({"shiftAssignments", "shiftDates", "shiftEnrollments"})
     private Shift shift;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
         @JoinColumn(name = "shiftid", referencedColumnName = "shiftid", insertable = false, updatable = false),
         @JoinColumn(name = "shiftdate", referencedColumnName = "shiftdate", insertable = false, updatable = false)
     })
-    @JsonIgnoreProperties({"shiftAssignments", "shiftEnrollments"})
     private ShiftDate shiftDateEntity;
-}
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class ShiftEnrollmentId implements java.io.Serializable {
-    private Integer employeeId;
-    private Integer shiftId;
-    private LocalDateTime shiftDate;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ShiftEnrollmentId implements java.io.Serializable {
+        private Integer employeeId;
+        private Integer shiftId;
+        private LocalDateTime shiftDate;
+    }
 } 
