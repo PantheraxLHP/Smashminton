@@ -3,10 +3,10 @@ package com.smashminton.rule_engine.services.impl;
 import com.smashminton.rule_engine.entities.ShiftEnrollment;
 import com.smashminton.rule_engine.repositories.ShiftEnrollmentRepository;
 import com.smashminton.rule_engine.services.ShiftEnrollmentService;
-import javax.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,19 +21,24 @@ public class ShiftEnrollmentServiceImpl implements ShiftEnrollmentService {
     }
 
     @Override
-    public ShiftEnrollment getShiftEnrollmentById(Integer id) {
-        return shiftEnrollmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("ShiftEnrollment not found with id: " + id));
+    public ShiftEnrollment getShiftEnrollmentById(Integer employeeId, Integer shiftId, LocalDateTime shiftDate) {
+        return shiftEnrollmentRepository.findById(new ShiftEnrollment.ShiftEnrollmentId(employeeId, shiftId, shiftDate))
+                .orElseThrow(() -> new EntityNotFoundException("ShiftEnrollment not found"));
     }
 
     @Override
     public List<ShiftEnrollment> getShiftEnrollmentsByEmployeeId(Integer employeeId) {
-        return shiftEnrollmentRepository.findByEmployee_EmployeeId(employeeId);
+        return shiftEnrollmentRepository.findByEmployeeId(employeeId);
     }
 
     @Override
     public List<ShiftEnrollment> getShiftEnrollmentsByShiftId(Integer shiftId) {
-        return shiftEnrollmentRepository.findByShift_ShiftId(shiftId);
+        return shiftEnrollmentRepository.findByShiftId(shiftId);
+    }
+
+    @Override
+    public List<ShiftEnrollment> getShiftEnrollmentsByDate(LocalDateTime date) {
+        return shiftEnrollmentRepository.findByShiftDate(date);
     }
 
     @Override
@@ -42,16 +47,16 @@ public class ShiftEnrollmentServiceImpl implements ShiftEnrollmentService {
     }
 
     @Override
-    public ShiftEnrollment updateShiftEnrollment(Integer id, ShiftEnrollment shiftEnrollmentDetails) {
-        ShiftEnrollment shiftEnrollment = getShiftEnrollmentById(id);
-        shiftEnrollment.setEmployee(shiftEnrollmentDetails.getEmployee());
-        shiftEnrollment.setShift(shiftEnrollmentDetails.getShift());
+    public ShiftEnrollment updateShiftEnrollment(Integer employeeId, Integer shiftId, LocalDateTime shiftDate, 
+            ShiftEnrollment shiftEnrollmentDetails) {
+        ShiftEnrollment shiftEnrollment = getShiftEnrollmentById(employeeId, shiftId, shiftDate);
+        shiftEnrollment.setEnrollmentDate(shiftEnrollmentDetails.getEnrollmentDate());
         return shiftEnrollmentRepository.save(shiftEnrollment);
     }
 
     @Override
-    public void deleteShiftEnrollment(Integer id) {
-        ShiftEnrollment shiftEnrollment = getShiftEnrollmentById(id);
+    public void deleteShiftEnrollment(Integer employeeId, Integer shiftId, LocalDateTime shiftDate) {
+        ShiftEnrollment shiftEnrollment = getShiftEnrollmentById(employeeId, shiftId, shiftDate);
         shiftEnrollmentRepository.delete(shiftEnrollment);
     }
 } 

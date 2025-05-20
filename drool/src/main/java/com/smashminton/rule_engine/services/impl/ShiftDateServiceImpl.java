@@ -21,67 +21,13 @@ public class ShiftDateServiceImpl implements ShiftDateService {
 
     @Override
     public List<ShiftDate> getAllShiftDates() {
-        try {
-            // Debug information
-            logger.info("Starting getAllShiftDates()");
-            
-            // Check if table exists
-            String tableName = shiftDateRepository.checkTableExists();
-            logger.info("Table exists check: {}", tableName);
-
-            // Get table structure
-            List<Object[]> tableStructure = shiftDateRepository.getTableStructure();
-            logger.info("Table structure: {}", tableStructure);
-            
-            Long count = shiftDateRepository.countAllNative();
-            logger.info("Total records in shift_dates table: {}", count);
-
-            List<Object[]> rawData = shiftDateRepository.findAllRawData();
-            logger.info("Raw data from shift_dates table: {}", rawData);
-
-            // Try different methods to get data
-            logger.info("Trying findAllNative()");
-            List<ShiftDate> allDates = shiftDateRepository.findAllNative();
-            logger.info("findAllNative() returned {} records", allDates.size());
-
-            if (allDates.isEmpty()) {
-                logger.info("Trying findAllShiftDates()");
-                allDates = shiftDateRepository.findAllShiftDates();
-                logger.info("findAllShiftDates() returned {} records", allDates.size());
-            }
-
-            if (allDates.isEmpty()) {
-                logger.info("Trying findAll()");
-                allDates = shiftDateRepository.findAll();
-                logger.info("findAll() returned {} records", allDates.size());
-            }
-            
-            logger.info("Final result: Found {} shift dates", allDates.size());
-            return allDates;
-        } catch (Exception e) {
-            logger.error("Error in getAllShiftDates(): ", e);
-            throw e;
-        }
+        return shiftDateRepository.findAll();
     }
 
     @Override
     public ShiftDate getShiftDateById(Integer id) {
-        try {
-            logger.info("Getting shift date by id: {}", id);
-            
-            // Debug information
-            List<Object[]> rawData = shiftDateRepository.findByShiftIdNative(id);
-            logger.info("Raw data for shiftId {}: {}", id, rawData);
-
-            ShiftDate.ShiftDateId compositeId = new ShiftDate.ShiftDateId(id, null);
-            logger.info("Created composite ID: {}", compositeId);
-
-            return shiftDateRepository.findById(compositeId)
-                    .orElseThrow(() -> new EntityNotFoundException("ShiftDate not found with id: " + id));
-        } catch (Exception e) {
-            logger.error("Error in getShiftDateById(): ", e);
-            throw e;
-        }
+        return shiftDateRepository.findById(new ShiftDate.ShiftDateId(id, null))
+                .orElseThrow(() -> new EntityNotFoundException("ShiftDate not found with id: " + id));
     }
 
     @Override

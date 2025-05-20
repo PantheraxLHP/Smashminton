@@ -1,108 +1,147 @@
 'use client';
 
-import { useState } from 'react';
-import RentalFilter from './RentalFilter';
-import RentalList from './RentalList';
+import ProductFilter, { ProductTypeWithFilters } from '@/components/Product/ProductFilter';
+import ProductList from '@/components/Product/ProductList';
+import { getProducts, getRentFilters } from '@/services/products.service';
+import { Products } from '@/types/types';
+import { useEffect, useState } from 'react';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
-type Racket = {
-    productid: number;
-    id: number;
-    name: string;
-    price: number;
-    brand: string;
-    weight: string;
-    stiffness: string;
-    balance: string;
+export interface SelectedProducts extends Products {
     quantity: number;
-    productName: string;
-};
+}
 
-type Shoe = {
-    productid: number;
-    id: number;
-    name: string;
-    price: number;
-    brand: string;
-    form: string;
-    size: string;
-    quantity: number;
-    productName: string;
-};
+const RentalPage = () => {
+    const [products, setProducts] = useState<Products[]>([]);
+    const [productTypesWithFilters, setProductTypesWithFilters] = useState<ProductTypeWithFilters[]>([]);
+    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3);
+    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [sortBy, setSortBy] = useState('sellingprice');
 
-export default function RentalsPage() {
-    const [selectedCategory, setSelectedCategory] = useState<'Thuê vợt' | 'Thuê giày'>('Thuê vợt');
+    // State quản lý số lượng sản phẩm
+    const [productQuantities, setProductQuantities] = useState<{ [key: number]: number }>({});
 
-    const [filters, setFilters] = useState({
-        brands: [] as string[],
-        weights: [] as string[],
-        stiffness: [] as string[],
-        balance: [] as string[],
-        forms: [] as string[],
-        sizes: [] as string[],
-    });
+    useEffect(() => {
+        // Return json for product types with filters
+        // const productTypesWithFilters = [
+        //     {
+        //         producttypeid: 1,
+        //         producttypename: 'Sản phẩm 1',
+        //         product_filter: [{ productfilterid: 1, productfiltername: 'Lọc theo danh mục', producttypeid: 1, product_filter_values: [{ productfiltervalueid: 1, value: 'Sản phẩm 1', productfilterid: 1 }] },
+        //     },
+        const loadFilters = async () => {
+            const filtersResponse = await getRentFilters();
+            if (filtersResponse.ok) {
+                setProductTypesWithFilters(filtersResponse.data);
+            }
+        };
 
-    const [rentalQuantities, setRentalQuantities] = useState<{ [key: number]: number }>({});
-    const [rackets, setRackets] = useState<Racket[]>([]);
-    const [shoes, setShoes] = useState<Shoe[]>([]);
+        loadFilters();
+    }, []);
 
-    const handleIncrement = (id: number) => {
-        setRentalQuantities((prev) => ({
+    // Fetch products when filters change
+    useEffect(() => {
+        const loadProducts = async () => {
+            const productsResponse = await getProducts(
+                selectedProductTypeId,
+                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
+            );
+
+            if (productsResponse.ok) {
+                setProducts(productsResponse.data);
+            }
+        };
+
+        loadProducts();
+    }, [selectedProductTypeId, selectedProductFilterValueIds, sortBy, sortOrder]);
+
+    // Initialize product quantities
+    useEffect(() => {
+        setProductQuantities((prev) => {
+            const updated = { ...prev };
+            products.forEach((product) => {
+                if (updated[product.productid] === undefined) {
+                    updated[product.productid] = 0;
+                }
+            });
+            return updated;
+        });
+    }, [products]);
+
+    // Tăng số lượng sản phẩm
+    const handleIncrement = (productid: number) => {
+        setProductQuantities((prev) => ({
             ...prev,
-            [id]: (prev[id] || 0) + 1,
+            [productid]: prev[productid] + 1,
         }));
     };
 
-    const handleDecrement = (id: number) => {
-        setRentalQuantities((prev) => ({
+    // Giảm số lượng sản phẩm
+    const handleDecrement = (productid: number) => {
+        setProductQuantities((prev) => ({
             ...prev,
-            [id]: Math.max((prev[id] || 0) - 1, 0),
+            [productid]: Math.max(prev[productid] - 1, 0),
         }));
     };
 
-    const selectedItems = [...rackets, ...shoes]
-        .filter((item) => rentalQuantities[item.productid] > 0)
-        .map((item) => ({
-            ...item,
-            quantity: rentalQuantities[item.productid],
-            productname: item.name,
-        }));
+    const handleProductTypeChange = (productTypeId: number) => {
+        setSelectedProductTypeId(productTypeId);
+        setSelectedProductFilterValueIds([]);
+    };
 
-    const totalPrice = selectedItems.reduce((sum, item) => {
-        return sum + (item.price || 0) * item.quantity;
-    }, 0);
+    const handleProductFilterValueChange = (productFilterValueIds: number[]) => {
+        if (productFilterValueIds.length === 0) {
+            // Clear all selections
+            setSelectedProductFilterValueIds([]);
+        } else if (selectedProductFilterValueIds.includes(productFilterValueIds[0])) {
+            // If already selected, remove it
+            setSelectedProductFilterValueIds(
+                selectedProductFilterValueIds.filter((id) => id !== productFilterValueIds[0]),
+            );
+        } else {
+            // Add new selection
+            setSelectedProductFilterValueIds([...selectedProductFilterValueIds, ...productFilterValueIds]);
+        }
+
+        console.log(selectedProductFilterValueIds);
+    };
+
+    const handleSortOrderChange = (orderBy: string, sortBy: string) => {
+        setSortOrder(orderBy);
+        setSortBy(sortBy);
+    };
+
+    const selectedProducts: SelectedProducts[] = products
+        .filter((product) => productQuantities[product.productid] > 0)
+        .map((product) => ({
+            ...product,
+            quantity: productQuantities[product.productid],
+        }));
 
     return (
-        <div className="max-w-8xl mx-auto px-4 py-2 md:px-8 lg:px-2">
-            <div className="flex flex-col gap-2 lg:flex-row">
-                {/* Filter bên trái */}
-                <aside className="w-full pt-2 lg:w-1/6">
-                    <RentalFilter
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                        filters={filters}
-                        setFilters={setFilters}
-                    />
-                </aside>
-
-                {/* Danh sách sản phẩm bên phải */}
-                <main className="w-full pt-4 lg:w-5/6">
-                    <RentalList
-                        selectedCategory={selectedCategory}
-                        filters={filters}
-                        rentalQuantities={rentalQuantities}
-                        onIncrement={handleIncrement}
-                        onDecrement={handleDecrement}
-                        setRackets={setRackets}
-                        setShoes={setShoes}
-                    />
-                </main>
+        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
+            <div className="flex flex-col gap-5">
+                <ProductFilter
+                    productTypesWithFilters={productTypesWithFilters}
+                    onProductTypeChange={handleProductTypeChange}
+                    onProductFilterValueChange={handleProductFilterValueChange}
+                    selectedProductTypeId={selectedProductTypeId}
+                    selectedProductFilterValueIds={selectedProductFilterValueIds}
+                />
             </div>
-
-            {selectedItems.length > 0 && (
+            <ProductList
+                products={products}
+                productQuantities={productQuantities}
+                onIncrement={handleIncrement}
+                onDecrement={handleDecrement}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortOrderChange={handleSortOrderChange}
+            />
+            {selectedProducts.length > 0 && (
                 <BookingBottomSheet
-                    totalPrice={totalPrice}
-                    selectedProducts={selectedItems}
+                    selectedProducts={selectedProducts}
                     selectedCourts={[]}
                     TTL={0}
                     onResetTimer={() => {}}
@@ -111,4 +150,6 @@ export default function RentalsPage() {
             )}
         </div>
     );
-}
+};
+
+export default RentalPage;
