@@ -1,6 +1,7 @@
 import { ChevronDown, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import ProfileIcon from './ProfileIcon';
@@ -20,6 +21,7 @@ interface HeaderProps {
 export default function Header({ menuItems = [], showLoginButton }: HeaderProps) {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
 
     const handleMenuClick = (label: string) => {
         setOpenMenu(openMenu === label ? null : label);
@@ -28,6 +30,11 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
         setOpenMenu(null);
+    };
+
+    const isActive = (link: string | undefined) => {
+        if (!link) return false;
+        return pathname.startsWith(link);
     };
 
     return (
@@ -68,7 +75,12 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         <ChevronDown className="h-4 w-4 transition-transform duration-300" />
                                     </button>
                                 ) : (
-                                    <Link href={item.link || '#'} className="hover:text-gray-400">
+                                    <Link
+                                        href={item.link || '#'}
+                                        className={`hover:text-gray-400 ${
+                                            isActive(item.link) ? 'border-b-2 border-green-500' : ''
+                                        }`}
+                                    >
                                         {item.label}
                                     </Link>
                                 )}
@@ -119,7 +131,12 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         )}
                                     </div>
                                 ) : (
-                                    <Link href={item.link || '#'} className="block text-white hover:text-gray-300">
+                                    <Link
+                                        href={item.link || '#'}
+                                        className={`block text-white hover:text-gray-300 ${
+                                            isActive(item.link) ? 'border-b-2 border-green-500' : ''
+                                        }`}
+                                    >
                                         {item.label}
                                     </Link>
                                 )}
@@ -127,21 +144,6 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                         ))}
                     </nav>
                 </div>
-            )}
-
-            {/* Desktop Submenu */}
-            {menuItems.map(
-                (item, index) =>
-                    item.subMenu &&
-                    openMenu === item.label && (
-                        <div key={index} className="hidden justify-center gap-6 bg-gray-100 p-4 shadow-md md:flex">
-                            {item.subMenu.map((sub, i) => (
-                                <Link key={i} href={sub.link || '#'} className="hover:text-primary-600">
-                                    {sub.label}
-                                </Link>
-                            ))}
-                        </div>
-                    ),
             )}
         </div>
     );

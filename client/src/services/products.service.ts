@@ -22,7 +22,7 @@ export const getProductFilters = async () => {
 
 export const getRentFilters = async () => {
     try {
-        const response = await fetch(`/api/products/get-rent-filters`, {
+        const response = await fetch(`/api/products/get-filters`, {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
         });
@@ -40,16 +40,16 @@ export const getRentFilters = async () => {
     }
 };
 
-export const getProducts = async (productTypeId: string, productFilterValue?: string) => {
+export const getProducts = async (productTypeId: number, productFilterValue?: number[]) => {
     try {
         const queryParams = new URLSearchParams();
 
         if (productTypeId) {
-            queryParams.set('productTypeId', productTypeId);
+            queryParams.set('productTypeId', productTypeId.toString());
         }
 
-        if (productFilterValue) {
-            queryParams.set('productFilterValue', productFilterValue);
+        if (productFilterValue && productFilterValue.length > 0) {
+            queryParams.set('productFilterValues', productFilterValue.join(','));
         }
 
         const response = await fetch(`/api/products/get-products?${queryParams.toString()}`, {

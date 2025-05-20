@@ -1,7 +1,7 @@
 'use client';
 
-import ProductFilter from '@/app/products/ProductFilter';
-import ProductList from '@/app/products/ProductList';
+import ProductFilter, { ProductTypeWithFilters } from '@/components/Product/ProductFilter';
+import ProductList from '@/components/Product/ProductList';
 import { getProductFilters, getProducts } from '@/services/products.service';
 import { Products } from '@/types/types';
 import { useEffect, useState } from 'react';
@@ -13,21 +13,27 @@ export interface SelectedProducts extends Products {
 
 const ProductPage = () => {
     const [products, setProducts] = useState<Products[]>([]);
-    const [productTypes, setProductTypes] = useState<any[]>([]);
-    const [selectedTypeId, setSelectedTypeId] = useState<number>(1);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
+    const [productTypesWithFilters, setProductTypesWithFilters] = useState<ProductTypeWithFilters[]>([]);
+    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(1);
+    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
     const [sortOrder, setSortOrder] = useState('asc');
     const [sortBy, setSortBy] = useState('sellingprice');
 
     // State quản lý số lượng sản phẩm
     const [productQuantities, setProductQuantities] = useState<{ [key: number]: number }>({});
 
-    // Fetch product filters and initial products
     useEffect(() => {
+        // Return json for product types with filters
+        // const productTypesWithFilters = [
+        //     {
+        //         producttypeid: 1,
+        //         producttypename: 'Sản phẩm 1',
+        //         product_filter: [{ productfilterid: 1, productfiltername: 'Lọc theo danh mục', producttypeid: 1, product_filter_values: [{ productfiltervalueid: 1, value: 'Sản phẩm 1', productfilterid: 1 }] },
+        //     },
         const loadFilters = async () => {
             const filtersResponse = await getProductFilters();
             if (filtersResponse.ok) {
-                setProductTypes(filtersResponse.data);
+                setProductTypesWithFilters(filtersResponse.data);
             }
         };
 
@@ -38,8 +44,8 @@ const ProductPage = () => {
     useEffect(() => {
         const loadProducts = async () => {
             const productsResponse = await getProducts(
-                selectedTypeId.toString(),
-                selectedCategoryId > 0 ? selectedCategoryId.toString() : undefined,
+                selectedProductTypeId,
+                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
             );
 
             if (productsResponse.ok) {
@@ -48,7 +54,7 @@ const ProductPage = () => {
         };
 
         loadProducts();
-    }, [selectedTypeId, selectedCategoryId, sortBy, sortOrder]);
+    }, [selectedProductTypeId, selectedProductFilterValueIds, sortBy, sortOrder]);
 
     // Initialize product quantities
     useEffect(() => {
@@ -79,13 +85,26 @@ const ProductPage = () => {
         }));
     };
 
-    const handleTypeFilterChange = (typeId: number) => {
-        setSelectedTypeId(typeId);
-        setSelectedCategoryId(0);
+    const handleProductTypeChange = (productTypeId: number) => {
+        setSelectedProductTypeId(productTypeId);
+        setSelectedProductFilterValueIds([]);
     };
 
-    const handleCategoryFilterChange = (categoryId: number) => {
-        setSelectedCategoryId(categoryId);
+    const handleProductFilterValueChange = (productFilterValueIds: number[]) => {
+        if (productFilterValueIds.length === 0) {
+            // Clear all selections
+            setSelectedProductFilterValueIds([]);
+        } else if (selectedProductFilterValueIds.includes(productFilterValueIds[0])) {
+            // If already selected, remove it
+            setSelectedProductFilterValueIds(
+                selectedProductFilterValueIds.filter((id) => id !== productFilterValueIds[0]),
+            );
+        } else {
+            // Add new selection
+            setSelectedProductFilterValueIds([...selectedProductFilterValueIds, ...productFilterValueIds]);
+        }
+
+        console.log(selectedProductFilterValueIds);
     };
 
     const handleSortOrderChange = (orderBy: string, sortBy: string) => {
@@ -100,19 +119,15 @@ const ProductPage = () => {
             quantity: productQuantities[product.productid],
         }));
 
-    const totalPrice = selectedProducts.reduce((acc, product) => {
-        return acc + (product.sellingprice ?? 0) * product.quantity;
-    }, 0);
-
     return (
         <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
             <div className="flex flex-col gap-5">
                 <ProductFilter
-                    productTypes={productTypes}
-                    onTypeFilterChange={handleTypeFilterChange}
-                    onCategoryFilterChange={handleCategoryFilterChange}
-                    selectedTypeId={selectedTypeId}
-                    selectedCategoryId={selectedCategoryId}
+                    productTypesWithFilters={productTypesWithFilters}
+                    onProductTypeChange={handleProductTypeChange}
+                    onProductFilterValueChange={handleProductFilterValueChange}
+                    selectedProductTypeId={selectedProductTypeId}
+                    selectedProductFilterValueIds={selectedProductFilterValueIds}
                 />
             </div>
             <ProductList
