@@ -39,16 +39,19 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 year={year}
                 setYear={setYear}
             />
-            <RadioGroup value={selectedRadio} onValueChange={onRadioChange}>
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem className="cursor-pointer" value="fulltime" id="fulltime" />
-                    <Label className="cursor-pointer" htmlFor="fulltime">Toàn thời gian</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem className="cursor-pointer" value="parttime" id="parttime" />
-                    <Label className="cursor-pointer" htmlFor="parttime">Bán thời gian</Label>
-                </div>
-            </RadioGroup>
+            <div className="flex flex-col gap-2">
+                <span className="text-xs font-semibold">Loại nhân viên</span>
+                <RadioGroup value={selectedRadio} onValueChange={onRadioChange}>
+                    <div className="flex items-center space-x-1">
+                        <RadioGroupItem className="cursor-pointer" value="fulltime" id="fulltime" />
+                        <Label className="cursor-pointer" htmlFor="fulltime">Toàn thời gian</Label>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <RadioGroupItem className="cursor-pointer" value="parttime" id="parttime" />
+                        <Label className="cursor-pointer" htmlFor="parttime">Bán thời gian</Label>
+                    </div>
+                </RadioGroup>
+            </div>
 
             <div className="border border-gray-500"></div>
             {selectedRadio === "parttime" && (
@@ -125,6 +128,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                 Quay về
                             </Button>
                         </DialogTrigger>
+                        <Button>Thực hiện phân công</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

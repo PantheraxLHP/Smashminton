@@ -100,7 +100,7 @@ const AssignmentRuleList = () => {
                                     Quay về
                                 </Button>
                             </DialogTrigger>
-                            <Button variant="outline">
+                            <Button>
                                 Lưu
                             </Button>
                         </DialogFooter>
@@ -192,7 +192,7 @@ const AssignmentRuleList = () => {
                                                     Quay về
                                                 </Button>
                                             </DialogTrigger>
-                                            <Button variant="outline">
+                                            <Button>
                                                 Lưu
                                             </Button>
                                         </DialogFooter>

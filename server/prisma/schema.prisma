@@ -186,10 +186,7 @@ model product_types {
 model products {
   productid          Int                  @id @default(autoincrement())
   productname        String?
-  batch              String?
-  expirydate         DateTime?            @db.Timestamptz(6)
   status             String?
-  stockquantity      Int?
   sellingprice       Decimal?             @db.Decimal
   rentalprice        Decimal?             @db.Decimal
   costprice          Decimal?             @db.Decimal
@@ -201,16 +198,28 @@ model products {
   purchase_order     purchase_order[]
 }
 
+model product_batch {
+  batchid          Int                  @id @default(autoincrement())
+  batchname        String?
+  expirydate       DateTime?            @default(now()) @db.Timestamptz(6)
+  stockquantity    Int?
+  status           String?
+  createdat        DateTime?  @default(now()) @db.Timestamptz(6)
+  updatedat        DateTime?  @default(now()) @db.Timestamptz(6)
+  purchase_order   purchase_order[]
+}
+
 model purchase_order {
   poid         Int        @id @default(autoincrement())
   quantity     Int?
   deliverydate DateTime?  @db.Timestamptz(6)
-  status       String?
   createdat    DateTime?  @default(now()) @db.Timestamptz(6)
   updatedat    DateTime?  @default(now()) @db.Timestamptz(6)
   productid    Int?
   employeeid   Int?
   supplierid   Int?
+  batchid      Int?
+  product_batch    product_batch? @relation(fields: [batchid], references: [batchid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_productbatch")
   employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
   products     products?  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
   suppliers    suppliers? @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
@@ -272,7 +281,7 @@ model shift_date {
   shift_assignment shift_assignment[]
   shift            shift              @relation(fields: [shiftid], references: [shiftid], onDelete: Cascade, onUpdate: NoAction, map: "fk_shiftdate_shift")
   shift_enrollment shift_enrollment[]
-
+  
   @@id([shiftid, shiftdate], map: "pk_shiftdate")
 }
 

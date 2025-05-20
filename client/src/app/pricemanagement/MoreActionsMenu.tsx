@@ -4,9 +4,10 @@ import ReactDOM from "react-dom";
 interface Props {
     position: { x: number; y: number };
     onClose: () => void;
+    onEdit: () => void;
 }
 
-export default function MoreActionsMenu({ position, onClose }: Props) {
+export default function MoreActionsMenu({ position, onClose, onEdit }: Props) {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             onClose();
@@ -22,7 +23,15 @@ export default function MoreActionsMenu({ position, onClose }: Props) {
             onClick={(e) => e.stopPropagation()}
         >
             <ul className="text-sm">
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Sửa</li>
+                <li
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                        onEdit();
+                        onClose();
+                    }}
+                >
+                    Sửa
+                </li>
                 <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Xoá</li>
                 <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Đặt hàng</li>
             </ul>

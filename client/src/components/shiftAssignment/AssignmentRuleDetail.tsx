@@ -215,12 +215,12 @@ const AssignmentRuleDetail = () => {
                                                 <SelectValue placeholder={"Toán tử so sánh"} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value={CompareOperator.LessThan}>{"Bé hơn (<)"}</SelectItem>
-                                                <SelectItem value={CompareOperator.GreaterThan}>{"Lớn hơn (>)"}</SelectItem>
-                                                <SelectItem value={CompareOperator.EqualTo}>{"Bằng (==)"}</SelectItem>
-                                                <SelectItem value={CompareOperator.NotEqualTo}>{"Không bằng (!=)"}</SelectItem>
-                                                <SelectItem value={CompareOperator.LessThanOrEqualTo}>{"Bé hơn bằng (<=)"}</SelectItem>
-                                                <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>{"Lớn hơn bằng (>=)"}</SelectItem>
+                                                <SelectItem value={CompareOperator.LessThan}>{"<"}</SelectItem>
+                                                <SelectItem value={CompareOperator.GreaterThan}>{">"}</SelectItem>
+                                                <SelectItem value={CompareOperator.EqualTo}>{"=="}</SelectItem>
+                                                <SelectItem value={CompareOperator.NotEqualTo}>{"!="}</SelectItem>
+                                                <SelectItem value={CompareOperator.LessThanOrEqualTo}>{"<="}</SelectItem>
+                                                <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>{">="}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

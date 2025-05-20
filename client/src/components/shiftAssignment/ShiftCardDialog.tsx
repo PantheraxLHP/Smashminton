@@ -13,10 +13,11 @@ import { ShiftDate, ShiftAssignment } from "@/types/types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button"
 import { Icon } from "@iconify/react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 interface ShiftCardDialogProps {
     shiftDate: ShiftDate;
-    shiftAssignments: ShiftAssignment[];
 }
 
 const isColStart = (shiftDate: ShiftDate) => {
@@ -25,27 +26,27 @@ const isColStart = (shiftDate: ShiftDate) => {
 
 const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({
     shiftDate,
-    shiftAssignments,
 }) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <div className={`mx-2 ${isColStart(shiftDate) ? "col-start-2" : ""}`}>
-                    <ShiftCard shiftDate={shiftDate} shiftAssignments={shiftAssignments} />
+                    <ShiftCard shiftDate={shiftDate} />
                 </div>
             </DialogTrigger>
-            <DialogContent className="!max-w-[60vw] max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>
+            <DialogContent className="!max-w-[60vw] h-[65vh] overflow-y-auto !flex flex-col gap-2">
+                <DialogHeader className="!h-1">
+                    <DialogTitle className="!h-fit">
                         <VisuallyHidden>
                             {`Chi tiết phân công cho ca làm việc ${shiftDate.shiftid}, ngày ${shiftDate.shiftdate.getDate()} tháng ${shiftDate.shiftdate.getMonth()} năm ${shiftDate.shiftdate.getFullYear()}} của nhân viên ${shiftDate.shiftid < 3 ? "bán thời gian" : "toàn thời gian"}`}
                         </VisuallyHidden>
                     </DialogTitle>
                 </DialogHeader>
-                <ShiftCardDetail
-                    shiftDate={shiftDate}
-                    shiftAssignments={shiftAssignments}
-                />
+                <DndProvider backend={HTML5Backend}>
+                    <ShiftCardDetail
+                        shiftDate={shiftDate}
+                    />
+                </DndProvider>
                 <DialogFooter>
                     <DialogTrigger asChild>
                         <Button variant="secondary">

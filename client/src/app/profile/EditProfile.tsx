@@ -171,35 +171,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onClose, onSave }) => {
                                     className="w-full border rounded px-3 py-1"
                                 />
                             </div>
-
-                            {/* Ghi chú mật khẩu */}
-                            <p className="text-sm text-gray-500 text-center mt-4 mb-2">
-                                Để trống nếu không muốn thay đổi mật khẩu
-                            </p>
-
-                            {/* Mật khẩu */}
-                            <div>
-                                <label className="block font-medium text-sm">Mật khẩu</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="w-full border rounded px-3 py-1"
-                                />
-                            </div>
-
-                            {/* Nhập lại mật khẩu */}
-                            <div>
-                                <label className="block font-medium text-sm">Nhập lại mật khẩu</label>
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    className="w-full border rounded px-3 py-1"
-                                />
-                            </div>
                         </div>
                     </div>
 
