@@ -23,7 +23,7 @@ function formatPrice(price: string): string {
 
 export default function ServiceModal({ open, onClose, onSubmit, editData }: ServiceModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-
+    
     const [formData, setFormData] = useState<Service>({
         name: "",
         price: "",

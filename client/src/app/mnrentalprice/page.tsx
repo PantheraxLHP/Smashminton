@@ -140,11 +140,20 @@ export default function ServicePriceManager() {
                                             onClose={() => setMenuPosition(null)}
                                             onEdit={() => {
                                                 if (selectedServiceIndex !== null) {
-                                                    setEditData(services[selectedServiceIndex]);
+                                                    setEditData(servicesState[selectedServiceIndex]);
                                                 }
                                                 setShowModal(true);
                                             }}
+                                            onDelete={() => {
+                                                if (selectedServiceIndex !== null) {
+                                                    setServicesState((prev) =>
+                                                        prev.filter((_, i) => i !== selectedServiceIndex)
+                                                    );
+                                                    setSelectedServiceIndex(null);
+                                                }
+                                            }}
                                         />
+                                    
                                     )}
                                 </td>
                             </tr>
