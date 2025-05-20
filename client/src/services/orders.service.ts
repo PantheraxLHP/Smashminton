@@ -22,7 +22,7 @@ export const getOrderRedis = async (username: string) => {
     }
 };
 
-export const postOrder = async (orderData: { username?: string; productId?: number }) => {
+export const postOrder = async (orderData: { username?: string; productid?: number }) => {
     try {
         const response = await fetch('/api/orders/post-order', {
             method: 'POST',
@@ -42,7 +42,7 @@ export const postOrder = async (orderData: { username?: string; productId?: numb
     }
 };
 
-export const deleteOrder = async (orderData: { username?: string; productId?: number }) => {
+export const deleteOrder = async (orderData: { username?: string; productid?: number }) => {
     try {
         const response = await fetch('/api/orders/delete-order', {
             method: 'DELETE',

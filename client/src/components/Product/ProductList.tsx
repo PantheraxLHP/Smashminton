@@ -32,7 +32,6 @@ const ProductList: React.FC<ProductListProps> = ({
 
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
-        console.log(product);
         return product ? product.quantity : 0;
     };
 

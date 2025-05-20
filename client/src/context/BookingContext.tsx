@@ -74,7 +74,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const addProduct = async (productId: number) => {
         const response = await postOrder({
             username: user?.username,
-            productId: productId,
+            productid: productId,
         });
         if (response.ok) {
             await fetchOrders();
@@ -83,17 +83,13 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     };
 
     const removeProductByIndex = async (productId: number) => {
-        try {
-            const response = await deleteOrder({
-                username: user?.username,
-                productId: productId,
-            });
-            if (response.ok) {
-                await fetchOrders();
-                toast.success('Xóa thành công');
-            }
-        } catch (error) {
-            toast.error('Có lỗi xảy ra khi xóa sản phẩm');
+        const response = await deleteOrder({
+            username: user?.username,
+            productid: productId,
+        });
+        if (response.ok) {
+            await fetchOrders();
+            toast.success('Xóa thành công');
         }
     };
 
@@ -121,7 +117,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         if (user) {
             const result = await getOrderRedis(user.username);
             if (result.ok) {
-                console.log(result.data.product_order);
                 setSelectedProducts(result.data.product_order);
             }
         } else {
