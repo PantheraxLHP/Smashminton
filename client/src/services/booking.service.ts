@@ -1,8 +1,5 @@
 import { Filters, SelectedCourts } from '@/app/booking/courts/page';
-import { BookingContextProps } from '@/context/BookingContext';
 import { ServiceResponse } from '@/lib/serviceResponse';
-
-export type BookingData = Pick<BookingContextProps, 'selectedCourts' | 'selectedProducts' | 'totalPrice' | 'TTL'>;
 
 export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
     try {

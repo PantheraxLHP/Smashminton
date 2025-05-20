@@ -1,24 +1,8 @@
+import { ProductFilterValues, ProductTypes } from '@/types/types';
 import { useState, useEffect } from 'react';
 
-export interface ProductTypeWithFilters {
-    producttypeid: number;
-    producttypename: string;
-    product_filter?: ProductFilterData[];
-}
-export interface ProductFilterData {
-    productfilterid: number;
-    productfiltername: string;
-    producttypeid: number;
-    product_filter_values: ProductFilterValue[];
-}
-export interface ProductFilterValue {
-    productfiltervalueid: number;
-    value: string;
-    productfilterid: number;
-}
-
 interface ProductFilterProps {
-    productTypesWithFilters: ProductTypeWithFilters[];
+    productTypes: ProductTypes[];
     onProductTypeChange: (productTypeId: number) => void;
     onProductFilterValueChange: (productFilterValueIds: number[]) => void;
     selectedProductTypeId: number;
@@ -26,19 +10,17 @@ interface ProductFilterProps {
 }
 
 const ProductFilter: React.FC<ProductFilterProps> = ({
-    productTypesWithFilters,
+    productTypes,
     onProductTypeChange,
     onProductFilterValueChange,
     selectedProductTypeId,
     selectedProductFilterValueIds,
 }) => {
-    const [productFilterValues, setProductFilterValues] = useState<ProductFilterValue[]>([]);
+    const [productFilterValues, setProductFilterValues] = useState<ProductFilterValues[]>([]);
 
     useEffect(() => {
         // Find the selected product type
-        const selectedProductType = productTypesWithFilters.find(
-            (type) => type.producttypeid === selectedProductTypeId,
-        );
+        const selectedProductType = productTypes.find((type) => type.producttypeid === selectedProductTypeId);
 
         // Get filter values for the selected type
         if (
@@ -46,11 +28,11 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
             selectedProductType.product_filter &&
             selectedProductType.product_filter.length > 0
         ) {
-            setProductFilterValues(selectedProductType.product_filter[0].product_filter_values);
+            setProductFilterValues(selectedProductType.product_filter[0].product_filter_values || []);
         } else {
             setProductFilterValues([]);
         }
-    }, [selectedProductTypeId, productTypesWithFilters]);
+    }, [selectedProductTypeId, productTypes]);
 
     return (
         <div className="flex flex-col gap-4">
@@ -60,7 +42,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
                     <h2 className="text-lg font-semibold">Danh mục sản phẩm</h2>
                 </div>
                 <div className="flex flex-col gap-5">
-                    {productTypesWithFilters.map((productType) => (
+                    {productTypes.map((productType) => (
                         <div
                             key={productType.producttypeid}
                             className={`text-md hover:text-primary cursor-pointer pl-2 ${productType.producttypeid === selectedProductTypeId ? 'text-primary' : ''}`}
@@ -114,7 +96,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
                     )}
                     <div className="border-b-2 border-gray-800 pb-2">
                         <h2 className="text-lg font-semibold">
-                            {productTypesWithFilters.find((val) => val.producttypeid === selectedProductTypeId)
+                            {productTypes.find((val) => val.producttypeid === selectedProductTypeId)
                                 ?.product_filter?.[0]?.productfiltername ?? 'Lọc theo danh mục'}
                         </h2>
                     </div>

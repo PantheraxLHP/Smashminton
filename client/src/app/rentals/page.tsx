@@ -1,155 +1,108 @@
-'use client';
-
-import ProductFilter, { ProductTypeWithFilters } from '@/components/Product/ProductFilter';
-import ProductList from '@/components/Product/ProductList';
-import { getProducts, getRentFilters } from '@/services/products.service';
+import { SelectedProducts } from '@/app/products/page';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBooking } from '@/context/BookingContext';
 import { Products } from '@/types/types';
-import { useEffect, useState } from 'react';
-import BookingBottomSheet from '../../components/atomic/BottomSheet';
+import { Icon } from '@iconify/react';
+import Image from 'next/image';
 
-export interface SelectedProducts extends Products {
-    quantity: number;
+interface ProductListProps {
+    products: Products[];
+    selectedProducts: SelectedProducts[];
+    sortBy: string;
+    sortOrder: string;
+    onSortOrderChange: (orderBy: string, sortBy: string) => void;
 }
 
-const RentalPage = () => {
-    const [products, setProducts] = useState<Products[]>([]);
-    const [productTypesWithFilters, setProductTypesWithFilters] = useState<ProductTypeWithFilters[]>([]);
-    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3);
-    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
-    const [sortOrder, setSortOrder] = useState('asc');
-    const [sortBy, setSortBy] = useState('sellingprice');
+const ProductList: React.FC<ProductListProps> = ({
+    products,
+    selectedProducts,
+    sortBy,
+    sortOrder,
+    onSortOrderChange,
+}) => {
+    const { addProduct, removeProductByIndex } = useBooking();
 
-    // State quản lý số lượng sản phẩm
-    const [productQuantities, setProductQuantities] = useState<{ [key: number]: number }>({});
-
-    useEffect(() => {
-        // Return json for product types with filters
-        // const productTypesWithFilters = [
-        //     {
-        //         producttypeid: 1,
-        //         producttypename: 'Sản phẩm 1',
-        //         product_filter: [{ productfilterid: 1, productfiltername: 'Lọc theo danh mục', producttypeid: 1, product_filter_values: [{ productfiltervalueid: 1, value: 'Sản phẩm 1', productfilterid: 1 }] },
-        //     },
-        const loadFilters = async () => {
-            const filtersResponse = await getRentFilters();
-            if (filtersResponse.ok) {
-                setProductTypesWithFilters(filtersResponse.data);
-            }
-        };
-
-        loadFilters();
-    }, []);
-
-    // Fetch products when filters change
-    useEffect(() => {
-        const loadProducts = async () => {
-            const productsResponse = await getProducts(
-                selectedProductTypeId,
-                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
-            );
-
-            if (productsResponse.ok) {
-                setProducts(productsResponse.data);
-            }
-        };
-
-        loadProducts();
-    }, [selectedProductTypeId, selectedProductFilterValueIds, sortBy, sortOrder]);
-
-    // Initialize product quantities
-    useEffect(() => {
-        setProductQuantities((prev) => {
-            const updated = { ...prev };
-            products.forEach((product) => {
-                if (updated[product.productid] === undefined) {
-                    updated[product.productid] = 0;
-                }
-            });
-            return updated;
-        });
-    }, [products]);
-
-    // Tăng số lượng sản phẩm
     const handleIncrement = (productid: number) => {
-        setProductQuantities((prev) => ({
-            ...prev,
-            [productid]: prev[productid] + 1,
-        }));
+        addProduct(productid);
     };
 
-    // Giảm số lượng sản phẩm
     const handleDecrement = (productid: number) => {
-        setProductQuantities((prev) => ({
-            ...prev,
-            [productid]: Math.max(prev[productid] - 1, 0),
-        }));
+        removeProductByIndex(productid);
     };
 
-    const handleProductTypeChange = (productTypeId: number) => {
-        setSelectedProductTypeId(productTypeId);
-        setSelectedProductFilterValueIds([]);
+    const getProductQuantity = (productid: number) => {
+        const product = selectedProducts.find((p) => p.productid === productid);
+        console.log(product);
+        return product ? product.quantity : 0;
     };
-
-    const handleProductFilterValueChange = (productFilterValueIds: number[]) => {
-        if (productFilterValueIds.length === 0) {
-            // Clear all selections
-            setSelectedProductFilterValueIds([]);
-        } else if (selectedProductFilterValueIds.includes(productFilterValueIds[0])) {
-            // If already selected, remove it
-            setSelectedProductFilterValueIds(
-                selectedProductFilterValueIds.filter((id) => id !== productFilterValueIds[0]),
-            );
-        } else {
-            // Add new selection
-            setSelectedProductFilterValueIds([...selectedProductFilterValueIds, ...productFilterValueIds]);
-        }
-
-        console.log(selectedProductFilterValueIds);
-    };
-
-    const handleSortOrderChange = (orderBy: string, sortBy: string) => {
-        setSortOrder(orderBy);
-        setSortBy(sortBy);
-    };
-
-    const selectedProducts: SelectedProducts[] = products
-        .filter((product) => productQuantities[product.productid] > 0)
-        .map((product) => ({
-            ...product,
-            quantity: productQuantities[product.productid],
-        }));
 
     return (
-        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
-            <div className="flex flex-col gap-5">
-                <ProductFilter
-                    productTypesWithFilters={productTypesWithFilters}
-                    onProductTypeChange={handleProductTypeChange}
-                    onProductFilterValueChange={handleProductFilterValueChange}
-                    selectedProductTypeId={selectedProductTypeId}
-                    selectedProductFilterValueIds={selectedProductFilterValueIds}
-                />
+        <div className="flex w-full flex-col gap-2 p-4">
+            <div className="flex justify-end gap-2">
+                <div className="text-md flex items-center gap-2 font-semibold">
+                    <Icon icon="lucide:sort-desc" className="text-xl" />
+                    Sắp xếp
+                </div>
+                <div>
+                    <Select
+                        defaultValue={`${sortBy}-${sortOrder}`}
+                        onValueChange={(value) => {
+                            const [sortBy, sortOrder] = value.split('-');
+                            onSortOrderChange(sortBy, sortOrder);
+                        }}
+                    >
+                        <SelectTrigger className="border-2 bg-transparent focus:ring-0">
+                            <SelectValue placeholder="Mặc định" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="sellingprice-asc">Giá tăng dần</SelectItem>
+                            <SelectItem value="sellingprice-desc">Giá giảm dần</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
-            <ProductList
-                products={products}
-                productQuantities={productQuantities}
-                onIncrement={handleIncrement}
-                onDecrement={handleDecrement}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSortOrderChange={handleSortOrderChange}
-            />
-            {selectedProducts.length > 0 && (
-                <BookingBottomSheet
-                    selectedProducts={selectedProducts}
-                    selectedCourts={[]}
-                    TTL={0}
-                    onResetTimer={() => {}}
-                    onConfirm={() => {}}
-                />
-            )}
+            <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {products.map((product) => (
+                    <div key={product.productid} className="">
+                        <Image
+                            src={product.productimgurl || '/default-image.jpg'}
+                            alt={product.productname || 'Hình ảnh sản phẩm'}
+                            width={300}
+                            height={200}
+                            className="!h-[200px] w-full object-scale-down"
+                        />
+                        <h3 className="text-md font-semibold">{product.productname}</h3>
+                        <div className="flex items-center justify-between">
+                            <p className="text-primary-600 font-bold">{product.sellingprice?.toLocaleString()} VNĐ</p>
+                            <div className="flex items-center">
+                                <button
+                                    type="button"
+                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                    onClick={() => handleDecrement(product.productid)}
+                                >
+                                    <Icon
+                                        icon="ic:baseline-minus"
+                                        className="text-lg text-gray-500 group-hover:text-white"
+                                    />
+                                </button>
+                                <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
+                                <button
+                                    type="button"
+                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                    onClick={() => handleIncrement(product.productid)}
+                                >
+                                    <Icon
+                                        icon="ic:baseline-plus"
+                                        className="text-lg text-gray-500 group-hover:text-white"
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
 
-export default RentalPage;
+export default ProductList;

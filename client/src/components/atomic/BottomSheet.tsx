@@ -22,6 +22,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     TTL,
 }) => {
     const { removeCourtByIndex, removeProductByIndex } = useBooking();
+
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
     const prevCourtsLengthRef = useRef<number>(0);
