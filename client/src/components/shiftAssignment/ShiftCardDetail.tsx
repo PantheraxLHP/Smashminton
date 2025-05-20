@@ -4,15 +4,7 @@ import { Icon } from "@iconify/react";
 import { Input } from "@/components/ui/input";
 import { useDrag, useDrop } from "react-dnd";
 import Image from "next/image";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationLink,
-    PaginationItem,
-    PaginationPrevious,
-    PaginationNext,
-    PaginationEllipsis,
-} from "@/components/ui/pagination";
+import PaginationComponent from "@/components/atomic/PaginationComponent";
 import { useState } from "react";
 
 interface ShiftCardDetailProps {
@@ -351,67 +343,11 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                     )}
                 </div>
             </div>
-            <Pagination className="flex justify-end">
-                <PaginationContent>
-                    {page > 1 && (
-                        <PaginationItem>
-                            <PaginationPrevious href="#" />
-                        </PaginationItem>
-                    )}
-
-                    {(() => {
-                        const items = [];
-                        let start = Math.max(1, page - 2);
-                        let end = Math.min(totalPages, page + 2);
-
-                        if (end - start < 4) {
-                            if (start === 1) {
-                                end = Math.min(totalPages, start + 4);
-                            } else if (end === totalPages) {
-                                start = Math.max(1, end - 4);
-                            }
-                        }
-
-                        if (start > 1) {
-                            items.push(
-                                <PaginationItem key="start-ellipsis">
-                                    <PaginationEllipsis />
-                                </PaginationItem>
-                            );
-                        }
-
-                        for (let i = start; i <= end; i++) {
-                            items.push(
-                                <PaginationItem key={i}>
-                                    <PaginationLink
-                                        href="#"
-                                        isActive={page === i}
-                                        onClick={() => setPage(i)}
-                                    >
-                                        {i}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            );
-                        }
-
-                        if (end < totalPages) {
-                            items.push(
-                                <PaginationItem key="end-ellipsis">
-                                    <PaginationEllipsis />
-                                </PaginationItem>
-                            );
-                        }
-
-                        return items;
-                    })()} {/* Gọi hàm */}
-
-                    {page < totalPages && (
-                        <PaginationItem>
-                            <PaginationNext href="#" />
-                        </PaginationItem>
-                    )}
-                </PaginationContent>
-            </Pagination>
+            <PaginationComponent
+                page={page}
+                setPage={setPage}
+                totalPages={totalPages}
+            />
         </div>
     );
 }

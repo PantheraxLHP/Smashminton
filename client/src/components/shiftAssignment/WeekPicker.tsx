@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DropdownProps, DayPicker, DateRange, rangeIncludesDate, CalendarWeek } from "react-day-picker";
 import { vi } from "date-fns/locale";
 import "react-day-picker/style.css";
-import { endOfWeek, getWeek, addMonths, startOfWeek } from "date-fns";
+import { endOfWeek, getWeek, addMonths, startOfWeek, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 
@@ -88,16 +88,25 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
         setSelectedDay(undefined);
     }
 
+    const handleNextWeekClick = () => {
+        const today = new Date();
+        const nextWeekStart = startOfWeek(addDays(today, 7), { weekStartsOn: 1 });
+        const nextWeekEnd = endOfWeek(addDays(today, 7), { weekStartsOn: 1 });
+        setSelectedWeek?.({
+            from: nextWeekStart,
+            to: nextWeekEnd
+        });
+        setWeekNumber?.(getWeek(nextWeekStart, { weekStartsOn: 1 }));
+        setMonth(nextWeekStart);
+        setSelectedDay(undefined);
+    }
+
     const isClickableWeek = (week: CalendarWeek) => {
-        const weekStart = week.days[0].date;
         const weekEnd = week.days[week.days.length - 1].date;
         const today = new Date();
-        if (weekStart <= today || weekEnd <= today) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        const nextWeekEnd = endOfWeek(addDays(today, 7), { weekStartsOn: 1 });
+
+        return weekEnd <= nextWeekEnd;
     }
 
     const handleWeekNumberClick = (week: CalendarWeek) => {
@@ -167,9 +176,12 @@ export const WeekPickerCalendar: React.FC<WeekPickerProps> = ({
                         setYear?.(day.getFullYear());
                     }}
                     footer={
-                        <div className="flex flex-col items-end px-3 pb-3" >
+                        <div className="flex justify-end items-end gap-2 px-3 pb-3" >
                             <Button variant="link" className="text-xs p-0" onClick={handleCurrentWeekClick}>
                                 Tuần hiện tại
+                            </Button>
+                            <Button variant="link" className="text-xs p-0" onClick={handleNextWeekClick}>
+                                Tuần kế tiếp
                             </Button>
                         </div>
                     }

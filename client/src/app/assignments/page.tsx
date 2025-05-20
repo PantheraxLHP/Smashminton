@@ -5,6 +5,7 @@ import { startOfWeek, endOfWeek, getWeek } from "date-fns";
 import { DateRange } from "react-day-picker";
 import ShiftFilter from "@/components/shiftAssignment/ShiftFilter";
 import AssignmentCalendar from "@/components/shiftAssignment/AssignmentCalendar";
+import { useAuth } from "@/context/AuthContext";
 
 const ShiftAssignmentPage = () => {
     const today = new Date();
@@ -15,6 +16,7 @@ const ShiftAssignmentPage = () => {
     const [weekNumber, setWeekNumber] = useState<number>(getWeek(today, { weekStartsOn: 1 }));
     const [year, setYear] = useState<number>(today.getFullYear());
     const [selectedRadio, setSelectedRadio] = useState<string>("fulltime");
+    const { user } = useAuth();
 
     return (
         <div className="p-4 flex flex-col items-center sm:items-start sm:flex-row gap-5 w-full justify-center">
