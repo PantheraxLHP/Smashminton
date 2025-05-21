@@ -34,15 +34,14 @@ const ProfileIcon = () => {
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="z-[9999]">
-                <DropdownMenuLabel>{user?.accounttype}</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                    {user?.accounttype}: {user?.username}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile')}>
                     Thông tin cá nhân
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => router.push('/profile?tab=changepassword')}
-                >
+                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile?tab=changepassword')}>
                     Thay đổi mật khẩu
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={handleSignoutButtonClick}>
