@@ -18,8 +18,6 @@ const ProductPage = () => {
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(1);
     const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
-    const [sortOrder, setSortOrder] = useState('asc');
-    const [sortBy, setSortBy] = useState('sellingprice');
 
     useEffect(() => {
         const loadFilters = async () => {
@@ -64,10 +62,6 @@ const ProductPage = () => {
         }
     };
 
-    const handleSortOrderChange = (orderBy: string, sortBy: string) => {
-        setSortOrder(orderBy);
-        setSortBy(sortBy);
-    };
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
@@ -85,9 +79,6 @@ const ProductPage = () => {
             <ProductList
                 products={products}
                 selectedProducts={selectedProducts}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSortOrderChange={handleSortOrderChange}
             />
             {hasSelectedItems && (
                 <BookingBottomSheet

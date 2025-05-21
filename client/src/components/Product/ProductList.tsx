@@ -3,25 +3,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBooking } from '@/context/BookingContext';
 import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
-import { get } from 'http';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface ProductListProps {
     products: Products[];
     selectedProducts: SelectedProducts[];
-    sortBy: string;
-    sortOrder: string;
-    onSortOrderChange: (orderBy: string, sortBy: string) => void;
 }
 
-const ProductList: React.FC<ProductListProps> = ({
-    products,
-    selectedProducts,
-    sortBy,
-    sortOrder,
-    onSortOrderChange,
-}) => {
+const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
     const { addProduct, removeProduct } = useBooking();
+    const [sortBy, setSortBy] = useState('sellingprice');
+    const [sortOrder, setSortOrder] = useState('asc');
 
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
@@ -39,6 +32,23 @@ const ProductList: React.FC<ProductListProps> = ({
         removeProduct(productid);
     };
 
+    const getSortedProducts = () => {
+        return [...products].sort((a, b) => {
+            if (sortBy === 'sellingprice') {
+                const priceA = a.sellingprice || 0;
+                const priceB = b.sellingprice || 0;
+                return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+            }
+            return 0;
+        });
+    };
+
+    const handleSortChange = (value: string) => {
+        const [newSortBy, newSortOrder] = value.split('-');
+        setSortBy(newSortBy);
+        setSortOrder(newSortOrder);
+    };
+
     return (
         <div className="flex w-full flex-col gap-2 p-4">
             <div className="flex justify-end gap-2">
@@ -47,13 +57,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     Sắp xếp
                 </div>
                 <div>
-                    <Select
-                        defaultValue={`${sortBy}-${sortOrder}`}
-                        onValueChange={(value) => {
-                            const [sortBy, sortOrder] = value.split('-');
-                            onSortOrderChange(sortBy, sortOrder);
-                        }}
-                    >
+                    <Select defaultValue={`${sortBy}-${sortOrder}`} onValueChange={handleSortChange}>
                         <SelectTrigger className="border-2 bg-transparent focus:ring-0">
                             <SelectValue placeholder="Mặc định" />
                         </SelectTrigger>
@@ -65,7 +69,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 </div>
             </div>
             <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {products.map((product) => (
+                {getSortedProducts().map((product) => (
                     <div key={product.productid} className="">
                         <Image
                             src={product.productimgurl || '/default-image.jpg'}
