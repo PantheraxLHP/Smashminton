@@ -18,7 +18,7 @@ export interface BookingContextProps {
     addCourt: (court: SelectedCourts) => void;
     removeCourtByIndex: (index: number) => void;
     addProduct: (productId: number) => void;
-    removeProductByIndex: (index: number) => void;
+    removeProduct: (index: number) => void;
     fetchBooking: () => Promise<void>;
     clearCourts: () => void;
     clearProducts: () => void;
@@ -35,7 +35,7 @@ const BookingContext = createContext<BookingContextProps>({
     addCourt: () => {},
     removeCourtByIndex: () => {},
     fetchBooking: async () => {},
-    removeProductByIndex: () => {},
+    removeProduct: () => {},
     clearCourts: () => {},
     clearProducts: () => {},
 });
@@ -82,7 +82,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         }
     };
 
-    const removeProductByIndex = async (productId: number) => {
+    const removeProduct = async (productId: number) => {
         const response = await deleteOrder({
             username: user?.username,
             productid: productId,
@@ -119,9 +119,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             if (result.ok) {
                 setSelectedProducts(result.data.product_order);
             }
-        } else {
-            toast.warning('Vui lòng đăng nhập');
-            router.push('/signin');
         }
     };
 
@@ -142,7 +139,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 addCourt,
                 removeCourtByIndex,
                 addProduct,
-                removeProductByIndex,
+                removeProduct,
                 fetchBooking,
                 clearCourts,
                 clearProducts,

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
 import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
+import ProductFilter from '../Product/ProductFilter';
 
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
@@ -21,7 +22,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedProducts,
     TTL,
 }) => {
-    const { removeCourtByIndex, removeProductByIndex } = useBooking();
+    const { removeCourtByIndex, removeProduct } = useBooking();
 
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
@@ -75,7 +76,9 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
     const handleClearAll = () => {};
 
-    const TotalPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
+    const BookingPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
+    const OrderPrice = selectedProducts.reduce((acc, product) => acc + product.totalamount, 0);
+    const TotalPrice = BookingPrice + OrderPrice;
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
@@ -119,7 +122,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
                         {/* Danh sách sản phẩm */}
                         <div className="flex flex-wrap gap-4">
-                            {selectedProducts?.map((scProduct: SelectedProducts, index: number) => (
+                            {selectedProducts?.map((scProduct) => (
                                 <div key={scProduct.productid} className="flex items-center gap-2">
                                     <Icon icon="mdi:racket" className="h-5 w-5" />
                                     <span>
@@ -128,7 +131,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                     <Icon
                                         icon="mdi:close-circle"
                                         className="h-5 w-5 cursor-pointer text-red-500"
-                                        onClick={() => removeProductByIndex(index)}
+                                        onClick={() => removeProduct(scProduct.productid)}
                                     />
                                 </div>
                             ))}

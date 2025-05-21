@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBooking } from '@/context/BookingContext';
 import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
+import { get } from 'http';
 import Image from 'next/image';
 
 interface ProductListProps {
@@ -20,19 +21,22 @@ const ProductList: React.FC<ProductListProps> = ({
     sortOrder,
     onSortOrderChange,
 }) => {
-    const { addProduct, removeProductByIndex } = useBooking();
+    const { addProduct, removeProduct } = useBooking();
+
+    const getProductQuantity = (productid: number) => {
+        const product = selectedProducts.find((p) => p.productid === productid);
+        return product ? product.quantity : 0;
+    };
 
     const handleIncrement = (productid: number) => {
         addProduct(productid);
     };
 
     const handleDecrement = (productid: number) => {
-        removeProductByIndex(productid);
-    };
-
-    const getProductQuantity = (productid: number) => {
-        const product = selectedProducts.find((p) => p.productid === productid);
-        return product ? product.quantity : 0;
+        if (getProductQuantity(productid) == 0) {
+            return;
+        }
+        removeProduct(productid);
     };
 
     return (
