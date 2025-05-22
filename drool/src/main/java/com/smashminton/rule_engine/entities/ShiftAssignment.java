@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @AllArgsConstructor
 @Entity
 @Table(name = "shift_assignment")
-@IdClass(ShiftAssignmentId.class)
+@IdClass(ShiftAssignment.ShiftAssignmentId.class)
 public class ShiftAssignment {
     @Id
     @Column(name = "employeeid")
@@ -46,13 +46,13 @@ public class ShiftAssignment {
         @JoinColumn(name = "shiftdate", referencedColumnName = "shiftdate", insertable = false, updatable = false)
     })
     private ShiftDate shiftDateEntity;
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class ShiftAssignmentId implements java.io.Serializable {
-    private Integer employeeId;
-    private Integer shiftId;
-    private LocalDateTime shiftDate;
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ShiftAssignmentId implements java.io.Serializable {
+        private Integer employeeId;
+        private Integer shiftId;
+        private LocalDateTime shiftDate;
+    }
 } 
