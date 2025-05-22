@@ -59,7 +59,7 @@ async function main() {
                 fullname: 'Nguyễn Văn A',
                 email: 'nguyenvana@example.com',
                 dob: new Date('1990-01-01'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0123456789',
                 address: '123 Đường A, Quận 1',
                 accounttype: 'Employee',
@@ -73,7 +73,7 @@ async function main() {
                 fullname: 'Trần Thị B',
                 email: 'tranthib@example.com',
                 dob: new Date('1992-02-02'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0987654321',
                 address: '456 Đường B, Quận 2',
                 accounttype: 'Employee',
@@ -87,7 +87,7 @@ async function main() {
                 fullname: 'Lê Hồng C',
                 email: 'lehongc@example.com',
                 dob: new Date('1991-03-03'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0369852147',
                 address: '789 Đường C, Quận 3',
                 accounttype: 'Employee',
@@ -101,7 +101,7 @@ async function main() {
                 fullname: 'Lê Hoàng D',
                 email: 'lehoangd@example.com',
                 dob: new Date('1993-04-04'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0123456789',
                 address: '123 Đường D, Quận 4',
                 accounttype: 'Employee',
@@ -115,7 +115,7 @@ async function main() {
                 fullname: 'Nguyễn Minh E',
                 email: 'nguyenminhe@example.com',
                 dob: new Date('1994-05-05'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0987654321',
                 address: '456 Đường E, Quận 5',
                 accounttype: 'Employee',
@@ -129,7 +129,7 @@ async function main() {
                 fullname: 'Bùi Thành F',
                 email: 'buithanhf@example.com',
                 dob: new Date('1995-06-06'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0369852147',
                 address: '789 Đường F, Quận 6',
                 accounttype: 'Employee',
@@ -143,7 +143,7 @@ async function main() {
                 fullname: 'Trần Tiến G',
                 email: 'trantieng@example.com',
                 dob: new Date('1996-07-07'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0123456789',
                 address: '123 Đường G, Quận 7',
                 accounttype: 'Employee',
@@ -157,7 +157,7 @@ async function main() {
                 fullname: 'Phạm Thị H',
                 email: 'phamthih@example.com',
                 dob: new Date('1997-08-08'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0987654321',
                 address: '456 Đường H, Quận 8',
                 accounttype: 'Employee',
@@ -171,7 +171,7 @@ async function main() {
                 fullname: 'Phù Mỹ I',
                 email: 'phumyi@example.com',
                 dob: new Date('1998-09-09'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0369852147',
                 address: '789 Đường I, Quận 9',
                 accounttype: 'Employee',
@@ -185,7 +185,7 @@ async function main() {
                 fullname: 'Cao Bá J',
                 email: 'caobaj@example.com',
                 dob: new Date('1999-10-10'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0123456789',
                 address: '123 Đường J, Quận 10',
                 accounttype: 'Employee',
@@ -199,7 +199,7 @@ async function main() {
                 fullname: 'Hoàng Thị K',
                 email: 'hoangthik@example.com',
                 dob: new Date('1999-11-11'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0123456789',
                 address: '123 Đường K, Quận 11',
                 accounttype: 'Employee',
@@ -213,7 +213,7 @@ async function main() {
                 fullname: 'Nguyễn Đức L',
                 email: 'nguyenducl@example.com',
                 dob: new Date('2000-12-12'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0987654321',
                 address: '456 Đường L, Quận 12',
                 accounttype: 'Employee',
@@ -227,7 +227,7 @@ async function main() {
                 fullname: 'Võ Phát M',
                 email: 'vophatm@example.com',
                 dob: new Date('2000-01-01'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0369852147',
                 address: '789 Đường M, Quận Thủ Đức',
                 accounttype: 'Employee',
@@ -241,7 +241,7 @@ async function main() {
                 fullname: 'Nguyễn Vũ N',
                 email: 'nguyenvun@example.com',
                 dob: new Date('2000-02-02'),
-                gender: 'Male',
+                gender: 'Nam',
                 phonenumber: '0123456789',
                 address: '123 Đường N, Quận Bình Thạnh',
                 accounttype: 'Customer',
@@ -255,7 +255,7 @@ async function main() {
                 fullname: 'Phạm Thuỳ O',
                 email: 'phamthuyo@example.com',
                 dob: new Date('2000-03-03'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0987654321',
                 address: '456 Đường O, Quận Gò Vấp',
                 accounttype: 'Customer',
@@ -269,7 +269,7 @@ async function main() {
                 fullname: 'Huyền Vũ P',
                 email: 'huyenvup@example.com',
                 dob: new Date('2000-04-04'),
-                gender: 'Female',
+                gender: 'Nữ',
                 phonenumber: '0369852147',
                 address: '789 Đường P, Quận Tân Bình',
                 accounttype: 'Customer',
@@ -287,7 +287,7 @@ async function main() {
                 status: 'Active',
                 fullname: `User ${i}`,
                 accounttype: 'Employee',
-                gender: i % 2 === 0 ? 'Male' : 'Female',
+                gender: i % 2 === 0 ? 'Nam' : 'Nữ',
             },
         });
     }
@@ -851,8 +851,7 @@ async function main() {
             },
             {
                 productname: 'Vớ cầu lông Yonex',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-y',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-y',
                 status: 'Available',
                 sellingprice: 150.0,
                 rentalprice: 20.0,
@@ -869,8 +868,7 @@ async function main() {
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-y',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-y',
                 status: 'Available',
                 sellingprice: 25.0,
                 rentalprice: null,
@@ -1719,7 +1717,7 @@ async function main() {
                 expirydate: new Date('2026-12-31'),
                 status: 'Còn hạn',
             },
-        ]
+        ],
     });
 
     await prisma.purchase_order.createMany({
@@ -1729,203 +1727,203 @@ async function main() {
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 1
+                batchid: 1,
             },
             {
                 productid: 2,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 2
+                batchid: 2,
             },
             {
                 productid: 3,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 3
+                batchid: 3,
             },
             {
                 productid: 4,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 4
+                batchid: 4,
             },
             {
                 productid: 5,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 5
+                batchid: 5,
             },
             {
                 productid: 6,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 6
+                batchid: 6,
             },
             {
                 productid: 7,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 7
+                batchid: 7,
             },
             {
                 productid: 8,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 8
+                batchid: 8,
             },
             {
                 productid: 9,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 9
+                batchid: 9,
             },
             {
                 productid: 10,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 10
+                batchid: 10,
             },
             {
                 productid: 11,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 11
+                batchid: 11,
             },
             {
                 productid: 12,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 12
+                batchid: 12,
             },
             {
                 productid: 13,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 13
+                batchid: 13,
             },
             {
                 productid: 14,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 14
+                batchid: 14,
             },
             {
                 productid: 15,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 15
+                batchid: 15,
             },
             {
                 productid: 16,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 16
+                batchid: 16,
             },
             {
                 productid: 17,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 17
+                batchid: 17,
             },
             {
                 productid: 18,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 18
+                batchid: 18,
             },
             {
                 productid: 19,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 19
+                batchid: 19,
             },
             {
                 productid: 20,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 20
+                batchid: 20,
             },
             {
                 productid: 21,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 21
+                batchid: 21,
             },
             {
                 productid: 22,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 22
+                batchid: 22,
             },
             {
                 productid: 23,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 23
+                batchid: 23,
             },
             {
                 productid: 24,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 24
+                batchid: 24,
             },
             {
                 productid: 25,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 25
+                batchid: 25,
             },
             {
                 productid: 26,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 26
+                batchid: 26,
             },
             {
                 productid: 27,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 27
+                batchid: 27,
             },
             {
                 productid: 28,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 28
+                batchid: 28,
             },
             {
                 productid: 29,
                 quantity: 10,
                 employeeid: 3,
                 supplierid: 1,
-                batchid: 29
+                batchid: 29,
             },
         ],
     });
@@ -1938,5 +1936,4 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
-
     });

@@ -1,5 +1,4 @@
 import { ShiftDate, ShiftAssignment } from "@/types/types";
-import { getDay } from "date-fns";
 
 const colorIndex = [
     "bg-yellow-500",
@@ -9,6 +8,7 @@ const colorIndex = [
     "bg-[#008CFF]",
     "bg-[#746C82]"
 ];
+
 const borderColorIndex = [
     "border-yellow-500 group-hover:border-yellow-500",
     "border-[#008CFF] group-hover:border-[#008CFF]",

@@ -1,46 +1,35 @@
 'use client';
 
-import ProductFilter, { ProductTypeWithFilters } from '@/components/Product/ProductFilter';
+import ProductFilter from '@/components/Product/ProductFilter';
 import ProductList from '@/components/Product/ProductList';
 import { getProductFilters, getProducts } from '@/services/products.service';
-import { Products } from '@/types/types';
+import { ProductTypes, Products } from '@/types/types';
 import { useEffect, useState } from 'react';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
+import { useBooking } from '@/context/BookingContext';
 
 export interface SelectedProducts extends Products {
     quantity: number;
 }
 
 const ProductPage = () => {
+    const { selectedCourts, selectedProducts, TTL } = useBooking();
     const [products, setProducts] = useState<Products[]>([]);
-    const [productTypesWithFilters, setProductTypesWithFilters] = useState<ProductTypeWithFilters[]>([]);
+    const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(1);
     const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
-    const [sortOrder, setSortOrder] = useState('asc');
-    const [sortBy, setSortBy] = useState('sellingprice');
-
-    // State quản lý số lượng sản phẩm
-    const [productQuantities, setProductQuantities] = useState<{ [key: number]: number }>({});
 
     useEffect(() => {
-        // Return json for product types with filters
-        // const productTypesWithFilters = [
-        //     {
-        //         producttypeid: 1,
-        //         producttypename: 'Sản phẩm 1',
-        //         product_filter: [{ productfilterid: 1, productfiltername: 'Lọc theo danh mục', producttypeid: 1, product_filter_values: [{ productfiltervalueid: 1, value: 'Sản phẩm 1', productfilterid: 1 }] },
-        //     },
         const loadFilters = async () => {
             const filtersResponse = await getProductFilters();
             if (filtersResponse.ok) {
-                setProductTypesWithFilters(filtersResponse.data);
+                setProductTypes(filtersResponse.data);
             }
         };
 
         loadFilters();
     }, []);
 
-    // Fetch products when filters change
     useEffect(() => {
         const loadProducts = async () => {
             const productsResponse = await getProducts(
@@ -54,36 +43,7 @@ const ProductPage = () => {
         };
 
         loadProducts();
-    }, [selectedProductTypeId, selectedProductFilterValueIds, sortBy, sortOrder]);
-
-    // Initialize product quantities
-    useEffect(() => {
-        setProductQuantities((prev) => {
-            const updated = { ...prev };
-            products.forEach((product) => {
-                if (updated[product.productid] === undefined) {
-                    updated[product.productid] = 0;
-                }
-            });
-            return updated;
-        });
-    }, [products]);
-
-    // Tăng số lượng sản phẩm
-    const handleIncrement = (productid: number) => {
-        setProductQuantities((prev) => ({
-            ...prev,
-            [productid]: prev[productid] + 1,
-        }));
-    };
-
-    // Giảm số lượng sản phẩm
-    const handleDecrement = (productid: number) => {
-        setProductQuantities((prev) => ({
-            ...prev,
-            [productid]: Math.max(prev[productid] - 1, 0),
-        }));
-    };
+    }, [selectedProductTypeId, selectedProductFilterValueIds]);
 
     const handleProductTypeChange = (productTypeId: number) => {
         setSelectedProductTypeId(productTypeId);
@@ -92,38 +52,24 @@ const ProductPage = () => {
 
     const handleProductFilterValueChange = (productFilterValueIds: number[]) => {
         if (productFilterValueIds.length === 0) {
-            // Clear all selections
             setSelectedProductFilterValueIds([]);
         } else if (selectedProductFilterValueIds.includes(productFilterValueIds[0])) {
-            // If already selected, remove it
             setSelectedProductFilterValueIds(
                 selectedProductFilterValueIds.filter((id) => id !== productFilterValueIds[0]),
             );
         } else {
-            // Add new selection
             setSelectedProductFilterValueIds([...selectedProductFilterValueIds, ...productFilterValueIds]);
         }
-
-        console.log(selectedProductFilterValueIds);
     };
 
-    const handleSortOrderChange = (orderBy: string, sortBy: string) => {
-        setSortOrder(orderBy);
-        setSortBy(sortBy);
-    };
 
-    const selectedProducts: SelectedProducts[] = products
-        .filter((product) => productQuantities[product.productid] > 0)
-        .map((product) => ({
-            ...product,
-            quantity: productQuantities[product.productid],
-        }));
+    const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
     return (
         <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
             <div className="flex flex-col gap-5">
                 <ProductFilter
-                    productTypesWithFilters={productTypesWithFilters}
+                    productTypes={productTypes}
                     onProductTypeChange={handleProductTypeChange}
                     onProductFilterValueChange={handleProductFilterValueChange}
                     selectedProductTypeId={selectedProductTypeId}
@@ -132,18 +78,13 @@ const ProductPage = () => {
             </div>
             <ProductList
                 products={products}
-                productQuantities={productQuantities}
-                onIncrement={handleIncrement}
-                onDecrement={handleDecrement}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSortOrderChange={handleSortOrderChange}
+                selectedProducts={selectedProducts}
             />
-            {selectedProducts.length > 0 && (
+            {hasSelectedItems && (
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}
-                    selectedCourts={[]}
-                    TTL={0}
+                    selectedCourts={selectedCourts}
+                    TTL={TTL}
                     onResetTimer={() => {}}
                     onConfirm={() => {}}
                 />

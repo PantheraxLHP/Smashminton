@@ -35,7 +35,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
         };
 
         updateOffset();
-        const interval = setInterval(updateOffset, 60000); // update every minute
+        const interval = setInterval(updateOffset, 60000);
         return () => clearInterval(interval);
     }, []);
 

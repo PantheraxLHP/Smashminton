@@ -16,7 +16,7 @@ const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
     selectedRadio,
 }) => {
     return (
-        <div className="w-full overflow-x-auto">
+        <div className="h-full w-full overflow-x-auto">
             <CalendarHeader
                 selectedWeek={selectedWeek}
                 weekNumber={weekNumber}

@@ -1,12 +1,9 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export default function BookingPage() {
-    const router = useRouter();
-    useEffect(() => {
-        router.push('/booking/courts');
-    }, [router]);
-    return null;
+    if (typeof window !== 'undefined') {
+        window.location.href = '/booking/courts';
+        return null;
+    }
+    redirect('/booking/courts');
 }

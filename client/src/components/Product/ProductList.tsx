@@ -1,27 +1,54 @@
+import { SelectedProducts } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBooking } from '@/context/BookingContext';
 import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface ProductListProps {
     products: Products[];
-    productQuantities: { [key: number]: number };
-    onIncrement: (productid: number) => void;
-    onDecrement: (productid: number) => void;
-    sortBy: string;
-    sortOrder: string;
-    onSortOrderChange: (orderBy: string, sortBy: string) => void;
+    selectedProducts: SelectedProducts[];
 }
 
-const ProductList: React.FC<ProductListProps> = ({
-    products,
-    productQuantities,
-    onIncrement,
-    onDecrement,
-    sortBy,
-    sortOrder,
-    onSortOrderChange,
-}) => {
+const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
+    const { addProduct, removeProduct } = useBooking();
+    const [sortBy, setSortBy] = useState('sellingprice');
+    const [sortOrder, setSortOrder] = useState('asc');
+
+    const getProductQuantity = (productid: number) => {
+        const product = selectedProducts.find((p) => p.productid === productid);
+        return product ? product.quantity : 0;
+    };
+
+    const handleIncrement = (productid: number) => {
+        addProduct(productid);
+    };
+
+    const handleDecrement = (productid: number) => {
+        if (getProductQuantity(productid) == 0) {
+            return;
+        }
+        removeProduct(productid);
+    };
+
+    const getSortedProducts = () => {
+        return [...products].sort((a, b) => {
+            if (sortBy === 'sellingprice') {
+                const priceA = a.sellingprice || 0;
+                const priceB = b.sellingprice || 0;
+                return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+            }
+            return 0;
+        });
+    };
+
+    const handleSortChange = (value: string) => {
+        const [newSortBy, newSortOrder] = value.split('-');
+        setSortBy(newSortBy);
+        setSortOrder(newSortOrder);
+    };
+
     return (
         <div className="flex w-full flex-col gap-2 p-4">
             <div className="flex justify-end gap-2">
@@ -30,13 +57,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     Sắp xếp
                 </div>
                 <div>
-                    <Select
-                        defaultValue={sortBy + '-' + sortOrder}
-                        onValueChange={(value) => {
-                            const [sortBy, sortOrder] = value.split('-');
-                            onSortOrderChange(sortBy, sortOrder);
-                        }}
-                    >
+                    <Select defaultValue={`${sortBy}-${sortOrder}`} onValueChange={handleSortChange}>
                         <SelectTrigger className="border-2 bg-transparent focus:ring-0">
                             <SelectValue placeholder="Mặc định" />
                         </SelectTrigger>
@@ -48,34 +69,39 @@ const ProductList: React.FC<ProductListProps> = ({
                 </div>
             </div>
             <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {products.map((item) => (
-                    <div key={item.productid} className="">
+                {getSortedProducts().map((product) => (
+                    <div key={product.productid} className="">
                         <Image
-                            src={item.productimgurl || '/default-image.jpg'}
-                            alt={item.productname || 'Hình ảnh sản phẩm'}
+                            src={product.productimgurl || '/default-image.jpg'}
+                            alt={product.productname || 'Hình ảnh sản phẩm'}
                             width={300}
                             height={200}
-                            className="w-full object-scale-down !h-[200px]"
+                            className="!h-[200px] w-full object-scale-down"
                         />
-                        <h3 className="text-md font-semibold">{item.productname}</h3>
+                        <h3 className="text-md font-semibold">{product.productname}</h3>
                         <div className="flex items-center justify-between">
-                            <p className="text-primary-600 font-bold">{item.sellingprice?.toLocaleString()} đ</p>
+                            <p className="text-primary-600 font-bold">{product.sellingprice?.toLocaleString()} VNĐ</p>
                             <div className="flex items-center">
                                 <button
+                                    type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => onDecrement(item.productid)}
+                                    onClick={() => handleDecrement(product.productid)}
                                 >
                                     <Icon
                                         icon="ic:baseline-minus"
                                         className="text-lg text-gray-500 group-hover:text-white"
                                     />
                                 </button>
-                                <span className="mx-4 text-lg">{productQuantities[item.productid]}</span>
+                                <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
                                 <button
+                                    type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => onIncrement(item.productid)}
+                                    onClick={() => handleIncrement(product.productid)}
                                 >
-                                    <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 group-hover:text-white" />
+                                    <Icon
+                                        icon="ic:baseline-plus"
+                                        className="text-lg text-gray-500 group-hover:text-white"
+                                    />
                                 </button>
                             </div>
                         </div>

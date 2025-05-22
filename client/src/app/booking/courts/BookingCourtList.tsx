@@ -1,31 +1,12 @@
+import { useDebounce } from '@/app/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBooking } from '@/context/BookingContext';
+import { formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
-import { formatPrice } from '@/lib/utils';
-import { useBooking } from '@/context/BookingContext';
+import { useState } from 'react';
 import { Filters, SelectedCourts } from './page';
-
-// Custom debounce hook
-const useDebounce = <T extends (...args: any[]) => void>(callback: T, delay: number) => {
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-
-    return useCallback(
-        (...args: Parameters<T>) => {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-
-            const newTimeoutId = setTimeout(() => {
-                callback(...args);
-            }, delay);
-
-            setTimeoutId(newTimeoutId);
-        },
-        [callback, delay, timeoutId],
-    );
-};
 
 interface BookingCourtListProps {
     courts: SelectedCourts[];
@@ -109,7 +90,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
             </h2>
 
             {/* Danh sách sân */}
-            <div className="mt-6 w-full grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-6 grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {courts?.map((court) => {
                     const scCourtIndex =
                         selectedCourts?.findIndex(
@@ -123,13 +104,13 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
                     const isSelected = scCourtIndex !== -1;
 
                     return (
-                        <div key={court.courtid} className="w-full flex flex-col h-full rounded-lg border shadow-lg">
+                        <div key={court.courtid} className="flex h-full w-full flex-col rounded-lg border shadow-lg">
                             <Image
                                 src={court.courtimgurl || 'default-court.png'}
                                 alt={court.courtname || 'Hình ảnh sân'}
                                 width={200}
                                 height={400}
-                                className="object-cover rounded-t-lg w-full !h-[350px]"
+                                className="!h-[350px] w-full rounded-t-lg object-cover"
                             />
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>

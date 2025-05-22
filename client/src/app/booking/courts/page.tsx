@@ -27,7 +27,9 @@ export interface SelectedCourts {
 }
 
 export interface SelectedProducts extends Products {
+    unitprice: number;
     quantity: number;
+    totalamount: number;
 }
 
 export interface Filters {

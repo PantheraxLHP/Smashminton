@@ -167,53 +167,49 @@ export interface PenaltyRules {
     penalty_records?: PenaltyRecords[];
 }
 
-export interface ProductDescriptions {
-    productdescid: number;
-    weight?: number;
-    size?: string;
-    gripsize?: string;
-    shaftstiffness?: string;
-    products?: Products[];
+export interface ProductTypes {
+    producttypeid: number;
+    producttypename?: string;
+    product_filter?: ProductFilter[];
 }
 
 export interface Products {
     productid: number;
     productname?: string;
-    batch?: string;
-    expirydate?: Date;
     status?: string;
-    stockquantity?: number;
     sellingprice?: number;
     rentalprice?: number;
     costprice?: number;
     productimgurl?: string;
-    producttypeid?: number;
-    productdescid?: number;
     createdat?: Date;
     updatedat?: Date;
     order_product?: OrderProduct[];
-    product_descriptions?: ProductDescriptions;
-    product_types?: ProductTypes;
+    product_attributes?: ProductAttributes[];
     purchase_order?: PurchaseOrder[];
 }
 
-export interface ProductTypes {
-    producttypeid: number;
-    producttypename?: string;
-    productisfood?: boolean;
-    products?: Products[];
+export interface ProductBatch {
+    batchid: number;
+    batchname?: string;
+    expirydate?: Date;
+    stockquantity?: number;
+    status?: string;
+    createdat?: Date;
+    updatedat?: Date;
+    purchase_order?: PurchaseOrder[];
 }
 
 export interface PurchaseOrder {
     poid: number;
     quantity?: number;
     deliverydate?: Date;
-    status?: string;
     createdat?: Date;
     updatedat?: Date;
     productid?: number;
     employeeid?: number;
     supplierid?: number;
+    batchid?: number;
+    product_batch?: ProductBatch;
     employees?: Employees;
     products?: Products;
     suppliers?: Suppliers;
@@ -336,4 +332,27 @@ export interface Zones {
     zonedescription?: string;
     courts?: Courts[];
     zone_prices?: ZonePrices[];
+}
+
+export interface ProductAttributes {
+    productid: number;
+    productfiltervalueid: number;
+    product_filter_values?: ProductFilterValues;
+    products?: Products;
+}
+
+export interface ProductFilter {
+    productfilterid: number;
+    productfiltername?: string;
+    producttypeid?: number;
+    product_types?: ProductTypes;
+    product_filter_values?: ProductFilterValues[];
+}
+
+export interface ProductFilterValues {
+    productfiltervalueid: number;
+    value?: string;
+    productfilterid?: number;
+    product_attributes?: ProductAttributes[];
+    product_filter?: ProductFilter;
 }
