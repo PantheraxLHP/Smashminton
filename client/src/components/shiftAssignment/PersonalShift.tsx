@@ -1,6 +1,4 @@
-import { useAuth, User } from "@/context/AuthContext";
 import { ShiftEnrollment, ShiftAssignment, Shift } from "@/types/types";
-import { useEffect } from "react";
 
 interface PersonalShiftProps {
     role?: string;
