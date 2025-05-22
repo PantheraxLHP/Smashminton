@@ -1,15 +1,15 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { getUser } from '@/services/accounts.service';
+import { Accounts } from '@/types/types';
+import Image from 'next/image';
 import Link from 'next/link'; // Import Link from next/link
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
+import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
-import { Accounts } from '@/types/types';
-import { getUser } from '@/services/accounts.service';
-import Image from 'next/image';
 
 interface Booking {
     time: string;
@@ -87,6 +87,7 @@ const UserProfilePage = () => {
     };
 
     const handleTabClick = (tabName: string) => {
+        console.log(userProfile);
         setActiveTab(tabName);
 
         // Xoá ?tab=... khỏi URL
@@ -98,7 +99,7 @@ const UserProfilePage = () => {
     };
 
     return (
-        <div className="bg-full min-h-screen bg-center p-8" style={{ backgroundImage: 'url(homebg.png)' }}>
+        <div className="min-h-screen bg-[url('/homebg.png')] bg-cover bg-center p-8">
             <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
@@ -106,7 +107,9 @@ const UserProfilePage = () => {
                         <Image
                             src={userProfile.avatarurl}
                             alt="User Avatar"
-                            className="h-28 w-28 rounded-full object-cover border"
+                            width={112}
+                            height={112}
+                            className="h-28 w-28 rounded-full border object-cover"
                         />
                     ) : (
                         <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gray-200 text-4xl text-gray-400">
@@ -125,6 +128,10 @@ const UserProfilePage = () => {
                                 <FaPhone className="text-primary-600" /> {userProfile?.phonenumber}
                             </div>
                             <div className="flex items-center gap-2 text-gray-800">
+                                <FaBirthdayCake className="text-primary-600" />{' '}
+                                {userProfile?.dob ? new Date(userProfile.dob).toLocaleDateString() : ''}
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-800">
                                 <FaMapMarkerAlt className="text-primary-600" /> {userProfile?.address}
                             </div>
                             <div className="flex items-center gap-2 text-gray-800">
@@ -134,7 +141,7 @@ const UserProfilePage = () => {
                     </div>
                     <div>
                         <button
-                            className="bg-primary-500 hover:bg-primary-600 rounded px-4 py-2 font-semibold text-white"
+                            className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded px-4 py-2 font-semibold text-white"
                             onClick={() => setShowEditProfile(true)}
                         >
                             Chỉnh sửa
@@ -254,10 +261,21 @@ const UserProfilePage = () => {
 
                 {activeTab === 'changepassword' && (
                     <div className="flex justify-center">
-                        <div className="mt-4 w-full max-w-md space-y-4">
+                        <form
+                            className="mt-4 w-full max-w-md space-y-4"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                // Handle password change submission here
+                            }}
+                        >
                             <div>
                                 <label className="text-md block py-2 font-medium">Mật khẩu mới</label>
-                                <input type="password" name="password" className="w-full rounded border px-3 py-2" />
+                                <input
+                                    type="password"
+                                    name="password"
+                                    className="w-full rounded border px-3 py-2"
+                                    autoComplete="new-password"
+                                />
                             </div>
 
                             <div>
@@ -266,13 +284,17 @@ const UserProfilePage = () => {
                                     type="password"
                                     name="confirmPassword"
                                     className="w-full rounded border px-3 py-2"
+                                    autoComplete="new-password"
                                 />
                             </div>
 
-                            <button className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white">
+                            <button
+                                type="submit"
+                                className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white"
+                            >
                                 Xác nhận thay đổi mật khẩu
                             </button>
-                        </div>
+                        </form>
                     </div>
                 )}
 

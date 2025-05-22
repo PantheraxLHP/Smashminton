@@ -23,3 +23,29 @@ export const getUser = async (accountId: number) => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 };
+
+export const updateProfile = async (accountId: number, formData: FormData) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('accountId', accountId.toString());
+
+        console.log(formData);
+        const response = await fetch(`/api/accounts/update-profile?${queryParams.toString()}`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include',
+            // @ts-expect-error - TypeScript doesn't recognize duplex option yet
+            duplex: 'half',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể cập nhật thông tin');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật thông tin');
+    }
+};

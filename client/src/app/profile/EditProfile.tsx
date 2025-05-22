@@ -1,46 +1,81 @@
 // components/EditProfile.tsx
 'use client';
 
+import { updateProfile } from '@/services/accounts.service';
 import { Accounts } from '@/types/types';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { FaTimes, FaPen, FaUser, FaVenusMars, FaPhone, FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa';
+import {
+    FaBirthdayCake,
+    FaEnvelope,
+    FaMapMarkerAlt,
+    FaPen,
+    FaPhone,
+    FaTimes,
+    FaUser,
+    FaVenusMars,
+} from 'react-icons/fa';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+
+interface EditProfileFormData extends Accounts {
+    avatar: File | null;
+}
 
 interface EditProfileProps {
     userProfile: Accounts;
     onClose: () => void;
-    onSave: (updatedUser: any) => void;
+    onSave: (updatedUser: Accounts) => void;
 }
 
 const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave }) => {
-    const [formData, setFormData] = useState({
-        avatar: null as File | null,
-        name: userProfile.fullname,
-        gender: userProfile.gender,
-        phone: userProfile.phonenumber,
-        address: userProfile.address,
-        email: userProfile.email,
-        password: '',
-        confirmPassword: '',
+    const [formData, setFormData] = useState<EditProfileFormData>({
+        ...userProfile,
+        avatar: null,
     });
+    const { user } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = (e: { target: HTMLInputElement }) => {
         const file = e.target.files?.[0] || null;
         setFormData((prev) => ({ ...prev, avatar: file }));
     };
 
-    const handleSubmit = () => {
-        if (formData.password !== formData.confirmPassword) {
-            alert('Mật khẩu và nhập lại mật khẩu không khớp');
-            return;
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (!user?.sub) return;
+
+        const formDataToSend = new FormData();
+
+        // Add all form fields to FormData
+        if (formData.fullname) formDataToSend.append('fullname', formData.fullname);
+        if (formData.gender) formDataToSend.append('gender', formData.gender);
+        if (formData.email) formDataToSend.append('email', formData.email);
+        if (formData.phonenumber) formDataToSend.append('phonenumber', formData.phonenumber);
+        if (formData.address) formDataToSend.append('address', formData.address);
+        // Add dob if it exists, ensuring it's in ISO format
+        if (formData.dob) {
+            const dobDate = new Date(formData.dob);
+            formDataToSend.append('dob', dobDate.toISOString());
         }
-        onSave(formData);
-        onClose();
+
+        // Add avatar if it exists - make sure to use the correct field name 'avatarurl'
+        if (formData.avatar) {
+            formDataToSend.append('avatarurl', formData.avatar);
+        }
+
+        const response = await updateProfile(user.sub, formDataToSend);
+        if (response.ok) {
+            onSave(response.data);
+            onClose();
+            toast.success('Cập nhật thông tin thành công');
+        } else {
+            toast.error('Cập nhật thông tin thất bại');
+        }
     };
 
     return (
@@ -63,15 +98,14 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                             CẬP NHẬT THÔNG TIN CÁ NHÂN
                         </h2>
                         <div className="space-y-4">
-                            {/* Avatar */}
                             <div className="flex flex-col items-center">
                                 <div className="relative mb-2 h-24 w-24">
-                                    {formData.avatar || userProfile.avatarurl ? (
+                                    {formData.avatar || formData.avatarurl ? (
                                         <Image
                                             src={
                                                 formData.avatar
                                                     ? URL.createObjectURL(formData.avatar)
-                                                    : userProfile.avatarurl!
+                                                    : formData.avatarurl!
                                             }
                                             alt="Avatar"
                                             className="h-24 w-24 rounded-full border object-cover"
@@ -98,28 +132,26 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                 </div>
                             </div>
 
-                            {/* Tên */}
                             <div>
-                                <label className="block flex items-center gap-2 text-sm font-medium">
+                                <label className="flex items-center gap-2 text-sm font-medium">
                                     <FaUser className="text-primary-600" /> Tên
                                 </label>
                                 <input
                                     type="text"
-                                    name="name"
-                                    value={formData.name}
+                                    name="fullname"
+                                    value={formData.fullname || ''}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 />
                             </div>
 
-                            {/* Giới tính */}
                             <div>
-                                <label className="block flex items-center gap-2 text-sm font-medium">
+                                <label className="flex items-center gap-2 text-sm font-medium">
                                     <FaVenusMars className="text-primary-600" /> Giới tính
                                 </label>
                                 <select
                                     name="gender"
-                                    value={formData.gender}
+                                    value={formData.gender || ''}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 >
@@ -129,43 +161,53 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                 </select>
                             </div>
 
-                            {/* SĐT */}
                             <div>
-                                <label className="block flex items-center gap-2 text-sm font-medium">
+                                <label className="flex items-center gap-2 text-sm font-medium">
                                     <FaPhone className="text-primary-600" /> Số điện thoại
                                 </label>
                                 <input
                                     type="text"
-                                    name="phone"
-                                    value={formData.phone}
+                                    name="phonenumber"
+                                    value={formData.phonenumber || ''}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 />
                             </div>
 
-                            {/* Địa chỉ */}
                             <div>
-                                <label className="block flex items-center gap-2 text-sm font-medium">
+                                <label className="flex items-center gap-2 text-sm font-medium">
+                                    <FaBirthdayCake className="text-primary-600" /> Ngày sinh
+                                </label>
+                                <input
+                                    type="date"
+                                    name="dob"
+                                    value={formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : ''}
+                                    onChange={handleChange}
+                                    className="w-full rounded border px-3 py-1"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="flex items-center gap-2 text-sm font-medium">
                                     <FaMapMarkerAlt className="text-primary-600" /> Địa chỉ
                                 </label>
                                 <input
                                     type="text"
                                     name="address"
-                                    value={formData.address}
+                                    value={formData.address || ''}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 />
                             </div>
 
-                            {/* Email */}
                             <div>
-                                <label className="block flex items-center gap-2 text-sm font-medium">
+                                <label className="flex items-center gap-2 text-sm font-medium">
                                     <FaEnvelope className="text-primary-600" /> Email
                                 </label>
                                 <input
                                     type="email"
                                     name="email"
-                                    value={formData.email}
+                                    value={formData.email || ''}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 />
@@ -173,14 +215,16 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                         </div>
                     </div>
 
-                    {/* Nút hành động */}
-                    <div className="mt-6 flex justify-end gap-2 pr-4">
-                        <button onClick={onClose} className="rounded border px-4 py-2 text-gray-600 hover:bg-gray-100">
+                    <div className="c mt-6 flex justify-end gap-2 pr-4">
+                        <button
+                            onClick={onClose}
+                            className="cursor-pointer rounded border px-4 py-2 text-gray-600 hover:bg-gray-100"
+                        >
                             Hủy
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 text-white"
+                            className="bg-primary-600 hover:bg-primary-700 cursor-pointer rounded px-4 py-2 text-white"
                         >
                             Lưu thay đổi
                         </button>

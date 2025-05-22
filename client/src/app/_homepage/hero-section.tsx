@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 const HeroSection = () => {
     return (
+
+        
         <div className="relative max-h-screen w-full">
             <Image
                 // src="/homebg.png"
