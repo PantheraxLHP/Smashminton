@@ -32,7 +32,7 @@ const ShiftAssignmentPage = ()  => {
     useEffect(() => {
         if (!user) {
             const localUser = {
-                id: "9999",
+                sub: 9999,
                 username: "testing",
                 accounttype: "testing",
                 role: "employee"
