@@ -9,6 +9,7 @@ import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
 import { Accounts } from '@/types/types';
 import { getUser } from '@/services/accounts.service';
+import Image from 'next/image';
 
 interface Booking {
     time: string;
@@ -101,9 +102,17 @@ const UserProfilePage = () => {
             <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
-                    <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gray-200 text-4xl text-gray-400">
-                        <FaUser />
-                    </div>
+                    {userProfile?.avatarurl ? (
+                        <Image
+                            src={userProfile.avatarurl}
+                            alt="User Avatar"
+                            className="h-28 w-28 rounded-full object-cover border"
+                        />
+                    ) : (
+                        <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gray-200 text-4xl text-gray-400">
+                            <FaUser />
+                        </div>
+                    )}
                     <div className="flex-1">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2 text-gray-800">
