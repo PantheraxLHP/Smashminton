@@ -3,7 +3,8 @@ import { ShiftEnrollment, ShiftAssignment, Shift } from "@/types/types";
 import { useEffect } from "react";
 
 interface PersonalShiftProps {
-    type: "enrollment" | "assignment";
+    role?: string;
+    type: "enrollments" | "assignments";
     shiftData: ShiftEnrollment[] | ShiftAssignment[];
 }
 
@@ -19,22 +20,10 @@ const colorIndex = [
 const weekDayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
 
 const PersonalShift: React.FC<PersonalShiftProps> = ({
+    role,
     type,
     shiftData,
 }) => {
-    const { user, setUser } = useAuth();
-    useEffect(() => {
-        if (!user) {
-            const localUser: User = {
-                id: "9999",
-                username: "testing",
-                accounttype: "testing",
-                role: "employee"
-            };
-            setUser(localUser);
-        }
-    }, [user, setUser]);
-
     const shiftDataGroupedByDate = shiftData.reduce((acc: { [key: string]: ShiftEnrollment[] | ShiftAssignment[] }, shift) => {
         const date = shift.shiftdate.toLocaleDateString("vi-VN", {
             year: "numeric",
@@ -49,13 +38,13 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({
     }, {});
 
     return (
-        <div className="flex flex-col items-center w-full h-full rounded-lg border p-2">
-            {user && (user.role === "employee" || user.role === "wh_manager") && type === "enrollment" && (
-                <>
+        <>
+            {role === "employee" && type === "enrollments" && (
+                <div className="flex flex-col items-center w-full h-full rounded-lg border p-2">
                     <div className="text-primary">
                         Đã đăng ký: <span className="text-2xl font-bold">{shiftData.length}</span> ca làm việc
                     </div>
-                    {Object.values(shiftDataGroupedByDate).map((shiftDate: ShiftEnrollment[]) => {
+                    {Object.values(shiftDataGroupedByDate).map((shiftDate: ShiftEnrollment[]) =>
                         shiftDate.map((shift) => {
                             const date = shift.shiftdate.toLocaleDateString("vi-VN", {
                                 year: "numeric",
@@ -74,15 +63,17 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({
                                 </div>
                             );
                         })
-                    })}
-                </>
+                    )}
+                </div>
             )}
-            {user && (user.role === "employee" || user.role === "wh_manager") && type === "assignment" && (
-                <>
-                    <div className="text-primary">
-                        Xác nhận: <span className="text-2xl font-bold">0</span>/<span className="font-bold">{shiftData.length}</span> ca làm việc
-                    </div>
-                    {Object.values(shiftDataGroupedByDate).map((shiftDate: ShiftAssignment[]) => {
+            {(role === "employee" || role === "wh_manager") && type === "assignments" && (
+                <div className="flex flex-col items-center w-full h-full rounded-lg border p-2">
+                    {role === "employee" && (
+                        <div className="text-primary">
+                            Xác nhận: <span className="text-2xl font-bold">0</span>/<span className="font-bold">{shiftData.length}</span> ca làm việc
+                        </div>
+                    )}
+                    {Object.values(shiftDataGroupedByDate).map((shiftDate: ShiftAssignment[]) => 
                         shiftDate.map((shift) => {
                             const date = shift.shiftdate.toLocaleDateString("vi-VN", {
                                 year: "numeric",
@@ -101,10 +92,10 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({
                                 </div>
                             );
                         })
-                    })}
-                </>
+                    )}
+                </div>
             )}
-        </div>
+        </>
     );
 };
 
