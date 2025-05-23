@@ -102,7 +102,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     };
 
     const fetchBooking = async () => {
-        if (user) {
+        if (user?.username) {
             const result = await getBookingRedis(user.username);
             if (result.ok) {
                 setSelectedCourts(result.data.court_booking);
@@ -114,7 +114,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         }
     };
     const fetchOrders = async () => {
-        if (user) {
+        if (user?.username) {
             const result = await getOrderRedis(user.username);
             if (result.ok) {
                 setSelectedProducts(result.data.product_order);
