@@ -1,7 +1,7 @@
 'use client';
 
-import ProductFilter from '@/components/Product/ProductFilter';
-import ProductList from '@/components/Product/ProductList';
+import ProductFilter from '@/components/Booking/ProductFilter';
+import ProductList from '@/components/Booking/ProductList';
 import { getProductFilters, getProducts } from '@/services/products.service';
 import { ProductTypes, Products } from '@/types/types';
 import { useEffect, useState } from 'react';
@@ -62,7 +62,6 @@ const ProductPage = () => {
         }
     };
 
-
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
     return (
@@ -76,10 +75,7 @@ const ProductPage = () => {
                     selectedProductFilterValueIds={selectedProductFilterValueIds}
                 />
             </div>
-            <ProductList
-                products={products}
-                selectedProducts={selectedProducts}
-            />
+            <ProductList products={products} selectedProducts={selectedProducts} />
             {hasSelectedItems && (
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}

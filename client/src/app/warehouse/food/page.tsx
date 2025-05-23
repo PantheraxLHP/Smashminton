@@ -25,7 +25,7 @@ const rawData: FoodItem[] = [
         lot: '3',
         expiry: '2024-12-12',
         stock: 80,
-        image: '/setcavienchien.png',
+        image: '/default.png',
     },
     {
         name: 'Set cá viên chiên cay',
@@ -34,7 +34,7 @@ const rawData: FoodItem[] = [
         lot: '3',
         expiry: '2024-12-12',
         stock: 60,
-        image: '/setcavienchienchuacay.png',
+        image: '/default.png',
     },
     {
         name: 'Snack O’Star',
@@ -43,7 +43,7 @@ const rawData: FoodItem[] = [
         lot: '2',
         expiry: '2024-12-12',
         stock: 35,
-        image: '/ostar.png',
+        image: '/default.png',
     },
     {
         name: 'Revive',
@@ -52,7 +52,7 @@ const rawData: FoodItem[] = [
         lot: '3',
         expiry: '2025-12-12',
         stock: 25,
-        image: '/revive.png',
+        image: '/default.png',
     },
     {
         name: 'Pocari (Hết hạn)',
@@ -61,7 +61,7 @@ const rawData: FoodItem[] = [
         lot: '1',
         expiry: '2024-05-10',
         stock: 22,
-        image: '/pocarisweat.png',
+        image: '/default.png',
     },
     {
         name: 'Pocari (Sắp hết hạn)',
@@ -70,7 +70,7 @@ const rawData: FoodItem[] = [
         lot: '2',
         expiry: '2025-05-28',
         stock: 30,
-        image: '/pocarisweat.png',
+        image: '/default.png',
     },
 ];
 
@@ -111,15 +111,14 @@ export default function FoodAndBeveragePage() {
         setData(fetchedData);
 
         // cập nhật filters nếu muốn giá trị price đúng theo data
-        const minPrice = Math.min(...rawData.map(d => d.price));
-        const maxPrice = Math.max(...rawData.map(d => d.price));
+        const minPrice = Math.min(...rawData.map((d) => d.price));
+        const maxPrice = Math.max(...rawData.map((d) => d.price));
 
-        setFilters(prev => ({
+        setFilters((prev) => ({
             ...prev,
             price: [minPrice, maxPrice],
         }));
     }, []);
-    
 
     const categoryOptions = getUniqueOptions(data, 'category');
     const lotOptions = getUniqueOptions(data, 'lot');
@@ -140,20 +139,20 @@ export default function FoodAndBeveragePage() {
         const matchesLot = !filters.lot?.length || filters.lot.includes(item.lot);
         return matchesName && matchesCategory && matchesPrice && matchesLot;
     });
-    
 
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
         {
             header: 'Giá / đơn vị tính',
-            accessor: (item) =>
-                item?.price != null
-                    ? `${item.price.toLocaleString('vi-VN')} VND`
-                    : '—',
-        }          ,
+            accessor: (item) => (item?.price != null ? `${item.price.toLocaleString('vi-VN')} VND` : '—'),
+        },
         { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
-        { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
+        {
+            header: 'Ngày hết hạn',
+            accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'),
+            align: 'center',
+        },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
         {
             header: 'Tình trạng',
@@ -163,28 +162,26 @@ export default function FoodAndBeveragePage() {
                 item.status === 'Sắp hết hạn'
                     ? 'text-yellow-600 px-2 py-1 rounded'
                     : item.status === 'Hết hạn'
-                        ? 'text-red-600 px-2 py-1 rounded'
-                        : 'text-green-600 px-2 py-1 rounded',
+                      ? 'text-red-600 px-2 py-1 rounded'
+                      : 'text-green-600 px-2 py-1 rounded',
         },
     ];
 
     return (
-        <div className="flex flex-col lg:flex-row h-full w-full p-4 gap-4">
-            <div className="w-full lg:w-[280px] shrink-0">
+        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
+            <div className="w-full shrink-0 lg:w-[280px]">
                 <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
             </div>
 
-            <div className="flex-1 flex flex-col">
-                <div className="flex justify-end mb-2 pr-4">
-                    <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Thêm</button>
+            <div className="flex flex-1 flex-col">
+                <div className="mb-2 flex justify-end pr-4">
+                    <button className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">Thêm</button>
                 </div>
 
                 <DataTable
                     columns={columns}
                     data={filteredData}
-                    renderImage={(item) => (
-                        <Image src={item.image} alt={item.name} width={40} height={40} />
-                    )}
+                    renderImage={(item) => <Image src={item.image} alt={item.name} width={40} height={40} />}
                 />
             </div>
         </div>

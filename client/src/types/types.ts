@@ -259,6 +259,7 @@ export interface ShiftAssignment {
     employeeid: number;
     shiftid: number;
     shiftdate: Date;
+    status?: string;
     employees?: Employees;
     shift_date?: ShiftDate;
 }

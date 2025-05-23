@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: 'Smashminton',
     description: 'Smashminton Application',
     icons: {
-        icon: '/icon.png',
+        icon: '/logo.png',
         shortcut: '/favicon.ico',
         apple: '/apple-touch-icon.png',
     },

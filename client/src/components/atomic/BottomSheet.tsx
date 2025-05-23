@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
 import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
-import ProductFilter from '../Product/ProductFilter';
 
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
@@ -115,7 +114,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 <Icon
                                     onClick={() => removeCourtByIndex(index)}
                                     icon="mdi:close-circle"
-                                    className="h-5 w-5 cursor-pointer text-red-500"
+                                    className="text-primary-400 h-5 w-5 cursor-pointer"
                                 />
                             </div>
                         ))}
@@ -128,9 +127,11 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                     <span>
                                         {scProduct.quantity} {scProduct.productname}
                                     </span>
+                                    <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
+                                    <span>{scProduct.totalamount.toLocaleString('vi-VN')} VNĐ</span>
                                     <Icon
-                                        icon="mdi:close-circle"
-                                        className="h-5 w-5 cursor-pointer text-red-500"
+                                        icon="mdi:minus-circle"
+                                        className="text-primary-400 h-5 w-5 cursor-pointer"
                                         onClick={() => removeProduct(scProduct.productid)}
                                     />
                                 </div>

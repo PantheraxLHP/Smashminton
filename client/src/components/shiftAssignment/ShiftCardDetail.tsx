@@ -8,7 +8,7 @@ import PaginationComponent from "@/components/atomic/PaginationComponent";
 import { useState } from "react";
 
 interface ShiftCardDetailProps {
-    shiftDate: ShiftDate;
+    shiftDataSingle: ShiftDate;
 }
 
 const getDateString = (date: Date) => {
@@ -56,7 +56,7 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({ employee, setIsDr
             ref={node => { dragRef(node); }}
         >
             <Image
-                src={employee.accounts?.avatarurl || "/icon.png"}
+                src={employee.accounts?.avatarurl || "/logo.png"}
                 alt={`Hình của nhân viên ${employee.employeeid}`}
                 width={40}
                 height={40}
@@ -115,7 +115,7 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
             ref={node => { dragRef(node); }}
         >
             <Image
-                src={assignment.employees?.accounts?.avatarurl || "/icon.png"}
+                src={assignment.employees?.accounts?.avatarurl || "/logo.png"}
                 alt={`Hình của nhân viên ${assignment.employeeid}`}
                 width={40}
                 height={40}
@@ -131,12 +131,12 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
 type DragItem = DragEmployeeItem | DragAssignmentItem;
 
 const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
-    shiftDate,
+    shiftDataSingle,
 }) => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(5);
-    const weekNumber = getWeek(shiftDate.shiftdate, { weekStartsOn: 1 });
+    const weekNumber = getWeek(shiftDataSingle.shiftdate, { weekStartsOn: 1 });
     const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>([
         {
             employeeid: 1,
@@ -227,8 +227,8 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                     ...prev,
                     {
                         employeeid: item.employee.employeeid,
-                        shiftid: shiftDate.shiftid,
-                        shiftdate: shiftDate.shiftdate,
+                        shiftid: shiftDataSingle.shiftid,
+                        shiftdate: shiftDataSingle.shiftdate,
                         employees: item.employee,
                     },
                 ]);
@@ -263,10 +263,10 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
         <div className="flex flex-col gap-4 w-full h-full">
             <div className="flex justify-between items-center w-full border-b-2 pb-2 border-b-gray-500">
                 <div className="text-lg">
-                    {`Chi tiết phân công cho nhân viên ${shiftDate.shiftid < 3 ? "toàn thời gian" : "bán thời gian"}`}
+                    {`Chi tiết phân công cho nhân viên ${shiftDataSingle.shiftid < 3 ? "toàn thời gian" : "bán thời gian"}`}
                 </div>
                 <div className="text-sm">
-                    {`Tuần ${weekNumber}, ${getDateString(shiftDate.shiftdate)}, Ca ${shiftDate.shiftid}: ${shiftDate.shift?.shiftstarthour} - ${shiftDate.shift?.shiftendhour}`}
+                    {`Tuần ${weekNumber}, ${getDateString(shiftDataSingle.shiftdate)}, Ca ${shiftDataSingle.shiftid}: ${shiftDataSingle.shift?.shiftstarthour} - ${shiftDataSingle.shift?.shiftendhour}`}
                 </div>
             </div>
             <div className="flex gap-5 h-full">

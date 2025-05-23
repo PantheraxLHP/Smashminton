@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { handleSignout } from '@/services/auth.service';
 import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const ProfileIcon = () => {
     const { user, setUser, setIsAuthenticated } = useAuth();
@@ -29,8 +30,18 @@ const ProfileIcon = () => {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-                <div className="flex cursor-pointer items-center rounded-full bg-white p-2">
-                    <User className="text-primary-500" size={20} />
+                <div className="flex cursor-pointer items-center rounded-full bg-white p-1">
+                    {user?.avatarurl ? (
+                        <Image
+                            src={user.avatarurl}
+                            alt="avatar"
+                            width={32}
+                            height={32}
+                            className="rounded-full object-cover"
+                        />
+                    ) : (
+                        <User className="text-primary-500" size={32} />
+                    )}
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="z-[9999]">
