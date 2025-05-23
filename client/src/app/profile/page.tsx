@@ -99,7 +99,7 @@ const UserProfilePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[url('/homebg.png')] bg-cover bg-center p-8">
+        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
             <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">

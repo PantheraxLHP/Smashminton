@@ -7,6 +7,7 @@ export type User = {
     username: string;
     accounttype: string;
     role?: string;
+    avatarurl?: string;
 };
 
 type AuthContextType = {
