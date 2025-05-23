@@ -1,7 +1,7 @@
 'use client';
 
 import { getUser } from '@/services/accounts.service';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { Accounts } from '@/types/types';
 
 export type UserJWT = {
@@ -81,12 +81,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        fetchSession();
-    }, []);
-
-    useEffect(() => {
-        fetchUserProfile();
-    }, [userJWT]);
+        const initAuth = () => {
+            fetchSession();
+            if (userJWT?.sub) {
+                fetchUserProfile();
+            }
+        };
+        initAuth();
+    }, [userJWT?.sub]);
 
     return (
         <AuthContext.Provider

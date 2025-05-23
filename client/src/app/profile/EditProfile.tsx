@@ -45,6 +45,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        setIsLoading(true);
         e.preventDefault();
         if (!userProfile?.accountid) return;
 

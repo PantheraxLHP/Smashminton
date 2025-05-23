@@ -6,14 +6,14 @@ import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
 
-interface ProductListProps {
+interface RentalListProps {
     products: Products[];
     selectedProducts: SelectedProducts[];
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
+const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) => {
     const { addProduct, removeProduct } = useBooking();
-    const [sortBy, setSortBy] = useState('sellingprice');
+    const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
 
     const getProductQuantity = (productid: number) => {
@@ -34,9 +34,9 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
 
     const getSortedProducts = () => {
         return [...products].sort((a, b) => {
-            if (sortBy === 'sellingprice') {
-                const priceA = a.sellingprice || 0;
-                const priceB = b.sellingprice || 0;
+            if (sortBy === 'rentalprice') {
+                const priceA = a.rentalprice || 0;
+                const priceB = b.rentalprice || 0;
                 return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
             }
             return 0;
@@ -62,8 +62,8 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                             <SelectValue placeholder="Mặc định" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="sellingprice-asc">Giá tăng dần</SelectItem>
-                            <SelectItem value="sellingprice-desc">Giá giảm dần</SelectItem>
+                            <SelectItem value="rentalprice-asc">Giá tăng dần</SelectItem>
+                            <SelectItem value="rentalprice-desc">Giá giảm dần</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -80,7 +80,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                         />
                         <h3 className="text-md font-semibold">{product.productname}</h3>
                         <div className="flex items-center justify-between">
-                            <p className="text-primary-600 font-bold">{product.sellingprice?.toLocaleString()} VNĐ</p>
+                            <p className="text-primary-600 font-bold">{product.rentalprice?.toLocaleString()} VNĐ</p>
                             <div className="flex items-center">
                                 <button
                                     type="button"
@@ -112,4 +112,4 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
     );
 };
 
-export default ProductList;
+export default RentalList;

@@ -1,7 +1,7 @@
 'use client';
 
-import ProductFilter from '@/components/Product/ProductFilter';
-import ProductList from '@/components/Product/ProductList';
+import ProductFilter from '@/components/Booking/ProductFilter';
+import RentalList from '@/components/Booking/RentalList';
 import { useBooking } from '@/context/BookingContext';
 import { getProducts, getRentFilters } from '@/services/products.service';
 import { ProductTypes, Products } from '@/types/types';
@@ -75,7 +75,7 @@ const ProductPage = () => {
                     selectedProductFilterValueIds={selectedProductFilterValueIds}
                 />
             </div>
-            <ProductList products={products} selectedProducts={selectedProducts} />
+            <RentalList products={products} selectedProducts={selectedProducts} />
             {hasSelectedItems && (
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}
