@@ -1,16 +1,50 @@
 import { useEffect, useState, Fragment } from "react";
-import { ShiftDate, ShiftAssignment } from "@/types/types";
-import { getDay, addDays } from "date-fns";
+import { ShiftAssignment, ShiftEnrollment, ShiftDate } from "@/types/types";
 import ShiftCardDialog from "./ShiftCardDialog";
+import ShiftCard from "./ShiftCard";
 
 interface CalendarTimelineProps {
     selectedRadio: string;
+    role?: string;
+    type: "enrollments" | "assignments";
+    shiftData: ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[];
+}
+
+const shiftCardColPos = ["2", "3", "4", "5", "6", "7", "8"];
+const shiftCardRowPos = ["1", "2", "1", "2", "3", "4"];
+
+const getColPos = (shiftDataSingle: ShiftDate | ShiftAssignment | ShiftEnrollment) => {
+    const tmp = shiftDataSingle.shiftdate.getDay();
+    const index = tmp === 0 ? 6 : tmp - 1;
+    return shiftCardColPos[index];
+}
+
+const getRowPos = (shiftDataSingle: ShiftDate | ShiftAssignment | ShiftEnrollment) => {
+    return shiftCardRowPos[shiftDataSingle.shiftid - 1];
+}
+
+const getGridRowNum = (type: "assignments" | "enrollments", role: string, selectedRadio: string) => {
+    if (type === "assignments") {
+        if (role === "hr_manager") {
+            return selectedRadio === "parttime" ? 4 : 2;
+        } else if (role === "employee") {
+            return 4;
+        } else if (role === "wh_manager") {
+            return 2;
+        }
+    } else if (type === "enrollments") {
+        return 4;
+    }
+    return 0;
 }
 
 const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
     selectedRadio,
+    role,
+    type,
+    shiftData,
 }) => {
-    const today = getDay(new Date());
+    const today = new Date().getDay();
     const todayIndex = today === 0 ? 6 : today - 1;
     const timesInDay = Array.from({ length: 17 }, (_, i) => `${6 + i}:00`);
     const [topOffset, setTopOffset] = useState(0);
@@ -39,40 +73,11 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
         return () => clearInterval(interval);
     }, []);
 
-    const nextWeekStart = addDays(new Date(), 7 - todayIndex);
-
-    const startTime = ["06:00", "14:00", "06:00", "10:00", "14:00", "18:00"];
-    const endTime = ["14:00", "22:00", "10:00", "14:00", "18:00", "22:00"];
-
-    const tmpShiftDates: ShiftDate[] = [];
-    for (let i = 1; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-            tmpShiftDates.push({
-                shiftid: i,
-                shiftdate: addDays(nextWeekStart, j),
-                shift: {
-                    shiftid: i,
-                    shiftstarthour: startTime[i - 1],
-                    shiftendhour: endTime[i - 1],
-                }
-            });
-        }
-    }
-
-    const tmpShiftAssignments: ShiftAssignment[] = [];
-    for (let i = 0; i < 28; i++) {
-        tmpShiftAssignments.push({
-            shiftid: Math.floor(Math.random() * 6 + 1),
-            shiftdate: addDays(nextWeekStart, i % 7),
-            employeeid: i,
-        });
-    }
-
-    const fulltimeShiftDates = tmpShiftDates.filter((shiftDate) => {
+    const fulltimeShiftDates = shiftData.filter((shiftDate) => {
         return shiftDate.shiftid < 3;
     });
 
-    const parttimeShiftDates = tmpShiftDates.filter((shiftDate) => {
+    const parttimeShiftDates = shiftData.filter((shiftDate) => {
         return shiftDate.shiftid >= 3;
     });
 
@@ -103,21 +108,90 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
             </div>
 
             {/* Shift cards */}
-            <div className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full">
-                {selectedRadio === "parttime" && parttimeShiftDates.map((shiftDate, index) => (
-                    <Fragment key={`parttimeshift-${index}`}>
+            <div
+                className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full"
+                style={{
+                    gridTemplateRows: `repeat(${getGridRowNum(type as "assignments" | "enrollments", role as string, selectedRadio)}, minmax(0, 1fr))`,
+                }}
+            >
+                {type as string === "assignments" && role === "hr_manager" && selectedRadio === "parttime" && (parttimeShiftDates as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
+                    <Fragment key={`assignment-parttimeshift-${index}`}>
                         <ShiftCardDialog
-                            shiftDate={shiftDate}
+                            shiftDataSingle={shiftDate}
+                            role={role}
+                            type={type as "enrollments" | "assignments"}
                         />
                     </Fragment>
                 ))}
-                {selectedRadio === "fulltime" && fulltimeShiftDates.map((shiftDate, index) => (
-                    <Fragment key={`fulltimeshift-${index}`}>
+                {type as string === "assignments" && role === "hr_manager" && selectedRadio === "fulltime" && (fulltimeShiftDates as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
+                    <Fragment key={`assignment-fulltimeshift-${index}`}>
                         <ShiftCardDialog
-                            shiftDate={shiftDate}
+                            shiftDataSingle={shiftDate}
+                            role={role}
+                            type={type as "enrollments" | "assignments"}
                         />
                     </Fragment>
                 ))}
+                {type as string === "enrollments" && role === "employee" && selectedRadio === "assignable" && (
+                    (shiftData as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
+                        <Fragment key={`enrollment-assignable-${index}`}>
+                            <div
+                                className={`mx-2`}
+                                style={{
+                                    gridColumn: getColPos(shiftDate),
+                                    gridRow: getRowPos(shiftDate),
+                                }}
+                            >
+                                <ShiftCard
+                                    shiftDataSingle={shiftDate}
+                                    role={role}
+                                    type={type as "enrollments" | "assignments"}
+                                    selectedRadio={selectedRadio}
+                                />
+                            </div>
+                        </Fragment>
+                    ))
+                )}
+                {type as string === "enrollments" && role === "employee" && selectedRadio === "assigned" && (
+                    (shiftData as ShiftEnrollment[]).map((enrollment: ShiftEnrollment, index) => (
+                        <Fragment key={`enrollment-assigned-${index}`}>
+                            <div
+                                className={`mx-2`}
+                                style={{
+                                    gridColumn: getColPos(enrollment),
+                                    gridRow: getRowPos(enrollment),
+                                }}
+                            >
+                                <ShiftCard
+                                    shiftDataSingle={enrollment}
+                                    role={role}
+                                    type={type as "enrollments" | "assignments"}
+                                    selectedRadio={selectedRadio}
+                                />
+                            </div>
+                        </Fragment>
+                    ))
+                )}
+                {type as string === "assignments" && (role === "employee" || role === "wh_manager") && (
+                    (shiftData as ShiftAssignment[]).map((assignment: ShiftAssignment, index) => (
+                        <Fragment key={`assignment-${index}`}>
+                            <div
+                                className={`mx-2`}
+                                style={{
+                                    gridColumn: getColPos(assignment),
+                                    gridRow: getRowPos(assignment),
+                                }}
+                            >
+                                <ShiftCard
+                                    shiftDataSingle={assignment}
+                                    role={role}
+                                    type={type as "enrollments" | "assignments"}
+                                    selectedRadio={selectedRadio}
+                                />
+                            </div>
+                        </Fragment>
+                    ))
+                )}
             </div>
         </div>
     );

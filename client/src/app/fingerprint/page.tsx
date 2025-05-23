@@ -75,6 +75,7 @@ const FingerprintPage: React.FC<FingerprintPageProps> = ({
                         src="/fingerprint_start_scan.png"
                         alt="Fingerprint start scanning"
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className={`object-contain ${status === "loading" ? "animate-pulse" : ""} `}
                     />
                 </div>
@@ -85,6 +86,7 @@ const FingerprintPage: React.FC<FingerprintPageProps> = ({
                         src="/fingerprint_success.png"
                         alt="Fingerprint success"
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className={`object-contain`}
                     />
                 </div>
@@ -95,6 +97,7 @@ const FingerprintPage: React.FC<FingerprintPageProps> = ({
                         src="/fingerprint_fail.png"
                         alt="Fingerprint fail"
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className={`object-contain`}
                     />
                 </div>
