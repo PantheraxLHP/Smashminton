@@ -47,11 +47,11 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold">Loại nhân viên</span>
                     <RadioGroup value={selectedRadio} onValueChange={onRadioChange}>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                             <RadioGroupItem className="cursor-pointer" value="fulltime" id="fulltime" />
                             <Label className="cursor-pointer" htmlFor="fulltime">Toàn thời gian</Label>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                             <RadioGroupItem className="cursor-pointer" value="parttime" id="parttime" />
                             <Label className="cursor-pointer" htmlFor="parttime">Bán thời gian</Label>
                         </div>
@@ -63,11 +63,11 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold">Chế độ hiển thị</span>
                     <RadioGroup value={selectedRadio} onValueChange={onRadioChange}>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                             <RadioGroupItem className="cursor-pointer" value="assignable" id="assignable" />
                             <Label className="cursor-pointer" htmlFor="assignable">Có thể đăng ký</Label>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                             <RadioGroupItem className="cursor-pointer" value="assigned" id="assigned" />
                             <Label className="cursor-pointer" htmlFor="assigned">Đã đăng ký</Label>
                         </div>
@@ -76,7 +76,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
             )}
 
             <div className="border border-gray-500"></div>
-            {(role === "hr_manager" && selectedRadio === "parttime") || role === "employee" && (
+            {((role === "hr_manager" && selectedRadio === "parttime") || role === "employee") && (
                 <div className="flex flex-col justify-left">
                     <div className="flex items-center gap-2 text-sm">
                         <div className="w-3.5 h-3.5 rounded-xs bg-yellow-500"></div>
@@ -96,7 +96,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     </div>
                 </div>
             )}
-            {(role === "hr_manager" && selectedRadio === "fulltime") || role === "wh_manager" && (
+            {((role === "hr_manager" && selectedRadio === "fulltime") || role === "wh_manager") && (
                 <div className="flex flex-col justify-left">
                     <div className="flex items-center gap-2 text-sm">
                         <div className="w-3.5 h-3.5 rounded-xs bg-yellow-500"></div>
@@ -132,7 +132,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="outline" className="text-md">
-                                <Icon icon="uil:setting" className="size-4"/>
+                                <Icon icon="uil:setting" className="size-4" />
                                 Tùy chỉnh
                             </Button>
                         </DialogTrigger>

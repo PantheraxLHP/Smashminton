@@ -269,6 +269,7 @@ model shift_assignment {
   employeeid Int
   shiftid    Int
   shiftdate  DateTime   @db.Timestamptz(6)
+  assignmentstatus String?
   employees  employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
   shift_date shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
 
