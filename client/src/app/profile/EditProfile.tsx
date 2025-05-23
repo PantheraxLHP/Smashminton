@@ -15,7 +15,6 @@ import {
     FaUser,
     FaVenusMars,
 } from 'react-icons/fa';
-import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 interface EditProfileFormData extends Accounts {
@@ -29,11 +28,11 @@ interface EditProfileProps {
 }
 
 const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave }) => {
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState<EditProfileFormData>({
         ...userProfile,
         avatar: null,
     });
-    const { user } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -47,7 +46,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (!user?.sub) return;
+        if (!userProfile?.accountid) return;
 
         const formDataToSend = new FormData();
 
@@ -68,7 +67,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             formDataToSend.append('avatarurl', formData.avatar);
         }
 
-        const response = await updateProfile(user.sub, formDataToSend);
+        const response = await updateProfile(userProfile.accountid, formDataToSend);
         if (response.ok) {
             onSave(response.data);
             onClose();
@@ -76,6 +75,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         } else {
             toast.error('Cập nhật thông tin thất bại');
         }
+        setIsLoading(false);
     };
 
     return (
@@ -224,9 +224,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="bg-primary-600 hover:bg-primary-700 cursor-pointer rounded px-4 py-2 text-white"
+                            disabled={isLoading}
+                            className="bg-primary-600 hover:bg-primary-700 cursor-pointer rounded px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Lưu thay đổi
+                            {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
                         </button>
                     </div>
                 </div>

@@ -62,24 +62,13 @@ const pastBookings: Booking[] = [
 
 const UserProfilePage = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
-    const [userProfile, setUserProfile] = useState<Accounts>();
     const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(false);
     const [showStudentPopup, setShowStudentPopup] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            if (!user?.sub) return;
-            const accountId = user.sub;
-            const response = await getUser(accountId);
-            if (response.ok) {
-                setUserProfile(response.data);
-            }
-        };
-        fetchUserProfile();
-    }, []);
+    const userProfile = user;
 
     const handleUpdateStudentStatus = () => {
         setIsStudentStatusUpdated(true);
@@ -87,7 +76,6 @@ const UserProfilePage = () => {
     };
 
     const handleTabClick = (tabName: string) => {
-        console.log(userProfile);
         setActiveTab(tabName);
 
         // Xoá ?tab=... khỏi URL
@@ -325,7 +313,7 @@ const UserProfilePage = () => {
                     userProfile={userProfile!}
                     onClose={() => setShowEditProfile(false)}
                     onSave={(updatedUser) => {
-                        setUserProfile(updatedUser);
+                        setUser(updatedUser);
                     }}
                 />
             )}

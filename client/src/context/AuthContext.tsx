@@ -1,8 +1,10 @@
 'use client';
 
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { getUser } from '@/services/accounts.service';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { Accounts } from '@/types/types';
 
-export type User = {
+export type UserJWT = {
     sub: number;
     username: string;
     accounttype: string;
@@ -12,9 +14,9 @@ export type User = {
 
 type AuthContextType = {
     isLoading: boolean;
-    user: User | null;
+    user: Accounts | null;
     isAuthenticated: boolean;
-    setUser: (user: User | null) => void;
+    setUser: (user: Accounts | null) => void;
     setIsAuthenticated: (value: boolean) => void;
 };
 
@@ -27,33 +29,64 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [userJWT, setUserJWT] = useState<UserJWT | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [user, setUser] = useState<Accounts | null>(null);
 
     const fetchSession = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/auth/session', {
+            const response = await fetch('/api/auth/session', {
                 method: 'GET',
                 credentials: 'include',
             });
-            if (res.ok) {
-                const session = await res.json();
-                setUser(session.data.user);
-                setIsAuthenticated(true);
+            if (response.ok) {
+                const session = await response.json();
+                if (session.data?.user) {
+                    setUserJWT(session.data.user);
+                    setIsAuthenticated(true);
+                } else {
+                    setUserJWT(null);
+                    setIsAuthenticated(false);
+                }
+            } else {
+                setUserJWT(null);
+                setIsAuthenticated(false);
             }
         } catch (error) {
-            setUser(null);
+            setUserJWT(null);
             setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
         }
     };
 
-    useLayoutEffect(() => {
+    const fetchUserProfile = async () => {
+        setIsLoading(true);
+        try {
+            if (!userJWT?.sub) {
+                return;
+            }
+            const accountId = userJWT.sub;
+            const response = await getUser(accountId);
+            if (response.ok) {
+                setUser(response.data);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchSession();
     }, []);
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, [userJWT]);
 
     return (
         <AuthContext.Provider
