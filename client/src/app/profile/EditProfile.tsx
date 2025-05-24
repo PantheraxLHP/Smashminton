@@ -1,8 +1,8 @@
 // components/EditProfile.tsx
 'use client';
 
+import { User } from '@/context/AuthContext';
 import { updateProfile } from '@/services/accounts.service';
-import { Accounts } from '@/types/types';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import {
@@ -17,14 +17,14 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'sonner';
 
-interface EditProfileFormData extends Accounts {
+interface EditProfileFormData extends User {
     avatar: File | null;
 }
 
 interface EditProfileProps {
-    userProfile: Accounts;
+    userProfile: User;
     onClose: () => void;
-    onSave: (updatedUser: Accounts) => void;
+    onSave: (updatedUser: User) => void;
 }
 
 const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave }) => {
@@ -70,7 +70,11 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
 
         const response = await updateProfile(userProfile.accountid, formDataToSend);
         if (response.ok) {
-            onSave(response.data);
+            // Preserve the JWT fields when updating
+            onSave({
+                ...response.data,
+                role: userProfile.role,
+            });
             onClose();
             toast.success('Cập nhật thông tin thành công');
             window.location.reload();

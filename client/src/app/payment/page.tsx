@@ -16,6 +16,7 @@ interface SelectedCourt {
     courtimgurl?: string;
     price: string;
     filters: Filters;
+    courtid?: number;
 }
 
 export default function Payment() {
@@ -28,6 +29,7 @@ export default function Payment() {
                 duration: 2,
                 startTime: '10:00',
             },
+            courtid: 1,
         },
     ];
 
@@ -46,6 +48,7 @@ export default function Payment() {
                     time: court.filters.startTime ?? '',
                     unitPrice: parseInt(court.price.replace(/\D/g, '')),
                     total: parseInt(court.price.replace(/\D/g, '')),
+                    productid: court.courtid ?? 0,
                 })),
                 discount: 0.1,
                 invoiceCode: 'None',
