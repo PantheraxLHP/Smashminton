@@ -73,8 +73,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             onSave(response.data);
             onClose();
             toast.success('Cập nhật thông tin thành công');
+            window.location.reload();
         } else {
             toast.error('Cập nhật thông tin thất bại');
+            window.location.reload();
         }
         setIsLoading(false);
     };

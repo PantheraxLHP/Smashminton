@@ -1,22 +1,21 @@
 'use client';
 
 import { getUser } from '@/services/accounts.service';
-import { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { Accounts } from '@/types/types';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 export type UserJWT = {
     sub: number;
-    username: string;
-    accounttype: string;
     role?: string;
-    avatarurl?: string;
 };
+
+type User = UserJWT & Accounts;
 
 type AuthContextType = {
     isLoading: boolean;
-    user: Accounts | null;
+    user: User | null;
     isAuthenticated: boolean;
-    setUser: (user: Accounts | null) => void;
+    setUser: (user: User | null) => void;
     setIsAuthenticated: (value: boolean) => void;
 };
 
@@ -29,10 +28,9 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [userJWT, setUserJWT] = useState<UserJWT | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [user, setUser] = useState<Accounts | null>(null);
+    const [user, setUser] = useState<User | null>(null);
 
     const fetchSession = async () => {
         setIsLoading(true);
@@ -44,51 +42,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.ok) {
                 const session = await response.json();
                 if (session.data?.user) {
-                    setUserJWT(session.data.user);
+                    const userJWT = session.data.user;
                     setIsAuthenticated(true);
+                    try {
+                        const accountId = userJWT.sub;
+                        const profileResponse = await getUser(accountId);
+                        if (profileResponse.ok) {
+                            setUser({
+                                ...userJWT,
+                                ...profileResponse.data,
+                            });
+                        }
+                    } catch (error) {
+                        console.log(error);
+                        setUser(null);
+                    }
                 } else {
-                    setUserJWT(null);
+                    setUser(null);
                     setIsAuthenticated(false);
                 }
             } else {
-                setUserJWT(null);
+                setUser(null);
                 setIsAuthenticated(false);
             }
         } catch (error) {
-            setUserJWT(null);
+            setUser(null);
             setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const fetchUserProfile = async () => {
-        setIsLoading(true);
-        try {
-            if (!userJWT?.sub) {
-                return;
-            }
-            const accountId = userJWT.sub;
-            const response = await getUser(accountId);
-            if (response.ok) {
-                setUser(response.data);
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     useEffect(() => {
-        const initAuth = () => {
-            fetchSession();
-            if (userJWT?.sub) {
-                fetchUserProfile();
-            }
-        };
-        initAuth();
-    }, [userJWT?.sub]);
+        fetchSession();
+    }, []);
 
     return (
         <AuthContext.Provider
