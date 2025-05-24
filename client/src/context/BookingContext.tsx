@@ -2,6 +2,7 @@
 
 import { SelectedCourts, SelectedProducts } from '@/app/booking/courts/page';
 import { deleteBookingCourt, getBookingRedis, postBookingCourt } from '@/services/booking.service';
+import { deleteOrder, getOrderRedis, postOrder } from '@/services/orders.service';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -16,8 +17,8 @@ export interface BookingContextProps {
     TTL: number;
     addCourt: (court: SelectedCourts) => void;
     removeCourtByIndex: (index: number) => void;
-    addProduct: (product: SelectedProducts) => void;
-    removeProductByIndex: (index: number) => void;
+    addProduct: (productId: number) => void;
+    removeProduct: (index: number) => void;
     fetchBooking: () => Promise<void>;
     clearCourts: () => void;
     clearProducts: () => void;
@@ -34,7 +35,7 @@ const BookingContext = createContext<BookingContextProps>({
     addCourt: () => {},
     removeCourtByIndex: () => {},
     fetchBooking: async () => {},
-    removeProductByIndex: () => {},
+    removeProduct: () => {},
     clearCourts: () => {},
     clearProducts: () => {},
 });
@@ -48,30 +49,48 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const router = useRouter();
 
     const addCourt = async (court: SelectedCourts) => {
-        await postBookingCourt({
+        const response = await postBookingCourt({
             username: user?.username,
             court_booking: court,
         });
-        fetchBooking();
-        toast.success('Thêm sân thành công');
+        if (response.ok) {
+            fetchBooking();
+            toast.success('Thêm sân thành công');
+        }
     };
 
     const removeCourtByIndex = async (index: number) => {
         const court = selectedCourts[index];
-        await deleteBookingCourt({
+        const response = await deleteBookingCourt({
             username: user?.username,
             court_booking: court,
         });
-        fetchBooking();
-        toast.success('Xóa sân thành công');
+        if (response.ok) {
+            fetchBooking();
+            toast.success('Xóa sân thành công');
+        }
     };
 
-    const addProduct = (product: SelectedProducts) => {
-        setSelectedProducts((prev) => (prev ? [...prev, product] : [product]));
+    const addProduct = async (productId: number) => {
+        const response = await postOrder({
+            username: user?.username,
+            productid: productId,
+        });
+        if (response.ok) {
+            await fetchOrders();
+            toast.success('Thêm thành công');
+        }
     };
 
-    const removeProductByIndex = (index: number) => {
-        setSelectedProducts((prev) => prev.filter((_, i) => i !== index));
+    const removeProduct = async (productId: number) => {
+        const response = await deleteOrder({
+            username: user?.username,
+            productid: productId,
+        });
+        if (response.ok) {
+            await fetchOrders();
+            toast.success('Xóa thành công');
+        }
     };
 
     const clearCourts = () => {
@@ -83,11 +102,10 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     };
 
     const fetchBooking = async () => {
-        if (user) {
+        if (user?.username) {
             const result = await getBookingRedis(user.username);
             if (result.ok) {
                 setSelectedCourts(result.data.court_booking);
-                setSelectedProducts(result.data.products);
                 setTTL(result.data.TTL);
             }
         } else {
@@ -95,9 +113,18 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             router.push('/signin');
         }
     };
+    const fetchOrders = async () => {
+        if (user?.username) {
+            const result = await getOrderRedis(user.username);
+            if (result.ok) {
+                setSelectedProducts(result.data.product_order);
+            }
+        }
+    };
 
     useEffect(() => {
         fetchBooking();
+        fetchOrders();
     }, []);
 
     return (
@@ -112,7 +139,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 addCourt,
                 removeCourtByIndex,
                 addProduct,
-                removeProductByIndex,
+                removeProduct,
                 fetchBooking,
                 clearCourts,
                 clearProducts,

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -9,16 +9,21 @@ import {
     ApiOkResponse,
     ApiOperation,
     ApiNotFoundResponse,
+    ApiConsumes,
+    ApiBody,
+    ApiParam,
 } from '@nestjs/swagger';
 import { CustomerService } from '../customers/customers.service';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @ApiTags('Accounts')
 @Controller('accounts')
 export class AccountsController {
     constructor(
         private readonly accountsService: AccountsService,
-    ) {}
+        private readonly cloudinaryService: CloudinaryService,
+    ) { }
 
     @Post('customer')
     @UseInterceptors(FilesInterceptor('studentCard', 10, { // Cho phép tối đa 10 file
@@ -81,18 +86,39 @@ export class AccountsController {
         }
         return account;
     }
-
     @Put(':id')
-    @ApiOperation({ summary: 'Update an account' })
+    @UseInterceptors(
+        FileInterceptor('avatarurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    @ApiOperation({ summary: 'Update an account with profile picture' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'Update account with profile picture',
+        type: UpdateAccountDto,
+    })
     @ApiOkResponse({ description: 'Account was updated' })
     @ApiBadRequestResponse({ description: 'Invalid input' })
     @ApiNotFoundResponse({ description: 'Account not found' })
-    async update(@Param('id') id: number, @Body() updateAccountDto: UpdateAccountDto) {
-        const account = await this.accountsService.findOne(+id);
-        if (!account) {
-            throw new NotFoundException('Account not found');
+    @ApiParam({ name: 'id', required: true, description: 'Account ID', example: 1 })
+    async update(
+        @Param('id') id: number,
+        @Body() updateAccountDto: UpdateAccountDto,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        if (!updateAccountDto) {
+            throw new BadRequestException('Invalid account data');
         }
-        return this.accountsService.update(+id, updateAccountDto);
+        return this.accountsService.update(+id, updateAccountDto, file);
     }
 
     @Delete(':id')

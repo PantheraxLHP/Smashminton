@@ -1,13 +1,15 @@
 'use client';
 
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { getUser } from '@/services/accounts.service';
+import { Accounts } from '@/types/types';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-export type User = {
-    id: string;
-    username: string;
-    accounttype: string;
+export type UserJWT = {
+    sub: number;
     role?: string;
 };
+
+type User = UserJWT & Accounts;
 
 type AuthContextType = {
     isLoading: boolean;
@@ -26,21 +28,42 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [user, setUser] = useState<User | null>(null);
 
     const fetchSession = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/auth/session', {
+            const response = await fetch('/api/auth/session', {
                 method: 'GET',
                 credentials: 'include',
             });
-            if (res.ok) {
-                const session = await res.json();
-                setUser(session.data.user);
-                setIsAuthenticated(true);
+            if (response.ok) {
+                const session = await response.json();
+                if (session.data?.user) {
+                    const userJWT = session.data.user;
+                    setIsAuthenticated(true);
+                    try {
+                        const accountId = userJWT.sub;
+                        const profileResponse = await getUser(accountId);
+                        if (profileResponse.ok) {
+                            setUser({
+                                ...userJWT,
+                                ...profileResponse.data,
+                            });
+                        }
+                    } catch (error) {
+                        console.log(error);
+                        setUser(null);
+                    }
+                } else {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                }
+            } else {
+                setUser(null);
+                setIsAuthenticated(false);
             }
         } catch (error) {
             setUser(null);
@@ -50,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         fetchSession();
     }, []);
 

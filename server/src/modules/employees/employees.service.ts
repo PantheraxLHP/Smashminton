@@ -5,10 +5,10 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class EmployeesService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   async getEmployeeRoles(employeeId: number): Promise<string> {
-    const employeeRole = await this.prismaService.employees.findUnique({
+    const employeeRole = await this.prisma.employees.findUnique({
       where: { employeeid: employeeId },
       select: {
         role: true
@@ -22,9 +22,25 @@ export class EmployeesService {
     return employeeRole.role || '';
   }
 
-
-  create(createEmployeeDto: CreateEmployeeDto) {
-    return 'This action adds a new employee';
+  async getEmployeeIdNotInArrayId(employeeIdsInShifts: number[]): Promise<any> {
+    const employees = await this.prisma.employees.findMany({
+      where: {
+        employeeid: {
+          notIn: employeeIdsInShifts,
+        },
+      },
+      select: {
+        employeeid: true,
+        employee_type: true,
+        accounts: {
+          select: {
+            fullname: true,
+            avatarurl: true,
+          },
+        },
+      },
+    });
+    return employees;
   }
 
   findAll() {

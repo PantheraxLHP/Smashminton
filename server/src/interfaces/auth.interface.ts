@@ -8,6 +8,7 @@ export interface SignInData {
     username: string;
     accounttype: string;
     role?: string;
+    avatarurl?: string;
 }
 
 export interface AuthResponse {

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import CustomerInfo from './CustomerInfo';
 import PaymentMethod from './PaymentMethod';
+import { Icon } from '@iconify/react';
 
 type PaymentMethodType = 'momo' | 'payos' | null;
 
@@ -14,6 +15,7 @@ interface Item {
     time: string;
     unitPrice: number;
     total: number;
+    productid: number;
 }
 
 interface PaymentData {
@@ -37,17 +39,58 @@ interface PaymentInfoProps {
 
 const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>(paymentData.selectedMethod);
+    const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
+    const [items, setItems] = useState<Item[]>(paymentData.items);
 
     const handleSelect = (method: PaymentMethodType) => {
         setSelectedMethod((prev) => (prev === method ? null : method));
     };
 
-    const total = paymentData.items.reduce((sum, item) => sum + item.total, 0);
+    const handleIncrement = (id: number) => {
+        setQuantities((prev) => {
+            const newQty = prev[id] + 1;
+            updateItemTotal(id, newQty);
+            return { ...prev, [id]: newQty };
+        });
+    };
+
+    const handleDecrement = (id: number) => {
+        setQuantities((prev) => {
+            const newQty = Math.max(1, prev[id] - 1);
+            updateItemTotal(id, newQty);
+            return { ...prev, [id]: newQty };
+        });
+    };
+
+    const updateItemTotal = (id: number, newQty: number) => {
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.productid === id
+                    ? {
+                        ...item,
+                        quantity: newQty.toString(),
+                        total: newQty * item.unitPrice,
+                    }
+                    : item
+            )
+        );
+    };
+
+    const total = items.reduce((sum, item) => sum + item.total, 0);
     const finalTotal = total * (1 - paymentData.discount);
+
 
     useEffect(() => {
         setSelectedMethod(paymentData.selectedMethod);
     }, [paymentData.selectedMethod]);
+
+    useEffect(() => {
+        const initialQuantities = paymentData.items.reduce((acc, item) => {
+            acc[item.productid] = parseInt(item.quantity) || 1;
+            return acc;
+        }, {} as { [key: number]: number });
+        setQuantities(initialQuantities);
+    }, [paymentData]);
 
     return (
         <div className="mx-auto w-full rounded-lg bg-white p-6">
@@ -126,9 +169,26 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                             </tr>
                         </thead>
                         <tbody className="text-gray-800">
-                            {paymentData.items.map((item, idx) => (
+                            {items.map((item, idx) => (
                                 <tr key={idx} className="border-b border-gray-200 text-center">
-                                    <td className="px-2 py-2">{item.quantity}</td>
+                                    <td className="px-2 py-2">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                className="group bg-gray-50 hover:bg-primary flex h-5 w-5 cursor-pointer items-center justify-center rounded"
+                                                onClick={() => handleDecrement(item.productid)}
+                                            >
+                                                <Icon icon="ic:baseline-minus" className="text-lg text-gray-500 group-hover:text-white" />
+                                            </button>
+                                            <span>{quantities[item.productid]}</span>
+                                            <button
+                                                className="group bg-gray-50 hover:bg-primary flex h-5 w-5 cursor-pointer items-center justify-center rounded"
+                                                onClick={() => handleIncrement(item.productid)}
+                                            >
+                                                <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 group-hover:text-white" />
+                                            </button>
+                                        </div>
+                                    </td>
+
                                     <td className="px-2 py-2">{item.time}</td>
                                     <td className="px-2 py-2">{item.duration}</td>
                                     <td className="px-2 py-2 text-right">{item.unitPrice.toLocaleString()} đ</td>
@@ -162,7 +222,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
 
             {/* Payment Table - Mobile/Tablet */}
             <div className="mt-4 flex flex-col gap-4 md:hidden">
-                {paymentData.items.map((item, idx) => (
+                {items.map((item, idx) => (
                     <div key={idx} className="rounded-lg border bg-white p-4 shadow-sm">
                         <div className="mb-2 flex items-center gap-2">
                             {item.icon && <img src={item.icon} alt="icon" className="h-5 w-5 object-contain" />}
@@ -170,7 +230,22 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
                         </div>
                         <div className="flex flex-wrap text-sm text-gray-600">
                             <div className="mb-1 w-1/2">
-                                <strong>Số lượng:</strong> {item.quantity}
+                                <strong>Số lượng:</strong>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <button
+                                        className="group bg-gray-50 hover:bg-primary flex h-5 w-5 items-center justify-center rounded"
+                                        onClick={() => handleDecrement(item.productid)}
+                                    >
+                                        <Icon icon="ic:baseline-minus" className="text-lg text-gray-500 group-hover:text-white" />
+                                    </button>
+                                    <span>{quantities[item.productid]}</span>
+                                    <button
+                                        className="group bg-gray-50 hover:bg-primary flex h-5 w-5 items-center justify-center rounded"
+                                        onClick={() => handleIncrement(item.productid)}
+                                    >
+                                        <Icon icon="ic:baseline-plus" className="text-lg text-gray-500 group-hover:text-white" />
+                                    </button>
+                                </div>
                             </div>
                             <div className="mb-1 w-1/2">
                                 <strong>Thời gian:</strong> {item.time}

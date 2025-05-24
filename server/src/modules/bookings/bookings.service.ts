@@ -5,6 +5,7 @@ import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
 import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
 @Injectable()
 export class BookingsService {
 	constructor(
@@ -30,7 +31,7 @@ export class BookingsService {
 
 		// Gọi hàm getSeparatedCourtPrices để lấy danh sách các khoảng giá đã tách
 		const separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
-
+		console.log('separatedCourts1', separatedCourts);
 		// Kiểm tra nếu không có username
 		if (!username) {
 			throw new BadRequestException('Username is required to add booking to cache');
@@ -40,6 +41,8 @@ export class BookingsService {
 		if (!separatedCourts || separatedCourts.length === 0) {
 			throw new BadRequestException('No separated court prices found');
 		}
+
+		console.log('separatedCourts2', separatedCourts);
 
 		// Lấy cache của người dùng từ Redis
 		const bookingUserCache = await this.cacheService.getBooking(username);
@@ -61,7 +64,7 @@ export class BookingsService {
 					courtimgurl: court.courtimgurl ?? '',
 					date: court_booking.date,
 					starttime: court.starttime,
-					duration: court.duration ?? 0, 
+					duration: court.duration ?? 0,
 					endtime: court.endtime,
 					price: Number(court.price), // Chuyển giá thành số
 				};
@@ -81,6 +84,8 @@ export class BookingsService {
 
 			newCacheBooking.TTL = TTL;
 
+			console.log('newCacheBooking', newCacheBooking);
+
 			return newCacheBooking;
 		}
 
@@ -94,13 +99,15 @@ export class BookingsService {
 				courtimgurl: court.courtimgurl ?? '',
 				date: court_booking.date,
 				starttime: court.starttime,
-				duration: court.duration ?? 0, 
+				duration: court.duration ?? 0,
 				endtime: court.endtime,
 				price: Number(court.price), // Chuyển giá thành số
 			};
 
 			bookingUserCache.court_booking.push(newCourtBooking);
 			bookingUserCache.totalprice += newCourtBooking.price;
+
+			console.log('newCourtBooking', newCourtBooking);
 		}
 
 		// Ghi đè lại dữ liệu trong Redis
@@ -160,6 +167,22 @@ export class BookingsService {
 		}
 
 		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+
+		if (TTL === -1) {
+			const index = bookingUserCache.court_booking.indexOf(courtBookingToRemove);
+			if (index > -1) {
+				bookingUserCache.court_booking.splice(index, 1);
+				bookingUserCache.totalprice -= courtBookingToRemove.price;
+			}
+
+			const isSuccess = await this.cacheService.setBooking(username, bookingUserCache);
+
+			if (!isSuccess) {
+				throw new BadRequestException('Failed to update booking in cache');
+			}
+
+			return bookingUserCache;
+		}
 		bookingUserCache.TTL = TTL;
 
 		const index = bookingUserCache.court_booking.indexOf(courtBookingToRemove);
@@ -176,6 +199,72 @@ export class BookingsService {
 
 		return bookingUserCache;
 	}
+
+	async addBookingToDatabase(createBookingDto: CreateBookingDto): Promise<any> {
+		let username = '';
+		if (!createBookingDto.employeeid) {
+			const account = await this.prisma.accounts.findUnique({
+				where: {
+					accountid: createBookingDto.customerid,
+				},
+				select: {
+					username: true,
+				},
+			});
+			username = account?.username ?? '';
+		} else {
+			const account = await this.prisma.accounts.findUnique({
+				where: {
+					accountid: createBookingDto.employeeid,
+				},
+				select: {
+					username: true,
+				},
+			});
+			username = account?.username ?? '';
+		}
+
+		const bookingUserCache = await this.cacheService.getBooking(username);
+		if (!bookingUserCache) {
+			throw new BadRequestException('No booking found in cache for this user');
+		}
+		createBookingDto.totalprice = bookingUserCache.totalprice;
+		createBookingDto.bookingdate = new Date();
+		createBookingDto.bookingstatus = 'Scheduled';
+
+		const booking = await this.prisma.bookings.create({
+			data: createBookingDto,
+		});
+
+		if (!booking) {
+			throw new BadRequestException('Failed to create booking');
+		}
+
+		// Hàm chuyển đổi sang đúng định dạng cho Prisma
+		const courtBookingPrismaData = bookingUserCache.court_booking.map(item => ({
+			date: new Date(`${item.date}T00:00:00Z`),
+			starttime: new Date(`${item.date}T${item.starttime}:00Z`),
+			endtime: new Date(`${item.date}T${item.endtime}:00Z`),
+			duration: item.duration,
+			bookingid: booking.bookingid,
+			courtid: item.courtid,
+		}));
+
+		// Insert nhiều bản ghi vào bảng court_booking
+		const court_booking = await this.prisma.court_booking.createMany({
+			data: courtBookingPrismaData,
+		});
+
+		if (!court_booking) {
+			throw new BadRequestException('Failed to create court booking');
+		}
+
+		return {
+			booking: booking,
+			court_booking: court_booking,
+		};
+	}
+
 	findAll() {
 		return `This action returns all bookings`;
 	}

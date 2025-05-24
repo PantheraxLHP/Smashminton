@@ -21,7 +21,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedProducts,
     TTL,
 }) => {
-    const { removeCourtByIndex, removeProductByIndex } = useBooking();
+    const { removeCourtByIndex, removeProduct } = useBooking();
+
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
     const prevCourtsLengthRef = useRef<number>(0);
@@ -74,7 +75,9 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
     const handleClearAll = () => {};
 
-    const TotalPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
+    const BookingPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
+    const OrderPrice = selectedProducts.reduce((acc, product) => acc + product.totalamount, 0);
+    const TotalPrice = BookingPrice + OrderPrice;
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
@@ -111,23 +114,25 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                 <Icon
                                     onClick={() => removeCourtByIndex(index)}
                                     icon="mdi:close-circle"
-                                    className="h-5 w-5 cursor-pointer text-red-500"
+                                    className="text-primary-400 h-5 w-5 cursor-pointer"
                                 />
                             </div>
                         ))}
 
                         {/* Danh sách sản phẩm */}
                         <div className="flex flex-wrap gap-4">
-                            {selectedProducts?.map((scProduct: SelectedProducts, index: number) => (
+                            {selectedProducts?.map((scProduct) => (
                                 <div key={scProduct.productid} className="flex items-center gap-2">
                                     <Icon icon="mdi:racket" className="h-5 w-5" />
                                     <span>
                                         {scProduct.quantity} {scProduct.productname}
                                     </span>
+                                    <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
+                                    <span>{scProduct.totalamount.toLocaleString('vi-VN')} VNĐ</span>
                                     <Icon
-                                        icon="mdi:close-circle"
-                                        className="h-5 w-5 cursor-pointer text-red-500"
-                                        onClick={() => removeProductByIndex(index)}
+                                        icon="mdi:minus-circle"
+                                        className="text-primary-400 h-5 w-5 cursor-pointer"
+                                        onClick={() => removeProduct(scProduct.productid)}
                                     />
                                 </div>
                             ))}
@@ -135,7 +140,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:min-w-90 sm:flex-row">
+                <div className="flex flex-col items-center justify-end gap-5 sm:h-20 sm:max-w-180 sm:flex-row">
                     <div className="hidden h-full w-1 bg-white sm:block"></div>
                     {/* Countdown Timer */}
                     {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (

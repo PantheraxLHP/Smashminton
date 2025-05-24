@@ -1,114 +1,92 @@
 'use client';
 
-import { useState } from 'react';
-import RentalFilter from './RentalFilter';
-import RentalList from './RentalList';
+import ProductFilter from '@/components/Booking/ProductFilter';
+import RentalList from '@/components/Booking/RentalList';
+import { useBooking } from '@/context/BookingContext';
+import { getProducts, getRentFilters } from '@/services/products.service';
+import { ProductTypes, Products } from '@/types/types';
+import { useEffect, useState } from 'react';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
-type Racket = {
-    productid: number;
-    id: number;
-    name: string;
-    price: number;
-    brand: string;
-    weight: string;
-    stiffness: string;
-    balance: string;
+export interface SelectedProducts extends Products {
     quantity: number;
-    productName: string;
-};
+}
 
-type Shoe = {
-    productid: number;
-    id: number;
-    name: string;
-    price: number;
-    brand: string;
-    form: string;
-    size: string;
-    quantity: number;
-    productName: string;
-};
+const ProductPage = () => {
+    const { selectedCourts, selectedProducts, TTL } = useBooking();
+    const [products, setProducts] = useState<Products[]>([]);
+    const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
+    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3);
+    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
 
-export default function RentalsPage() {
-    const [selectedCategory, setSelectedCategory] = useState<'Thuê vợt' | 'Thuê giày'>('Thuê vợt');
+    useEffect(() => {
+        const loadFilters = async () => {
+            const filtersResponse = await getRentFilters();
+            if (filtersResponse.ok) {
+                setProductTypes(filtersResponse.data);
+            }
+        };
 
-    const [filters, setFilters] = useState({
-        brands: [] as string[],
-        weights: [] as string[],
-        stiffness: [] as string[],
-        balance: [] as string[],
-        forms: [] as string[],
-        sizes: [] as string[],
-    });
+        loadFilters();
+    }, []);
 
-    const [rentalQuantities, setRentalQuantities] = useState<{ [key: number]: number }>({});
-    const [rackets, setRackets] = useState<Racket[]>([]);
-    const [shoes, setShoes] = useState<Shoe[]>([]);
+    useEffect(() => {
+        const loadProducts = async () => {
+            const productsResponse = await getProducts(
+                selectedProductTypeId,
+                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
+            );
 
-    const handleIncrement = (id: number) => {
-        setRentalQuantities((prev) => ({
-            ...prev,
-            [id]: (prev[id] || 0) + 1,
-        }));
+            if (productsResponse.ok) {
+                setProducts(productsResponse.data);
+            }
+        };
+
+        loadProducts();
+    }, [selectedProductTypeId, selectedProductFilterValueIds]);
+
+    const handleProductTypeChange = (productTypeId: number) => {
+        setSelectedProductTypeId(productTypeId);
+        setSelectedProductFilterValueIds([]);
     };
 
-    const handleDecrement = (id: number) => {
-        setRentalQuantities((prev) => ({
-            ...prev,
-            [id]: Math.max((prev[id] || 0) - 1, 0),
-        }));
+    const handleProductFilterValueChange = (productFilterValueIds: number[]) => {
+        if (productFilterValueIds.length === 0) {
+            setSelectedProductFilterValueIds([]);
+        } else if (selectedProductFilterValueIds.includes(productFilterValueIds[0])) {
+            setSelectedProductFilterValueIds(
+                selectedProductFilterValueIds.filter((id) => id !== productFilterValueIds[0]),
+            );
+        } else {
+            setSelectedProductFilterValueIds([...selectedProductFilterValueIds, ...productFilterValueIds]);
+        }
     };
 
-    const selectedItems = [...rackets, ...shoes]
-        .filter((item) => rentalQuantities[item.productid] > 0)
-        .map((item) => ({
-            ...item,
-            quantity: rentalQuantities[item.productid],
-            productname: item.name,
-        }));
-
-    const totalPrice = selectedItems.reduce((sum, item) => {
-        return sum + (item.price || 0) * item.quantity;
-    }, 0);
+    const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
     return (
-        <div className="max-w-8xl mx-auto px-4 py-6 md:px-8 lg:px-12">
-            <div className="flex flex-col gap-2 lg:flex-row">
-                {/* Filter bên trái */}
-                <aside className="w-full pt-2 lg:w-1/4">
-                    <RentalFilter
-                        selectedCategory={selectedCategory}
-                        setSelectedCategory={setSelectedCategory}
-                        filters={filters}
-                        setFilters={setFilters}
-                    />
-                </aside>
-
-                {/* Danh sách sản phẩm bên phải */}
-                <main className="w-full pt-4 lg:w-3/4">
-                    <RentalList
-                        selectedCategory={selectedCategory}
-                        filters={filters}
-                        rentalQuantities={rentalQuantities}
-                        onIncrement={handleIncrement}
-                        onDecrement={handleDecrement}
-                        setRackets={setRackets}
-                        setShoes={setShoes}
-                    />
-                </main>
+        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
+            <div className="flex flex-col gap-5">
+                <ProductFilter
+                    productTypes={productTypes}
+                    onProductTypeChange={handleProductTypeChange}
+                    onProductFilterValueChange={handleProductFilterValueChange}
+                    selectedProductTypeId={selectedProductTypeId}
+                    selectedProductFilterValueIds={selectedProductFilterValueIds}
+                />
             </div>
-
-            {selectedItems.length > 0 && (
+            <RentalList products={products} selectedProducts={selectedProducts} />
+            {hasSelectedItems && (
                 <BookingBottomSheet
-                    totalPrice={totalPrice}
-                    selectedProducts={selectedItems}
-                    selectedCourts={[]}
-                    TTL={0}
+                    selectedProducts={selectedProducts}
+                    selectedCourts={selectedCourts}
+                    TTL={TTL}
                     onResetTimer={() => {}}
                     onConfirm={() => {}}
                 />
             )}
         </div>
     );
-}
+};
+
+export default ProductPage;

@@ -1,8 +1,5 @@
 import { Filters, SelectedCourts } from '@/app/booking/courts/page';
-import { BookingContextProps } from '@/context/BookingContext';
 import { ServiceResponse } from '@/lib/serviceResponse';
-
-export type BookingData = Pick<BookingContextProps, 'selectedCourts' | 'selectedProducts' | 'totalPrice' | 'TTL'>;
 
 export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
     try {
@@ -16,7 +13,7 @@ export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
             fixedCourt: filters.fixedCourt?.toString() || '',
         });
 
-        const response = await fetch(`/api/booking/courts-disable_start_times?${queryParams.toString()}`);
+        const response = await fetch(`/api/booking/courts-disabled-starttimes?${queryParams.toString()}`);
         const result = await response.json();
 
         if (!response.ok) {

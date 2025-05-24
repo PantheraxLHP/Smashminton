@@ -1,6 +1,6 @@
 import KeyvRedis from '@keyv/redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import Keyv from 'keyv';
 import Redis from 'ioredis';
 import { CacheService } from './cache.service';
@@ -11,9 +11,8 @@ import { CacheController } from './cache.controller';
     providers: [
         {
             provide: CacheService,
-            useFactory: () => {
-                const redisUrl = 'redis://localhost:6379';
-                console.log('Initializing Keyv and Redis with URL:', redisUrl);
+            useFactory: (configService: ConfigService) => {
+                const redisUrl = configService.get<string>('REDIS_URL', ''); 
 
                 // Khởi tạo Redis client
                 const redisClient = new Redis(redisUrl);
@@ -27,6 +26,7 @@ import { CacheController } from './cache.controller';
                 // Truyền Redis client và Keyv vào CacheService
                 return new CacheService(keyv, studentCard, booking, redisClient, order);
             },
+            inject: [ConfigService], // Inject ConfigService
         },
     ],
     exports: [CacheService],

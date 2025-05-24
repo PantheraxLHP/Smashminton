@@ -28,7 +28,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     const dates = from && to ? getDatesInRange(from, to) : [];
 
     const weekDayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
-    const today = new Date().getDate();
+    const currentWeekDay = new Date().getDay();
     return (
         <div className="min-w-max grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] border-t border-l border-r rounded-t-lg">
             <div className="border-r border-b p-2">
@@ -40,7 +40,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             {dates.map((date, index) => (
                 <div
                     key={`date-${index}`}
-                    className={`flex flex-col p-4 border-b ${index !== dates.length - 1 ? "border-r" : ""} ${date.getDate() === today ? "bg-primary-50" : ""}`}
+                    className={`flex flex-col p-4 border-b ${index !== dates.length - 1 ? "border-r" : ""} ${date.getDay() === currentWeekDay ? "bg-primary-50" : ""}`}
                 >
                     <div className="text-xs">{weekDayNames[index]}</div>
                     <div className="text-xl font-semibold">{date.getDate()}</div>

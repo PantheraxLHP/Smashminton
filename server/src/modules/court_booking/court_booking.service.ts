@@ -30,6 +30,7 @@ export class CourtBookingService {
     }
 
     const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
+    
     const selectedDate = new Date(date);
     const courtBookings = await this.prisma.court_booking.findMany({
       where: {

@@ -278,19 +278,6 @@ export class CourtsService {
                 });
             }
         }
-    
         return separatedPrices;
-    }
-
-    findOne(id: number) {
-        return `This action returns a #${id} court`;
-    }
-
-    update(id: number, updateCourtDto: UpdateCourtDto) {
-        return `This action updates a #${id} court`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} court`;
     }
 }
