@@ -31,6 +31,7 @@ interface CustomRuleList {
 }
 
 const AssignmentRuleList = () => {
+    const [selectedRadio, setSelectedRadio] = useState("assignedShiftInWeek");
     const [ruleList, setRuleList] = useState<CustomRuleList[]>([
         {
             ruleid: 1,
@@ -214,7 +215,7 @@ const AssignmentRuleList = () => {
                 </div>
                 <div className="flex flex-col gap-2 border-2 rounded-lg p-4">
                     <span className="text-xs font-semibold">Ưu tiên phân công nhân viên theo:</span>
-                    <RadioGroup >
+                    <RadioGroup value={selectedRadio} onValueChange={setSelectedRadio} >
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem className="cursor-pointer" value="assignedShiftInWeek" id="assignedShiftInWeek" />
                             <Label className="cursor-pointer" htmlFor="assignedShiftInWeek">Số ca làm trong tuần (tăng dần)</Label>

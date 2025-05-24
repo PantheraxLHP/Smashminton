@@ -9,7 +9,8 @@ export class CacheController {
     async testConnection(): Promise<string> {
         try {
             await this.cacheService.set('test-key', 'test-value');
-            const value: any = await this.cacheService.get('test-key');
+            const value: any = await this.cacheService.get('key');
+            console.log(value);
             return value;
         } catch (error) {
             return `Redis connection error: ${error.message}`;
