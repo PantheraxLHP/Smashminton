@@ -62,35 +62,33 @@ const ShiftAssignmentPage = () => {
         if (!user) {
             const localUser = {
                 accountid: 9999,
+                sub: 9999,
                 username: "testing",
                 accounttype: "testing",
-                employees: {
-                    employeeid: 9999,
-                    role: "hr_manager",
-                }
+                role: "hr_manager",
             };
             setUser(localUser);
             // ! router.push("/signin");
             return;
         }
 
-        if (type === "enrollments" && (user.employees?.role === "wh_manager" || user.employees?.role === "hr_manager")) {
+        if (type === "enrollments" && (user.role === "wh_manager" || user.role === "hr_manager")) {
             router.push("/assignments");
             return;
         }
 
-        if (type === "enrollments" && user.employees?.role === "employee") {
+        if (type === "enrollments" && user.role === "employee") {
             setSelectedRadio("assignable");
-        } else if (type === "assignments" && user.employees?.role === "hr_manager") {
+        } else if (type === "assignments" && user.role === "hr_manager") {
             setSelectedRadio("fulltime");
         }
 
-        fetchData(user.employees?.role as string, type as string, selectedRadio);
+        fetchData(user.role as string, type as string, selectedRadio);
     }, [user, type, router]);
 
     useEffect(() => {
         if (user) {
-            fetchData(user.employees?.role as string, type as string, selectedRadio);
+            fetchData(user.role as string, type as string, selectedRadio);
         }
     }, [selectedRadio, user, type]);
 
@@ -280,11 +278,11 @@ const ShiftAssignmentPage = () => {
                     setYear={setYear}
                     selectedRadio={selectedRadio}
                     onRadioChange={setSelectedRadio}
-                    role={user?.employees?.role}
+                    role={user?.role}
                     type={type as "enrollments" | "assignments"}
                 />
                 <PersonalShift
-                    role={user?.employees?.role}
+                    role={user?.role}
                     type={type as "enrollments" | "assignments"}
                     personalShift={personalShift}
                 />
@@ -294,7 +292,7 @@ const ShiftAssignmentPage = () => {
                 weekNumber={weekNumber}
                 year={year}
                 selectedRadio={selectedRadio}
-                role={user?.employees?.role}
+                role={user?.role}
                 type={type as "enrollments" | "assignments"}
                 shiftData={shiftData}
             />
