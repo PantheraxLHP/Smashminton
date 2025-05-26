@@ -53,9 +53,11 @@ const FingerprintPage: React.FC<FingerprintPageProps> = ({
 
     return (
         <div className="flex flex-col items-center justify-center h-screen w-full gap-5">
+            {/*Dòng chữ hiển thị tên và mã nhân viên đang thực hiện đăng ký vân tay*/}
             {/* <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employee.accounts?.fullname} - Mã nhân viên: ${employee.employeeid}`}</span> */}
             <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên TEST - Mã nhân viên: tester01`}</span>
 
+            {/* Hiển thị hình ảnh tương ứng với trạng thái */}
             {(status === "start" || status === "loading") && (
                 <div
                     ref={parentRef}
@@ -103,6 +105,7 @@ const FingerprintPage: React.FC<FingerprintPageProps> = ({
                 </div>
             )}
 
+            {/*Dòng chữ ở dưới hình*/}
             {status === "start" && (
                 <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">Vui lòng đặt ngón trỏ lên thiết bị</span>
             )}

@@ -83,7 +83,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
 
     return (
         <div className="relative min-w-max">
-            {/*Time indicator line*/}
+            {/*Đường thể hiện thời gian hiện tại trong khoảng 6h-22h*/}
             {topOffset >= 0 && (
                 <div
                     className="absolute left-0 right-0 h-[4px] bg-primary z-1"
@@ -91,6 +91,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
                 />
             )}
 
+            {/*Table thể hiện các ô giờ*/}
             <div className="grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] border-b border-l border-r rounded-b-lg">
                 {timesInDay.map((time, index) => (
                     <Fragment key={`time-${index}`}>
@@ -107,13 +108,14 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({
                 ))}
             </div>
 
-            {/* Shift cards */}
+            {/*Table chứa nội dụng của tuần được chọn*/}
             <div
                 className="absolute top-[44px] left-0 grid grid-cols-[100px_repeat(7,minmax(165px,_1fr))] w-full"
                 style={{
                     gridTemplateRows: `repeat(${getGridRowNum(type as "assignments" | "enrollments", role as string, selectedRadio)}, minmax(0, 1fr))`,
                 }}
             >
+                {/*Hiện thị 2 loại: ShiftCard (không click được), ShiftCardDialog (click được và hiện Dialog)*/}
                 {type as string === "assignments" && role === "hr_manager" && selectedRadio === "parttime" && (parttimeShiftDates as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
                     <Fragment key={`assignment-parttimeshift-${index}`}>
                         <ShiftCardDialog

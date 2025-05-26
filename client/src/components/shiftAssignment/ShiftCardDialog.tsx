@@ -58,6 +58,7 @@ const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({
                 </div>
             </DialogTrigger>
             <DialogContent className="!max-w-[60vw] h-[65vh] overflow-y-auto !flex flex-col gap-2">
+                {/*Tiêu đề của Dialog, bắt buộc phải có nhưng không muốn sử dụng nên dùng VisuallyHidden che dấu*/}
                 <DialogHeader className="!h-1">
                     <DialogTitle className="!h-fit">
                         <VisuallyHidden>
@@ -65,11 +66,13 @@ const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({
                         </VisuallyHidden>
                     </DialogTitle>
                 </DialogHeader>
+                {/*Nội dụng của Dialog*/}
                 <DndProvider backend={HTML5Backend}>
                     <ShiftCardDetail
                         shiftDataSingle={shiftDataSingle}
                     />
                 </DndProvider>
+                {/*Phần footer chứa nút quay về để đóng Dialog*/}
                 <DialogFooter>
                     <DialogTrigger asChild>
                         <Button variant="secondary">

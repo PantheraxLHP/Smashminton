@@ -61,11 +61,13 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
                 height: `${getHeight(shiftDataSingle)}px`,
             }}
         >
+            {/*Phần header hiển thị thời gian bắt đầu và kết thúc của ca làm việc*/}
             <div
                 className={`text-center text-sm font-semibold text-white ${colorIndex[shiftDataSingle.shiftid - 1]} rounded-t-lg p-1 h-fit`}
             >
                 {`${getShift(shiftDataSingle)?.shiftstarthour} - ${getShift(shiftDataSingle)?.shiftendhour}`}
             </div>
+            {/*Phần nội dụng bên trong của ShiftCard*/}
             <div
                 className={`flex flex-col gap-2 p-2 rounded-b-lg h-full border-l-2 border-b-2 border-r-2 bg-white z-2 hover:${borderColorIndex[shiftDataSingle.shiftid - 1]}`}>
                 {type === "assignments" && role === "hr_manager" && (
