@@ -851,7 +851,8 @@ async function main() {
             },
             {
                 productname: 'Vớ cầu lông Yonex',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-y',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
                 status: 'Available',
                 sellingprice: 65000,
                 rentalprice: null,
@@ -860,7 +861,7 @@ async function main() {
             {
                 productname: 'Ống cầu lông Lining AYQN024',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-0',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
                 status: 'Available',
                 sellingprice: 255000,
                 rentalprice: null,
@@ -868,7 +869,7 @@ async function main() {
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-y',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
                 status: 'Available',
                 sellingprice: 950000,
                 rentalprice: null,
@@ -877,7 +878,7 @@ async function main() {
             {
                 productname: 'Cước Yonex pro',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Y',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
                 status: 'Available',
                 sellingprice: 230000,
                 rentalprice: null,
