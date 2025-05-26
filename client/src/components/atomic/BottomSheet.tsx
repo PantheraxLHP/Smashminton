@@ -128,7 +128,12 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                         {scProduct.quantity} {scProduct.productname}
                                     </span>
                                     <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
-                                    <span>{scProduct.totalamount.toLocaleString('vi-VN')} VNĐ</span>
+                                    <span>
+                                        {scProduct.totalamount > 0
+                                            ? scProduct.totalamount?.toLocaleString('vi-VN')
+                                            : (scProduct.quantity * scProduct.unitprice).toLocaleString('vi-VN')}
+                                        VNĐ
+                                    </span>
                                     <Icon
                                         icon="mdi:minus-circle"
                                         className="text-primary-400 h-5 w-5 cursor-pointer"

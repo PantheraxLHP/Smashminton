@@ -4,12 +4,14 @@ import { getUser } from '@/services/accounts.service';
 import { Accounts } from '@/types/types';
 import { createContext, useContext, useEffect, useState } from 'react';
 
-export type UserJWT = {
+interface UserJWT {
     sub: number;
     role?: string;
-};
+}
 
-type User = UserJWT & Accounts;
+export interface User extends Accounts {
+    role?: string;
+}
 
 type AuthContextType = {
     isLoading: boolean;
@@ -42,16 +44,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.ok) {
                 const session = await response.json();
                 if (session.data?.user) {
-                    const userJWT = session.data.user;
+                    const userJWT: UserJWT = session.data.user;
                     setIsAuthenticated(true);
                     try {
                         const accountId = userJWT.sub;
                         const profileResponse = await getUser(accountId);
                         if (profileResponse.ok) {
-                            setUser({
-                                ...userJWT,
+                            const userData: User = {
                                 ...profileResponse.data,
-                            });
+                                role: userJWT.role,
+                            };
+                            setUser(userData);
                         }
                     } catch (error) {
                         console.log(error);

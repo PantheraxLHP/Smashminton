@@ -96,9 +96,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], filter
                         selectedCourts?.findIndex(
                             (selected) =>
                                 selected.courtid === court.courtid &&
-                                selected.zoneid === court.zoneid &&
                                 selected.date === court.date &&
-                                selected.duration === court.duration &&
                                 selected.starttime === court.starttime,
                         ) ?? -1;
                     const isSelected = scCourtIndex !== -1;

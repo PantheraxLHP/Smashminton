@@ -1,6 +1,7 @@
 import { SelectedProducts } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
+import { formatPrice } from '@/lib/utils';
 import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
@@ -80,9 +81,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                         />
                         <h3 className="text-md font-semibold">{product.productname}</h3>
                         <div className="flex items-center justify-between">
-                            <p className="text-primary-600 font-bold">
-                                {product.sellingprice?.toLocaleString('vi-VN')} VNĐ
-                            </p>
+                            <p className="text-primary-600 font-bold">{formatPrice(product.sellingprice || 0)}</p>
                             <div className="flex items-center">
                                 <button
                                     type="button"
