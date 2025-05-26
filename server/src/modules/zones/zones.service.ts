@@ -6,7 +6,7 @@ import { Zones } from 'src/interfaces/zones.interface';
 
 @Injectable()
 export class ZonesService {
-  constructor (private prisma: PrismaService) {
+  constructor(private prisma: PrismaService) {
 
   }
 

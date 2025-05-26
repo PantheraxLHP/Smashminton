@@ -5,14 +5,31 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ZonePricesService {
-  constructor (private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   create(createZonePriceDto: CreateZonePriceDto) {
     return 'This action adds a new zonePrice';
   }
 
-  findAll() {
-    return `This action returns all zonePrices`;
+  async getAllZonePrice() {
+    const data = await this.prisma.zone_prices.findMany({
+      include: {
+        zones: true,
+      },
+      orderBy: {
+        zoneid: 'asc',
+      },
+    });
+
+    return data.map(item => ({
+      zoneid: item.zoneid,
+      zonename: item.zones?.zonename || null,
+      zoneimgurl: item.zones?.zoneimgurl || null,
+      dayfrom: item.dayfrom,
+      dayto: item.dayto,
+      starttime: item.starttime,
+      endtime: item.endtime,
+    }));
   }
 
   findOne(id: number) {
@@ -20,7 +37,13 @@ export class ZonePricesService {
   }
 
   update(id: number, updateZonePriceDto: UpdateZonePriceDto) {
-    return `This action updates a #${id} zonePrice`;
+    return this.prisma.zone_prices.update({
+      where: { zonepriceid: id },
+      data: {
+        ...updateZonePriceDto,
+        updatedat: new Date(), // update lại timestamp
+      },
+    });
   }
 
   remove(id: number) {

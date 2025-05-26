@@ -12,9 +12,9 @@ export class ZonePricesController {
     return this.zonePricesService.create(createZonePriceDto);
   }
 
-  @Get()
+  @Get('all-zone-prices')
   findAll() {
-    return this.zonePricesService.findAll();
+    return this.zonePricesService.getAllZonePrice();
   }
 
   @Get(':id')
