@@ -110,7 +110,7 @@ async function getAllOrders(): Promise<any[]> {
             },
         ],
         totalprice: 450000, // Tổng giá
-        TTL: -1 , // Thời gian sống của cache (giây)
+        TTL: -1, // Thời gian sống của cache (giây)
     };
 
     // Dữ liệu mẫu cho user "phamthuyo"
@@ -191,8 +191,17 @@ async function getAllOrders(): Promise<any[]> {
                 quantity: 1,
                 totalamount: 150000,
             },
+            {
+                productid: 28,
+                productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1747186471/Products/rohiwtcz9zwua4u0fgot.webp',
+                unitprice: 150000,
+                quantity: 1,
+                returndate: '2025-08-30',
+                totalamount: 50000,
+            },
         ],
-        totalprice: 450000, // Tổng giá
+        totalprice: 500000, // Tổng giá
     };
     const orderData2: CacheOrder = {
         product_order: [
@@ -211,7 +220,7 @@ async function getAllOrders(): Promise<any[]> {
     // Lưu dữ liệu vào Keyv
     await saveCacheBooking(username1, bookingData1);
     await saveCacheBooking(username2, bookingData2);
-    await saveCacheBooking(username3, bookingData3); 
+    await saveCacheBooking(username3, bookingData3);
 
     await saveCacheOrder(username1, orderData1);
     await saveCacheOrder(username2, orderData2);

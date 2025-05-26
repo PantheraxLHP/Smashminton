@@ -3,9 +3,19 @@ import { OrdersService } from './orders.service';
 import { addProductOrderDto, cacheOrderDTO, deleteProductOrderDto } from './dto/create-cache-order.dto';
 import { CacheOrder } from 'src/interfaces/orders.interface';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { CreateOrderDto } from './dto/create-order.dto';
 @Controller('orders')
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
+
+    @Post()
+    @ApiOperation({ summary: 'Create a new booking' })
+    @ApiBody({ type: CreateOrderDto })
+    @ApiResponse({ status: 201, description: 'Booking created successfully' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    create(@Body() createOrderDto: CreateOrderDto) {
+        return this.ordersService.addOrderToDatabase(createOrderDto);
+    }
 
     @Post('cache-order')
     @ApiOperation({ summary: 'Add order to redis' })

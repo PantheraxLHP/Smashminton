@@ -4,6 +4,7 @@ export interface CacheProductOrder {
     productimgurl: string;
     unitprice?: number;
     quantity?: number;
+    returndate?: string;
     totalamount?: number;
 }
 

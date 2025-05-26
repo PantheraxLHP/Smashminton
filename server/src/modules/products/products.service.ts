@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
     // Get product price
     async getProductPrice(productid: number): Promise<number> {
@@ -21,23 +21,6 @@ export class ProductsService {
         return this.prisma.products.create({ data: createProductDto });
     }
 
-    // // Find all badminton equipments
-    // findAllBadmintonEquipments() {
-    //     return this.prisma.products.findMany({
-    //         where: {
-    //             product_types: {
-    //                 producttypename: {
-    //                     in: ["Shoe bag", "Badminton tube", "Badminton racket grip", "Badminton sock", "Badminton string"] // Lọc theo tên loại sản phẩm
-    //                 }
-    //             }
-    //         },
-    //         select: {
-    //             productname: true,
-    //             sellingprice: true
-    //         }
-    //     });
-    // }
-
     findOne(id: number) {
         return this.prisma.products.findUnique({ where: { productid: id } });
     }
@@ -49,7 +32,8 @@ export class ProductsService {
                 productid: true,
                 productname: true,
                 productimgurl: true,
-                sellingprice: true
+                sellingprice: true,
+                rentalprice: true,
             }
         });
     }

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsDateString, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
 
 export class productOrderDto {
     @IsNumber()
@@ -30,7 +30,7 @@ export class cacheOrderDTO {
     @ApiProperty({ example: 'nguyenvun' }) // example username
     username: string;
 
-    @ApiProperty({ type: productOrderDto})
+    @ApiProperty({ type: productOrderDto })
     @IsNotEmpty()
     @ValidateNested()
     @Type(() => productOrderDto)
@@ -43,10 +43,14 @@ export class addProductOrderDto {
     @IsString()
     username: string;
 
-    @ApiProperty({ example: 1 }) // example product ID
+    @ApiProperty({ example: 26 }) // example product ID
     @IsNotEmpty()
     @IsNumber()
     productid: number;
+
+    @ApiProperty({ example: '2025-08-22', description: 'Return date in YYYY-MM-DD format', required: false })
+    @IsDateString()
+    returndate: string;
 }
 
 export class deleteProductOrderDto {
