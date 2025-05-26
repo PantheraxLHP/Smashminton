@@ -1599,7 +1599,7 @@ async function main() {
                 status: 'Còn hạn',
             },
             {
-                batchname: 'Lô Nước uống revive',
+                batchname: 'Lô Nước uống revive - đợt 1',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
                 status: 'Còn hạn',
@@ -1716,6 +1716,12 @@ async function main() {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
                 stockquantity: 5,
                 expirydate: new Date('2026-12-31'),
+                status: 'Còn hạn',
+            },
+            {
+                batchname: 'Lô Nước uống revive - đợt 2',
+                stockquantity: 21,
+                expirydate: new Date('2025-12-31'),
                 status: 'Còn hạn',
             },
         ],
@@ -1925,6 +1931,13 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 29,
+            },
+            {
+                productid: 10,
+                quantity: 10,
+                employeeid: 3,
+                supplierid: 1,
+                batchid: 30,
             },
         ],
     });
