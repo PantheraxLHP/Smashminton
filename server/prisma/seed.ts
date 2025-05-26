@@ -853,7 +853,8 @@ async function main() {
             },
             {
                 productname: 'Vớ cầu lông Yonex',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-y',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
                 status: 'Available',
                 sellingprice: 65000,
                 rentalprice: null,
@@ -862,7 +863,7 @@ async function main() {
             {
                 productname: 'Ống cầu lông Lining AYQN024',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-0',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
                 status: 'Available',
                 sellingprice: 255000,
                 rentalprice: null,
@@ -870,7 +871,7 @@ async function main() {
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-y',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
                 status: 'Available',
                 sellingprice: 950000,
                 rentalprice: null,
@@ -879,7 +880,7 @@ async function main() {
             {
                 productname: 'Cước Yonex pro',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Y',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
                 status: 'Available',
                 sellingprice: 230000,
                 rentalprice: null,
@@ -1600,7 +1601,7 @@ async function main() {
                 status: 'Còn hạn',
             },
             {
-                batchname: 'Lô Nước uống revive',
+                batchname: 'Lô Nước uống revive - đợt 1',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
                 status: 'Còn hạn',
@@ -1717,6 +1718,12 @@ async function main() {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
                 stockquantity: 5,
                 expirydate: new Date('2026-12-31'),
+                status: 'Còn hạn',
+            },
+            {
+                batchname: 'Lô Nước uống revive - đợt 2',
+                stockquantity: 21,
+                expirydate: new Date('2025-12-31'),
                 status: 'Còn hạn',
             },
         ],
@@ -2039,6 +2046,13 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 29,
+            },
+            {
+                productid: 10,
+                quantity: 10,
+                employeeid: 3,
+                supplierid: 1,
+                batchid: 30,
             },
         ],
     });
