@@ -329,9 +329,8 @@ model timesheet {
 model voucher {
   voucherid      Int        @id @default(autoincrement())
   vouchername    String?
-  vouchertype    String?
   discountamount Decimal?   @db.Decimal
-  duration       String?
+  startdate      DateTime?  @db.Timestamptz(6)
   expireddate    DateTime?  @db.Timestamptz(6)
   bookings       bookings[]
 }
