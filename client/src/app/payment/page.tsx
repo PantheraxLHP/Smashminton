@@ -46,6 +46,7 @@ export default function Payment() {
                     time: court.filters.startTime ?? '',
                     unitPrice: parseInt(court.price.replace(/\D/g, '')),
                     total: parseInt(court.price.replace(/\D/g, '')),
+                    productid: 0,
                 })),
                 discount: 0.1,
                 invoiceCode: 'None',
