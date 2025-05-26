@@ -329,7 +329,6 @@ create table if not exists orders (
 	orderid integer generated always as identity primary key,
 	ordertype text,
 	orderdate timestamptz,
-	returndate timestamptz,
 	totalprice numeric,
 	status text,
 	employeeid integer,
@@ -342,6 +341,7 @@ create table if not exists order_product (
 	orderid integer,
 	productid integer,
 	quantity integer,
+	returndate timestamptz,
 	constraint pk_orderproduct primary key (orderid, productid),
 	constraint fk_orderproduct_orders foreign key (orderid) references orders(orderid),
 	constraint fk_orderproduct_products foreign key (productid) references products(productid)

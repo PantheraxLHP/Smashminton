@@ -131,6 +131,7 @@ model employees {
 model order_product {
   orderid   Int
   productid Int
+  returndate DateTime?       @db.Timestamptz(6)
   quantity  Int?
   orders    orders   @relation(fields: [orderid], references: [orderid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_orders")
   products  products @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_products")
@@ -142,7 +143,6 @@ model orders {
   orderid       Int             @id @default(autoincrement())
   ordertype     String?
   orderdate     DateTime?       @db.Timestamptz(6)
-  returndate    DateTime?       @db.Timestamptz(6)
   totalprice    Decimal?        @db.Decimal
   status        String?
   employeeid    Int?

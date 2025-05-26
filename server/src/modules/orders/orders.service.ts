@@ -5,12 +5,16 @@ import { addProductOrderDto, cacheOrderDTO } from './dto/create-cache-order.dto'
 import { CacheOrder, CacheProductOrder } from 'src/interfaces/orders.interface';
 import { CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { ProductsService } from '../products/products.service';
+import { Create } from 'sharp';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OrdersService {
     constructor(
         private cacheService: CacheService,
         private productService: ProductsService,
+        private prisma: PrismaService,
     ) { }
 
     async getOrderFromCache(username: string): Promise<CacheOrder> {
@@ -40,7 +44,14 @@ export class OrdersService {
         // Lấy cache của người dùng từ Redis
         const orderUserCache = await this.cacheService.getOrder(username);
 
-        const unitprice: number = product_order.sellingprice ? product_order.sellingprice.toNumber() : 0;
+        let unitprice: number = 0;
+        // Kiểm tra nếu sản phẩm có giá bán
+        if (product_order.sellingprice) {
+            unitprice = product_order.sellingprice ? product_order.sellingprice.toNumber() : 0;
+        }
+        else {
+            unitprice = product_order.rentalprice ? product_order.rentalprice.toNumber() : 0;
+        }
 
         // Nếu không có cache, tạo mới
         if (!orderUserCache) {
@@ -56,6 +67,7 @@ export class OrdersService {
                 unitprice: unitprice,
                 quantity: 1,
                 totalamount: unitprice,
+                ...(addProductOrderDto.returndate && { returndate: addProductOrderDto.returndate }),
             };
 
             newCacheOrder.product_order.push(newProductOrder);
@@ -101,6 +113,7 @@ export class OrdersService {
             unitprice: unitprice,
             quantity: 1,
             totalamount: unitprice,
+            ...(addProductOrderDto.returndate && { returndate: addProductOrderDto.returndate }),
         };
 
         orderUserCache.product_order.push(newProductOrder);
@@ -133,14 +146,14 @@ export class OrdersService {
         if (productIndex !== -1) {
             const existingProduct = orderUserCache.product_order[productIndex];
             if (existingProduct.quantity === 1) {
-            // Nếu số lượng là 1, xóa sản phẩm khỏi mảng
-            orderUserCache.totalprice -= existingProduct.totalamount ?? 0;
-            orderUserCache.product_order.splice(productIndex, 1);
+                // Nếu số lượng là 1, xóa sản phẩm khỏi mảng
+                orderUserCache.totalprice -= existingProduct.totalamount ?? 0;
+                orderUserCache.product_order.splice(productIndex, 1);
             } else {
-            // Nếu số lượng lớn hơn 1, giảm số lượng và cập nhật tổng tiền
-            existingProduct.quantity -= 1;
-            existingProduct.totalamount = existingProduct.unitprice * existingProduct.quantity;
-            orderUserCache.totalprice -= existingProduct.unitprice;
+                // Nếu số lượng lớn hơn 1, giảm số lượng và cập nhật tổng tiền
+                existingProduct.quantity -= 1;
+                existingProduct.totalamount = existingProduct.unitprice * existingProduct.quantity;
+                orderUserCache.totalprice -= existingProduct.unitprice;
             }
         }
         // Ghi đè lại dữ liệu trong Redis
@@ -153,6 +166,67 @@ export class OrdersService {
         return orderUserCache;
     }
 
+    async addOrderToDatabase(createOrderDto: CreateOrderDto): Promise<any> {
+        let username = '';
+        if (!createOrderDto.employeeid) {
+            const account = await this.prisma.accounts.findUnique({
+                where: {
+                    accountid: createOrderDto.customerid,
+                },
+                select: {
+                    username: true,
+                },
+            });
+            username = account?.username ?? '';
+        } else {
+            const account = await this.prisma.accounts.findUnique({
+                where: {
+                    accountid: createOrderDto.employeeid,
+                },
+                select: {
+                    username: true,
+                },
+            });
+            username = account?.username ?? '';
+        }
+
+        // Lấy cache của người dùng từ Redis
+        const orderUserCache = await this.cacheService.getOrder(username);
+        if (!orderUserCache) {
+            throw new BadRequestException('No order found in cache for this user');
+        }
+        createOrderDto.totalprice = orderUserCache.totalprice;
+        createOrderDto.orderdate = new Date();
+
+        const order = await this.prisma.orders.create({
+            data: createOrderDto,
+        });
+        if (!order) {
+            throw new BadRequestException('Failed to create order');
+        }
+
+        // Hàm chuyển đổi sang đúng định dạng cho Prisma
+        const productOrders = orderUserCache.product_order.map((product) => ({
+            productid: product.productid,
+            orderid: order.orderid,
+            quantity: product.quantity,
+            returndate: product.returndate ? new Date(product.returndate) : null,
+        }));
+
+        //Insert nhiều bản ghi vào bảng order_products
+        const product_orders = await this.prisma.order_product.createMany({
+            data: productOrders,
+        });
+
+        if (!product_orders) {
+            throw new BadRequestException('Failed to create product orders');
+        }
+
+        return {
+            order: order,
+            product_orders: product_orders,
+        };
+    }
 
     findAll() {
         return `This action returns all orders`;
@@ -163,10 +237,10 @@ export class OrdersService {
     }
 
     update(id: number, updateOrderDto: UpdateOrderDto) {
-        return `This action updates a #${id} order`;
-    }
+            return `This action updates a #${id} order`;
+        }
 
     remove(id: number) {
-        return `This action removes a #${id} order`;
-    }
+            return `This action removes a #${id} order`;
+        }
 }

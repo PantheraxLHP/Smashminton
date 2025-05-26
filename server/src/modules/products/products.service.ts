@@ -49,7 +49,8 @@ export class ProductsService {
                 productid: true,
                 productname: true,
                 productimgurl: true,
-                sellingprice: true
+                sellingprice: true,
+                rentalprice: true,
             }
         });
     }
