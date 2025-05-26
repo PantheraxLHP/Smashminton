@@ -21,6 +21,8 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { ProductFilterValuesModule } from './modules/product_filter_values/product_filter_values.module';
 import { ShiftDateModule } from './modules/shift_date/shift_date.module';
 import { VoucherModule } from './modules/voucher/voucher.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
 
 @Module({
     imports: [
@@ -45,6 +47,8 @@ import { VoucherModule } from './modules/voucher/voucher.module';
         PaymentModule,
         ShiftDateModule,
         VoucherModule,
+        SuppliersModule,
+        ZonePricesModule
     ],
     controllers: [AppController],
     providers: [AppService],
