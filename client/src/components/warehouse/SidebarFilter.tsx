@@ -92,8 +92,9 @@ export default function FilterSidebar<T extends Record<string, any>>({
             }
 
             if (filter.type === 'range') {
-                const [min, max] = (val || []) as [number, number];
-                if (min !== filter.min || max !== filter.max) {
+                const [min, max] = (filters[key] as [number, number]) ?? [filter.min, filter.max];
+
+                if (typeof min === 'number' && typeof max === 'number' && (min !== filter.min || max !== filter.max)) {
                     selected.push(
                         h(
                             'span',
@@ -110,7 +111,7 @@ export default function FilterSidebar<T extends Record<string, any>>({
                                     onClick: () =>
                                         setFilters((prev) => ({
                                             ...prev,
-                                            [key]: [filter.min, filter.max] as T[keyof T],
+                                            [key]: [filter.min!, filter.max!] as T[keyof T],
                                         })),
                                 },
                                 '✕'
@@ -118,7 +119,7 @@ export default function FilterSidebar<T extends Record<string, any>>({
                         )
                     );
                 }
-            }
+            }            
         });
 
         return h(

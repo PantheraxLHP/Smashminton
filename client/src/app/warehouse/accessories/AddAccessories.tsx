@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 
-interface Accessory {
+export interface AccessoryFormData {
     name: string;
     price: string;
     category: string;
@@ -14,13 +14,13 @@ interface Accessory {
 interface AccessoryModalProps {
     open: boolean;
     onClose: () => void;
-    onSubmit?: (data: Accessory) => void;
-    editData?: Accessory | null;
+    onSubmit?: (data: AccessoryFormData) => void;
+    editData?: AccessoryFormData | null;
 }
 
 export default function AccessoryModal({ open, onClose, onSubmit, editData }: AccessoryModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-    const [formData, setFormData] = useState<Accessory>({
+    const [formData, setFormData] = useState<AccessoryFormData>({
         name: '',
         price: '',
         category: '',

@@ -28,6 +28,8 @@ interface DataTableProps<T> {
     filterConfig?: FilterConfig[];
     filters?: Record<string, any>;
     setFilters?: (f: Record<string, any>) => void;
+    onEdit?: (index: number) => void;
+    onDelete?: (index: number) => void;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -37,6 +39,8 @@ export default function DataTable<T extends Record<string, any>>({
     filterConfig = [],
     filters,
     setFilters,
+    onEdit,
+    onDelete
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -165,10 +169,10 @@ export default function DataTable<T extends Record<string, any>>({
                                 <th
                                     key={i}
                                     className={`px-3 py-2 font-medium ${col.align === 'right'
-                                            ? 'text-right'
-                                            : col.align === 'center'
-                                                ? 'text-center'
-                                                : 'text-left'
+                                        ? 'text-right'
+                                        : col.align === 'center'
+                                            ? 'text-center'
+                                            : 'text-left'
                                         }`}
                                 >
                                     {col.header}
@@ -199,17 +203,17 @@ export default function DataTable<T extends Record<string, any>>({
                                         const raw = item[col.accessor];
                                         value = raw !== undefined && raw !== null ? String(raw) : '—';
                                     }
-                                    
+
                                     const cellClass = col.className?.(item) || '';
 
                                     return (
                                         <td
                                             key={i}
                                             className={`px-3 py-3 ${col.align === 'right'
-                                                    ? 'text-right'
-                                                    : col.align === 'center'
-                                                        ? 'text-center'
-                                                        : ''
+                                                ? 'text-right'
+                                                : col.align === 'center'
+                                                    ? 'text-center'
+                                                    : ''
                                                 } ${cellClass}`}
                                         >
                                             {value}
@@ -223,12 +227,32 @@ export default function DataTable<T extends Record<string, any>>({
                                             e.stopPropagation();
                                             const rect = e.currentTarget.getBoundingClientRect();
                                             setSelectedItemIndex(idx);
-                                            setMenuPosition({ x: rect.left - 40, y: rect.bottom + 5 });
+                                            setMenuPosition({ x: rect.left - 40, y: rect.bottom + window.scrollY });
                                         }}
                                     >
                                         <MoreVertical size={18} />
                                     </button>
                                 </td>
+                                {menuPosition !== null && selectedItemIndex !== null && (
+                                    <MoreActionsMenu
+                                        position={menuPosition}
+                                        onClose={() => {
+                                            setMenuPosition(null);
+                                            setSelectedItemIndex(null);
+                                        }}
+                                        onEdit={() => {
+                                            if (onEdit && selectedItemIndex !== null) {
+                                                onEdit(selectedItemIndex);
+                                            }
+                                        }}
+                                        onDelete={() => {
+                                            if (onDelete && selectedItemIndex !== null) {
+                                                onDelete(selectedItemIndex);
+                                            }
+                                        }}
+                                    />
+                                )}
+
                             </tr>
                         ))}
                     </tbody>

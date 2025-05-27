@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SidebarFilter from '../SidebarFilter';
-import DataTable, { Column, FilterConfig } from '../DataTable';
+import SidebarFilter from '../../../components/warehouse/SidebarFilter';
+import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
 
 interface FoodItem {
     name: string;
@@ -162,8 +162,8 @@ export default function FoodAndBeveragePage() {
                 item.status === 'Sắp hết hạn'
                     ? 'text-yellow-600 px-2 py-1 rounded'
                     : item.status === 'Hết hạn'
-                      ? 'text-red-600 px-2 py-1 rounded'
-                      : 'text-green-600 px-2 py-1 rounded',
+                        ? 'text-red-600 px-2 py-1 rounded'
+                        : 'text-green-600 px-2 py-1 rounded',
         },
     ];
 
