@@ -3,32 +3,32 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Service } from '../type';
-import ServiceModal from './AddEditService';
+import ServiceModal from './AddEditCourt';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 
 const rawServices: Service[] = [
     {
-        name: "Thuê vợt",
-        type: "Thuê vợt",
-        product: "001F",
+        name: "Thuê sân",
+        type: "Thuê sân",
+        product: "Zone A",
         price: "200.000 VND",
         startTime: "6:00",
         endTime: "22:00",
         image: "/default.png",
     },
     {
-        name: "Thuê giày",
-        type: "Thuê giày",
-        product: "Atlas",
+        name: "Thuê sân",
+        type: "Thuê sân",
+        product: "Zone B",
         price: "200.000 VND",
         startTime: "6:00",
         endTime: "22:00",
         image: "/default.png",
     },
     {
-        name: "Thuê giày",
-        type: "Thuê giày",
-        product: "Nike",
+        name: "Thuê sân",
+        type: "Thuê sân",
+        product: "Zone C",
         price: "150.000 VND",
         startTime: "18:00",
         endTime: "22:00",
@@ -47,7 +47,7 @@ const services = rawServices.map((s) => ({
     endTime: normalizeTimeString(s.endTime),
 }));
 
-export default function RentalPriceManager() {
+export default function CourtPriceManager() {
     const [servicesState, setServicesState] = useState<Service[]>(services);
     const [editData, setEditData] = useState<Service | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -83,7 +83,7 @@ export default function RentalPriceManager() {
                     }}
                     className="bg-primary-500 hover:bg-primary-600 text-white"
                 >
-                    Thêm dịch vụ
+                    Thêm sân
                 </Button>
             </div>
 

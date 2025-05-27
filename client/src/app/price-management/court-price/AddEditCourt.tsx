@@ -23,7 +23,7 @@ function formatPrice(price: string): string {
 
 export default function ServiceModal({ open, onClose, onSubmit, editData }: ServiceModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-
+    
     const [formData, setFormData] = useState<Service>({
         name: "",
         price: "",
@@ -102,12 +102,12 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                     className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg"
                 >
                     <h2 className="text-lg font-semibold mb-4">
-                        {editData ? "Sửa dịch vụ" : "Thêm dịch vụ"}
+                        {editData ? "Sửa giá sân" : "Thêm sân"}
                     </h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <label className="block text-sm mb-1">Tên dịch vụ</label>
+                            <label className="block text-sm mb-1">Tên sân</label>
                             <input
                                 name="name"
                                 type="text"
