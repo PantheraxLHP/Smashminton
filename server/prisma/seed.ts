@@ -31,6 +31,9 @@ async function main() {
         'product_attributes',
         'purchase_order',
         'product_batch',
+        'order_product',
+        'orders',
+        'voucher',
     ];
 
     await deleteAllData(tableList);
@@ -371,7 +374,7 @@ async function main() {
         data: [
             {
                 penaltyname: 'Late for work',
-                penaltydescription: 'Phạt nhân viễn đến trễ giờ làm việc',
+                penaltydescription: 'Phạt nhân viên đến trễ giờ làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
@@ -851,7 +854,8 @@ async function main() {
             },
             {
                 productname: 'Vớ cầu lông Yonex',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-y',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
                 status: 'Available',
                 sellingprice: 65000,
                 rentalprice: null,
@@ -860,7 +864,7 @@ async function main() {
             {
                 productname: 'Ống cầu lông Lining AYQN024',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-0',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447478/ong-cau-long-lining-ayqn-024-1_czakvt.webp',
                 status: 'Available',
                 sellingprice: 255000,
                 rentalprice: null,
@@ -868,7 +872,7 @@ async function main() {
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-y',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
                 status: 'Available',
                 sellingprice: 950000,
                 rentalprice: null,
@@ -877,7 +881,7 @@ async function main() {
             {
                 productname: 'Cước Yonex pro',
                 productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Y',
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
                 status: 'Available',
                 sellingprice: 230000,
                 rentalprice: null,
@@ -1313,6 +1317,30 @@ async function main() {
         ],
     });
 
+    // Insert Voucher data
+    await prisma.voucher.createMany({
+        data: [
+            {
+                vouchername: 'Giảm giá 10% cho khách hàng mới',
+                discountamount: 0.1,
+                startdate: new Date('2025-01-01T00:00:00Z'),
+                expireddate: new Date('2025-12-31T23:59:59Z'),
+            },
+            {
+                vouchername: 'Giảm 50k cho đơn hàng trên 500k',
+                discountamount: 0.05,
+                startdate: new Date('2025-01-15T00:00:00Z'),
+                expireddate: new Date('2025-06-30T23:59:59Z'),
+            },
+            {
+                vouchername: 'Khuyến mãi cuối tuần - Giảm 15%',
+                discountamount: 0.075,
+                startdate: new Date('2025-02-01T00:00:00Z'),
+                expireddate: new Date('2025-02-28T23:59:59Z'),
+            }
+        ],
+    });
+
     await prisma.product_types.createMany({
         data: [
             {
@@ -1598,7 +1626,7 @@ async function main() {
                 status: 'Còn hạn',
             },
             {
-                batchname: 'Lô Nước uống revive',
+                batchname: 'Lô Nước uống revive - đợt 1',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
                 status: 'Còn hạn',
@@ -1716,6 +1744,125 @@ async function main() {
                 stockquantity: 5,
                 expirydate: new Date('2026-12-31'),
                 status: 'Còn hạn',
+            },
+            {
+                batchname: 'Lô Nước uống revive - đợt 2',
+                stockquantity: 21,
+                expirydate: new Date('2025-12-31'),
+                status: 'Còn hạn',
+            },
+        ],
+    });
+
+    // Insert Orders data
+    await prisma.orders.createMany({
+        data: [
+            {
+                ordertype: 'Bán hàng',
+                orderdate: new Date('2024-01-15T10:30:00Z'),
+                totalprice: 450000,
+                status: 'Hoàn thành',
+                customerid: 15, // Customer account from seed
+            },
+            {
+                ordertype: 'Cho thuê',
+                orderdate: new Date('2024-01-16T14:15:00Z'),
+                totalprice: 120000,
+                status: 'Đang xử lý',
+                customerid: 15,
+            },
+            {
+                ordertype: 'Bán hàng',
+                orderdate: new Date('2024-01-17T09:45:00Z'),
+                totalprice: 800000,
+                status: 'Hoàn thành',
+                customerid: 15,
+            },
+            {
+                ordertype: 'Cho thuê',
+                orderdate: new Date('2024-01-18T16:20:00Z'),
+                totalprice: 200000,
+                status: 'Hoàn thành',
+                customerid: 15,
+            },
+            {
+                ordertype: 'Bán hàng',
+                orderdate: new Date('2024-01-19T11:00:00Z'),
+                totalprice: 1200000,
+                status: 'Đang xử lý',
+                customerid: 15,
+            },
+        ],
+    });
+
+    // Insert Order Product data
+    await prisma.order_product.createMany({
+        data: [
+            // Order 1 - Bán hàng (Nước uống + Bánh snack)
+            {
+                orderid: 1,
+                productid: 1, // Nước uống aquafina
+                quantity: 3,
+            },
+            {
+                orderid: 1,
+                productid: 2, // Nước uống coca
+                quantity: 2,
+            },
+            {
+                orderid: 1,
+                productid: 7, // Bánh snack OSea
+                quantity: 5,
+            },
+
+            // Order 2 - Cho thuê (Vợt cầu lông)
+            {
+                orderid: 2,
+                productid: 23, // Vợt cầu lông Yonex Arcsaber 11 Play
+                quantity: 2,
+                returndate: new Date('2025-09-17'),
+            },
+
+            // Order 3 - Bán hàng (Giày cầu lông)
+            {
+                orderid: 3,
+                productid: 15, // Giày cầu lông Yonex 88 Dial Trắng - S41
+                quantity: 1,
+                returndate: new Date('2025-09-17'),
+            },
+            {
+                orderid: 3,
+                productid: 17, // Giày cầu lông Yonex Comfort Z3 Trắng - S41
+                quantity: 1,
+                returndate: new Date('2025-09-17'),
+            },
+
+            // Order 4 - Cho thuê (Vợt + Giày)
+            {
+                orderid: 4,
+                productid: 24, // Vợt cầu lông Yonex Arcsaber 88 Play 2024
+                quantity: 1,
+                returndate: new Date('2025-09-19'),
+            },
+            {
+                orderid: 4,
+                productid: 16, // Giày cầu lông Yonex 88 Dial Trắng - S42
+                quantity: 1,
+                returndate: new Date('2025-09-19'),
+            },
+
+            // Order 5 - Bán hàng (Vợt cao cấp)
+            {
+                orderid: 5,
+                productid: 25, // Vợt cầu lông Yonex Nanoflare StarBucks Xanh
+                quantity: 1,
+                returndate: new Date('2025-09-19'),
+            },
+            {
+                orderid: 5,
+                productid: 26, // Vợt cầu lông Lining Axforce 10 Trắng - 3U
+                quantity: 1,
+                returndate: new Date('2025-09-19'),
             },
         ],
     });
@@ -1924,6 +2071,13 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 29,
+            },
+            {
+                productid: 10,
+                quantity: 10,
+                employeeid: 3,
+                supplierid: 1,
+                batchid: 30,
             },
         ],
     });

@@ -1,7 +1,6 @@
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import ProfileIcon from './ProfileIcon';
@@ -21,7 +20,6 @@ interface HeaderProps {
 export default function Header({ menuItems = [], showLoginButton }: HeaderProps) {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const pathname = usePathname();
 
     const handleMenuClick = (label: string) => {
         setOpenMenu(openMenu === label ? null : label);
@@ -32,15 +30,10 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
         setOpenMenu(null);
     };
 
-    const isActive = (link: string | undefined) => {
-        if (!link) return false;
-        return pathname.startsWith(link);
-    };
-
     return (
         <div className="sticky top-0 z-50 w-full">
             {/* Main Header */}
-            <header className="flex items-center justify-between bg-black p-4 text-white">
+            <header className="flex items-center justify-between bg-black p-2 text-white">
                 {/* Mobile Menu Button */}
                 <button className="md:hidden" onClick={toggleMobileMenu} aria-label="Toggle menu">
                     {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -72,15 +65,14 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         }`}
                                     >
                                         {item.label}
-                                        <ChevronDown className="h-4 w-4 transition-transform duration-300" />
+                                        {openMenu === item.label ? (
+                                            <ChevronUp className="h-4 w-4 transition-transform duration-300" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4 transition-transform duration-300" />
+                                        )}
                                     </button>
                                 ) : (
-                                    <Link
-                                        href={item.link || '#'}
-                                        className={`hover:text-gray-400 ${
-                                            isActive(item.link) ? 'border-b-2 border-green-500' : ''
-                                        }`}
-                                    >
+                                    <Link href={item.link || '#'} className="hover:text-gray-400">
                                         {item.label}
                                     </Link>
                                 )}
@@ -131,12 +123,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         )}
                                     </div>
                                 ) : (
-                                    <Link
-                                        href={item.link || '#'}
-                                        className={`block text-white hover:text-gray-300 ${
-                                            isActive(item.link) ? 'border-b-2 border-green-500' : ''
-                                        }`}
-                                    >
+                                    <Link href={item.link || '#'} className="block text-white hover:text-gray-300">
                                         {item.label}
                                     </Link>
                                 )}
@@ -144,6 +131,21 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                         ))}
                     </nav>
                 </div>
+            )}
+
+            {/* Desktop Submenu */}
+            {menuItems.map(
+                (item, index) =>
+                    item.subMenu &&
+                    openMenu === item.label && (
+                        <div key={index} className="hidden justify-center gap-50 bg-gray-100 p-2 shadow-md md:flex">
+                            {item.subMenu.map((sub, i) => (
+                                <Link key={i} href={sub.link || '#'} className="hover:text-primary-600">
+                                    {sub.label}
+                                </Link>
+                            ))}
+                        </div>
+                    ),
             )}
         </div>
     );

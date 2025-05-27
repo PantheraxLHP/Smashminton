@@ -43,6 +43,8 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                 year={year}
                 setYear={setYear}
             />
+
+            {/*Phần radio button để chọn loại nhân viên hoặc chế độ hiển thị*/}
             {role === "hr_manager" && (
                 <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold">Loại nhân viên</span>
@@ -58,7 +60,6 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     </RadioGroup>
                 </div>
             )}
-
             {role === "employee" && type === "enrollments" && (
                 <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold">Chế độ hiển thị</span>
@@ -76,6 +77,8 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
             )}
 
             <div className="border border-gray-500"></div>
+
+            {/* Phần chú thích thời gian của ca làm việc */}
             {((role === "hr_manager" && selectedRadio === "parttime") || role === "employee") && (
                 <div className="flex flex-col justify-left">
                     <div className="flex items-center gap-2 text-sm">
@@ -108,6 +111,8 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                     </div>
                 </div>
             )}
+
+            {/*2 Nút phân công và tùy chỉnh phân công*/}
             {role === "hr_manager" && (
                 <>
                     <Dialog>

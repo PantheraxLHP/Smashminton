@@ -46,7 +46,7 @@ const ProfileIcon = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="z-[9999]">
                 <DropdownMenuLabel>
-                    {user?.role?.toUpperCase()}: {user?.fullname}
+                    {user?.accounttype?.toUpperCase()}: {user?.fullname}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile')}>

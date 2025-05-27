@@ -18,7 +18,7 @@ export class ProductsController {
     constructor(
         private readonly productsService: ProductsService,
         private readonly cacheService: CacheService,
-    ) {}
+    ) { }
 
     @Post()
     @ApiOperation({ summary: 'Create a product' })
@@ -31,19 +31,6 @@ export class ProductsController {
         return this.productsService.create(createProductDto);
     }
 
-    // @Get('badminton-equipments')
-    // @ApiOperation({ summary: 'Find all badminton equipments' })
-    // @ApiOkResponse({ description: 'Find all badminton equipments' })
-    // async findAllBadmintonEquipments() {
-    //     const products = await this.productsService.findAllBadmintonEquipments();
-    //     if (!products) {
-    //         throw new NotFoundException('No badminton equipments');
-    //     }
-    //     return products;
-    // }
-
-    
-
     @Get(':id')
     @Public()
     @ApiOperation({ summary: 'Find one product' })
@@ -52,7 +39,7 @@ export class ProductsController {
     @ApiNotFoundResponse({ description: 'Product not found' })
     async findOne(@Param('id') id: number) {
         const product = await this.productsService.findOne(+id);
-        const user={ id:1, name:'test'};
+        const user = { id: 1, name: 'test' };
         //await this.cacheService.setStudentCard('test-key', user, 300);
         console.log('user', await this.cacheService.getTTL('studentCard::studentCard:test-key'));
         const result = await this.cacheService.getStudentCard('test-key');

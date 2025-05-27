@@ -77,13 +77,7 @@ const ProductPage = () => {
             </div>
             <RentalList products={products} selectedProducts={selectedProducts} />
             {hasSelectedItems && (
-                <BookingBottomSheet
-                    selectedProducts={selectedProducts}
-                    selectedCourts={selectedCourts}
-                    TTL={TTL}
-                    onResetTimer={() => {}}
-                    onConfirm={() => {}}
-                />
+                <BookingBottomSheet selectedProducts={selectedProducts} selectedCourts={selectedCourts} TTL={TTL} />
             )}
         </div>
     );

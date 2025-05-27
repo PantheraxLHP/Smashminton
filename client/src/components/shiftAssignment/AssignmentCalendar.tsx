@@ -24,11 +24,13 @@ const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
 }) => {
     return (
         <div className="h-full w-full overflow-x-auto">
+            {/* Hiển thị thứ và ngày của tuần đã chọn */}
             <CalendarHeader
                 selectedWeek={selectedWeek}
                 weekNumber={weekNumber}
                 year={year}
             />
+            {/* Hiển thị timeline và nội dung của tuần đó */}
             <CalendarTimeline 
                 selectedRadio={selectedRadio}
                 role={role}

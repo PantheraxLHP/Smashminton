@@ -1,5 +1,6 @@
 import React from 'react';
-import { CheckCircle, Link, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface PaymentResultModalProps {
     isOpen: boolean;

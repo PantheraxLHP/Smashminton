@@ -1,11 +1,10 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Employees } from '@/types/types';
 import Image from 'next/image';
 
 type STATUS_VALUE = 'start' | 'loading' | 'success' | 'fail';
 
-const FingerprintPage = () => {
+const FingerprintPage: React.FC = () => {
     const [status, setStatus] = useState<STATUS_VALUE>('start');
 
     const [isUp, setIsUp] = useState(false);
@@ -47,9 +46,11 @@ const FingerprintPage = () => {
 
     return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-5">
+            {/*Dòng chữ hiển thị tên và mã nhân viên đang thực hiện đăng ký vân tay*/}
             {/* <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employee.accounts?.fullname} - Mã nhân viên: ${employee.employeeid}`}</span> */}
             <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">{`Đăng ký vân tay cho nhân viên TEST - Mã nhân viên: tester01`}</span>
 
+            {/* Hiển thị hình ảnh tương ứng với trạng thái */}
             {(status === 'start' || status === 'loading') && (
                 <div
                     ref={parentRef}
@@ -95,6 +96,7 @@ const FingerprintPage = () => {
                 </div>
             )}
 
+            {/*Dòng chữ ở dưới hình*/}
             {status === 'start' && (
                 <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">
                     Vui lòng đặt ngón trỏ lên thiết bị

@@ -261,6 +261,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
 
     return (
         <div className="flex flex-col gap-4 w-full h-full">
+            {/* Tiêu đề của ShiftCardDetail */}
             <div className="flex justify-between items-center w-full border-b-2 pb-2 border-b-gray-500">
                 <div className="text-lg">
                     {`Chi tiết phân công cho nhân viên ${shiftDataSingle.shiftid < 3 ? "toàn thời gian" : "bán thời gian"}`}
@@ -269,8 +270,10 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                     {`Tuần ${weekNumber}, ${getDateString(shiftDataSingle.shiftdate)}, Ca ${shiftDataSingle.shiftid}: ${shiftDataSingle.shift?.shiftstarthour} - ${shiftDataSingle.shift?.shiftendhour}`}
                 </div>
             </div>
+            {/* Phần hiển thị danh sách nhân viên và phân công */}
             <div className="flex gap-5 h-full">
                 <div className="flex flex-col gap-2 w-full h-full border-b-2 border-b-gray-500 relative">
+                    {/* Overlay thể hiện vị trí drop khi đang kéo thả nhân viên */}
                     <div
                         className={`absolute top-6 left-0 h-[365px] w-full ${isDraggingEmployee ? "bg-gray-500/50" : "bg-transparent hidden"} flex items-center justify-center pointer-events-none text-white rounded-md`}
                     >
@@ -279,6 +282,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                     <span className="text-xs font-semibold">
                         Danh sách nhân viên được phân công
                     </span>
+                    {/*Danh sách nhân viên đã được phân công cho ca làm này*/}
                     <div
                         ref={node => { dropRef(node); }}
                         className={`border-2 rounded-md transition-colors ${isOver ? "bg-primary-100/20 border-primary border-dashed" : "border-transparent"} h-full`}
@@ -305,6 +309,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                         )}
                     </div>
                 </div>
+                {/* Phần hiển thị danh sách nhân viên có thể phân công */}
                 <div className="flex flex-col gap-2 w-full h-full border-b-2 border-b-gray-500">
                     <span className="text-xs font-semibold">
                         Danh sách nhân viên có thể phân công
@@ -343,6 +348,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({
                     )}
                 </div>
             </div>
+            {/* Component phân trang */}
             <PaginationComponent
                 page={page}
                 setPage={setPage}

@@ -5,13 +5,12 @@ interface QRCodeModalProps {
     isOpen: boolean;
     onClose: () => void;
     amount: number;
-    billId: string;
     qrValue: string;
     onPaymentSuccess: () => void;
     selectedMethod: 'momo' | 'payos';
 }
 
-const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, amount, billId, qrValue, onPaymentSuccess, selectedMethod }) => {
+const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, amount, qrValue, onPaymentSuccess, selectedMethod }) => {
     // Đóng modal khi nhấn ESC
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -49,16 +48,16 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, amount, bill
                     <div className={`${selectedMethod === 'momo' ? 'bg-pink-500' : 'bg-purple-600'} text-white text-xs px-2 py-1 rounded-t-md inline-block mb-1`}>
                         QR Nhận Tiền
                     </div>
-                    <div className="bg-white p-1 rounded-md">
+                    <div className="bg-white p-2 rounded-md pb-4">
                         <QRCode value={qrValue} size={180} />
                     </div>
                 </div>
-
-                <p className="text-xs text-gray-500 mb-2">Nhận tiền từ mọi Ngân hàng và Ví điện tử</p>
-
-                <div className="text-center text-xs text-gray-700 mb-4">
-                    <p><strong>Mã hóa đơn:</strong> <span className="text-black font-medium">#{billId}</span></p>
+                <div>
+                    <p className="text-sm font-medium pb-2">
+                        {selectedMethod === 'momo' ? 'Thanh toán qua Momo' : 'Thanh toán qua PayOS'}
+                    </p>
                 </div>
+                <p className="text-xs text-gray-500 mb-2">Nhận tiền từ mọi Ngân hàng và Ví điện tử</p>
 
                 <button
                     onClick={onPaymentSuccess}
