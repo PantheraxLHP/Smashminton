@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Range } from "react-range";
+import { formatPrice } from "@/lib/utils";
 
 export type FilterType = "search" | "selectedFilter" | "checkbox" | "range" | "monthyear"
 
@@ -21,7 +22,7 @@ export interface FilterOption {
 }
 
 export interface FilterConfig {
-    filterid: number;
+    filterid: string;
     filterlabel: string;
     filtertype: FilterType;
     filteroptions?: FilterOption[];
@@ -49,13 +50,17 @@ const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<strin
                 <Button
                     key={`search-${filter.filterid}`}
                     variant="default"
-                    className="text-sm"
+                    size="xs"
+                    className="rounded-lg"
                     onClick={() => {
                         // Handle click to reset search value
                     }}
                 >
                     {value}
-                    <Icon icon="streamline:delete-1-solid" />
+                    <Icon
+                        icon="streamline:delete-1-solid"
+                        className="size-2.5"
+                    />
                 </Button>
             );
         }
@@ -65,13 +70,17 @@ const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<strin
                     <Button
                         key={`checkbox-${filter.filterid}-${optionvalue}`}
                         variant="default"
-                        className="text-sm"
+                        size="xs"
+                        className="rounded-lg"
                         onClick={() => {
                             // Handle click to remove this value
                         }}
                     >
                         {optionvalue}
-                        <Icon icon="streamline:delete-1-solid" />
+                        <Icon
+                            icon="streamline:delete-1-solid"
+                            className="size-2.5"
+                        />
                     </Button>
                 );
             });
@@ -81,13 +90,17 @@ const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<strin
                 <Button
                     key={`range-${filter.filterid}`}
                     variant="default"
-                    className="text-sm"
+                    size="xs"
+                    className="rounded-lg"
                     onClick={() => {
                         // Handle click to reset range
                     }}
                 >
                     {`${value[0]} - ${value[1]}`}
-                    <Icon icon="streamline:delete-1-solid" />
+                    <Icon
+                        icon="streamline:delete-1-solid"
+                        className="size-2.5"
+                    />
                 </Button>
             );
         }
@@ -96,18 +109,23 @@ const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<strin
                 <Button
                     key={`month-${filter.filterid}`}
                     variant="default"
-                    className="text-sm"
+                    size="xs"
+                    className="rounded-lg"
                     onClick={() => {
                         // Handle click to reset month
                     }}
                 >
-                    {value}
-                    <Icon icon="streamline:delete-1-solid" />
+                    {`Tháng ${value.month} - Năm ${value.year}`}
+                    <Icon
+                        icon="streamline:delete-1-solid"
+                        className="size-2.5"
+                    />
                 </Button>
             );
         }
     });
 
+    console.log("Selected Filters:", selectedFilters);
     return selectedFilters;
 };
 
@@ -122,7 +140,7 @@ const Filter: React.FC<FilterProps> = ({
     });
 
     return (
-        <div className="flex flex-col gap-4 max-w-sm w-full p-4 border-2 rounded-lg border-gray-200">
+        <div className="flex flex-col gap-5 max-w-xs w-full p-4 border-2 rounded-lg border-gray-200">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
@@ -141,7 +159,7 @@ const Filter: React.FC<FilterProps> = ({
                                     name="search_rulename"
                                     type="text"
                                     placeholder={filter.filterlabel}
-                                    defaultValue={""}
+                                    defaultValue={value || ""}
                                     className="pl-10 w-full"
                                 />
                             </div>
@@ -166,10 +184,13 @@ const Filter: React.FC<FilterProps> = ({
                                         }}
                                     >
                                         Bỏ chọn tất cả
-                                        <Icon icon="streamline:delete-1-solid" />
+                                        <Icon
+                                            icon="streamline:delete-1-solid"
+                                            className="size-3"
+                                        />
                                     </Button>
                                 </div>
-                                {values.length > 0 && (
+                                {Object.keys(values).length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {renderSelectedFilterValue(filters, values)}
                                     </div>
@@ -178,7 +199,13 @@ const Filter: React.FC<FilterProps> = ({
                         );
                     case "checkbox":
                         return (
-                            <Fragment key={`filter-${filter.filterid}`}>
+                            <div
+                                key={`filter-${filter.filterid}`}
+                                className="flex flex-col gap-2"
+                            >
+                                <div className="font-semibold">
+                                    {filter.filterlabel}
+                                </div>
                                 {(filter.filteroptions?.length || 0) > 0 && (
                                     <div
                                         key={`checkbox-${filter.filterid}`}
@@ -202,6 +229,7 @@ const Filter: React.FC<FilterProps> = ({
                                                                 : [];
                                                         onChange(filter.filterid.toString(), newValue);
                                                     }}
+                                                    className="size-5"
                                                 />
                                                 <Label htmlFor={`checkbox-${filter.filterid}-${option.optionvalue}`}>
                                                     {option.optionlabel}
@@ -210,16 +238,19 @@ const Filter: React.FC<FilterProps> = ({
                                         ))}
                                     </div>
                                 )}
-                            </Fragment>
+                            </div>
                         );
                     case "range":
                         return (
-                            <div key={`filter-${filter.filterid}`} className="w-full">
-                                <span className="text-sm font-medium mb-2">{filter.filterlabel}</span>
+                            <div
+                                key={`filter-${filter.filterid}`}
+                                className="w-full flex flex-col gap-2"
+                            >
+                                <span className="font-semibold">{filter.filterlabel}</span>
 
                                 {/* Input boxes for direct value entry */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-20">
+                                <div className="flex items-center justify-between">
+                                    <div className="w-full">
                                         <Input
                                             type="number"
                                             min={filter.rangemin}
@@ -238,9 +269,9 @@ const Filter: React.FC<FilterProps> = ({
                                         />
                                     </div>
 
-                                    <div className="mx-2 text-gray-500">-</div>
+                                    <div className="mx-2 bg-gray-500 w-5 h-1"></div>
 
-                                    <div className="w-20">
+                                    <div className="w-full">
                                         <Input
                                             type="number"
                                             min={filter.rangemin}
@@ -278,7 +309,7 @@ const Filter: React.FC<FilterProps> = ({
                                         renderTrack={({ props, children }) => (
                                             <div
                                                 {...props}
-                                                className="w-full h-[6px] rounded bg-gray-200"
+                                                className="w-full h-[10px] rounded bg-primary-50"
                                                 style={{
                                                     ...props.style,
                                                 }}
@@ -305,73 +336,74 @@ const Filter: React.FC<FilterProps> = ({
                                 </div>
 
                                 {/* Range labels */}
-                                <div className="flex justify-between mt-1 text-xs text-gray-500">
-                                    <span>{filter.rangemin?.toLocaleString()}</span>
-                                    <span>{filter.rangemax?.toLocaleString()}</span>
+                                <div className="flex justify-between text-xs text-gray-500">
+                                    <span>{filter.rangemin != null && formatPrice(filter.rangemin)}</span>
+                                    <span>{filter.rangemax != null && formatPrice(filter.rangemax)}</span>
                                 </div>
                             </div>
                         );
                     case "monthyear":
                         return (
                             <div
+                                className="flex flex-col gap-2"
                                 key={`filter-${filter.filterid}`}
-                                className="flex gap-2 items-center"
                             >
-                                <div
-                                    className="flex flex-col gap-2"
-                                >
-                                    <Label className="text-sm font-medium">
-                                        Tháng
-                                    </Label>
-                                    <Select
-                                        value={selectedMonthData.month?.toString()}
-                                        onValueChange={(value) => {
-                                            setSelectedMonthData(prev => ({ ...prev, month: Number(value) }));
-                                            onChange(filter.filterid.toString(), value);
-                                        }}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Chọn tháng" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Array.from({ length: 12 }, (_, i) => (
-                                                <SelectItem
-                                                    key={`Month-${i + 1}`}
-                                                    value={`${i + 1}`}
-                                                >
-                                                    Tháng {i + 1}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div
-                                    className="flex flex-col gap-2"
-                                >
-                                    <Label className="text-sm font-medium">
-                                        Năm
-                                    </Label>
-                                    <Select
-                                        value={selectedMonthData.year?.toString()}
-                                        onValueChange={(value) => {
-                                            setSelectedMonthData(prev => ({ ...prev, year: Number(value) }));
-                                            onChange(filter.filterid.toString(), value);
-                                        }}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Chọn năm" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Array.from({ length: (new Date().getFullYear() - 2000 + 1) }, (_, i) => (
-                                                <SelectItem
-                                                    key={`Year-${2000 + i}`}
-                                                    value={`${2000 + i}`}
-                                                >
-                                                    Năm {2000 + i}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <span className="font-semibold">
+                                    {filter.filterlabel}
+                                </span>
+                                <div className="flex gap-5 items-center">
+                                    <div className="flex flex-col gap-1 w-full">
+                                        <Label className="text-sm">
+                                            Tháng
+                                        </Label>
+                                        <Select
+                                            value={`${value.month || new Date().getMonth() + 1}`}
+                                            onValueChange={(value) => {
+                                                setSelectedMonthData(prev => ({ ...prev, month: Number(value) }));
+                                                onChange(filter.filterid.toString(), value);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Chọn tháng" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <SelectItem
+                                                        key={`Month-${i + 1}`}
+                                                        value={`${i + 1}`}
+                                                    >
+                                                        Tháng {i + 1}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex flex-col gap-1 w-full">
+                                        <Label className="text-sm">
+                                            Năm
+                                        </Label>
+                                        <Select
+                                            value={`${value.year || new Date().getFullYear()}`}
+                                            onValueChange={(value) => {
+                                                setSelectedMonthData(prev => ({ ...prev, year: Number(value) }));
+                                                onChange(filter.filterid.toString(), value);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Chọn năm" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: (new Date().getFullYear() - 2000 + 1) }, (_, i) => (
+                                                    <SelectItem
+                                                        key={`Year-${2000 + i}`}
+                                                        value={`${2000 + i}`}
+                                                    >
+                                                        Năm {2000 + i}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
                         );
