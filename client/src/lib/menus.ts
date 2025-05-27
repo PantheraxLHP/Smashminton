@@ -21,8 +21,24 @@ export const menus = {
         { label: 'Phân công công việc', link: '/tasks' },
     ],
     wh_manager: [
-        { label: 'Giá thuê sân, dịch vụ', link: '/price-management' },
-        { label: 'Kho hàng', link: '/warehouse' },
+        {
+            label: 'Giá thuê sân, dịch vụ',
+            link: '/price-management',
+            subMenu: [
+                { label: 'Quản lý giá sân', link: '/price-management/court-price' },
+                { label: 'Quản lý giá dịch vụ', link: '/price-management/rental-price' },
+            ],
+        },
+        {
+            label: 'Kho hàng',
+            link: '/warehouse',
+            subMenu: [
+                { label: 'Hàng hoá', link: '/warehouse/accessories' },
+                { label: 'Nhà cung cấp', link: '/warehouse/supplier' },
+                { label: 'Phiếu đặt hàng', link: '/warehouse/order' },
+                { label: 'Nhập/Xuất hàng', link: '/warehouse/transaction' },
+            ],
+        },
     ],
     admin: [
         { label: 'Thống kê kinh doanh', link: '/business-stats' },
