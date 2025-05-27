@@ -3,24 +3,31 @@
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
 
 const filters: FilterConfig[] = [
-    {filterid: 1, filterlabel: "keyword", filtertype: "search"},
-    {filterid: 2, filterlabel: "checkbox", filtertype: "checkbox", filteroptions: [
+    { filterid: "search", filterlabel: "Tìm kiếm tên/mã nhân viên", filtertype: "search" },
+    {
+        filterid: "checkbox", filterlabel: "Vai trò", filtertype: "checkbox", filteroptions: [
         { optionlabel: "Option 1", optionvalue: "option1value" }, 
         { optionlabel: "Option 2", optionvalue: "option2value" }, 
         { optionlabel: "Option 3", optionvalue: "option3value" },
     ]},
-    {filterid: 3, filterlabel: "selectedFilter", filtertype: "selectedFilter"},
-    {filterid: 4, filterlabel: "range", filtertype: "range", rangemin: 0, rangemax: 10000},
-    {filterid: 5, filterlabel: "monthyear", filtertype: "monthyear", month: 12, year: 2023},
+    { filterid: "selectedFilter", filterlabel: "selectedFilter", filtertype: "selectedFilter" },
+    { filterid: "pricerange", filterlabel: "Khoảng giá", filtertype: "range", rangemin: 0, rangemax: 10000 },
+    { filterid: "yearMonth", filterlabel: "Tháng - Năm", filtertype: "monthyear", month: 12, year: 2023 },
 ]
 
-const values: Record<string, any> = {};
+const values: Record<string, any> = {
+    "search": "abc",
+    "checkbox": ["option1value", "option2value"],
+    "pricerange": [1000, 5000],
+    "yearMonth": { month: 12, year: 2023 },
+};
 
 const EmployeesPage = () => {
     return (
-        <div>
+        <div className="p-4 flex gap-10">
             <Filter 
                 filters={filters}
+                // values={{}}
                 values={values}
                 onChange={() => {}}
             />
