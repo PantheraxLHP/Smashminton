@@ -12,16 +12,12 @@ interface PaginationComponentProps {
     page: number;
     setPage: (page: number) => void;
     totalPages: number;
-    onNextPage?: () => void;
-    onPreviousPage?: () => void;
 }
 
 const PaginationComponent: React.FC<PaginationComponentProps> = ({
     page,
     setPage,
     totalPages,
-    onNextPage,
-    onPreviousPage,
 }) => {
     return (
         <Pagination className="flex justify-end">
@@ -32,7 +28,9 @@ const PaginationComponent: React.FC<PaginationComponentProps> = ({
                             href="#"
                             onClick={(e) => {
                                 e.preventDefault();
-                                onPreviousPage?.();
+                                if (page > 1) {
+                                    setPage(page - 1);
+                                }
                             }}
                         />
                     </PaginationItem>
@@ -52,6 +50,20 @@ const PaginationComponent: React.FC<PaginationComponentProps> = ({
                     }
 
                     if (start > 1) {
+                        items.push(
+                            <PaginationItem key={1}>
+                                <PaginationLink
+                                    href="#"
+                                    isActive={page === 1}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setPage(1);
+                                    }}
+                                >
+                                    1
+                                </PaginationLink>
+                            </PaginationItem>
+                        )
                         items.push(
                             <PaginationItem key="start-ellipsis">
                                 <PaginationEllipsis />
@@ -82,6 +94,20 @@ const PaginationComponent: React.FC<PaginationComponentProps> = ({
                                 <PaginationEllipsis />
                             </PaginationItem>
                         );
+                        items.push(
+                            <PaginationItem key={totalPages}>
+                                <PaginationLink
+                                    href="#"
+                                    isActive={page === totalPages}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setPage(totalPages);
+                                    }}
+                                >
+                                    {totalPages}
+                                </PaginationLink>
+                            </PaginationItem>
+                        )
                     }
 
                     return items;
@@ -93,7 +119,9 @@ const PaginationComponent: React.FC<PaginationComponentProps> = ({
                             href="#"
                             onClick={(e) => {
                                 e.preventDefault();
-                                onNextPage?.();
+                                if (page < totalPages) {
+                                    setPage(page + 1);
+                                }
                             }}
                         />
                     </PaginationItem>

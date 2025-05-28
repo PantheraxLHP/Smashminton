@@ -1,10 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 type STATUS_VALUE = 'start' | 'loading' | 'success' | 'fail';
 
-const FingerprintPage: React.FC = () => {
+const FingerprintPage = () => {
+    const searchParams = useSearchParams();
+    const employeeId = searchParams.get('employeeid') || 0;
+    const employeeName = searchParams.get('fullname') || 'TEST';
     const [status, setStatus] = useState<STATUS_VALUE>('start');
 
     const [isUp, setIsUp] = useState(false);
@@ -47,8 +51,7 @@ const FingerprintPage: React.FC = () => {
     return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-5">
             {/*Dòng chữ hiển thị tên và mã nhân viên đang thực hiện đăng ký vân tay*/}
-            {/* <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employee.accounts?.fullname} - Mã nhân viên: ${employee.employeeid}`}</span> */}
-            <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">{`Đăng ký vân tay cho nhân viên TEST - Mã nhân viên: tester01`}</span>
+            <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employeeName} - Mã nhân viên: ${employeeId}`}</span>
 
             {/* Hiển thị hình ảnh tương ứng với trạng thái */}
             {(status === 'start' || status === 'loading') && (

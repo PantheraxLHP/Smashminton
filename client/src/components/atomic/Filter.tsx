@@ -70,6 +70,8 @@ const Filter: React.FC<FilterProps> = ({
             }
             else if (filter.filtertype === "checkbox" && Array.isArray(value) && value.length > 0) {
                 value.forEach((optionvalue: string | number) => {
+                    const optionlabel = filter.filteroptions?.find(opt => opt.optionvalue === optionvalue)?.optionlabel
+
                     selectedFilters.push(
                         <Button
                             key={`checkbox-${filter.filterid}-${optionvalue}`}
@@ -80,7 +82,7 @@ const Filter: React.FC<FilterProps> = ({
                                 handleRemoveFilter(filter.filterid, optionvalue);
                             }}
                         >
-                            {optionvalue}
+                            {optionlabel || optionvalue}
                             <Icon
                                 icon="streamline:delete-1-solid"
                                 className="size-2.5"
@@ -188,7 +190,7 @@ const Filter: React.FC<FilterProps> = ({
     }
 
     return (
-        <div className="flex flex-col gap-5 max-w-xs p-4 border-2 rounded-lg border-gray-200">
+        <div className="flex flex-col gap-5 max-w-xs w-full p-4 border-2 rounded-lg border-gray-200">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
