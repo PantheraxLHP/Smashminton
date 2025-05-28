@@ -17,19 +17,23 @@ export interface RentalListItem extends Products {
 
 const RentalPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
-    const [products, setProducts] = useState<RentalListItem[]>([]);
-    const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
-    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3);
-    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
-    const [filters, setFilters] = useState<FilterConfig[]>([]);
-    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
-
-    // Extract unique booking dates from selectedCourts
     const bookingDates = Array.from(
         new Set(
             (selectedCourts ?? []).map((court) => court.date).filter(Boolean), // remove undefined/null
         ),
     );
+
+    const [products, setProducts] = useState<RentalListItem[]>([]);
+    const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
+    const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3); // Default to "Thuê vợt"
+    const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
+
+    const [filters, setFilters] = useState<FilterConfig[]>([]);
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({
+        selectedDate: bookingDates[0],
+        productType: [3], // Default to "Thuê vợt"
+        productFilterValues: [],
+    });
 
     useEffect(() => {
         const loadFilters = async () => {
@@ -41,9 +45,9 @@ const RentalPage = () => {
                 const productTypeFilter: FilterConfig = {
                     filterid: 'productType',
                     filterlabel: 'Danh mục sản phẩm',
-                    filtertype: 'checkbox',
+                    filtertype: 'radio',
                     filteroptions: filtersResponse.data.map((type: ProductTypes) => ({
-                        optionlabel: type.producttypename,
+                        optionlabel: type.producttypename || '',
                         optionvalue: type.producttypeid,
                     })),
                 };
@@ -52,11 +56,6 @@ const RentalPage = () => {
                     { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
                     productTypeFilter,
                 ]);
-
-                // Set initial filter values
-                setFilterValues({
-                    productType: [3], // Default to first product type
-                });
             }
         };
 
@@ -71,7 +70,7 @@ const RentalPage = () => {
             if (selectedProductType?.product_filter?.[0]?.product_filter_values) {
                 const productFilterValuesFilter: FilterConfig = {
                     filterid: 'productFilterValues',
-                    filterlabel: selectedProductType.product_filter[0].productfiltername || 'Lọc theo danh mục',
+                    filterlabel: selectedProductType.product_filter[0].productfiltername || 'Lọc sản phẩm',
                     filtertype: 'checkbox',
                     filteroptions: selectedProductType.product_filter[0].product_filter_values.map((value) => ({
                         optionlabel: value.value || '',
@@ -91,102 +90,74 @@ const RentalPage = () => {
         }
     }, [selectedProductTypeId, productTypes]);
 
+    // Enhanced filter values change handler to sync with business logic
+    const handleFilterValuesChange = (updatedValues: Record<string, any>) => {
+        setFilterValues(updatedValues);
+
+        // Handle product type changes
+        if (updatedValues.productType && Array.isArray(updatedValues.productType)) {
+            const newProductTypeId = updatedValues.productType[0];
+            if (newProductTypeId && newProductTypeId !== selectedProductTypeId) {
+                setSelectedProductTypeId(newProductTypeId);
+                // Clear product filter values when changing product type
+                setSelectedProductFilterValueIds([]);
+            } else if (updatedValues.productType.length === 0) {
+                // If no product type selected, reset to default
+                setSelectedProductTypeId(3);
+                setSelectedProductFilterValueIds([]);
+            }
+        }
+
+        // Handle product filter values changes
+        if (updatedValues.productFilterValues && Array.isArray(updatedValues.productFilterValues)) {
+            setSelectedProductFilterValueIds(updatedValues.productFilterValues);
+        } else if (updatedValues.productFilterValues === undefined || updatedValues.productFilterValues?.length === 0) {
+            setSelectedProductFilterValueIds([]);
+        }
+    };
+
+    // Load products whenever filter selections change
     useEffect(() => {
         const loadProducts = async () => {
-            const productsResponse = await getProducts(
-                selectedProductTypeId,
-                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
-            );
+            // Only load if we have a valid product type
+            if (selectedProductTypeId) {
+                const productsResponse = await getProducts(
+                    selectedProductTypeId,
+                    selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
+                );
 
-            if (productsResponse.ok) {
-                setProducts(productsResponse.data);
+                if (productsResponse.ok) {
+                    setProducts(productsResponse.data);
+                }
             }
         };
 
         loadProducts();
     }, [selectedProductTypeId, selectedProductFilterValueIds]);
 
-    const handleFilterChange = (filterid: string, value: any) => {
-        setFilterValues((prev) => {
-            const updated = { ...prev };
+    // Also refetch when filter values change (for cases where state updates might be missed)
+    useEffect(() => {
+        const productTypeFromFilter = filterValues.productType;
+        const productFilterValuesFromFilter = filterValues.productFilterValues;
 
-            if (filterid === 'productType') {
-                // Handle product type selection
-                const currentValues = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                const idx = currentValues.indexOf(value);
-
-                if (idx > -1) {
-                    currentValues.splice(idx, 1);
-                } else {
-                    // For product type, only allow single selection
-                    updated[filterid] = [value];
-                    setSelectedProductTypeId(value);
-                    // Clear product filter values when changing product type
-                    updated['productFilterValues'] = [];
-                    setSelectedProductFilterValueIds([]);
-                    return updated;
-                }
-                updated[filterid] = currentValues.length > 0 ? currentValues : [];
-
-                if (currentValues.length > 0) {
-                    setSelectedProductTypeId(currentValues[0]);
-                }
-            } else if (filterid === 'productFilterValues') {
-                // Handle product filter values selection
-                const currentValues = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                const idx = currentValues.indexOf(value);
-
-                if (idx > -1) {
-                    currentValues.splice(idx, 1);
-                } else {
-                    currentValues.push(value);
-                }
-                updated[filterid] = currentValues.length > 0 ? currentValues : [];
-                setSelectedProductFilterValueIds(currentValues);
+        // Sync selectedProductTypeId with filter values
+        if (productTypeFromFilter && Array.isArray(productTypeFromFilter) && productTypeFromFilter.length > 0) {
+            const filterProductTypeId = productTypeFromFilter[0];
+            if (filterProductTypeId !== selectedProductTypeId) {
+                setSelectedProductTypeId(filterProductTypeId);
             }
+        }
 
-            return updated;
-        });
-    };
-
-    const handleRemoveFilter = (filterid: string, removeValue?: string | number) => {
-        setFilterValues((prev) => {
-            const updated = { ...prev };
-
-            if (filterid === 'productType') {
-                if (removeValue !== undefined) {
-                    const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                    const idx = arr.indexOf(removeValue);
-                    if (idx > -1) {
-                        arr.splice(idx, 1);
-                    }
-                    updated[filterid] = arr.length > 0 ? arr : [];
-
-                    // Update selected product type
-                    if (arr.length > 0) {
-                        setSelectedProductTypeId(arr[0] as number);
-                    }
-                } else {
-                    updated[filterid] = [];
-                }
-            } else if (filterid === 'productFilterValues') {
-                if (removeValue !== undefined) {
-                    const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                    const idx = arr.indexOf(removeValue);
-                    if (idx > -1) {
-                        arr.splice(idx, 1);
-                    }
-                    updated[filterid] = arr.length > 0 ? arr : [];
-                    setSelectedProductFilterValueIds(arr as number[]);
-                } else {
-                    updated[filterid] = [];
-                    setSelectedProductFilterValueIds([]);
-                }
+        // Sync selectedProductFilterValueIds with filter values
+        if (productFilterValuesFromFilter && Array.isArray(productFilterValuesFromFilter)) {
+            const filterValueIds = productFilterValuesFromFilter;
+            if (JSON.stringify(filterValueIds) !== JSON.stringify(selectedProductFilterValueIds)) {
+                setSelectedProductFilterValueIds(filterValueIds);
             }
-
-            return updated;
-        });
-    };
+        } else if (!productFilterValuesFromFilter && selectedProductFilterValueIds.length > 0) {
+            setSelectedProductFilterValueIds([]);
+        }
+    }, [filterValues.productType, filterValues.productFilterValues]);
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
@@ -217,14 +188,13 @@ const RentalPage = () => {
                     </select>
                 </div>
 
-                <Filter
-                    filters={filters}
-                    values={filterValues}
-                    onRemoveFilter={handleRemoveFilter}
-                    onChange={handleFilterChange}
-                />
+                <Filter filters={filters} values={filterValues} setFilterValues={handleFilterValuesChange} />
             </div>
-            <RentalList products={products} selectedProducts={selectedProducts} returnDate={filterValues.selectedDate} />
+            <RentalList
+                products={products}
+                selectedProducts={selectedProducts}
+                returnDate={filterValues.selectedDate}
+            />
             {hasSelectedItems && (
                 <BookingBottomSheet selectedProducts={selectedProducts} selectedCourts={selectedCourts} TTL={TTL} />
             )}

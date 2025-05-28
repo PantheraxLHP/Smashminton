@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
+import EmployeeList from './EmployeeList';
 
 const filters: FilterConfig[] = [
     { filterid: 'search', filterlabel: 'Tìm kiếm tên/mã nhân viên', filtertype: 'search' },
@@ -28,53 +29,10 @@ const EmployeesPage = () => {
         yearMonth: { month: 12, year: 2023 },
     });
 
-    const handleFilterChange = (filterid: string, value: any) => {
-        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
-        setFilterValues((prev) => {
-            const updated = { ...prev };
-            if (type === 'search' || type === 'range' || type === 'monthyear') {
-                updated[filterid] = value;
-            } else if (type === 'checkbox') {
-                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                const idx = arr.indexOf(value);
-                if (idx > -1) {
-                    arr.splice(idx, 1);
-                } else {
-                    arr.push(value);
-                }
-                updated[filterid] = arr;
-            }
-            return updated;
-        });
-    };
-
-    const handleRemoveFilter = (filterid: string, removeValue?: string | number) => {
-        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
-        setFilterValues((prev) => {
-            const updated = { ...prev };
-            if (type === 'search' || type === 'range' || type === 'monthyear') {
-                updated[filterid] = undefined;
-            } else if (type === 'checkbox') {
-                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
-                const idx = arr.indexOf(removeValue);
-                if (idx > -1) {
-                    arr.splice(idx, 1);
-                }
-                updated[filterid] = arr.length > 0 ? arr : undefined;
-            }
-            return updated;
-        });
-    };
-
     return (
-        <div className="flex gap-10 p-4">
-            <Filter
-                filters={filters}
-                values={filterValues}
-                onRemoveFilter={handleRemoveFilter}
-                onChange={handleFilterChange}
-            />
-            <h1>Test Filter</h1>
+        <div className="flex gap-5 p-4">
+            <Filter filters={filters} values={filterValues} setFilterValues={setFilterValues} />
+            <EmployeeList />
         </div>
     );
 };

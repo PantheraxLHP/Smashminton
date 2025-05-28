@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Range } from 'react-range';
 import { formatPrice } from '@/lib/utils';
 
-export type FilterType = 'search' | 'selectedFilter' | 'checkbox' | 'range' | 'monthyear';
+export type FilterType = 'search' | 'selectedFilter' | 'checkbox' | 'radio' | 'range' | 'monthyear';
 
 export interface FilterOption {
     optionlabel: string;
@@ -27,11 +27,10 @@ export interface FilterConfig {
 interface FilterProps {
     filters: FilterConfig[];
     values: Record<string, any>;
-    onRemoveFilter: (filterid: string, removeValue?: string | number) => void;
-    onChange: (filterid: string, value: any) => void;
+    setFilterValues: React.Dispatch<React.SetStateAction<Record<string, any>>>;
 }
 
-const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilter }) => {
+const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => {
     // Render các Badge/Tag giá trị filter đã chọn
     const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<string, any>) => {
         const selectedFilters: React.ReactNode[] = [];
@@ -47,24 +46,28 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            onRemoveFilter(filter.filterid);
+                            handleRemoveFilter(filter.filterid);
                         }}
                     >
                         {value}
                         <Icon icon="streamline:delete-1-solid" className="size-2.5" />
                     </Button>,
                 );
-            } else if (filter.filtertype === 'checkbox' && Array.isArray(value) && value.length > 0) {
+            } else if (
+                (filter.filtertype === 'checkbox' || filter.filtertype === 'radio') &&
+                Array.isArray(value) &&
+                value.length > 0
+            ) {
                 value.forEach((optionvalue: string | number) => {
                     const option = filter.filteroptions?.find((opt) => opt.optionvalue === optionvalue);
                     selectedFilters.push(
                         <Button
-                            key={`checkbox-${filter.filterid}-${optionvalue}`}
+                            key={`${filter.filtertype}-${filter.filterid}-${optionvalue}`}
                             variant="default"
                             size="xs"
                             className="rounded-lg"
                             onClick={() => {
-                                onRemoveFilter(filter.filterid, optionvalue);
+                                handleRemoveFilter(filter.filterid, optionvalue);
                             }}
                         >
                             {option?.optionlabel || optionvalue}
@@ -80,7 +83,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            onRemoveFilter(filter.filterid);
+                            handleRemoveFilter(filter.filterid);
                         }}
                     >
                         {`${formatPrice(value[0])} - ${formatPrice(value[1])}`}
@@ -95,7 +98,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            onRemoveFilter(filter.filterid);
+                            handleRemoveFilter(filter.filterid);
                         }}
                     >
                         {`Tháng ${value.month} - Năm ${value.year}`}
@@ -107,11 +110,55 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
         return selectedFilters;
     };
 
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
+        setFilterValues((prev) => {
+            const updated = { ...prev };
+            if (type === 'search' || type === 'range' || type === 'monthyear') {
+                updated[filterid] = value;
+            } else if (type === 'checkbox') {
+                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
+                const idx = arr.indexOf(value);
+                if (idx > -1) {
+                    arr.splice(idx, 1);
+                } else {
+                    arr.push(value);
+                }
+                updated[filterid] = arr;
+            } else if (type === 'radio') {
+                // For radio, only allow single selection
+                updated[filterid] = [value];
+            }
+            return updated;
+        });
+    };
+
+    const handleRemoveFilter = (filterid: string, removeValue?: string | number) => {
+        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
+        setFilterValues((prev) => {
+            const updated = { ...prev };
+            if (type === 'search' || type === 'range' || type === 'monthyear') {
+                updated[filterid] = undefined;
+            } else if (type === 'checkbox' || type === 'radio') {
+                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
+                const idx = arr.indexOf(removeValue);
+                if (idx > -1) {
+                    arr.splice(idx, 1);
+                }
+                updated[filterid] = arr.length > 0 ? arr : undefined;
+            }
+            return updated;
+        });
+    };
+
     const handleRemoveAllFilters = () => {
         filters.forEach((filter) => {
-            if (filter.filtertype === 'checkbox' && Array.isArray(values[filter.filterid])) {
+            if (
+                (filter.filtertype === 'checkbox' || filter.filtertype === 'radio') &&
+                Array.isArray(values[filter.filterid])
+            ) {
                 values[filter.filterid].forEach((optionvalue: string | number) => {
-                    onRemoveFilter(filter.filterid, optionvalue);
+                    handleRemoveFilter(filter.filterid, optionvalue);
                 });
             } else if (
                 filter.filtertype === 'search' ||
@@ -119,14 +166,14 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                 filter.filtertype === 'monthyear'
             ) {
                 if (values[filter.filterid] !== undefined && values[filter.filterid] !== null) {
-                    onRemoveFilter(filter.filterid);
+                    handleRemoveFilter(filter.filterid);
                 }
             }
         });
     };
 
     return (
-        <div className="flex w-full max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
+        <div className="flex max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
@@ -146,7 +193,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                     className="w-full pl-10"
                                     onChange={(e) => {
                                         const searchValue = e.target.value;
-                                        onChange(filter.filterid, searchValue);
+                                        handleFilterChange(filter.filterid, searchValue);
                                     }}
                                 />
                             </div>
@@ -191,11 +238,43 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                                             : false
                                                     }
                                                     onCheckedChange={(checked) => {
-                                                        onChange(filter.filterid, option.optionvalue);
+                                                        handleFilterChange(filter.filterid, option.optionvalue);
                                                     }}
                                                     className="size-5 cursor-pointer"
                                                 />
                                                 <Label htmlFor={`checkbox-${filter.filterid}-${option.optionvalue}`}>
+                                                    {option.optionlabel}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="border-1 border-gray-300"></div>
+                            </div>
+                        );
+                    case 'radio':
+                        return (
+                            <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
+                                <div className="font-semibold">{filter.filterlabel}</div>
+                                {(filter.filteroptions?.length || 0) > 0 && (
+                                    <div key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2">
+                                        {filter.filteroptions?.map((option) => (
+                                            <div key={option.optionvalue} className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    id={`radio-${filter.filterid}-${option.optionvalue}`}
+                                                    name={`radio-${filter.filterid}`}
+                                                    checked={
+                                                        Array.isArray(value)
+                                                            ? value.includes(option.optionvalue)
+                                                            : false
+                                                    }
+                                                    onChange={() => {
+                                                        handleFilterChange(filter.filterid, option.optionvalue);
+                                                    }}
+                                                    className="size-4 cursor-pointer"
+                                                />
+                                                <Label htmlFor={`radio-${filter.filterid}-${option.optionvalue}`}>
                                                     {option.optionlabel}
                                                 </Label>
                                             </div>
@@ -227,7 +306,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                                 const currentMax = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][1]
                                                     : filter.rangemax;
-                                                onChange(filter.filterid, [newMin, currentMax]);
+                                                handleFilterChange(filter.filterid, [newMin, currentMax]);
                                             }}
                                             className="text-sm"
                                         />
@@ -250,7 +329,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                                 const currentMin = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][0]
                                                     : filter.rangemin;
-                                                onChange(filter.filterid, [currentMin, newMax]);
+                                                handleFilterChange(filter.filterid, [currentMin, newMax]);
                                             }}
                                             className="text-sm"
                                         />
@@ -269,7 +348,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                         min={filter.rangemin || 0}
                                         max={filter.rangemax || 100}
                                         onChange={(newValues) => {
-                                            onChange(filter.filterid, newValues);
+                                            handleFilterChange(filter.filterid, newValues);
                                         }}
                                         renderTrack={({ props, children }) => (
                                             <div
@@ -318,7 +397,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                         <Select
                                             value={`${value?.month || new Date().getMonth() + 1}`}
                                             onValueChange={(newMonth) => {
-                                                onChange(filter.filterid, {
+                                                handleFilterChange(filter.filterid, {
                                                     month: Number(newMonth),
                                                     year: value?.year || new Date().getFullYear(),
                                                 });
@@ -341,7 +420,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, onChange, onRemoveFilt
                                         <Select
                                             value={`${value?.year || new Date().getFullYear()}`}
                                             onValueChange={(newYear) => {
-                                                onChange(filter.filterid, {
+                                                handleFilterChange(filter.filterid, {
                                                     month: value?.month || new Date().getMonth() + 1,
                                                     year: Number(newYear),
                                                 });
