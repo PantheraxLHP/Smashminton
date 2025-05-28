@@ -12,9 +12,13 @@ export interface SelectedProducts extends Products {
     quantity: number;
 }
 
+export interface ProductListItem extends Products {
+    quantity: number;
+}
+
 const ProductPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
-    const [products, setProducts] = useState<Products[]>([]);
+    const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(1);
     const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);

@@ -11,10 +11,13 @@ import BookingBottomSheet from '../../components/atomic/BottomSheet';
 export interface SelectedProducts extends Products {
     quantity: number;
 }
+export interface RentalListItem extends Products {
+    quantity: number;
+}
 
 const RentalPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
-    const [products, setProducts] = useState<Products[]>([]);
+    const [products, setProducts] = useState<RentalListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [selectedProductTypeId, setSelectedProductTypeId] = useState<number>(3);
     const [selectedProductFilterValueIds, setSelectedProductFilterValueIds] = useState<number[]>([]);
