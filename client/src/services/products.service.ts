@@ -20,7 +20,7 @@ export const getProductFilters = async () => {
     }
 };
 
-export const getRentFilters = async () => {
+export const getRentalFilters = async () => {
     try {
         const response = await fetch(`/api/products/get-filters`, {
             headers: { 'Content-Type': 'application/json' },
