@@ -272,9 +272,12 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                                     onChange={() => {
                                                         handleFilterChange(filter.filterid, option.optionvalue);
                                                     }}
-                                                    className="size-4 cursor-pointer"
+                                                    className="accent-primary-500 h-4 w-4 cursor-pointer"
                                                 />
-                                                <Label htmlFor={`radio-${filter.filterid}-${option.optionvalue}`}>
+                                                <Label
+                                                    htmlFor={`radio-${filter.filterid}-${option.optionvalue}`}
+                                                    className="cursor-pointer"
+                                                >
                                                     {option.optionlabel}
                                                 </Label>
                                             </div>
