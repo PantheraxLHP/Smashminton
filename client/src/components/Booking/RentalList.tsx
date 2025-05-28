@@ -7,28 +7,36 @@ import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface RentalListProps {
     products: RentalListItem[];
     selectedProducts: SelectedProducts[];
+    returnDate: string;
 }
 
-const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, returnDate }) => {
+    const { addRentalItem, removeProduct, selectedCourts } = useBooking();
     const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
+    const router = useRouter();
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
     };
 
     const handleIncrement = (productid: number) => {
+        if (!selectedCourts || selectedCourts.length === 0) {
+            toast.error('Bạn phải đặt sân trước');
+            router.push('/booking/courts');
+            return;
+        }
+
         if (getProductQuantity(productid) >= (products.find((p) => p.productid === productid)?.quantity || 0)) {
             toast.warning('Số lượng sản phẩm đã đạt giới hạn');
             return;
         }
-        addProduct(productid);
+        addRentalItem(productid, returnDate);
     };
 
     const handleDecrement = (productid: number) => {

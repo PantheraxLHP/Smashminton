@@ -24,6 +24,13 @@ const RentalPage = () => {
     const [filters, setFilters] = useState<FilterConfig[]>([]);
     const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
+    // Extract unique booking dates from selectedCourts
+    const bookingDates = Array.from(
+        new Set(
+            (selectedCourts ?? []).map((court) => court.date).filter(Boolean), // remove undefined/null
+        ),
+    );
+
     useEffect(() => {
         const loadFilters = async () => {
             const filtersResponse = await getRentalFilters();
@@ -186,6 +193,30 @@ const RentalPage = () => {
     return (
         <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
             <div className="flex w-full flex-col sm:w-1/5">
+                <div className="flex flex-col gap-2">
+                    <label htmlFor="date-booking" className="text-sm font-bold">
+                        Ngày nhận
+                    </label>
+                    <select
+                        id="date-booking"
+                        className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
+                        value={filterValues.selectedDate || (bookingDates[0] ?? '')}
+                        onChange={(e) => {
+                            const selected = e.target.value;
+                            setFilterValues((prev) => ({
+                                ...prev,
+                                selectedDate: selected,
+                            }));
+                        }}
+                    >
+                        {bookingDates.map((date) => (
+                            <option key={date} value={date}>
+                                {date}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <Filter
                     filters={filters}
                     values={filterValues}
@@ -193,7 +224,7 @@ const RentalPage = () => {
                     onChange={handleFilterChange}
                 />
             </div>
-            <RentalList products={products} selectedProducts={selectedProducts} />
+            <RentalList products={products} selectedProducts={selectedProducts} returnDate={filterValues.selectedDate} />
             {hasSelectedItems && (
                 <BookingBottomSheet selectedProducts={selectedProducts} selectedCourts={selectedCourts} TTL={TTL} />
             )}

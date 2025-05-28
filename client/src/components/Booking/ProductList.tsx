@@ -13,7 +13,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+    const { addProductItem, removeProduct } = useBooking();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
 
@@ -27,7 +27,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
             toast.warning('Số lượng sản phẩm đã đạt giới hạn');
             return;
         }
-        addProduct(productid);
+        addProductItem(productid);
     };
 
     const handleDecrement = (productid: number) => {

@@ -26,6 +26,8 @@ export const postOrder = async (orderData: { username?: string; productid?: numb
     try {
         if (orderData.returndate === undefined || orderData.returndate === null) {
             orderData.returndate = new Date().toISOString();
+        } else {
+            orderData.returndate = new Date(orderData.returndate).toISOString();
         }
         const response = await fetch('/api/orders/post-order', {
             method: 'POST',
