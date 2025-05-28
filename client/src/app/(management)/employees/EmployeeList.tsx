@@ -75,6 +75,14 @@ const EmployeeList = () => {
         }
     };
 
+    const handleSingleCheckboxChange = (employee: Employees, checked: boolean) => {
+        if (checked) {
+            setSelectedEmployees(prev => [...prev, employee]);
+        } else {
+            setSelectedEmployees(prev => prev.filter(emp => emp.employeeid !== employee.employeeid));
+        }
+    }
+
     return (
         <div className="flex flex-col gap-4 w-full">
             <span className="text-2xl font-semibold">Danh sách nhân viên</span>
@@ -98,14 +106,8 @@ const EmployeeList = () => {
                         <Fragment key={`employee-${employee.employeeid}`}>
                             <div className="flex items-center py-2 h-14 border-b-2 border-gray-200">
                                 <Checkbox
-                                    checked={selectedEmployees.includes(employee)}
-                                    onCheckedChange={(checked) => {
-                                        if (checked) {
-                                            setSelectedEmployees((prev) => [...prev, employee]);
-                                        } else {
-                                            setSelectedEmployees((prev) => prev.filter(emp => emp !== employee));
-                                        }
-                                    }}
+                                    checked={selectedEmployees.some(selected => selected.employeeid === employee.employeeid)}
+                                    onCheckedChange={(checked) => handleSingleCheckboxChange(employee, Boolean(checked))}
                                     className="size-5 cursor-pointer"
                                 />
                             </div>
