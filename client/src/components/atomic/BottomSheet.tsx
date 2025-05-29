@@ -83,11 +83,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
             <div className="flex flex-col items-center gap-2 sm:max-h-20 sm:flex-row">
                 {/* Scrollable Content */}
-                <div className="max-h-[calc(100vh-150px)] flex-1 overflow-y-auto p-0 sm:max-h-20">
+                <div className="max-h-[calc(100vh-150px)] flex-1 overflow-y-auto px-5 sm:max-h-20">
                     <div className="flex flex-col gap-1">
-                        <Button className="text-white" variant="link" onClick={handleClearAll}>
-                            Xoá tất cả
-                        </Button>
                         {/* Danh sách sân */}
                         {selectedCourts?.map((scCourt: SelectedCourts, index: number) => (
                             <div
@@ -120,28 +117,19 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                         ))}
 
                         {/* Danh sách sản phẩm */}
-                        <div className="flex flex-wrap gap-4">
-                            {selectedProducts?.map((scProduct) => (
-                                <div key={scProduct.productid} className="flex items-center gap-2">
-                                    <Icon icon="mdi:racket" className="h-5 w-5" />
-                                    <span>
-                                        {scProduct.quantity} {scProduct.productname}
-                                    </span>
-                                    <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
-                                    <span>
-                                        {scProduct.totalamount > 0
-                                            ? scProduct.totalamount?.toLocaleString('vi-VN')
-                                            : (scProduct.quantity * scProduct.unitprice).toLocaleString('vi-VN')}
-                                        VNĐ
-                                    </span>
-                                    <Icon
-                                        icon="mdi:minus-circle"
-                                        className="text-primary-400 h-5 w-5 cursor-pointer"
-                                        onClick={() => removeProduct(scProduct.productid)}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                        {selectedProducts && selectedProducts.length > 0 && (
+                            <div className="flex items-center gap-2">
+                                <Icon icon="mdi:racket" className="h-5 w-5" />
+                                <span>
+                                    <b>
+                                        {selectedProducts.reduce((sum, product) => sum + product.quantity, 0)} sản phẩm
+                                        đã chọn
+                                    </b>
+                                </span>
+                                <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
+                                <span>{OrderPrice.toLocaleString('vi-VN')} VNĐ</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

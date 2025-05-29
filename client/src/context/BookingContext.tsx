@@ -17,7 +17,8 @@ export interface BookingContextProps {
     TTL: number;
     addCourt: (court: SelectedCourts) => void;
     removeCourtByIndex: (index: number) => void;
-    addProduct: (productId: number) => void;
+    addRentalItem: (productId: number, returnDate: string) => void;
+    addProductItem: (productId: number) => void;
     removeProduct: (index: number) => void;
     fetchBooking: () => Promise<void>;
     clearCourts: () => void;
@@ -31,7 +32,8 @@ const BookingContext = createContext<BookingContextProps>({
     setSelectedCourts: () => {},
     totalPrice: 0,
     TTL: 0,
-    addProduct: () => {},
+    addRentalItem: () => {},
+    addProductItem: () => {},
     addCourt: () => {},
     removeCourtByIndex: () => {},
     fetchBooking: async () => {},
@@ -50,7 +52,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
     const addCourt = async (court: SelectedCourts) => {
         const response = await postBookingCourt({
-            username: user?.username,
+            username: user?.username || '',
             court_booking: court,
         });
         if (response.ok) {
@@ -62,7 +64,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const removeCourtByIndex = async (index: number) => {
         const court = selectedCourts[index];
         const response = await deleteBookingCourt({
-            username: user?.username,
+            username: user?.username || '',
             court_booking: court,
         });
         if (response.ok) {
@@ -71,9 +73,21 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         }
     };
 
-    const addProduct = async (productId: number) => {
+    const addRentalItem = async (productId: number, returnDate: string) => {
         const response = await postOrder({
-            username: user?.username,
+            username: user?.username || '',
+            productid: productId,
+            returndate: returnDate,
+        });
+        if (response.ok) {
+            await fetchOrders();
+            toast.success('Thêm thành công');
+        }
+    };
+
+    const addProductItem = async (productId: number) => {
+        const response = await postOrder({
+            username: user?.username || '',
             productid: productId,
         });
         if (response.ok) {
@@ -138,7 +152,8 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 TTL,
                 addCourt,
                 removeCourtByIndex,
-                addProduct,
+                addRentalItem,
+                addProductItem,
                 removeProduct,
                 fetchBooking,
                 clearCourts,

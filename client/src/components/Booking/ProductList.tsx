@@ -1,19 +1,20 @@
-import { SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
+import { ProductListItem } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
-import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ProductListProps {
-    products: Products[];
+    products: ProductListItem[];
     selectedProducts: SelectedProducts[];
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+    const { addProductItem, removeProduct } = useBooking();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
 
@@ -23,7 +24,11 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
     };
 
     const handleIncrement = (productid: number) => {
-        addProduct(productid);
+        if (getProductQuantity(productid) >= (products.find((p) => p.productid === productid)?.quantity || 0)) {
+            toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+            return;
+        }
+        addProductItem(productid);
     };
 
     const handleDecrement = (productid: number) => {
@@ -105,6 +110,11 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                                     />
                                 </button>
                             </div>
+                        </div>
+                        {/* show stock quantity */}
+                        <div className="flex items-end gap-1 text-sm text-gray-500">
+                            <span>Số lượng: {product.quantity}</span>
+                            <Icon icon="mdi:racket" className="h-5 w-5" />
                         </div>
                     </div>
                 ))}

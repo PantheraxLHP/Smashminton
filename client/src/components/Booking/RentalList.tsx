@@ -1,29 +1,42 @@
-import { SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
+import { RentalListItem } from '@/app/rentals/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
-import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface RentalListProps {
-    products: Products[];
+    products: RentalListItem[];
     selectedProducts: SelectedProducts[];
+    returnDate: string;
 }
 
-const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, returnDate }) => {
+    const { addRentalItem, removeProduct, selectedCourts } = useBooking();
     const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
+    const router = useRouter();
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
     };
 
     const handleIncrement = (productid: number) => {
-        addProduct(productid);
+        if (!selectedCourts || selectedCourts.length === 0) {
+            toast.error('Bạn phải đặt sân trước');
+            router.push('/booking/courts');
+            return;
+        }
+
+        if (getProductQuantity(productid) >= (products.find((p) => p.productid === productid)?.quantity || 0)) {
+            toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+            return;
+        }
+        addRentalItem(productid, returnDate);
     };
 
     const handleDecrement = (productid: number) => {
@@ -105,6 +118,11 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) =
                                     />
                                 </button>
                             </div>
+                        </div>
+                        {/* show stock quantity */}
+                        <div className="flex items-end gap-1 text-sm text-gray-500">
+                            <span>Số lượng: {product.quantity}</span>
+                            <Icon icon="mdi:racket" className="h-5 w-5" />
                         </div>
                     </div>
                 ))}

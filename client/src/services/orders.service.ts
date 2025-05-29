@@ -22,8 +22,13 @@ export const getOrderRedis = async (username: string) => {
     }
 };
 
-export const postOrder = async (orderData: { username?: string; productid?: number }) => {
+export const postOrder = async (orderData: { username?: string; productid?: number; returndate?: string }) => {
     try {
+        if (orderData.returndate === undefined || orderData.returndate === null) {
+            orderData.returndate = new Date().toISOString();
+        } else {
+            orderData.returndate = new Date(orderData.returndate).toISOString();
+        }
         const response = await fetch('/api/orders/post-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
