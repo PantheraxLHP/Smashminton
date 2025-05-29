@@ -7,9 +7,19 @@ import { getProducts, getRentalFilters } from '@/services/products.service';
 import { ProductTypes, Products } from '@/types/types';
 import { useEffect, useState } from 'react';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 export interface RentalListItem extends Products {
     quantity: number;
+}
+
+function formatDateDMY(dateString: string) {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
 }
 
 const RentalPage = () => {
@@ -107,24 +117,41 @@ const RentalPage = () => {
                     <label htmlFor="date-booking" className="text-sm font-bold">
                         Ngày nhận
                     </label>
-                    <select
-                        id="date-booking"
-                        className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
-                        value={filterValues.selectedDate || (bookingDates[0] ?? '')}
-                        onChange={(e) => {
-                            const selected = e.target.value;
-                            setFilterValues((prev) => ({
-                                ...prev,
-                                selectedDate: selected,
-                            }));
-                        }}
-                    >
-                        {bookingDates.map((date) => (
-                            <option key={date} value={date}>
-                                {date}
-                            </option>
-                        ))}
-                    </select>
+                    {bookingDates.length > 0 ? (
+                        <Select
+                            value={String(filterValues.selectedDate ?? bookingDates[0] ?? '')}
+                            onValueChange={(selected) => {
+                                setFilterValues((prev) => ({
+                                    ...prev,
+                                    selectedDate: selected,
+                                }));
+                            }}
+                        >
+                            <SelectTrigger
+                                id="date-booking"
+                                className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
+                            >
+                                <SelectValue placeholder="Chọn ngày nhận" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {bookingDates.map((date) => (
+                                    <SelectItem key={date} value={date || ''}>
+                                        {formatDateDMY(date || '')}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    ) : (
+                        <Select value="" disabled>
+                            <SelectTrigger
+                                id="date-booking"
+                                className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
+                            >
+                                <SelectValue placeholder="Chọn ngày nhận" />
+                            </SelectTrigger>
+                            <SelectContent />
+                        </Select>
+                    )}
                 </div>
 
                 <Filter filters={filters} values={filterValues} setFilterValues={setFilterValues} />
