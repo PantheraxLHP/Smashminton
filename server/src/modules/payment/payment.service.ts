@@ -32,13 +32,20 @@ export class PaymentService {
             this.configService.get<string>('PAYOS_CHECKSUM_KEY', ''),
         );
     }
-    async createMomoPaymentLink(amount: number): Promise<any> {
+    async createMomoPaymentLink(paymentData: paymentData): Promise<any> {
         const accessKey = this.configService.get<string>('MOMO_ACCESS_KEY', '');
         const secretKey = this.configService.get<string>('MOMO_SECRET_KEY', '');
         const partnerCode = this.configService.get<string>('MOMO_PARTNER_CODE', 'MOMO');
 
-        const client_domain = this.configService.get<string>('CLIENT', '');
-        const redirectUrl = `${client_domain}/payment/success`;
+        const DOMAIN = this.configService.get<string>('CLIENT', '');
+                const queryParams = new URLSearchParams({
+            userId: paymentData.userId || '',
+            userName: paymentData.userName || '',
+            paymentMethod: paymentData.paymentMethod || '',
+            ...(paymentData.guestPhoneNumber && { guestPhoneNumber: paymentData.guestPhoneNumber }),
+            ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
+        });
+        const redirectUrl = `${DOMAIN}/payment/success?${queryParams.toString()}`;
 
         const server_domain = this.configService.get<string>('SERVER', '');
         const ipnUrl =
@@ -53,7 +60,7 @@ export class PaymentService {
         const autoCapture = true;
         const lang = 'vi';
 
-        const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
+        const rawSignature = `accessKey=${accessKey}&amount=${paymentData.totalAmount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
         const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
         const requestBody = {
@@ -61,7 +68,7 @@ export class PaymentService {
             partnerName: 'Test',
             storeId: 'MomoTestStore',
             requestId,
-            amount,
+            amount: paymentData.totalAmount,
             orderId,
             orderInfo,
             redirectUrl,

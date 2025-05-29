@@ -23,6 +23,7 @@ export class PaymentsController {
 	@ApiQuery({ name: 'guestPhoneNumber', required: false, description: 'Guest phone number', example: null })
 	@ApiQuery({ name: 'voucherId', required: false, description: 'Voucher ID', example: 1 })
 	@ApiQuery({ name: 'status', required: false, description: 'Status of the transaction', example: 'PAID' })
+	@ApiParam({ name: 'resultCode', required: false, description: 'Status after payment', example: 0 })
 	async handleSuccessfulPayment(
 		@Query('userId') userId: string,
 		@Query('userName') userName: string,
@@ -30,10 +31,14 @@ export class PaymentsController {
 		@Query('totalAmount') totalAmount: number,
 		@Query('guestPhoneNumber') guestPhoneNumber?: string,
 		@Query('voucherId') voucherId?: string,
-		@Query('status') status?: string
+		@Query('status') status?: string,
+		@Query('resultCode') resultCode?: number
 	) {
-		if (status !== 'PAID') {
+		if (status && status !== 'PAID') {
 			throw new Error('Payment status must be PAID');
+		}
+		if (resultCode && resultCode !== 0) {
+			throw new Error('Result code must be 0 for successful payment');
 		}
 		const paymentData: paymentData = {
 			userId,
@@ -77,14 +82,44 @@ export class PaymentsController {
 		}
 	}
 
-	@Post('momo/payment-link/:amount')
+	@Post('momo/payment-link')
 	@ApiOperation({ summary: 'Create MoMo payment link', description: 'Generate a payment link using MoMo' })
 	@ApiResponse({ status: 200, description: 'Payment link created successfully' })
 	@ApiResponse({ status: 500, description: 'Failed to create payment link' })
 	@ApiResponse({ status: 400, description: 'Bad request' })
-	async createMomoPaymentLink(@Param('amount') amount: number, @Res() res: Response) {
+	@ApiQuery({ name: 'userId', required: true, description: 'User ID', example: '15' })
+	@ApiQuery({ name: 'userName', required: true, description: 'User name', example: 'nguyenvun' })
+	@ApiQuery({ name: 'guestPhoneNumber', required: false, description: 'Guest phone number', example: '0987654321' })
+	@ApiQuery({ name: 'paymentMethod', required: true, description: 'Payment method', example: 'momo' })
+	@ApiQuery({ name: 'voucherId', required: false, description: 'Voucher ID', example: '1' })
+	@ApiQuery({ name: 'totalAmount', required: true, description: 'Total amount', example: 200000 })
+	async createMomoPaymentLink(
+		@Query('userId') userId: string,
+		@Query('userName') userName: string,
+		@Query('paymentMethod') paymentMethod: string,
+		@Query('totalAmount') totalAmount: number,
+		@Res() res: Response,
+		@Query('guestPhoneNumber') guestPhoneNumber?: string,
+		@Query('voucherId') voucherId?: string
+	) {
 		try {
-			const result = await this.paymentsService.createMomoPaymentLink(amount);
+			if (!userId || !userName || !paymentMethod || !totalAmount) {
+				return res.status(400).json({
+					status: 'ERROR',
+					message: 'Missing required query parameters',
+				});
+			}
+
+			const paymentData: paymentData = {
+				userId,
+				userName,
+				guestPhoneNumber,
+				paymentMethod,
+				voucherId,
+				totalAmount: Number(totalAmount),
+			};
+
+			const result = await this.paymentsService.createMomoPaymentLink(paymentData);
 			return res.status(200).json(result);
 		} catch (error) {
 			return res.status(500).json({
@@ -115,15 +150,15 @@ export class PaymentsController {
 		if (!userId || !userName || !paymentMethod || !totalAmount) {
 			throw new Error('Missing required query parameters');
 		}
-			const paymentData: paymentData = {
-				userId,
-				userName,
-				guestPhoneNumber,
-				paymentMethod,
-				voucherId,
-				totalAmount,
-			};
+		const paymentData: paymentData = {
+			userId,
+			userName,
+			guestPhoneNumber,
+			paymentMethod,
+			voucherId,
+			totalAmount,
+		};
 
-			return this.paymentsService.createPayOSPaymentLink(paymentData);
-		}
+		return this.paymentsService.createPayOSPaymentLink(paymentData);
 	}
+}
