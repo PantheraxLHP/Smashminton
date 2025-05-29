@@ -1,10 +1,21 @@
-import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react";
-import { Checkbox } from "@/components/ui/checkbox";
 import PaginationComponent from "@/components/atomic/PaginationComponent";
+import EmployeeAddForm from "./EmployeeAddForm";
 import { Fragment, useState, useEffect } from "react";
 import { Employees } from "@/types/types";
 import { useRouter } from "next/navigation";
+import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Icon } from "@iconify/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 const EmployeeList = () => {
     const router = useRouter();
@@ -36,8 +47,9 @@ const EmployeeList = () => {
     ]);
 
     const [selectedEmployees, setSelectedEmployees] = useState<Employees[]>([]);
-
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
     useEffect(() => {
         if (employees.length === 0) {
@@ -87,6 +99,7 @@ const EmployeeList = () => {
         <div className="flex flex-col gap-4 w-full">
             <span className="text-2xl font-semibold">Danh sách nhân viên</span>
             <div className="flex flex-col w-full">
+                {/* Table Header - 8 cols*/}
                 <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] w-full items-center pb-2 border-b-2 border-gray-400">
                     <Checkbox
                         className="size-5 cursor-pointer"
@@ -101,6 +114,7 @@ const EmployeeList = () => {
                     <span className="text-sm font-semibold flex justify-center text-center">Xem chi tiết</span>
                     <span className="text-sm font-semibold flex justify-center text-center">Sinh trắc học vân tay (Nhấn để thêm)</span>
                 </div>
+                {/* Table Content - 8 cols - 12 rows */}
                 <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 w-full items-center border-b-2 border-gray-400">
                     {employees.map((employee) => (
                         <Fragment key={`employee-${employee.employeeid}`}>
@@ -143,6 +157,7 @@ const EmployeeList = () => {
                     ))}
                 </div>
             </div>
+            {/*Số lượng nhân viên được chọn, phân trang, hành động thêm/xóa nhân viên */}
             <div className="flex justify-between items-center w-full">
                 <span className="text-primary">Đã chọn <b>{selectedEmployees.length}</b> nhân viên</span>
                 <div>
@@ -151,14 +166,75 @@ const EmployeeList = () => {
                         setPage={setPage}
                         totalPages={totalPages}
                     />
-                </div>
+                </div>                
                 <div className="flex gap-4">
-                    <Button variant="outline_destructive">
-                        Xóa nhân sự
-                    </Button>
-                    <Button variant="outline">
-                        Thêm nhân sự
-                    </Button>
+                    {/* Dialog khi nhấn nút xóa nhân sự */}
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                        <Button
+                            variant="outline_destructive"
+                            className="w-30"
+                            onClick={() => {
+                                if (selectedEmployees.length > 0) {
+                                    setIsDeleteDialogOpen(true)
+                                } else {
+                                    toast.error("Vui lòng chọn ít nhất một nhân sự để xóa.");
+                                }
+                            }}
+                        >
+                            Xóa nhân sự
+                        </Button>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Xác nhận xóa</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex flex-col">
+                                Bạn có chắc chắn muốn xóa {selectedEmployees.length} nhân sự đã chọn không?
+                                <span className="text-red-500">Hành động này không thể hoàn tác.</span>
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setIsDeleteDialogOpen(false)}
+                                >
+                                    Thoát
+                                </Button>
+                                <Button
+                                    variant="outline_destructive"
+                                    onClick={() => { }}
+                                >
+                                    Xóa
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                    {/* Dialog khi nhấn nút thêm nhân sự */}
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="w-30">
+                                Thêm nhân sự
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Thêm nhân sự mới</DialogTitle>
+                            </DialogHeader>
+                            <EmployeeAddForm />
+                            <DialogFooter>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setIsAddDialogOpen(false)}
+                                >
+                                    Thoát
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => { }}
+                                >
+                                    Thêm
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
