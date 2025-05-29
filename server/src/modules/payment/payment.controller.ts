@@ -1,11 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
 import { Response } from 'express';
 import { PaymentService } from './payment.service';
-import { cacheOrderDTO } from '../orders/dto/create-cache-order.dto';
-import { ApiOperation, ApiParam, ApiProperty, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateMomoPaymentDto } from './dto/create-payment.dto';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { paymentData } from 'src/interfaces/payment.interface';
-import { stat } from 'fs';
 
 @ApiTags('Payment')
 @Controller('payment')

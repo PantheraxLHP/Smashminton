@@ -34,22 +34,23 @@ export class AuthService {
                 accounttype: user.accounttype ?? '',
                 role: roleEmployee ?? '',
                 avatarurl: user.avatarurl ?? ''
-
             };
         }
+        const isStudent = await this.accountService.checkStudentCustomer(Number(user.accountid));
 
         return {
             accountid: user.accountid ?? '',
             username: user.username ?? '',
             accounttype: user.accounttype ?? '',
-            avatarurl: user.avatarurl ?? ''
+            avatarurl: user.avatarurl ?? '',
+            isStudent: isStudent ?? false,
         };
     }
 
     async validateUserByRefreshToken(refreshToken: string): Promise<SignInData | null> {
         try {
             // Xác thực refresh token
-            const payload: { sub: number; username: string; accounttype: string; role?: string; avatarurl?: string } =
+            const payload: { sub: number; username: string; accounttype: string; role?: string; avatarurl?: string; isStudent?: boolean } =
                 await this.jwtService.verifyAsync(refreshToken, {
                     secret: process.env.JWT_REFRESH_TOKEN_SECRET, // Sử dụng secret của refresh token
                 });
@@ -60,9 +61,10 @@ export class AuthService {
                 username: payload.username,
                 accounttype: payload.accounttype,
                 role: payload.role ?? '', // Nếu role không tồn tại, đặt giá trị là undefined
-                avatarurl: payload.avatarurl ?? ''
+                avatarurl: payload.avatarurl ?? '',
+                isStudent: payload.isStudent ?? false,
             };
-    
+
             // Nếu accounttype là Employee và role không có trong payload, truy vấn role từ cơ sở dữ liệu
             if (user.accounttype === 'Employee' && user.role === '') {
                 const roleEmployee: string = await this.accountService.findRoleByEmployeeId(user.accountid);
@@ -81,7 +83,8 @@ export class AuthService {
             username: user.username ?? '',
             accounttype: user.accounttype ?? '',
             ...(user.accounttype === 'Employee' && user.role ? { role: user.role } : {}), // Thêm role nếu là Employee
-            avatarurl: user.avatarurl ?? ''
+            avatarurl: user.avatarurl ?? '',
+            isStudent: user.isStudent ?? false,
         };
         const access_token = await this.jwtService.signAsync(tokenPayload, {
             expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES,
