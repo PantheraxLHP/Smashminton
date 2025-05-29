@@ -52,7 +52,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
     const addCourt = async (court: SelectedCourts) => {
         const response = await postBookingCourt({
-            username: user?.username,
+            username: user?.username || '',
             court_booking: court,
         });
         if (response.ok) {
@@ -64,7 +64,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const removeCourtByIndex = async (index: number) => {
         const court = selectedCourts[index];
         const response = await deleteBookingCourt({
-            username: user?.username,
+            username: user?.username || '',
             court_booking: court,
         });
         if (response.ok) {
@@ -75,7 +75,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
     const addRentalItem = async (productId: number, returnDate: string) => {
         const response = await postOrder({
-            username: user?.username,
+            username: user?.username || '',
             productid: productId,
             returndate: returnDate,
         });
@@ -87,7 +87,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
     const addProductItem = async (productId: number) => {
         const response = await postOrder({
-            username: user?.username,
+            username: user?.username || '',
             productid: productId,
         });
         if (response.ok) {
