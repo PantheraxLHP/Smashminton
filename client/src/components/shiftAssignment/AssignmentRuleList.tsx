@@ -87,7 +87,7 @@ const AssignmentRuleList = () => {
                             Thêm quy tắc
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="!max-w-[700px] overflow-y-auto max-h-[80vh]">
+                    <DialogContent className="!max-w-[600px] overflow-y-auto max-h-[80vh]">
                         <DialogHeader>
                             <DialogTitle>
                                 Thêm quy tắc phân công mới

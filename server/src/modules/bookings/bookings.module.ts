@@ -10,5 +10,6 @@ import { CourtBookingModule } from '../court_booking/court_booking.module';
   controllers: [BookingsController],
   providers: [BookingsService],
   imports: [PrismaModule, CacheModule, ZonePricesModule, CourtBookingModule],
+  exports: [BookingsService],
 })
 export class BookingsModule {}

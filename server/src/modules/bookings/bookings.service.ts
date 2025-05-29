@@ -3,7 +3,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
-import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
+import { AvailableCourtsAndUnavailableStartTime, Booking, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 @Injectable()
@@ -259,10 +259,7 @@ export class BookingsService {
 			throw new BadRequestException('Failed to create court booking');
 		}
 
-		return {
-			booking: booking,
-			court_booking: court_booking,
-		};
+		return booking;
 	}
 
 	findAll() {

@@ -59,7 +59,10 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                 value.length > 0
             ) {
                 value.forEach((optionvalue: string | number) => {
-                    const option = filter.filteroptions?.find((opt) => opt.optionvalue === optionvalue);
+                    const optionlabel = filter.filteroptions?.find(
+                        (opt) => opt.optionvalue === optionvalue,
+                    )?.optionlabel;
+
                     selectedFilters.push(
                         <Button
                             key={`${filter.filtertype}-${filter.filterid}-${optionvalue}`}
@@ -70,7 +73,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                 handleRemoveFilter(filter.filterid, optionvalue);
                             }}
                         >
-                            {option?.optionlabel || optionvalue}
+                            {optionlabel || optionvalue}
                             <Icon icon="streamline:delete-1-solid" className="size-2.5" />
                         </Button>,
                     );
@@ -173,7 +176,7 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
     };
 
     return (
-        <div className="flex max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
+        <div className="flex w-full max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 

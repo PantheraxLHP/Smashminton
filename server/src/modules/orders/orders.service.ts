@@ -222,10 +222,7 @@ export class OrdersService {
             throw new BadRequestException('Failed to create product orders');
         }
 
-        return {
-            order: order,
-            product_orders: product_orders,
-        };
+        return order;
     }
 
     findAll() {
