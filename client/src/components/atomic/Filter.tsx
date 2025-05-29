@@ -3,7 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Icon } from '@iconify/react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    RadioGroup,
+    RadioGroupItem,
+} from '@/components/ui/radio-group';
 import { Range } from 'react-range';
 import { formatPrice } from '@/lib/utils';
 
@@ -260,31 +270,33 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                             <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
                                 <div className="font-semibold">{filter.filterlabel}</div>
                                 {(filter.filteroptions?.length || 0) > 0 && (
-                                    <div key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2">
-                                        {filter.filteroptions?.map((option) => (
-                                            <div key={option.optionvalue} className="flex items-center gap-2">
-                                                <input
-                                                    type="radio"
-                                                    id={`radio-${filter.filterid}-${option.optionvalue}`}
-                                                    name={`radio-${filter.filterid}`}
-                                                    checked={
-                                                        Array.isArray(value)
-                                                            ? value.includes(option.optionvalue)
-                                                            : false
-                                                    }
-                                                    onChange={() => {
-                                                        handleFilterChange(filter.filterid, option.optionvalue);
-                                                    }}
-                                                    className="accent-primary-500 h-4 w-4 cursor-pointer"
-                                                />
-                                                <Label
-                                                    htmlFor={`radio-${filter.filterid}-${option.optionvalue}`}
-                                                    className="cursor-pointer"
+                                    <div
+                                        key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2"
+                                    >
+                                        <RadioGroup
+                                            value={`${value[0]}`}
+                                            onValueChange={(newValue) => {
+                                                handleFilterChange(filter.filterid, Number(newValue));
+                                            }}
+                                        >
+                                            {filter.filteroptions?.map((option) => (
+                                                <div
+                                                    key={`radio-${filter.filterid}-${option.optionvalue}`} className="flex items-center gap-2"
                                                 >
-                                                    {option.optionlabel}
-                                                </Label>
-                                            </div>
-                                        ))}
+                                                    <RadioGroupItem
+                                                        id={`${option.optionvalue}`}
+                                                        value={`${option.optionvalue}`}
+                                                        className="cursor-pointer"
+                                                    />
+                                                    <Label
+                                                        htmlFor={`${option.optionvalue}`}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {option.optionlabel}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </RadioGroup>
                                     </div>
                                 )}
                                 <div className="border-1 border-gray-300"></div>
