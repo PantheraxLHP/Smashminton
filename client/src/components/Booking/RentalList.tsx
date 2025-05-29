@@ -1,4 +1,4 @@
-import { SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
 import { RentalListItem } from '@/app/rentals/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';

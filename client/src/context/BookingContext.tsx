@@ -153,7 +153,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 addCourt,
                 removeCourtByIndex,
                 addRentalItem,
-                addProductItem,     
+                addProductItem,
                 removeProduct,
                 fetchBooking,
                 clearCourts,

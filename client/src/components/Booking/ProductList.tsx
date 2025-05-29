@@ -1,4 +1,5 @@
-import { ProductListItem, SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
+import { ProductListItem } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
