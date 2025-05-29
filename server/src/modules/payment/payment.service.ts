@@ -42,7 +42,7 @@ export class PaymentService {
 
         const server_domain = this.configService.get<string>('SERVER', '');
         const ipnUrl =
-            //'https://1dea-2402-800-6371-704a-c58d-5fa5-218d-ef39.ngrok-free.app/api/v1/payment/momo/ipn';  
+            'https://c904-2402-800-6371-704a-89ef-92be-7d07-74e2.ngrok-free.app/api/v1/payment/momo/ipn';  
             `${server_domain}/api/v1/payment/momo/ipn`; // URL nhận thông báo từ MoMo
 
         const orderId = partnerCode + new Date().getTime();
@@ -87,7 +87,8 @@ export class PaymentService {
             }
 
             const data = await response.json();
-            return data;
+            const payUrl = data.payUrl;
+            return payUrl;
         } catch (error) {
             console.error('Error creating MoMo payment link:', error);
             throw new Error('Failed to create MoMo payment link');

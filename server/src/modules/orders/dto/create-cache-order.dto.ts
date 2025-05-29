@@ -49,7 +49,6 @@ export class addProductOrderDto {
     productid: number;
 
     @ApiProperty({ example: '2025-08-22', description: 'Return date in YYYY-MM-DD format', required: false })
-    @IsDateString()
     returndate: string;
 }
 
