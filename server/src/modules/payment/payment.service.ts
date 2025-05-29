@@ -38,7 +38,7 @@ export class PaymentService {
         const partnerCode = this.configService.get<string>('MOMO_PARTNER_CODE', 'MOMO');
 
         const client_domain = this.configService.get<string>('CLIENT', '');
-        const redirectUrl = `${client_domain}/handlepayment`;
+        const redirectUrl = `${client_domain}/payment/success`;
 
         const server_domain = this.configService.get<string>('SERVER', '');
         const ipnUrl =

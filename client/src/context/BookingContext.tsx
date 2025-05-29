@@ -13,7 +13,8 @@ export interface BookingContextProps {
     setSelectedProducts: (products: SelectedProducts[]) => void;
     selectedCourts: SelectedCourts[];
     setSelectedCourts: (courts: SelectedCourts[]) => void;
-    totalPrice: number;
+    totalCourtPrice: number;
+    totalProductPrice: number;
     TTL: number;
     addCourt: (court: SelectedCourts) => void;
     removeCourtByIndex: (index: number) => void;
@@ -30,7 +31,8 @@ const BookingContext = createContext<BookingContextProps>({
     setSelectedProducts: () => {},
     selectedCourts: [],
     setSelectedCourts: () => {},
-    totalPrice: 0,
+    totalCourtPrice: 0,
+    totalProductPrice: 0,
     TTL: 0,
     addRentalItem: () => {},
     addProductItem: () => {},
@@ -46,7 +48,8 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const [selectedProducts, setSelectedProducts] = useState<SelectedProducts[]>([]);
     const [selectedCourts, setSelectedCourts] = useState<SelectedCourts[]>([]);
     const [TTL, setTTL] = useState(300);
-    const [totalPrice] = useState(0);
+    const [totalCourtPrice, setTotalCourtPrice] = useState(0);
+    const [totalProductPrice, setTotalProductPrice] = useState(0);
     const { user } = useAuth();
     const router = useRouter();
 
@@ -121,6 +124,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             if (result.ok) {
                 setSelectedCourts(result.data.court_booking);
                 setTTL(result.data.TTL);
+                setTotalCourtPrice(result.data.totalprice);
             }
         } else {
             toast.warning('Vui lòng đăng nhập');
@@ -132,6 +136,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             const result = await getOrderRedis(user.username);
             if (result.ok) {
                 setSelectedProducts(result.data.product_order);
+                setTotalProductPrice(result.data.totalprice);
             }
         }
     };
@@ -148,7 +153,8 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 setSelectedProducts,
                 selectedCourts,
                 setSelectedCourts,
-                totalPrice,
+                totalCourtPrice,
+                totalProductPrice,
                 TTL,
                 addCourt,
                 removeCourtByIndex,

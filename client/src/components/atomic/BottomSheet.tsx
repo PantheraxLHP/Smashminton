@@ -21,7 +21,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedProducts,
     TTL,
 }) => {
-    const { removeCourtByIndex, removeProduct } = useBooking();
+    const { removeCourtByIndex, totalCourtPrice, totalProductPrice } = useBooking();
 
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
@@ -44,6 +44,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 if (prevTime <= 1) {
                     clearInterval(timerId);
                     toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
+                    window.location.reload();
                     return 0;
                 }
                 return prevTime - 1;
@@ -73,11 +74,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         }
     };
 
-    const handleClearAll = () => {};
-
-    const BookingPrice = selectedCourts.reduce((acc, court) => acc + parseFloat(court.price), 0);
-    const OrderPrice = selectedProducts.reduce((acc, product) => acc + product.totalamount, 0);
-    const TotalPrice = BookingPrice + OrderPrice;
+    const TotalPrice = totalCourtPrice + totalProductPrice;
 
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-black py-2 text-white shadow-lg sm:p-4">
@@ -127,7 +124,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                                     </b>
                                 </span>
                                 <Icon icon="mdi:cash-multiple" className="h-5 w-5" />
-                                <span>{OrderPrice.toLocaleString('vi-VN')} VNĐ</span>
+                                <span>{totalProductPrice.toLocaleString('vi-VN')} VNĐ</span>
                             </div>
                         )}
                     </div>

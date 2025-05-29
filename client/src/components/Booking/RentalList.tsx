@@ -25,25 +25,24 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
         return product ? product.quantity : 0;
     };
 
-    const handleIncrement = (productid: number) => {
-        if (!selectedCourts || selectedCourts.length === 0) {
-            toast.error('Bạn phải đặt sân trước');
-            router.push('/booking/courts');
-            return;
+    const handleQuantityChange = (productId: number, delta: number) => {
+        if (delta > 0) {
+            if (!selectedCourts || selectedCourts.length === 0) {
+                toast.error('Bạn phải đặt sân trước');
+                router.push('/booking/courts');
+                return;
+            }
+            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
+                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                return;
+            }
+            addRentalItem(productId, returnDate);
+        } else {
+            if (getProductQuantity(productId) == 0) {
+                return;
+            }
+            removeProduct(productId);
         }
-
-        if (getProductQuantity(productid) >= (products.find((p) => p.productid === productid)?.quantity || 0)) {
-            toast.warning('Số lượng sản phẩm đã đạt giới hạn');
-            return;
-        }
-        addRentalItem(productid, returnDate);
-    };
-
-    const handleDecrement = (productid: number) => {
-        if (getProductQuantity(productid) == 0) {
-            return;
-        }
-        removeProduct(productid);
     };
 
     const getSortedProducts = () => {
@@ -99,7 +98,7 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
                                 <button
                                     type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleDecrement(product.productid)}
+                                    onClick={() => handleQuantityChange(product.productid, -1)}
                                 >
                                     <Icon
                                         icon="ic:baseline-minus"
@@ -110,7 +109,7 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
                                 <button
                                     type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleIncrement(product.productid)}
+                                    onClick={() => handleQuantityChange(product.productid, 1)}
                                 >
                                     <Icon
                                         icon="ic:baseline-plus"

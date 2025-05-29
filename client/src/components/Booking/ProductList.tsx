@@ -18,24 +18,24 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
 
-    const getProductQuantity = (productid: number) => {
-        const product = selectedProducts.find((p) => p.productid === productid);
+    const getProductQuantity = (productId: number) => {
+        const product = selectedProducts.find((p) => p.productid === productId);
         return product ? product.quantity : 0;
     };
 
-    const handleIncrement = (productid: number) => {
-        if (getProductQuantity(productid) >= (products.find((p) => p.productid === productid)?.quantity || 0)) {
-            toast.warning('Số lượng sản phẩm đã đạt giới hạn');
-            return;
+    const handleQuantityChange = (productId: number, delta: number) => {
+        if (delta > 0) {
+            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
+                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                return;
+            }
+            addProductItem(productId);
+        } else {
+            if (getProductQuantity(productId) == 0) {
+                return;
+            }
+            removeProduct(productId);
         }
-        addProductItem(productid);
-    };
-
-    const handleDecrement = (productid: number) => {
-        if (getProductQuantity(productid) == 0) {
-            return;
-        }
-        removeProduct(productid);
     };
 
     const getSortedProducts = () => {
@@ -91,7 +91,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                                 <button
                                     type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleDecrement(product.productid)}
+                                    onClick={() => handleQuantityChange(product.productid, -1)}
                                 >
                                     <Icon
                                         icon="ic:baseline-minus"
@@ -102,7 +102,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                                 <button
                                     type="button"
                                     className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleIncrement(product.productid)}
+                                    onClick={() => handleQuantityChange(product.productid, 1)}
                                 >
                                     <Icon
                                         icon="ic:baseline-plus"
