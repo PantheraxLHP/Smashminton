@@ -29,7 +29,8 @@ interface DataTableProps<T> {
     filters?: Record<string, any>;
     setFilters?: (f: Record<string, any>) => void;
     onEdit?: (index: number) => void;
-    onDelete?: (index: number) => void;
+    onDelete?: (index: number) => void; 
+    showOptions?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -40,7 +41,8 @@ export default function DataTable<T extends Record<string, any>>({
     filters,
     setFilters,
     onEdit,
-    onDelete
+    onDelete,
+    showOptions,
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -250,6 +252,7 @@ export default function DataTable<T extends Record<string, any>>({
                                                 onDelete(selectedItemIndex);
                                             }
                                         }}
+                                        showOptions={showOptions}
                                     />
                                 )}
 

@@ -2,57 +2,44 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 
-export interface AccessoryFormData {
+export interface FoodFormData {
     name: string;
     price: string;
     category: string;
-    brand: string;
-    distributor: string;
     stock: string;
+    lot: string;
+    expiry: string;
 }
 
-interface AccessoryModalProps {
+interface FoodModalProps {
     open: boolean;
     onClose: () => void;
-    onSubmit?: (data: AccessoryFormData) => void;
-    editData?: AccessoryFormData | null;
+    onSubmit?: (data: FoodFormData) => void;
+    editData?: FoodFormData | null;
 }
 
-function formatPrice(price: string): string {
-    const number = Number(price.replace(/\D/g, ''));
-    return new Intl.NumberFormat('vi-VN').format(number) + ' VND';
-}
-
-export default function AccessoryModal({
-    open,
-    onClose,
-    onSubmit,
-    editData,
-}: AccessoryModalProps) {
+export default function FoodModal({ open, onClose, onSubmit, editData }: FoodModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-    const [formData, setFormData] = useState<AccessoryFormData>({
+    const [formData, setFormData] = useState<FoodFormData>({
         name: '',
         price: '',
         category: '',
-        brand: '',
-        distributor: '',
         stock: '',
+        lot: '',
+        expiry: '',
     });
 
     useEffect(() => {
         if (editData) {
-            setFormData({
-                ...editData,
-                price: editData.price.replace(/[^\d]/g, ''), // Remove formatting
-            });
+            setFormData(editData);
         } else {
             setFormData({
                 name: '',
                 price: '',
                 category: '',
-                brand: '',
-                distributor: '',
                 stock: '',
+                lot: '',
+                expiry: '',
             });
         }
     }, [editData, open]);
@@ -80,10 +67,7 @@ export default function AccessoryModal({
 
     function handleSubmit() {
         if (onSubmit) {
-            onSubmit({
-                ...formData,
-                price: formatPrice(formData.price),
-            });
+            onSubmit(formData);
         }
         onClose();
     }
@@ -99,13 +83,11 @@ export default function AccessoryModal({
                     ref={modalRef}
                     className="bg-white rounded-xl p-6 w-full max-w-xl border border-gray-300 shadow-xl"
                 >
-                    <h2 className="text-lg font-semibold mb-6">
-                        {editData ? 'Sửa hàng hoá' : 'Thêm hàng hoá'}
-                    </h2>
+                    <h2 className="text-lg font-semibold mb-6">Thêm đồ ăn / Thức uống</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <label className="block text-sm mb-1">Tên hàng hoá</label>
+                            <label className="block text-sm mb-1">Tên đồ ăn, thức uống</label>
                             <input
                                 name="name"
                                 value={formData.name}
@@ -131,37 +113,9 @@ export default function AccessoryModal({
                                 className="w-full border rounded px-3 py-2"
                             >
                                 <option value="">Chọn loại</option>
-                                <option value="Quả cầu lông">Quả cầu lông</option>
-                                <option value="Quấn cán">Quấn cán</option>
-                                <option value="Phụ kiện khác">Phụ kiện khác</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Thương hiệu</label>
-                            <select
-                                name="brand"
-                                value={formData.brand}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            >
-                                <option value="">Chọn thương hiệu</option>
-                                <option value="Yonex">Yonex</option>
-                                <option value="Lining">Lining</option>
-                                <option value="Victor">Victor</option>
-                                <option value="Taro">Taro</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Nhà phân phối</label>
-                            <select
-                                name="distributor"
-                                value={formData.distributor}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            >
-                                <option value="">Chọn nhà phân phối</option>
-                                <option value="VNB">VNB</option>
-                                <option value="Đại Hưng">Đại Hưng</option>
+                                <option value="Đồ ăn">Đồ ăn</option>
+                                <option value="Nước uống">Nước uống</option>
+                                {/* <option value="Phụ kiện khác">Phụ kiện khác</option> */}
                             </select>
                         </div>
                         <div>
@@ -186,7 +140,7 @@ export default function AccessoryModal({
                             onClick={handleSubmit}
                             className="px-4 py-2 rounded border text-green-600 border-green-600 hover:bg-green-50"
                         >
-                            {editData ? 'Lưu thay đổi' : 'Tạo'}
+                            {editData ? 'Lưu' : 'Tạo'}
                         </button>
                     </div>
                 </div>

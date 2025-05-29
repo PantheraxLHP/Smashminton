@@ -126,7 +126,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 className="w-full border rounded px-3 py-2"
                             />
                         </div>
-                        <div>
+                        {/* <div>
                             <label className="block text-sm mb-1">Loại</label>
                             <input
                                 name="type"
@@ -135,19 +135,19 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
-                        </div>
+                        </div> */}
                         <div>
-                            <label className="block text-sm mb-1">Sản phẩm áp dụng</label>
+                            <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
                             <select
-                                name="product"
-                                value={formData.product}
+                                name="type"
+                                value={formData.type}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             >
-                                <option value="">Chọn sản phẩm</option>
-                                <option value="Zone A">Zone A</option>
-                                <option value="Zone B">Zone B</option>
-                                <option value="Atlas">Atlas</option>
+                                <option value="">Chọn dịch vụ</option>
+                                <option value="Thuê giày">Thuê giày</option>
+                                <option value="Thuê vợt">Thuê vợt</option>
+                                {/* <option value="Atlas">Atlas</option> */}
                             </select>
                         </div>
                         <div>

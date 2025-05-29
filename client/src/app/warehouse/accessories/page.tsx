@@ -49,6 +49,7 @@ export default function AccessoryManagementPage() {
     const [filters, setFilters] = useState<Record<string, any>>({});
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
+    const [editData, setEditData] = useState<AccessoryFormData | null>(null);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
 
     const filtersConfig: FilterConfig[] = [
@@ -122,9 +123,19 @@ export default function AccessoryManagementPage() {
 
 
     const handleEdit = (index: number) => {
+        const item = filteredData[index];
+        setEditData({
+            name: item.name,
+            category: item.category,
+            brand: item.brand,
+            distributor: item.distributor,
+            price: item.price.toString(),
+            stock: item.stock.toString(),
+        });
         setEditIndex(index);
         setOpenModal(true);
     };
+        
 
     const handleDelete = (index: number) => {
         const item = filteredData[index];
@@ -171,9 +182,15 @@ export default function AccessoryManagementPage() {
         <div className="flex flex-col lg:flex-row h-full w-full p-4 gap-4">
             <AccessoryModal
                 open={openModal}
-                onClose={() => setOpenModal(false)}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditData(null);
+                    setEditIndex(null);
+                }}
                 onSubmit={handleSubmit}
+                editData={editData}
             />
+
 
             {/* Mobile Filter Toggle */}
             <div className="flex justify-between items-center mb-2 lg:hidden">
@@ -216,6 +233,7 @@ export default function AccessoryManagementPage() {
                     renderImage={(item) => (
                         <Image src={item.image} alt={item.name} width={40} height={40} />
                     )}
+                    showOptions={true}
                 />
             </div>
         </div>
