@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import SidebarFilter from '../../../components/warehouse/SidebarFilter';
 import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
+import FoodModal, { FoodFormData } from './AddFood';
 
 interface FoodItem {
     name: string;
@@ -13,10 +14,9 @@ interface FoodItem {
     expiry: string;
     stock: number;
     image: string;
-    status?: string; // sẽ được tính toán sau
+    status?: string;
 }
 
-// ✅ Dữ liệu "thô" như từ backend (chưa có status)
 const rawData: FoodItem[] = [
     {
         name: 'Set cá viên chiên',
@@ -74,10 +74,9 @@ const rawData: FoodItem[] = [
     },
 ];
 
-// ✅ Hàm xử lý dữ liệu: thêm status dựa trên expiry
 const processDataWithStatus = (data: FoodItem[]): FoodItem[] => {
     const today = new Date();
-    const soonThreshold = 30; // ngày sắp hết hạn trong vòng 30 ngày
+    const soonThreshold = 30;
 
     return data.map((item) => {
         const expiryDate = new Date(item.expiry);
@@ -99,6 +98,8 @@ const getUniqueOptions = (data: FoodItem[], key: keyof FoodItem) => {
 
 export default function FoodAndBeveragePage() {
     const [data, setData] = useState<FoodItem[]>([]);
+    const [openModal, setOpenModal] = useState(false);
+    const [editData, setEditData] = useState<FoodFormData | null>(null);
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         category: [],
@@ -107,12 +108,11 @@ export default function FoodAndBeveragePage() {
     });
 
     useEffect(() => {
-        const fetchedData = processDataWithStatus(rawData);
-        setData(fetchedData);
+        const fetched = processDataWithStatus(rawData);
+        setData(fetched);
 
-        // cập nhật filters nếu muốn giá trị price đúng theo data
-        const minPrice = Math.min(...rawData.map((d) => d.price));
-        const maxPrice = Math.max(...rawData.map((d) => d.price));
+        const minPrice = Math.min(...fetched.map((d) => d.price));
+        const maxPrice = Math.max(...fetched.map((d) => d.price));
 
         setFilters((prev) => ({
             ...prev,
@@ -145,7 +145,7 @@ export default function FoodAndBeveragePage() {
         { header: 'Loại', accessor: 'category' },
         {
             header: 'Giá / đơn vị tính',
-            accessor: (item) => (item?.price != null ? `${item.price.toLocaleString('vi-VN')} VND` : '—'),
+            accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND`,
         },
         { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
         {
@@ -167,21 +167,96 @@ export default function FoodAndBeveragePage() {
         },
     ];
 
+    const handleEdit = (index: number) => {
+        const item = filteredData[index];
+        if (!item) return;
+
+        setEditData({
+            name: item.name,
+            category: item.category,
+            price: String(item.price),
+            lot: item.lot,
+            expiry: item.expiry,
+            stock: String(item.stock),
+        });
+        setOpenModal(true);
+    };
+
+    const handleDelete = (index: number) => {
+        const item = filteredData[index];
+        const confirmed = window.confirm(`Xác nhận xóa sản phẩm: ${item.name}?`);
+        if (confirmed) {
+            const realIndex = data.findIndex((d) => d.name === item.name);
+            if (realIndex !== -1) {
+                const newData = [...data];
+                newData.splice(realIndex, 1);
+                setData(newData);
+            }
+        }
+    };
+
+    const handleSubmit = (formData: FoodFormData) => {
+        const newFood: FoodItem = {
+            name: formData.name,
+            category: formData.category,
+            lot: formData.lot,
+            expiry: formData.expiry,
+            price: Number(formData.price),
+            stock: Number(formData.stock),
+            image: '/default.png',
+        };
+
+        if (editData) {
+            const index = data.findIndex((d) => d.name === editData.name);
+            if (index !== -1) {
+                const updated = [...data];
+                updated[index] = newFood;
+                setData(updated);
+            }
+        } else {
+            setData([...data, newFood]);
+        }
+
+        setEditData(null);
+        setOpenModal(false);
+    };
+
     return (
         <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
+            <FoodModal
+                open={openModal}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditData(null);
+                }}
+                onSubmit={handleSubmit}
+                editData={editData}
+            />
+
             <div className="w-full shrink-0 lg:w-[280px]">
                 <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
             </div>
 
             <div className="flex flex-1 flex-col">
                 <div className="mb-2 flex justify-end pr-4">
-                    <button className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">Thêm</button>
+                    <button
+                        onClick={() => {
+                            setOpenModal(true);
+                            setEditData(null);
+                        }}
+                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                    >
+                        Thêm
+                    </button>
                 </div>
 
                 <DataTable
                     columns={columns}
                     data={filteredData}
                     renderImage={(item) => <Image src={item.image} alt={item.name} width={40} height={40} />}
+                    showOptions
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
                 />
             </div>
         </div>

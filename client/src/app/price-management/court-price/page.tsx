@@ -8,7 +8,7 @@ import DataTable, { Column } from '../../../components/warehouse/DataTable';
 
 const rawServices: Service[] = [
     {
-        name: "Thuê sân",
+        name: "Sân 1",
         type: "Thuê sân",
         product: "Zone A",
         price: "200.000 VND",
@@ -17,7 +17,7 @@ const rawServices: Service[] = [
         image: "/default.png",
     },
     {
-        name: "Thuê sân",
+        name: "Sân 1",
         type: "Thuê sân",
         product: "Zone B",
         price: "200.000 VND",
@@ -26,7 +26,7 @@ const rawServices: Service[] = [
         image: "/default.png",
     },
     {
-        name: "Thuê sân",
+        name: "Sân 2",
         type: "Thuê sân",
         product: "Zone C",
         price: "150.000 VND",
@@ -56,16 +56,15 @@ export default function CourtPriceManager() {
 
     const columns: Column<Service>[] = [
         {
-            header: 'Dịch vụ',
+            header: 'Sân',
             accessor: (item) => (
                 <div className="flex items-center gap-2">
-                    <input type="checkbox" className="accent-primary-600" />
                     <img src={item.image} alt="" className="w-8 h-8 rounded object-cover" />
                     {item.name}
                 </div>
             ),
         },
-        { header: 'Sản phẩm áp dụng', accessor: 'product' },
+        { header: 'Khu vực áp dụng', accessor: 'product' },
         { header: 'Giá / h', accessor: 'price' },
         {
             header: 'Thời gian áp dụng',
@@ -102,6 +101,7 @@ export default function CourtPriceManager() {
                 onDelete={(index) => {
                     setServicesState((prev) => prev.filter((_, i) => i !== index));
                 }}
+                showOptions={false}
             />
 
             <ServiceModal
