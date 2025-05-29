@@ -30,9 +30,6 @@ export default function OrderSummary() {
             removeProduct(productId);
         }
     };
-
-    console.log(selectedProducts);
-
     const totalPrice = totalCourtPrice + totalProductPrice;
 
     return (
@@ -60,16 +57,8 @@ export default function OrderSummary() {
                             {court.date} {court.starttime}
                         </td>
                         <td className="px-2 py-3">{court.duration}</td>
-                        <td className="px-2 py-3">
-                            {typeof court.price === 'string'
-                                ? parseInt(court.price.replace(/[^\d]/g, ''), 10)
-                                : court.price}
-                        </td>
-                        <td className="px-2 py-3">
-                            {(typeof court.price === 'string'
-                                ? parseInt(court.price.replace(/[^\d]/g, ''), 10)
-                                : court.price) * (court.duration ?? 1)}
-                        </td>
+                        <td className="px-2 py-3">{formatPrice(court.price)}</td>
+                        <td className="px-2 py-3">{formatPrice(court.price * court.duration)}</td>
                     </tr>
                 ))}
 
@@ -101,9 +90,9 @@ export default function OrderSummary() {
                         </td>
                         <td className="px-2 py-3"></td>
                         <td className="px-2 py-3"></td>
-                        <td className="px-2 py-3">{product.unitprice}</td>
+                        <td className="px-2 py-3">{formatPrice(product.unitprice)}</td>
                         <td className="px-2 py-3">
-                            {product.unitprice * (getProductQuantity(product.productid) || 1)}
+                            {formatPrice(product.unitprice * (getProductQuantity(product.productid) || 1))}
                         </td>
                     </tr>
                 ))}

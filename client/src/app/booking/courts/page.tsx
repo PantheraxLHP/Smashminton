@@ -16,14 +16,14 @@ export interface SelectedCourts {
     courtid: number;
     courtname: string | null;
     courtimgurl: string | null;
-    dayfrom?: string | null;
-    dayto?: string | null;
-    date?: string;
+    dayfrom: string | null;
+    dayto: string | null;
+    date: string;
     starttime: string;
     endtime: string;
-    duration?: number;
-    price: string;
-    fixedCourt?: boolean;
+    duration: number;
+    price: number;
+    fixedCourt: boolean;
 }
 
 export interface SelectedProducts extends Products {

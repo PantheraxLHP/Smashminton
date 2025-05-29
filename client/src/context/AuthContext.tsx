@@ -7,10 +7,12 @@ import { createContext, useContext, useEffect, useState } from 'react';
 interface UserJWT {
     sub: number;
     role?: string;
+    isStudent?: boolean;
 }
 
 export interface User extends Accounts {
     role?: string;
+    isStudent?: boolean;
 }
 
 type AuthContextType = {
@@ -53,11 +55,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             const userData: User = {
                                 ...profileResponse.data,
                                 role: userJWT.role,
+                                isStudent: userJWT.isStudent,
                             };
                             setUser(userData);
                         }
                     } catch (error) {
-                        console.log(error);
                         setUser(null);
                     }
                 } else {

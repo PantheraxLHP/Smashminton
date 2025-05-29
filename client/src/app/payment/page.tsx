@@ -3,29 +3,53 @@
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
-import { useMemo, useState } from 'react';
-import { DiscountCodeSelector } from './Discount';
+import { useState, useEffect, use } from 'react';
 import OrderSummary from './OrderSummary';
 import PaymentMethodSection from './PaymentMethodSection';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { getVouchers } from '@/services/vouchers.service';
+import { Voucher } from '@/types/types';
+import { se } from 'date-fns/locale';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
     const { totalCourtPrice, totalProductPrice } = useBooking();
     const { user } = useAuth();
     const [customerPhone, setCustomerPhone] = useState('');
-
+    const [discount, setDiscount] = useState(0);
+    const [vouchers, setVouchers] = useState<Voucher[]>([]);
+    const [selectedVoucherId, setSelectedVoucherId] = useState<number>();
     const userProfile = user;
 
-    const total = totalCourtPrice + totalProductPrice;
-    const totalWithDiscount = useMemo(() => total * 0.9, [total]);
+    let studentStatus = userProfile?.isStudent;
+    studentStatus = true;
+
+    let total = totalCourtPrice + totalProductPrice;
+    if (studentStatus) {
+        total = total * 0.9; // Apply student discount
+    }
+
+    const totalWithDiscount = total * (1 - discount);
+
+    useEffect(() => {
+        const loadVouchers = async () => {
+            const vouchersResponse = await getVouchers();
+            if (vouchersResponse.ok) {
+                setVouchers(vouchersResponse.data.vouchers);
+            }
+        };
+        loadVouchers();
+    }, []);
+
+    console.log(selectedVoucherId);
 
     return (
         <div className="w-full space-y-4 p-4 text-sm">
-            <h1 className="text-center text-lg font-semibold">THÔNG TIN THANH TOÁN</h1>
+            <h1 className="text-center text-xl font-semibold">THÔNG TIN THANH TOÁN</h1>
 
             <div className="flex flex-wrap items-center gap-4">
                 <div className="flex w-full items-center gap-2">
-                    <span className="font-medium">SỐ ĐIỆN THOẠI KHÁCH HÀNG:</span>
+                    <span className="font-bold">SỐ ĐIỆN THOẠI KHÁCH HÀNG:</span>
                     {userProfile?.accounttype !== 'Customer' ? (
                         <input
                             type="text"
@@ -39,7 +63,7 @@ export default function PaymentPage() {
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="font-medium">MÃ NHÂN VIÊN:</span>
+                    <span className="font-bold">MÃ NHÂN VIÊN:</span>
                     <span className="rounded bg-gray-200 px-2 py-1 text-xs">
                         {userProfile?.accounttype !== 'Customer' ? userProfile?.accountid : '#####'}
                     </span>
@@ -58,19 +82,37 @@ export default function PaymentPage() {
                         <div className="flex flex-col items-start justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <span className="font-semibold whitespace-nowrap">MÃ GIẢM GIÁ</span>
-                                <DiscountCodeSelector />
+                                <Select
+                                    onValueChange={(selected) => {
+                                        setSelectedVoucherId(parseInt(selected));
+                                        setDiscount(
+                                            vouchers.find((voucher) => voucher.voucherid.toString() === selected)
+                                                ?.discountamount || 0,
+                                        );
+                                    }}
+                                >
+                                    <SelectTrigger className="w-[220px] rounded-md border-1 border-black text-black hover:border-black hover:text-black">
+                                        <SelectValue placeholder="Chọn mã giảm giá" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {vouchers.map((voucher) => (
+                                            <SelectItem key={voucher.voucherid} value={voucher.voucherid.toString()}>
+                                                {voucher.vouchername}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="flex items-center gap-32 pr-16">
                                 <div className="flex items-center gap-2">
                                     <span>Học sinh / Sinh viên</span>
-                                    <input type="checkbox" defaultChecked />
+                                    <input type="checkbox" checked={!!studentStatus} readOnly />- 10% giá sân
                                 </div>
-                                <span>- 10%</span>
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 text-base font-semibold">
-                        <span className="pr-16">TỔNG CỘNG: {formatPrice(totalWithDiscount)}</span>
+                        <span className="pr-16">THÀNH TIỀN: {formatPrice(totalWithDiscount)}</span>
                     </div>
 
                     <PaymentMethodSection selectedMethod={selectedMethod} setSelectedMethod={setSelectedMethod} />

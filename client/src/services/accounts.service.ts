@@ -29,7 +29,6 @@ export const updateProfile = async (accountId: number, formData: FormData) => {
         const queryParams = new URLSearchParams();
         queryParams.set('accountId', accountId.toString());
 
-        console.log(formData);
         const response = await fetch(`/api/accounts/update-profile?${queryParams.toString()}`, {
             method: 'PUT',
             body: formData,
