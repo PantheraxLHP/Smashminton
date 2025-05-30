@@ -34,7 +34,7 @@ export class PaymentsController {
 		if (status && status !== 'PAID') {
 			throw new Error('Payment status must be PAID');
 		}
-		if (resultCode && resultCode !== '00') {
+		if (resultCode && resultCode !== '0') {
 			throw new Error('Result code must be 0 for successful payment');
 		}
 		const paymentData: paymentData = {
