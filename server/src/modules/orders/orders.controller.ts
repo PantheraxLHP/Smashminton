@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { OrdersService } from './orders.service';
 import { addProductOrderDto, cacheOrderDTO, deleteProductOrderDto } from './dto/create-cache-order.dto';
 import { CacheOrder } from 'src/interfaces/orders.interface';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-order.dto';
 @Controller('orders')
 export class OrdersController {
@@ -44,4 +44,24 @@ export class OrdersController {
         const { username, productid } = deleteProductOrderDto;
         return this.ordersService.removeProductOrderFromCache(username, productid);
     }
+
+    @Delete('remove-rental-products/:username')
+    @ApiOperation({
+        summary: 'Delete all rental products from user order cache',
+        description: 'Delete all rental products from user order cache by username',
+    })
+    @ApiParam({
+        name: 'username',
+        example: 'nguyenvun',
+    })
+    @ApiResponse({ status: 200, description: 'All rental products removed successfully' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiParam({
+        name: 'username',
+        example: 'nguyenvun'
+    })
+    async removeAllRentalProducts(@Param('username') username: string): Promise<CacheOrder> {
+        return this.ordersService.removeAllRentalProductsInOrder(username);
+    }
 }
+
