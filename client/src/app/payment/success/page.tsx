@@ -1,7 +1,78 @@
+'use client';
+
 import Link from 'next/link';
 import { CheckCircle } from 'lucide-react';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { createReceipt } from '@/services/payment.service';
+import { toast } from 'sonner';
 
 export default function PaymentSuccessPage() {
+    const { user } = useAuth();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        // General params
+        const userId = searchParams.get('userId');
+        const userName = searchParams.get('userName');
+        const paymentMethod = searchParams.get('paymentMethod');
+        const totalAmount = searchParams.get('amount');
+        const guestPhoneNumber = searchParams.get('guestPhoneNumber');
+
+        // MoMo params
+        const partnerCode = searchParams.get('partnerCode');
+        const resultCode = searchParams.get('resultCode');
+        // PayOS params
+        const code = searchParams.get('code');
+        const status = searchParams.get('status');
+
+        let apiParams: any = {};
+
+        if (partnerCode) {
+            // MoMo
+            apiParams = {
+                userId: userId || '',
+                userName: userName || '',
+                paymentMethod: paymentMethod,
+                totalAmount: totalAmount,
+                guestPhoneNumber: guestPhoneNumber || '',
+                voucherId: '',
+                status: resultCode === '0' ? 'PAID' : 'FAILED',
+                resultCode: resultCode,
+            };
+        } else {
+            // PayOS
+            const payosResultCode = code === '00' ? '0' : code || '';
+            apiParams = {
+                userId: userId || '',
+                userName: userName || '',
+                paymentMethod: paymentMethod,
+                totalAmount: totalAmount,
+                guestPhoneNumber: guestPhoneNumber || '',
+                voucherId: '',
+                status: status,
+                resultCode: payosResultCode,
+            };
+        }
+
+        console.log(apiParams);
+
+        const handleCreateReceipt = async () => {
+            if (apiParams.paymentMethod) {
+                const response = await createReceipt(apiParams);
+
+                if (response.ok) {
+                    toast.success('Thanh toán thành công!');
+                } else {
+                    toast.error(response.message || 'Thanh toán thất bại!');
+                }
+            }
+        };
+
+        handleCreateReceipt();
+    }, [searchParams, user]);
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
             <div className="w-full max-w-md rounded-lg bg-white px-6 py-8 text-center shadow-md">
