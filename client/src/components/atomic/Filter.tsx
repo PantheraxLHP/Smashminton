@@ -38,9 +38,19 @@ interface FilterProps {
     filters: FilterConfig[];
     values: Record<string, any>;
     setFilterValues: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+    onFilterChange?: (filterid: string, value: any) => void;
+    onRemoveFilter?: (filterid: string, removeValue?: string | number) => void;
+    onRemoveAllFilters?: () => void;
 }
 
-const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => {
+const Filter: React.FC<FilterProps> = ({
+    filters,
+    values,
+    setFilterValues,
+    onFilterChange,
+    onRemoveFilter,
+    onRemoveAllFilters,
+}) => {
     // Render các Badge/Tag giá trị filter đã chọn
     const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<string, any>) => {
         const selectedFilters: React.ReactNode[] = [];
@@ -56,7 +66,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            handleRemoveFilter(filter.filterid);
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
                         }}
                     >
                         {value}
@@ -80,7 +94,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                             size="xs"
                             className="rounded-lg"
                             onClick={() => {
-                                handleRemoveFilter(filter.filterid, optionvalue);
+                                if (onRemoveFilter) {
+                                    onRemoveFilter(filter.filterid, optionvalue);
+                                } else {
+                                    handleRemoveFilter(filter.filterid, optionvalue);
+                                }
                             }}
                         >
                             {optionlabel || optionvalue}
@@ -96,7 +114,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            handleRemoveFilter(filter.filterid);
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
                         }}
                     >
                         {`${formatPrice(value[0])} - ${formatPrice(value[1])}`}
@@ -111,7 +133,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                         size="xs"
                         className="rounded-lg"
                         onClick={() => {
-                            handleRemoveFilter(filter.filterid);
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
                         }}
                     >
                         {`Tháng ${value.month} - Năm ${value.year}`}
@@ -206,7 +232,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                     className="w-full pl-10"
                                     onChange={(e) => {
                                         const searchValue = e.target.value;
-                                        handleFilterChange(filter.filterid, searchValue);
+                                        if (onFilterChange) {
+                                            onFilterChange(filter.filterid, searchValue);
+                                        } else {
+                                            handleFilterChange(filter.filterid, searchValue);
+                                        }
                                     }}
                                 />
                             </div>
@@ -220,7 +250,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                         variant="link"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleRemoveAllFilters();
+                                            if (onRemoveAllFilters) {
+                                                onRemoveAllFilters();
+                                            } else {
+                                                handleRemoveAllFilters();
+                                            }
                                         }}
                                     >
                                         Bỏ hết
@@ -247,11 +281,15 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                                     id={`checkbox-${filter.filterid}-${option.optionvalue}`}
                                                     checked={
                                                         Array.isArray(value)
-                                                            ? value.includes(option.optionvalue)
+                                                            ? value.some((v) => v === option.optionvalue)
                                                             : false
                                                     }
                                                     onCheckedChange={(checked) => {
-                                                        handleFilterChange(filter.filterid, option.optionvalue);
+                                                        if (onFilterChange) {
+                                                            onFilterChange(filter.filterid, option.optionvalue);
+                                                        } else {
+                                                            handleFilterChange(filter.filterid, option.optionvalue);
+                                                        }
                                                     }}
                                                     className="size-5 cursor-pointer"
                                                 />
@@ -274,9 +312,13 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                         key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2"
                                     >
                                         <RadioGroup
-                                            value={`${value[0]}`}
+                                            value={`${value?.[0]}`}
                                             onValueChange={(newValue) => {
-                                                handleFilterChange(filter.filterid, Number(newValue));
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, Number(newValue));
+                                                } else {
+                                                    handleFilterChange(filter.filterid, Number(newValue));
+                                                }
                                             }}
                                         >
                                             {filter.filteroptions?.map((option) => (
@@ -324,7 +366,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                                 const currentMax = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][1]
                                                     : filter.rangemax;
-                                                handleFilterChange(filter.filterid, [newMin, currentMax]);
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, [newMin, currentMax]);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, [newMin, currentMax]);
+                                                }
                                             }}
                                             className="text-sm"
                                         />
@@ -347,7 +393,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                                 const currentMin = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][0]
                                                     : filter.rangemin;
-                                                handleFilterChange(filter.filterid, [currentMin, newMax]);
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, [currentMin, newMax]);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, [currentMin, newMax]);
+                                                }
                                             }}
                                             className="text-sm"
                                         />
@@ -366,7 +416,11 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                         min={filter.rangemin || 0}
                                         max={filter.rangemax || 100}
                                         onChange={(newValues) => {
-                                            handleFilterChange(filter.filterid, newValues);
+                                            if (onFilterChange) {
+                                                onFilterChange(filter.filterid, newValues);
+                                            } else {
+                                                handleFilterChange(filter.filterid, newValues);
+                                            }
                                         }}
                                         renderTrack={({ props, children }) => (
                                             <div
@@ -415,10 +469,15 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                         <Select
                                             value={`${value?.month || new Date().getMonth() + 1}`}
                                             onValueChange={(newMonth) => {
-                                                handleFilterChange(filter.filterid, {
+                                                const newValue = {
                                                     month: Number(newMonth),
                                                     year: value?.year || new Date().getFullYear(),
-                                                });
+                                                }
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, newValue);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, newValue);
+                                                }
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
@@ -438,10 +497,15 @@ const Filter: React.FC<FilterProps> = ({ filters, values, setFilterValues }) => 
                                         <Select
                                             value={`${value?.year || new Date().getFullYear()}`}
                                             onValueChange={(newYear) => {
-                                                handleFilterChange(filter.filterid, {
+                                                const newValue = {
                                                     month: value?.month || new Date().getMonth() + 1,
                                                     year: Number(newYear),
-                                                });
+                                                }
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, newValue);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, newValue);
+                                                }
                                             }}
                                         >
                                             <SelectTrigger className="w-full">

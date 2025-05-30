@@ -36,7 +36,6 @@ const RentalPage = () => {
     const [filterValues, setFilterValues] = useState<Record<string, any>>({
         selectedDate: bookingDates[0],
         productType: [3], // Default to "Thuê vợt"
-        productFilterValues: [],
     });
 
     // Load filter configs and product types
@@ -67,48 +66,85 @@ const RentalPage = () => {
 
     // Update product filter options when product type changes
     useEffect(() => {
-        if (productTypes.length > 0 && filterValues.productType && filterValues.productType.length > 0) {
-            const selectedProductTypeId = filterValues.productType[0];
-            const selectedProductType = productTypes.find((type) => type.producttypeid === selectedProductTypeId);
+        const baseFilters = filters.filter(filter =>
+            filter.filterid === 'selectedFilter' || filter.filterid === 'productType'
+        );
 
-            if (selectedProductType?.product_filter?.[0]?.product_filter_values) {
-                const productFilterValuesFilter: FilterConfig = {
-                    filterid: 'productFilterValues',
-                    filterlabel: selectedProductType.product_filter[0].productfiltername || 'Lọc sản phẩm',
-                    filtertype: 'checkbox',
-                    filteroptions: selectedProductType.product_filter[0].product_filter_values.map((value) => ({
-                        optionlabel: value.value || '',
-                        optionvalue: value.productfiltervalueid,
-                    })),
-                };
-                // Add product filter values filter to the filters array
-                setFilters((prev) => [prev[0], prev[1], productFilterValuesFilter]);
-            } else {
-                // Remove product filter values filter if no product type is selected
-                setFilters((prev) => prev.slice(0, 2));
-            }
+        if (baseFilters.length !== 2) return;
+
+        const selectedProductTypeId = filterValues.productType?.[0];
+        const selectedProductType = productTypes.find(type =>
+            type.producttypeid === selectedProductTypeId
+        );
+
+        const hasFilterValues = selectedProductType?.product_filter?.[0]?.product_filter_values;
+
+        if (hasFilterValues) {
+            const productFilterValuesFilter: FilterConfig = {
+                filterid: 'productFilterValues',
+                filterlabel: selectedProductType?.product_filter?.[0].productfiltername || 'Lọc sản phẩm',
+                filtertype: 'checkbox',
+                filteroptions: selectedProductType?.product_filter?.[0]?.product_filter_values?.map(value => ({
+                    optionlabel: value.value || '',
+                    optionvalue: value.productfiltervalueid,
+                })),
+            };
+            setFilters([...baseFilters, productFilterValuesFilter]);
+        } else {
+            setFilters(baseFilters);
         }
-    }, [filterValues.productType, productTypes]);
+    }, [filterValues, productTypes]);
 
     // Fetch products when filter values change
     useEffect(() => {
         const loadProducts = async () => {
             const selectedProductTypeId = filterValues.productType?.[0];
             const selectedProductFilterValueIds = filterValues.productFilterValues || [];
-            if (selectedProductTypeId) {
-                const productsResponse = await getProducts(
-                    selectedProductTypeId,
-                    selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
-                );
-                if (productsResponse.ok) {
-                    setProducts(productsResponse.data);
-                }
+
+            if (!selectedProductTypeId) {
+                setProducts([]);
+                return;
+            }
+
+            const productsResponse = await getProducts(
+                selectedProductTypeId,
+                selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
+            );
+
+            if (productsResponse.ok) {
+                setProducts(productsResponse.data);
             }
         };
+
         loadProducts();
-    }, [filterValues.productType, filterValues.productFilterValues]);
+    }, [filterValues]);
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
+
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
+        setFilterValues((prev) => {
+            const updated = { ...prev };
+            if (type === 'search' || type === 'range' || type === 'monthyear') {
+                updated[filterid] = value;
+            } else if (type === 'checkbox') {
+                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
+                const idx = arr.indexOf(value);
+                if (idx > -1) {
+                    arr.splice(idx, 1);
+                } else {
+                    arr.push(value);
+                }
+                updated[filterid] = arr;
+            } else if (type === 'radio') {
+                updated[filterid] = [value];
+                if (updated["productFilterValues"] !== undefined) {
+                    updated["productFilterValues"] = undefined;
+                }
+            }
+            return updated;
+        });
+    };
 
     return (
         <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
@@ -154,7 +190,12 @@ const RentalPage = () => {
                     )}
                 </div>
 
-                <Filter filters={filters} values={filterValues} setFilterValues={setFilterValues} />
+                <Filter
+                    filters={filters}
+                    values={filterValues}
+                    setFilterValues={setFilterValues}
+                    onFilterChange={handleFilterChange}
+                />
             </div>
             <RentalList
                 products={products}
