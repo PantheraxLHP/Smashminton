@@ -1,15 +1,16 @@
 'use client';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
-import { useState, useEffect, use } from 'react';
-import OrderSummary from './OrderSummary';
-import PaymentMethodSection from './PaymentMethodSection';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { getVouchers } from '@/services/vouchers.service';
 import { Voucher } from '@/types/types';
-import { se } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
+import OrderSummary from './OrderSummary';
+import PaymentMethodSection from './PaymentMethodSection';
+import { Button } from '@/components/ui/button';
+import { createPayOS } from '@/services/payment.service';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
@@ -24,11 +25,12 @@ export default function PaymentPage() {
     let studentStatus = userProfile?.isStudent;
     studentStatus = true;
 
-    let total = totalCourtPrice + totalProductPrice;
-    if (studentStatus) {
-        total = total * 0.9; // Apply student discount
+    let totalCourtPriceWithDiscount = totalCourtPrice;
+    if (selectedVoucherId) {
+        totalCourtPriceWithDiscount = totalCourtPrice * 0.9;
     }
 
+    const total = totalCourtPriceWithDiscount + totalProductPrice;
     const totalWithDiscount = total * (1 - discount);
 
     useEffect(() => {
@@ -41,7 +43,25 @@ export default function PaymentPage() {
         loadVouchers();
     }, []);
 
-    console.log(selectedVoucherId);
+    const handlePayment = async () => {
+        const PayloadPayOS = {
+            userId: userProfile?.accountid?.toString() || '',
+            userName: userProfile?.username || '',
+            guestPhoneNumber: userProfile?.accounttype !== 'Customer' ? customerPhone : userProfile?.phonenumber || '',
+            paymentMethod: selectedMethod,
+            voucherId: selectedVoucherId?.toString() || '',
+            totalAmount: totalWithDiscount,
+        };
+
+        const response = await createPayOS(PayloadPayOS);
+
+        if (response.ok) {
+            const PaymentUrlPayOS = await response.data;
+            window.location.href = PaymentUrlPayOS;
+        } else {
+            alert(response.message || 'Thanh toán thất bại!');
+        }
+    };
 
     return (
         <div className="w-full space-y-4 p-4 text-sm">
@@ -84,17 +104,23 @@ export default function PaymentPage() {
                                 <span className="font-semibold whitespace-nowrap">MÃ GIẢM GIÁ</span>
                                 <Select
                                     onValueChange={(selected) => {
-                                        setSelectedVoucherId(parseInt(selected));
-                                        setDiscount(
-                                            vouchers.find((voucher) => voucher.voucherid.toString() === selected)
-                                                ?.discountamount || 0,
-                                        );
+                                        if (selected === 'none') {
+                                            setSelectedVoucherId(undefined);
+                                            setDiscount(0);
+                                        } else {
+                                            setSelectedVoucherId(parseInt(selected));
+                                            setDiscount(
+                                                vouchers.find((voucher) => voucher.voucherid.toString() === selected)
+                                                    ?.discountamount || 0,
+                                            );
+                                        }
                                     }}
                                 >
                                     <SelectTrigger className="w-[220px] rounded-md border-1 border-black text-black hover:border-black hover:text-black">
                                         <SelectValue placeholder="Chọn mã giảm giá" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="none">Không chọn</SelectItem>
                                         {vouchers.map((voucher) => (
                                             <SelectItem key={voucher.voucherid} value={voucher.voucherid.toString()}>
                                                 {voucher.vouchername}
@@ -120,9 +146,9 @@ export default function PaymentPage() {
             </div>
 
             <div className="text-center">
-                <button className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded px-6 py-3 font-semibold text-white">
+                <Button onClick={handlePayment} variant={'default'}>
                     THANH TOÁN — {formatPrice(totalWithDiscount)}
-                </button>
+                </Button>
             </div>
         </div>
     );

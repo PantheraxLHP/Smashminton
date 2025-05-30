@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React from 'react';
 
 interface PaymentMethodSectionProps {
@@ -5,13 +6,10 @@ interface PaymentMethodSectionProps {
     setSelectedMethod: (method: 'momo' | 'payos') => void;
 }
 
-const PaymentMethodSection: React.FC<PaymentMethodSectionProps> = ({
-    selectedMethod,
-    setSelectedMethod,
-}) => {
+const PaymentMethodSection: React.FC<PaymentMethodSectionProps> = ({ selectedMethod, setSelectedMethod }) => {
     return (
-        <div className="pt-4 border-t border-gray-400 min-w-[800px]">
-            <p className="font-semibold mb-2">HÌNH THỨC THANH TOÁN</p>
+        <div className="min-w-[800px] border-t border-gray-400 pt-4">
+            <p className="mb-2 font-semibold">HÌNH THỨC THANH TOÁN</p>
             <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2">
                     <input
@@ -19,9 +17,10 @@ const PaymentMethodSection: React.FC<PaymentMethodSectionProps> = ({
                         name="payment"
                         checked={selectedMethod === 'momo'}
                         onChange={() => setSelectedMethod('momo')}
+                        className="accent-primary-500"
                     />
-                    <span className="text-primary-600">Thanh toán qua Momo</span>
-                    <img src="/momo.png" alt="momo" className="w-6 h-6" />
+                    <span>Momo</span>
+                    <Image src="/momo.png" alt="momo" width={24} height={24} className="h-6 w-6" />
                 </label>
                 <label className="flex items-center gap-2">
                     <input
@@ -29,9 +28,10 @@ const PaymentMethodSection: React.FC<PaymentMethodSectionProps> = ({
                         name="payment"
                         checked={selectedMethod === 'payos'}
                         onChange={() => setSelectedMethod('payos')}
+                        className="accent-primary-500"
                     />
-                    <span className="text-primary-600">Thanh toán qua PayOS</span>
-                    <img src="/payos.png" alt="payos" className="w-6 h-6 border" />
+                    <span>PayOS</span>
+                    <Image src="/payos.png" alt="payos" width={24} height={24} className="h-6 w-6 border" />
                 </label>
             </div>
         </div>

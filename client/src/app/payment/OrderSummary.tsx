@@ -57,8 +57,8 @@ export default function OrderSummary() {
                             {court.date} {court.starttime}
                         </td>
                         <td className="px-2 py-3">{court.duration}</td>
+                        <td className="px-2 py-3">{formatPrice(court.price / court.duration)}</td>
                         <td className="px-2 py-3">{formatPrice(court.price)}</td>
-                        <td className="px-2 py-3">{formatPrice(court.price * court.duration)}</td>
                     </tr>
                 ))}
 
