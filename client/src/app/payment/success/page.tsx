@@ -19,7 +19,7 @@ export default function PaymentSuccessPage() {
         const paymentMethod = searchParams.get('paymentMethod');
         const totalAmount = searchParams.get('amount');
         const guestPhoneNumber = searchParams.get('guestPhoneNumber');
-
+        const voucherId = searchParams.get('voucherId');
         // MoMo params
         const partnerCode = searchParams.get('partnerCode');
         const resultCode = searchParams.get('resultCode');
@@ -35,11 +35,11 @@ export default function PaymentSuccessPage() {
                 userId: userId || '',
                 userName: userName || '',
                 paymentMethod: paymentMethod,
-                totalAmount: totalAmount,
+                totalAmount: '222222',
                 guestPhoneNumber: guestPhoneNumber || '',
-                voucherId: '',
+                voucherId: '1',
                 status: resultCode === '0' ? 'PAID' : 'FAILED',
-                resultCode: resultCode,
+                resultCode: resultCode || '',
             };
         } else {
             // PayOS
@@ -48,11 +48,11 @@ export default function PaymentSuccessPage() {
                 userId: userId || '',
                 userName: userName || '',
                 paymentMethod: paymentMethod,
-                totalAmount: totalAmount,
+                totalAmount: '333333',
                 guestPhoneNumber: guestPhoneNumber || '',
-                voucherId: '',
+                voucherId: '1',
                 status: status,
-                resultCode: payosResultCode,
+                resultCode: payosResultCode || '',
             };
         }
         const handleCreateReceipt = async () => {
@@ -60,9 +60,9 @@ export default function PaymentSuccessPage() {
                 const response = await createReceipt(apiParams);
 
                 if (response.ok) {
-                    toast.success('Thanh toán thành công!');
+                    toast.success('Đơn hàng đã được tạo thành công!');
                 } else {
-                    toast.error(response.message || 'Thanh toán thất bại!');
+                    toast.error(response.message || 'Lỗi xảy ra khi tạo đơn hàng!');
                 }
             }
         };
