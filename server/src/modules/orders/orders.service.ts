@@ -137,7 +137,6 @@ export class OrdersService {
         // Lấy cache của người dùng từ Redis
         const orderUserCache = await this.cacheService.getOrder(username);
 
-        // Nếu không có cache, tạo mới
         if (!orderUserCache) {
             throw new BadRequestException('No cache found for the user');
         }
@@ -225,6 +224,61 @@ export class OrdersService {
         return order;
     }
 
+    async removeAllRentalProductsInOrder(username: string): Promise<CacheOrder> {
+        // Lấy cache của người dùng từ Redis
+        const orderUserCache = await this.cacheService.getOrder(username);
+
+        if (!orderUserCache) {
+            throw new BadRequestException('No cache found for the user');
+        }
+
+        // Lấy danh sách productid từ cache
+        const productIds = orderUserCache.product_order.map(product => product.productid);
+
+        // Truy vấn database để lấy thông tin rental price của các products
+        const productsWithRentalPrice = await this.prisma.products.findMany({
+            where: {
+                productid: {
+                    in: productIds
+                },
+                rentalprice: {
+                    not: null  // Chỉ lấy products có rental price
+                }
+            },
+            select: {
+                productid: true,
+                rentalprice: true
+            }
+        });
+
+        // Tạo Set để tìm kiếm nhanh hơn
+        const rentalProductIds = new Set(productsWithRentalPrice.map(p => p.productid));
+
+        // Lọc ra các products không phải rental (giữ lại)
+        const filteredProducts = orderUserCache.product_order.filter(product =>
+            !rentalProductIds.has(product.productid)
+        );
+
+        // Tính lại tổng giá sau khi loại bỏ rental products
+        const newTotalPrice = filteredProducts.reduce((total, product) =>
+            total + (product.totalamount ?? 0), 0
+        );
+
+        // Cập nhật cache
+        const updatedOrderCache: CacheOrder = {
+            product_order: filteredProducts,
+            totalprice: newTotalPrice
+        };
+
+        const isSuccess = await this.cacheService.setOrder(username, updatedOrderCache, 24 * 3600); // TTL 24 hour
+
+        if (!isSuccess) {
+            throw new BadRequestException('Failed to update order cache');
+        }
+
+        return updatedOrderCache;
+    }
+
     findAll() {
         return `This action returns all orders`;
     }
@@ -234,10 +288,10 @@ export class OrdersService {
     }
 
     update(id: number, updateOrderDto: UpdateOrderDto) {
-            return `This action updates a #${id} order`;
-        }
+        return `This action updates a #${id} order`;
+    }
 
     remove(id: number) {
-            return `This action removes a #${id} order`;
-        }
+        return `This action removes a #${id} order`;
+    }
 }

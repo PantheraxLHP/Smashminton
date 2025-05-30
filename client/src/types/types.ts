@@ -40,6 +40,7 @@ export interface Employees {
     last_week_shift_type?: string;
     employee_type?: string;
     role?: string;
+    monthly_note?: MonthlyNote[];
     bank_detail?: BankDetail[];
     bookings?: Bookings[];
     accounts?: Accounts;
@@ -356,4 +357,14 @@ export interface ProductFilterValues {
     productfilterid?: number;
     product_attributes?: ProductAttributes[];
     product_filter?: ProductFilter;
+}
+
+export interface MonthlyNote {
+    noteid: number;
+    notecontent?: string;
+    notestatus?: string;
+    employeeid?: number;
+    employees?: Employees;
+    createdat?: Date;
+    updatedat?: Date;
 }

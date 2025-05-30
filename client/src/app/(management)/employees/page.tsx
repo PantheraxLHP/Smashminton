@@ -25,13 +25,13 @@ const filters: FilterConfig[] = [
             { optionlabel: "Chưa thêm", optionvalue: "false" },
         ]
     },
-]
+];
 
 const EmployeesPage = () => {
     const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
     return (
-        <div className="flex gap-5 p-4">
+        <div className="flex gap-5 p-4 w-full">
             <Filter filters={filters} values={filterValues} setFilterValues={setFilterValues} />
             <EmployeeList />
         </div>

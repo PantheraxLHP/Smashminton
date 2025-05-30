@@ -56,6 +56,12 @@ export class CacheService {
         return this.order.delete(key);
     }
 
+    async clearAllCacheOrderAndBooking(username:string): Promise<boolean> {
+        const deletedBooking = await this.deleteBooking(username);
+        const deletedOrder = await this.deleteOrder(username);
+        return deletedBooking && deletedOrder;
+    }
+
     // Lấy tất cả các today order từ Redis để xác định sân unavailable
     async getAllCacheOrders(date: string): Promise<CacheCourtBooking[]> {
         // Lấy tất cả các key trong namespace 'order'

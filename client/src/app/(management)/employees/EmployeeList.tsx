@@ -1,5 +1,6 @@
 import PaginationComponent from "@/components/atomic/PaginationComponent";
 import EmployeeAddForm from "./EmployeeAddForm";
+import EmployeeDetails from "./EmployeeDetails";
 import { Fragment, useState, useEffect } from "react";
 import { Employees } from "@/types/types";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ import {
     DialogFooter,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const EmployeeList = () => {
     const router = useRouter();
@@ -79,28 +81,35 @@ const EmployeeList = () => {
                 return newSelected;
             });
         } else {
-            setSelectedEmployees(prev =>
-                prev.filter(selected =>
-                    !employees.some(e => e.employeeid === selected.employeeid)
-                )
-            );
+            setSelectedEmployees(prev => {
+                const currentIds = new Set(employees.map(e => e.employeeid));
+                return prev.filter(employee => !currentIds.has(employee.employeeid));
+            });
         }
     };
 
     const handleSingleCheckboxChange = (employee: Employees, checked: boolean) => {
         if (checked) {
-            setSelectedEmployees(prev => [...prev, employee]);
+            setSelectedEmployees(prev => {
+                const currentIds = new Set(prev.map(e => e.employeeid));
+                if (!currentIds.has(employee.employeeid)) {
+                    return [...prev, employee];
+                }
+                return prev;
+            });
         } else {
-            setSelectedEmployees(prev => prev.filter(emp => emp.employeeid !== employee.employeeid));
+            setSelectedEmployees(prev => {
+                return prev.filter(selected => selected.employeeid !== employee.employeeid);
+            });
         }
     }
 
     return (
-        <div className="flex flex-col gap-4 w-full">
-            <span className="text-2xl font-semibold">Danh sách nhân viên</span>
-            <div className="flex flex-col w-full">
+        <div className="flex flex-col gap-4 w-full overflow-x-auto">
+            <span className="text-2xl font-semibold w-full min-w-max">Danh sách nhân viên</span>
+            <div className="flex flex-col w-full min-w-max overflow-x-auto">
                 {/* Table Header - 8 cols*/}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] w-full items-center pb-2 border-b-2 border-gray-400">
+                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] min-w-max items-center pb-2 border-b-2 border-gray-400 w-full">
                     <Checkbox
                         className="size-5 cursor-pointer"
                         checked={currentPageSelectAll}
@@ -115,7 +124,7 @@ const EmployeeList = () => {
                     <span className="text-sm font-semibold flex justify-center text-center">Sinh trắc học vân tay (Nhấn để thêm)</span>
                 </div>
                 {/* Table Content - 8 cols - 12 rows */}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 w-full items-center border-b-2 border-gray-400">
+                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 min-w-max items-center border-b-2 border-gray-400 w-full">
                     {employees.map((employee) => (
                         <Fragment key={`employee-${employee.employeeid}`}>
                             <div className="flex items-center py-2 h-14 border-b-2 border-gray-200">
@@ -135,10 +144,24 @@ const EmployeeList = () => {
                                 day: '2-digit'
                             })}</div>
                             <div className="flex items-center justify-center py-2 h-14 border-b-2 border-gray-200">
-                                <Icon
-                                    icon="material-symbols:info-outline-rounded"
-                                    className="size-8 text-primary-300 cursor-pointer hover:text-primary-500"
-                                />
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Icon
+                                            icon="material-symbols:info-outline-rounded"
+                                            className="size-8 text-primary-300 cursor-pointer hover:text-primary-500"
+                                        />
+                                    </DialogTrigger>
+                                    <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
+                                        <DialogHeader className="!h-1">
+                                            <DialogTitle className="!h-fit">
+                                                <VisuallyHidden>
+                                                    {`Chi tiết thông tin của nhân viên ${employee.accounts?.fullname || "chưa có tên"}`}
+                                                </VisuallyHidden>
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <EmployeeDetails />
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                             <div className="flex items-center justify-center text-sm py-2 h-14 border-b-2 border-gray-200">
                                 <Button
@@ -158,7 +181,7 @@ const EmployeeList = () => {
                 </div>
             </div>
             {/*Số lượng nhân viên được chọn, phân trang, hành động thêm/xóa nhân viên */}
-            <div className="flex justify-between items-center w-full">
+            <div className="flex justify-between items-center gap-5 w-full min-w-max">
                 <span className="text-primary">Đã chọn <b>{selectedEmployees.length}</b> nhân viên</span>
                 <div>
                     <PaginationComponent
