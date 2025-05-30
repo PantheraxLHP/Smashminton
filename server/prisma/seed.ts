@@ -282,7 +282,7 @@ async function main() {
         ],
     });
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 100; i++) {
         await prisma.accounts.create({
             data: {
                 username: `user${i}`,
@@ -872,7 +872,8 @@ async function main() {
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
-                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
                 status: 'Available',
                 sellingprice: 950000,
                 rentalprice: null,
@@ -1337,7 +1338,7 @@ async function main() {
                 discountamount: 0.075,
                 startdate: new Date('2025-02-01T00:00:00Z'),
                 expireddate: new Date('2025-02-28T23:59:59Z'),
-            }
+            },
         ],
     });
 
