@@ -1,7 +1,7 @@
 'use client';
 
 import { useBooking } from '@/context/BookingContext';
-import { getCourtsAndDisableStartTimes } from '@/services/booking.service';
+import { getCourts, getDisableStartTimes } from '@/services/booking.service';
 import { Products } from '@/types/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -93,27 +93,31 @@ export default function BookingCourtsPage() {
 
     // Use to fetch courts and disable start times when filters change
     useEffect(() => {
-        const fetchCourtsAndDisableStartTimes = async () => {
-            try {
-                if (filters.zone && filters.date && filters.startTime && filters.duration !== undefined) {
-                    const result = await getCourtsAndDisableStartTimes(filters);
-                    if (!result.ok) {
-                        setDisableTimes([]);
-                        setCourts([]);
-                        toast.error(result.message || 'Không thể tải danh sách sân');
-                    } else {
-                        setCourts(result.data.availableCourts);
-                        setDisableTimes(result.data.unavailableStartTimes);
-                    }
+        const fetchDisableStartTimes = async () => {
+            if (filters.zone && filters.date && filters.duration) {
+                const result = await getDisableStartTimes(filters);
+                if (!result.ok) {
+                    setDisableTimes([]);
+                } else {
+                    setDisableTimes(result.data);
                 }
-            } catch (error) {
-                setDisableTimes([]);
-                setCourts([]);
-                toast.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
             }
         };
 
-        fetchCourtsAndDisableStartTimes();
+        const fetchCourts = async () => {
+            if (filters.zone && filters.date && filters.duration && filters.startTime) {
+                const result = await getCourts(filters);
+                if (!result.ok) {
+                    setCourts([]);
+                    toast.error(result.message || 'Không thể tải danh sách sân khả dụng');
+                } else {
+                    setCourts(result.data);
+                }
+            }
+        };
+
+        fetchDisableStartTimes();
+        fetchCourts();
     }, [filters]);
 
     const handleConfirm = () => {

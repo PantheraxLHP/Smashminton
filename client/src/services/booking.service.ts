@@ -1,28 +1,57 @@
 import { Filters, SelectedCourts } from '@/app/booking/courts/page';
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export const getCourtsAndDisableStartTimes = async (filters: Filters) => {
+export const getCourts = async (filter: Filters) => {
     try {
-        const zoneid = filters.zone ? filters.zone.charCodeAt(0) - 64 : undefined;
-
         const queryParams = new URLSearchParams({
-            zoneid: zoneid?.toString() || '',
-            date: filters.date || '',
-            starttime: filters.startTime || '',
-            duration: filters.duration?.toString() || '',
-            fixedCourt: filters.fixedCourt?.toString() || '',
+            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            date: filter.date || '',
+            duration: filter.duration ? String(filter.duration) : '0',
+            starttime: filter.startTime || '',
+            fixedCourt: filter.fixedCourt ? 'true' : 'false',
         });
 
-        const response = await fetch(`/api/booking/courts-disabled-starttimes?${queryParams.toString()}`);
+        const response = await fetch(`/api/booking/get-courts?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
         const result = await response.json();
 
         if (!response.ok) {
-            return ServiceResponse.error(result.message || 'Lỗi khi tải danh sách sân');
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách sân khả dụng');
         }
 
         return ServiceResponse.success(result.data);
     } catch (error) {
-        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân khả dụng');
+    }
+};
+
+export const getDisableStartTimes = async (filter: Filters) => {
+    try {
+        const queryParams = new URLSearchParams({
+            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            date: filter.date || '',
+            duration: filter.duration ? String(filter.duration) : '0',
+        });
+
+        const response = await fetch(`/api/booking/get-disable-starttimes?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách giờ không khả dụng');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể tải danh sách giờ không khả dụng',
+        );
     }
 };
 

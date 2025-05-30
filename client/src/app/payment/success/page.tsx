@@ -55,9 +55,6 @@ export default function PaymentSuccessPage() {
                 resultCode: payosResultCode,
             };
         }
-
-        console.log(apiParams);
-
         const handleCreateReceipt = async () => {
             if (apiParams.paymentMethod) {
                 const response = await createReceipt(apiParams);

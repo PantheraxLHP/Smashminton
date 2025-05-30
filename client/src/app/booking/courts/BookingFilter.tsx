@@ -2,14 +2,7 @@ import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useRouter } from 'next/navigation';
-
-interface Filters {
-    zone?: string;
-    date?: string;
-    duration?: number;
-    startTime?: string;
-    fixedCourt?: boolean;
-}
+import { Filters } from './page';
 
 interface BookingFilterProps {
     initialFilters: Filters;
@@ -162,22 +155,28 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
             <div>
                 <h3 className="text-sm font-semibold">Chọn giờ bắt đầu</h3>
                 <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {times.map((time) => (
-                        <button
-                            key={time}
-                            onClick={() => setStartTime(time)}
-                            disabled={disableTimes.includes(time)} // Check if time is in the array
-                            className={`rounded-lg border px-3 py-1 text-sm ${
-                                disableTimes.includes(time) // Check if time is in the array
-                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
-                                    : startTime === time
-                                      ? 'bg-primary-500 text-white'
-                                      : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
-                            } transition`}
-                        >
-                            {time}
-                        </button>
-                    ))}
+                    {times.map((time) => {
+                        // Determine if disableTimes is loaded (not empty)
+                        const disableTimesLoaded = Array.isArray(disableTimes) && disableTimes.length > 0;
+                        // If not loaded, disable all times. If loaded, only disable those in disableTimes
+                        const isDisabled = !disableTimesLoaded || disableTimes.includes(time);
+                        return (
+                            <button
+                                key={time}
+                                onClick={() => setStartTime(time)}
+                                disabled={isDisabled}
+                                className={`rounded-lg border px-3 py-1 text-sm ${
+                                    isDisabled
+                                        ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
+                                        : startTime === time
+                                          ? 'bg-primary-500 text-white'
+                                          : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                                } transition`}
+                            >
+                                {time}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
