@@ -13,6 +13,7 @@ import { CacheService } from '../cache/cache.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { Booking } from 'src/interfaces/bookings.interface';
 import { Order } from 'src/interfaces/orders.interface';
+import { query } from 'express';
 
 @Injectable()
 export class PaymentService {
@@ -44,6 +45,7 @@ export class PaymentService {
             paymentMethod: paymentData.paymentMethod || '',
             ...(paymentData.guestPhoneNumber && { guestPhoneNumber: paymentData.guestPhoneNumber }),
             ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
+            totalAmount: paymentData.totalAmount ? String(paymentData.totalAmount) : '0',
         });
         const redirectUrl = `${DOMAIN}/payment/success?${queryParams.toString()}`;
 
@@ -176,6 +178,7 @@ export class PaymentService {
             paymentMethod: paymentData.paymentMethod || '',
             ...(paymentData.guestPhoneNumber && { guestPhoneNumber: paymentData.guestPhoneNumber }),
             ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
+            totalAmount: paymentData.totalAmount ? String(paymentData.totalAmount) : '0',
         });
         const body = {
             orderCode: Number(String(Date.now()).slice(-6)),
@@ -187,6 +190,7 @@ export class PaymentService {
 
         try {
             const paymentLinkResponse = await this.payOS.createPaymentLink(body);
+            console.log(queryParams.toString());
             return paymentLinkResponse.checkoutUrl; // Trả về URL thanh toán
         } catch (error) {
             console.error('Error creating payment link:', error);
@@ -240,8 +244,6 @@ export class PaymentService {
         // Explicitly type booking and order to avoid 'never' type errors
         let booking: Booking | null = null;
         let order: Order | null = null;
-        let bookingid = 0;
-        let orderid = 0;
         if (accounttype === 'Customer') {
             // Xử lý booking
             if (bookingTotalPrice > 0) {
