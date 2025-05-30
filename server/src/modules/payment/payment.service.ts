@@ -285,6 +285,9 @@ export class PaymentService {
                 await this.cacheService.deleteOrder(paymentData.userName);
             }
         }
+        if (!booking && !order) {
+            throw new Error('No booking or order created');
+        }
 
         // Tạo biên lai
         const createReceiptDto: CreateReceiptDto = {
