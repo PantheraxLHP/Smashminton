@@ -116,6 +116,7 @@ model employees {
   last_week_shift_type String?
   employee_type        String?
   role                 String?
+  monthly_note         monthly_note[]
   bank_detail          bank_detail[]
   bookings             bookings[]
   accounts             accounts           @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employees_accounts")
@@ -126,6 +127,16 @@ model employees {
   shift_assignment     shift_assignment[]
   shift_enrollment     shift_enrollment[]
   timesheet            timesheet[]
+}
+
+model monthly_note {
+  noteid     Int        @id @default(autoincrement())
+  notecontent    String?
+  notestatus  String?
+  employeeid  Int?
+  employees   employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_monthlynote_employees")
+  createdat   DateTime?  @default(now()) @db.Timestamptz(6)
+  updatedat   DateTime?  @default(now()) @db.Timestamptz(6)
 }
 
 model order_product {

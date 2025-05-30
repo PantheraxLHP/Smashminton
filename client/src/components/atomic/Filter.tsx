@@ -31,8 +31,6 @@ export interface FilterConfig {
     filteroptions?: FilterOption[];
     rangemin?: number;
     rangemax?: number;
-    month?: number;
-    year?: number;
 }
 interface FilterProps {
     filters: FilterConfig[];
