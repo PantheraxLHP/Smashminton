@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import OrderSummary from './OrderSummary';
 import PaymentMethodSection from './PaymentMethodSection';
 import { Button } from '@/components/ui/button';
-import { createPayOS } from '@/services/payment.service';
+import { createMomo, createPayOS } from '@/services/payment.service';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
@@ -44,7 +44,7 @@ export default function PaymentPage() {
     }, []);
 
     const handlePayment = async () => {
-        const PayloadPayOS = {
+        const Payload = {
             userId: userProfile?.accountid?.toString() || '',
             userName: userProfile?.username || '',
             guestPhoneNumber: userProfile?.accounttype !== 'Customer' ? customerPhone : userProfile?.phonenumber || '',
@@ -53,13 +53,22 @@ export default function PaymentPage() {
             totalAmount: totalWithDiscount,
         };
 
-        const response = await createPayOS(PayloadPayOS);
-
-        if (response.ok) {
-            const PaymentUrlPayOS = await response.data;
-            window.location.href = PaymentUrlPayOS;
+        if (selectedMethod === 'momo') {
+            const response = await createMomo(Payload);
+            if (response.ok) {
+                const PaymentUrlMomo = await response.data;
+                window.location.href = PaymentUrlMomo;
+            } else {
+                alert(response.message || 'Thanh toán thất bại!');
+            }
         } else {
-            alert(response.message || 'Thanh toán thất bại!');
+            const response = await createPayOS(Payload);
+            if (response.ok) {
+                const PaymentUrlPayOS = await response.data;
+                window.location.href = PaymentUrlPayOS;
+            } else {
+                alert(response.message || 'Thanh toán thất bại!');
+            }
         }
     };
 
