@@ -20,7 +20,7 @@ export class PaymentsController {
 	@ApiQuery({ name: 'guestPhoneNumber', required: false, description: 'Guest phone number', example: null })
 	@ApiQuery({ name: 'voucherId', required: false, description: 'Voucher ID', example: 1 })
 	@ApiQuery({ name: 'status', required: false, description: 'Status of the transaction', example: 'PAID' })
-	@ApiParam({ name: 'resultCode', required: false, description: 'Status after payment', example: 0 })
+	@ApiParam({ name: 'resultCode', required: false, description: 'Status after payment', example: '00' })
 	async handleSuccessfulPayment(
 		@Query('userId') userId: string,
 		@Query('userName') userName: string,
@@ -29,12 +29,12 @@ export class PaymentsController {
 		@Query('guestPhoneNumber') guestPhoneNumber?: string,
 		@Query('voucherId') voucherId?: string,
 		@Query('status') status?: string,
-		@Query('resultCode') resultCode?: number
+		@Query('resultCode') resultCode?: string
 	) {
 		if (status && status !== 'PAID') {
 			throw new Error('Payment status must be PAID');
 		}
-		if (resultCode && resultCode !== 0) {
+		if (resultCode && resultCode !== '00') {
 			throw new Error('Result code must be 0 for successful payment');
 		}
 		const paymentData: paymentData = {
