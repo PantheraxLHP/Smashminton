@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SidebarFilter from '../../../components/warehouse/SidebarFilter';
 import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
 import AddSupplierModal, { SupplierFormData } from './AddSuppliers';
+import { getSuppliers } from '@/services/suppliers.service';
 
 interface Supplier {
     name: string;
@@ -14,48 +15,28 @@ interface Supplier {
     logo: string;
 }
 
-const initialSuppliers: Supplier[] = [
-    {
-        name: 'Đại Hưng Sport',
-        phone: '0902506901',
-        email: 'daihungsport@gmail.com',
-        address: '432 Lý Thái Tổ, Phường 10, Quận 10, TP. Hồ Chí Minh, Việt Nam',
-        logo: '/default.png',
-    },
-    {
-        name: 'Tuấn Hạnh Sport',
-        phone: '02437338284',
-        email: 'tuanhanhsport@gmail.com',
-        address: '438 Lê Hồng Phong, Ba Đình, Hà Nội',
-        logo: '/default.png',
-    },
-    {
-        name: 'Pepsico',
-        phone: '0902506901',
-        email: 'daihungsport@gmail.com',
-        address: '432 Lý Thái Tổ, Phường 10, Quận 10, TP. Hồ Chí Minh, Việt Nam',
-        logo: '/default.png',
-    },
-    {
-        name: 'Bánh kẹo Nguyễn Phước',
-        phone: '02437338284',
-        email: 'tuanhanhsport@gmail.com',
-        address: '438 Lê Hồng Phong, Ba Đình, Hà Nội',
-        logo: '/default.png',
-    },
-];
-
 function getUniqueOptions<T>(data: T[], key: keyof T): string[] {
     return Array.from(new Set(data.map((item) => item[key] as string))).sort();
 }
 
 export default function SupplierManagementPage() {
-    const [data, setData] = useState<Supplier[]>(initialSuppliers);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [filters, setFilters] = useState<Record<string, any>>({});
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [editData, setEditData] = useState<SupplierFormData | null>(null);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
+
+    useEffect(() => {
+        const fetchSuppliers = async () => {
+            const response = await getSuppliers();
+            if (response.ok) {
+                setSuppliers(response.data);
+            }
+            console.log(response);
+        };
+        fetchSuppliers();
+    }, []);
 
     const filtersConfig: FilterConfig[] = [
         {
@@ -86,13 +67,13 @@ export default function SupplierManagementPage() {
     }, []);
 
     const columns: Column<Supplier>[] = [
-        { header: 'Nhà phân phối', accessor: 'name' },
-        { header: 'Số điện thoại', accessor: 'phone' },
+        { header: 'Nhà phân phối', accessor: 'suppliername' },
+        { header: 'Số điện thoại', accessor: 'phonenumber' },
         { header: 'Email', accessor: 'email' },
         { header: 'Địa chỉ', accessor: 'address' },
     ];
 
-    const filteredData = data.filter((item) => {
+    const filteredData = suppliers.filter((item) => {
         const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
         const matchesPhone = !filters.phone || item.phone.includes(filters.phone);
         const matchesEmail = !filters.email || item.email.toLowerCase().includes(filters.email.toLowerCase());
@@ -115,11 +96,11 @@ export default function SupplierManagementPage() {
         const supplier = filteredData[index];
         const confirmed = window.confirm(`Xác nhận xóa nhà cung cấp: ${supplier.name}?`);
         if (confirmed) {
-            const realIndex = data.findIndex((d) => d.name === supplier.name);
+            const realIndex = suppliers.findIndex((d) => d.name === supplier.name);
             if (realIndex !== -1) {
-                const newData = [...data];
+                const newData = [...suppliers];
                 newData.splice(realIndex, 1);
-                setData(newData);
+                setSuppliers(newData);
             }
         }
     };
@@ -134,14 +115,14 @@ export default function SupplierManagementPage() {
         };
 
         if (editIndex !== null) {
-            const realIndex = data.findIndex((d) => d.name === filteredData[editIndex].name);
+            const realIndex = suppliers.findIndex((d) => d.name === filteredData[editIndex].name);
             if (realIndex !== -1) {
-                const updated = [...data];
+                const updated = [...suppliers];
                 updated[realIndex] = newSupplier;
-                setData(updated);
+                setSuppliers(updated);
             }
         } else {
-            setData([...data, newSupplier]);
+            setSuppliers([...suppliers, newSupplier]);
         }
 
         setOpenModal(false);
@@ -149,7 +130,7 @@ export default function SupplierManagementPage() {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-full w-full p-4 gap-4">
+        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
             <AddSupplierModal
                 open={openModal}
                 onClose={() => {
@@ -162,33 +143,30 @@ export default function SupplierManagementPage() {
             />
 
             {/* Mobile Filter Toggle */}
-            <div className="flex justify-between items-center mb-2 lg:hidden">
-                <button
-                    onClick={() => setShowMobileFilter((prev) => !prev)}
-                    className="bg-gray-200 px-3 py-2 rounded"
-                >
+            <div className="mb-2 flex items-center justify-between lg:hidden">
+                <button onClick={() => setShowMobileFilter((prev) => !prev)} className="rounded bg-gray-200 px-3 py-2">
                     {showMobileFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
                 </button>
 
                 <button
                     onClick={() => setOpenModal(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                    className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                 >
                     Thêm
                 </button>
             </div>
 
             {/* Sidebar Filter */}
-            <div className={`w-full lg:w-[280px] shrink-0 ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
+            <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
                 <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                <div className="hidden lg:flex justify-end mb-2 pr-4">
+            <div className="flex flex-1 flex-col">
+                <div className="mb-2 hidden justify-end pr-4 lg:flex">
                     <button
                         onClick={() => setOpenModal(true)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                     >
                         Thêm
                     </button>
@@ -199,9 +177,7 @@ export default function SupplierManagementPage() {
                     data={filteredData}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    renderImage={(item) => (
-                        <Image src={item.logo} alt={item.name} width={40} height={40} />
-                    )}
+                    renderImage={(item) => <Image src={item.logo} alt={item.name} width={40} height={40} />}
                     showOptions={false}
                 />
             </div>

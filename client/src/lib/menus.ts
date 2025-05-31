@@ -34,9 +34,9 @@ export const menus = {
             link: '/warehouse',
             subMenu: [
                 { label: 'Hàng hoá', link: '/warehouse/accessories' },
-                { label: 'Nhà cung cấp', link: '/warehouse/supplier' },
-                { label: 'Phiếu đặt hàng', link: '/warehouse/order' },
-                { label: 'Nhập/Xuất hàng', link: '/warehouse/transaction' },
+                { label: 'Nhà cung cấp', link: '/warehouse/suppliers' },
+                { label: 'Phiếu đặt hàng', link: '/warehouse/orders' },
+                { label: 'Nhập/Xuất hàng', link: '/warehouse/transactions' },
             ],
         },
     ],
