@@ -2,7 +2,7 @@
 
 import { SelectedCourts, SelectedProducts } from '@/app/booking/courts/page';
 import { deleteBookingCourt, getBookingRedis, postBookingCourt } from '@/services/booking.service';
-import { deleteOrder, getOrderRedis, postOrder } from '@/services/orders.service';
+import { deleteOrder, deleteRentalOrder, getOrderRedis, postOrder } from '@/services/orders.service';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ export interface BookingContextProps {
     removeProduct: (index: number) => void;
     fetchBooking: () => Promise<void>;
     clearCourts: () => void;
-    clearProducts: () => void;
+    clearRentalOrder: () => Promise<void>;
 }
 
 const BookingContext = createContext<BookingContextProps>({
@@ -41,7 +41,7 @@ const BookingContext = createContext<BookingContextProps>({
     fetchBooking: async () => {},
     removeProduct: () => {},
     clearCourts: () => {},
-    clearProducts: () => {},
+    clearRentalOrder: async () => {},
 });
 
 export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
@@ -114,8 +114,10 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         setSelectedCourts([]);
     };
 
-    const clearProducts = () => {
-        setSelectedProducts([]);
+    const clearRentalOrder = async () => {
+        if (user?.username) {
+            await deleteRentalOrder(user.username);
+        }
     };
 
     const fetchBooking = async () => {
@@ -163,7 +165,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 removeProduct,
                 fetchBooking,
                 clearCourts,
-                clearProducts,
+                clearRentalOrder,
             }}
         >
             {children}

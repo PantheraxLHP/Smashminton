@@ -17,7 +17,7 @@ export default function PaymentSuccessPage() {
         const userId = searchParams.get('userId');
         const userName = searchParams.get('userName');
         const paymentMethod = searchParams.get('paymentMethod');
-        const totalAmount = searchParams.get('amount');
+        const totalAmount = searchParams.get('totalAmount');
         const guestPhoneNumber = searchParams.get('guestPhoneNumber');
         const voucherId = searchParams.get('voucherId');
         // MoMo params
@@ -35,9 +35,9 @@ export default function PaymentSuccessPage() {
                 userId: userId || '',
                 userName: userName || '',
                 paymentMethod: paymentMethod,
-                totalAmount: '222222',
+                totalAmount: totalAmount,
                 guestPhoneNumber: guestPhoneNumber || '',
-                voucherId: '1',
+                voucherId: voucherId,
                 status: resultCode === '0' ? 'PAID' : 'FAILED',
                 resultCode: resultCode || '',
             };
@@ -48,15 +48,16 @@ export default function PaymentSuccessPage() {
                 userId: userId || '',
                 userName: userName || '',
                 paymentMethod: paymentMethod,
-                totalAmount: '333333',
+                totalAmount: totalAmount,
                 guestPhoneNumber: guestPhoneNumber || '',
-                voucherId: '1',
+                voucherId: voucherId,
                 status: status,
                 resultCode: payosResultCode || '',
             };
         }
         const handleCreateReceipt = async () => {
             if (apiParams.paymentMethod) {
+                console.log('apiParams', apiParams);
                 const response = await createReceipt(apiParams);
 
                 if (response.ok) {

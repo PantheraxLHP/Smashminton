@@ -1,26 +1,28 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
+import { createMomo, createPayOS } from '@/services/payment.service';
 import { getVouchers } from '@/services/vouchers.service';
 import { Voucher } from '@/types/types';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import OrderSummary from './OrderSummary';
 import PaymentMethodSection from './PaymentMethodSection';
-import { Button } from '@/components/ui/button';
-import { createMomo, createPayOS } from '@/services/payment.service';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
-    const { totalCourtPrice, totalProductPrice } = useBooking();
+    const { totalCourtPrice, totalProductPrice, TTL, selectedCourts, clearRentalOrder } = useBooking();
     const { user } = useAuth();
     const [customerPhone, setCustomerPhone] = useState('');
     const [discount, setDiscount] = useState(0);
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
     const [selectedVoucherId, setSelectedVoucherId] = useState<number>();
     const userProfile = user;
+    const [timeLeft, setTimeLeft] = useState(TTL);
 
     let studentStatus = userProfile?.isStudent;
     studentStatus = true;
@@ -42,6 +44,37 @@ export default function PaymentPage() {
         };
         loadVouchers();
     }, []);
+
+    useEffect(() => {
+        if (selectedCourts && selectedCourts.length > 0) {
+            setTimeLeft(TTL);
+        }
+    }, [TTL, selectedCourts]);
+
+    useEffect(() => {
+        if (timeLeft <= 0 || !selectedCourts || selectedCourts.length === 0) {
+            return;
+        }
+        const timerId = setInterval(() => {
+            setTimeLeft((prevTime) => {
+                if (prevTime <= 1) {
+                    clearInterval(timerId);
+                    toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
+                    clearRentalOrder();
+                    window.location.reload();
+                    return 0;
+                }
+                return prevTime - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timerId);
+    }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
+
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
 
     const handlePayment = async () => {
         const Payload = {
@@ -76,27 +109,38 @@ export default function PaymentPage() {
         <div className="w-full space-y-4 p-4 text-sm">
             <h1 className="text-center text-xl font-semibold">THÔNG TIN THANH TOÁN</h1>
 
-            <div className="flex flex-wrap items-center gap-4">
-                <div className="flex w-full items-center gap-2">
-                    <span className="font-bold">SỐ ĐIỆN THOẠI KHÁCH HÀNG:</span>
-                    {userProfile?.accounttype !== 'Customer' ? (
-                        <input
-                            type="text"
-                            value={customerPhone}
-                            onChange={(e) => setCustomerPhone(e.target.value)}
-                            placeholder="Số điện thoại khách hàng"
-                            className="w-48 rounded border border-gray-300 px-2 py-1 text-xs"
-                        />
-                    ) : (
-                        <span className="rounded bg-gray-200 px-2 py-1 text-xs">{userProfile?.phonenumber}</span>
-                    )}
+            <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold">SỐ ĐIỆN THOẠI KHÁCH HÀNG:</span>
+                        {userProfile?.accounttype !== 'Customer' ? (
+                            <input
+                                type="text"
+                                value={customerPhone}
+                                onChange={(e) => setCustomerPhone(e.target.value)}
+                                placeholder="Số điện thoại khách hàng"
+                                className="w-48 rounded border border-gray-300 px-2 py-1 text-xs"
+                            />
+                        ) : (
+                            <span className="rounded bg-gray-200 px-2 py-1 text-xs">{userProfile?.phonenumber}</span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold">MÃ NHÂN VIÊN:</span>
+                        <span className="rounded bg-gray-200 px-2 py-1 text-xs">
+                            {userProfile?.accounttype !== 'Customer' ? userProfile?.accountid : '#####'}
+                        </span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="font-bold">MÃ NHÂN VIÊN:</span>
-                    <span className="rounded bg-gray-200 px-2 py-1 text-xs">
-                        {userProfile?.accounttype !== 'Customer' ? userProfile?.accountid : '#####'}
-                    </span>
-                </div>
+                {/* Countdown Timer UI */}
+                {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (
+                    <div className="mt-4 flex w-full justify-end sm:mt-0 sm:w-auto">
+                        <div className="text-primary border-primary flex min-w-[120px] flex-col items-center rounded-lg border-2 border-solid bg-white p-2">
+                            <span className="text-sm">Thời gian giữ sân:</span>
+                            <span className="w-full text-3xl">{formatTime(timeLeft)}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="w-full overflow-auto rounded border border-black bg-gray-50">

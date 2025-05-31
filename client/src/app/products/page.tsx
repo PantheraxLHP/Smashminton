@@ -6,6 +6,7 @@ import { useBooking } from '@/context/BookingContext';
 import { getProductFilters, getProducts } from '@/services/products.service';
 import { ProductTypes, Products } from '@/types/types';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
 export interface ProductListItem extends Products {
@@ -14,7 +15,7 @@ export interface ProductListItem extends Products {
 
 const ProductsPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
-
+    const router = useRouter();
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [filters, setFilters] = useState<FilterConfig[]>([]);
@@ -50,16 +51,14 @@ const ProductsPage = () => {
 
     // Update product filter options when product type changes
     useEffect(() => {
-        const baseFilters = filters.filter(filter =>
-            filter.filterid === 'selectedFilter' || filter.filterid === 'productType'
+        const baseFilters = filters.filter(
+            (filter) => filter.filterid === 'selectedFilter' || filter.filterid === 'productType',
         );
 
         if (baseFilters.length !== 2) return;
 
         const selectedProductTypeId = filterValues.productType?.[0];
-        const selectedProductType = productTypes.find(type =>
-            type.producttypeid === selectedProductTypeId
-        );
+        const selectedProductType = productTypes.find((type) => type.producttypeid === selectedProductTypeId);
 
         const hasFilterValues = selectedProductType?.product_filter?.[0]?.product_filter_values;
 
@@ -68,7 +67,7 @@ const ProductsPage = () => {
                 filterid: 'productFilterValues',
                 filterlabel: selectedProductType?.product_filter?.[0].productfiltername || 'Lọc sản phẩm',
                 filtertype: 'checkbox',
-                filteroptions: selectedProductType?.product_filter?.[0]?.product_filter_values?.map(value => ({
+                filteroptions: selectedProductType?.product_filter?.[0]?.product_filter_values?.map((value) => ({
                     optionlabel: value.value || '',
                     optionvalue: value.productfiltervalueid,
                 })),
@@ -122,12 +121,17 @@ const ProductsPage = () => {
                 updated[filterid] = arr;
             } else if (type === 'radio') {
                 updated[filterid] = [value];
-                if (updated["productFilterValues"] !== undefined) {
-                    updated["productFilterValues"] = undefined;
+                if (updated['productFilterValues'] !== undefined) {
+                    updated['productFilterValues'] = undefined;
                 }
             }
             return updated;
         });
+    };
+
+    const handleConfirm = () => {
+        // Redirect to payment page when confirming booking
+        router.push('/booking/payment');
     };
 
     return (
@@ -142,7 +146,12 @@ const ProductsPage = () => {
             </div>
             <ProductList products={products} selectedProducts={selectedProducts} />
             {hasSelectedItems && (
-                <BookingBottomSheet selectedProducts={selectedProducts} selectedCourts={selectedCourts} TTL={TTL} />
+                <BookingBottomSheet
+                    selectedProducts={selectedProducts}
+                    selectedCourts={selectedCourts}
+                    TTL={TTL}
+                    onConfirm={handleConfirm}
+                />
             )}
         </div>
     );

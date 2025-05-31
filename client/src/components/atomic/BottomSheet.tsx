@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { useBooking } from '@/context/BookingContext';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
 import { toast } from 'sonner';
-import { useBooking } from '@/context/BookingContext';
+import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
 
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
@@ -21,7 +21,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     selectedProducts,
     TTL,
 }) => {
-    const { removeCourtByIndex, totalCourtPrice, totalProductPrice } = useBooking();
+    const { removeCourtByIndex, totalCourtPrice, totalProductPrice, clearRentalOrder } = useBooking();
 
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
@@ -44,6 +44,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                 if (prevTime <= 1) {
                     clearInterval(timerId);
                     toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
+                    clearRentalOrder();
                     window.location.reload();
                     return 0;
                 }
@@ -57,7 +58,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
         }
 
         return () => clearInterval(timerId);
-    }, [TTL, selectedCourts, timeLeft, onResetTimer]);
+    }, [TTL, selectedCourts, timeLeft, onResetTimer, clearRentalOrder]);
 
     const formatTime = useCallback((seconds: number) => {
         const minutes = Math.floor(seconds / 60);

@@ -64,3 +64,23 @@ export const deleteOrder = async (orderData: { username?: string; productid?: nu
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 };
+
+export const deleteRentalOrder = async (username: string) => {
+    try {
+        const response = await fetch('/api/orders/delete-rental-order', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username }),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};
