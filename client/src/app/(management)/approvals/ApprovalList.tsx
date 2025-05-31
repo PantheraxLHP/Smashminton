@@ -1,4 +1,6 @@
 import PaginationComponent from "@/components/atomic/PaginationComponent";
+import ApprovalDetails from "./ApprovalDetails";
+import ApprovalAddForm from "./ApprovalAddForm";
 import { Fragment, useState, useEffect } from "react";
 import { Employees, MonthlyNote } from "@/types/types";
 import { useRouter } from "next/navigation";
@@ -16,7 +18,29 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { get } from "http";
+
+export const getButtonVariant = (note: MonthlyNote) => {
+    if (note.notestatus === "approved") {
+        return "default";
+    }
+    else if (note.notestatus === "pending") {
+        return "secondary";
+    }
+    else if (note.notestatus === "rejected") {
+        return "destructive";
+    }
+}
+
+export const getStatusText = (note: MonthlyNote) => {
+    if (note.notestatus === "approved") {
+        return "Đã phê duyệt";
+    } else if (note.notestatus === "pending") {
+        return "Chờ phê duyệt";
+    } else if (note.notestatus === "rejected") {
+        return "Đã từ chối";
+    }
+    return "Không rõ trạng thái";
+}
 
 const ApprovalList = () => {
     const router = useRouter();
@@ -73,31 +97,7 @@ const ApprovalList = () => {
             }
         }
     ]);
-    const [employees, setEmployees] = useState<Employees[]>([
-        {
-            employeeid: 1,
-            role: "Quản lý sân",
-            employee_type: "Bán thời gian",
-            fingerprintid: 1,
-            accounts: {
-                accountid: 1,
-                fullname: "Nguyễn Văn A",
-                createdat: new Date("2023-01-01"),
-            }
-        },
-        {
-            employeeid: 2,
-            role: "Quản lý kho hàng",
-            employee_type: "Toàn thời gian",
-            accounts: {
-                accountid: 2,
-                fullname: "Trần Thị B",
-                createdat: new Date("2023-02-01"),
-            }
-        }
-    ]);
 
-    const [selectedEmployees, setSelectedEmployees] = useState<Employees[]>([]);
     const [selectedNotes, setSelectedNotes] = useState<MonthlyNote[]>([]);
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -153,30 +153,6 @@ const ApprovalList = () => {
         }
     }
 
-
-    const getButtonVariant = (note: MonthlyNote) => {
-        if (note.notestatus === "approved") {
-            return "default";
-        }
-        else if (note.notestatus === "pending") {
-            return "secondary";
-        }
-        else if (note.notestatus === "rejected") {
-            return "destructive";
-        }
-    }
-
-    const getStatusText = (note: MonthlyNote) => {
-        if (note.notestatus === "approved") {
-            return "Đã phê duyệt";
-        } else if (note.notestatus === "pending") {
-            return "Chờ phê duyệt";
-        } else if (note.notestatus === "rejected") {
-            return "Đã từ chối";
-        }
-        return "Không rõ trạng thái";
-    }
-
     return (
         <div className="flex flex-col gap-4 w-full overflow-x-auto">
             <span className="text-2xl font-semibold w-full min-w-max">Danh sách ghi chú</span>
@@ -223,20 +199,37 @@ const ApprovalList = () => {
                                             className="size-8 text-primary-300 cursor-pointer hover:text-primary-500"
                                         />
                                     </DialogTrigger>
-                                    <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
-                                        <DialogHeader className="!h-1">
+                                    <DialogContent className="h-[60vh] overflow-y-auto !flex flex-col gap-2">
+                                        <DialogHeader className="!h-fit flex flex-col gap-0.5">
                                             <DialogTitle className="!h-fit">
-                                                <VisuallyHidden>
-                                                    {
-                                                        `Chi tiết ghi chú của nhân viên ${note.employees?.accounts?.fullname || "chưa có tên"} trong ` +
-                                                        `${(note.createdat)?.toLocaleDateString("vi-VN", {
-                                                            year: 'numeric',
-                                                            month: '2-digit',
-                                                        })}`
-                                                    }
-                                                </VisuallyHidden>
+                                                Chi tiết ghi chú
                                             </DialogTitle>
+                                            <DialogDescription className="!h-fit">
+                                                {
+                                                    `Nhân viên ${note.employeeid} - ${note.employees?.accounts?.fullname || "chưa có tên"} trong ` +
+                                                    `${(note.createdat)?.toLocaleDateString("vi-VN", {
+                                                        year: 'numeric',
+                                                        month: '2-digit',
+                                                    })}`
+                                                }
+                                            </DialogDescription>
                                         </DialogHeader>
+                                        <ApprovalDetails
+                                            note={note}
+                                        />
+                                        <DialogFooter className="!h-fit">
+                                            <DialogTrigger asChild>
+                                                <Button variant="secondary">
+                                                    Thoát
+                                                </Button>
+                                            </DialogTrigger>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {}}
+                                            >
+                                                Lưu
+                                            </Button>
+                                        </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
                             </div>
@@ -276,12 +269,19 @@ const ApprovalList = () => {
                         Phê duyệt
                     </Button>
                     {/* Dialog khi nhấn nút thêm ghi chú */}
-                    <Button
-                        variant="outline"
-                        className="w-30"
-                    >
-                        Thêm ghi chú
-                    </Button>
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="w-30">
+                                Thêm ghi chú
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
+                            <DialogHeader className="!h-1">
+                                <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
+                            </DialogHeader>
+                            <ApprovalAddForm />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
