@@ -7,9 +7,10 @@ interface Props {
     onEdit: () => void;
     onDelete: () => void;
     showOptions?: boolean;
+    onOrder?: () => void;
 }
 
-export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, showOptions }: Props) {
+export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, showOptions, onOrder }: Props) {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             onClose();
@@ -43,7 +44,13 @@ export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, s
                 >
                     Xoá
                 </li>
-                {showOptions && (<li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Đặt hàng</li>)}
+                {showOptions && (<li className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onOrder?.();
+                    }}  
+                >
+                    Đặt hàng</li>)}
             </ul>
         </div>
     );

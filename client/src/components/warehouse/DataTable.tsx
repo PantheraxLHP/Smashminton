@@ -12,13 +12,13 @@ export interface Column<T> {
 }
 
 export interface FilterConfig {
-    type: 'search' | 'checkbox' | 'range';
-    key: string;
-    title?: string;
-    options?: string[]; // For checkbox
-    min?: number;       // For range
-    max?: number;       // For range
-    placeholder?: string; // For search
+    filterid: string;
+    filterlabel: string;
+    filtertype: 'search' | 'checkbox' | 'range';
+    filteroptions?: string[];
+    rangemin?: number;
+    rangemax?: number;
+    placeholder?: string;
 }
 
 interface DataTableProps<T> {
@@ -30,6 +30,7 @@ interface DataTableProps<T> {
     setFilters?: (f: Record<string, any>) => void;
     onEdit?: (index: number) => void;
     onDelete?: (index: number) => void; 
+    onOrder?: (index: number) => void;
     showOptions?: boolean;
 }
 
@@ -42,36 +43,39 @@ export default function DataTable<T extends Record<string, any>>({
     setFilters,
     onEdit,
     onDelete,
+    onOrder,
     showOptions,
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
 
-    const handleCheckboxChange = (key: string, value: string) => {
+    const handleCheckboxChange = (filterid: string, value: string) => {
         if (!setFilters || !filters) return;
-        const current = filters[key] || [];
+        const current = filters[filterid] || [];
         setFilters({
             ...filters,
-            [key]: current.includes(value)
+            [filterid]: current.includes(value)
                 ? current.filter((v: string) => v !== value)
                 : [...current, value],
         });
     };
+    
 
-    const handleInputChange = (key: string, value: any) => {
+    const handleInputChange = (filterid: string, value: any) => {
         if (!setFilters || !filters) return;
-        setFilters({ ...filters, [key]: value });
+        setFilters({ ...filters, [filterid]: value });
     };
+    
 
     const applyFilters = (item: T): boolean => {
         if (!filterConfig || !filters) return true;
 
         return filterConfig.every((config) => {
-            const val = item[config.key];
-            const filterVal = filters[config.key];
+            const val = item[config.filterid];
+            const filterVal = filters[config.filterid];
             if (!filterVal) return true;
 
-            switch (config.type) {
+            switch (config.filtertype) {
                 case 'search':
                     return typeof val === 'string' && val.toLowerCase().includes(filterVal.toLowerCase());
                 case 'checkbox':
@@ -83,6 +87,7 @@ export default function DataTable<T extends Record<string, any>>({
             }
         });
     };
+    
 
     const filteredData = filters ? data.filter(applyFilters) : data;
 
@@ -92,30 +97,30 @@ export default function DataTable<T extends Record<string, any>>({
             {filterConfig.length > 0 && filters && setFilters && (
                 <div className="rounded border p-4 bg-white space-y-4 text-sm">
                     {filterConfig.map((config) => {
-                        if (config.type === 'search') {
+                        if (config.filtertype === 'search') {
                             return (
                                 <input
-                                    key={config.key}
+                                    key={config.filterid}
                                     type="text"
                                     placeholder={config.placeholder}
                                     className="w-full border px-2 py-1 rounded"
-                                    value={filters[config.key] || ''}
-                                    onChange={(e) => handleInputChange(config.key, e.target.value)}
+                                    value={filters[config.filterid] || ''}
+                                    onChange={(e) => handleInputChange(config.filterid, e.target.value)}
                                 />
                             );
                         }
 
-                        if (config.type === 'checkbox') {
+                        if (config.filtertype === 'checkbox') {
                             return (
-                                <div key={config.key}>
-                                    <h4 className="font-semibold">{config.title}</h4>
+                                <div key={config.filterid}>
+                                    <h4 className="font-semibold">{config.filterlabel}</h4>
                                     <div className="space-y-1 mt-1">
-                                        {config.options?.map((opt) => (
+                                        {config.filteroptions?.map((opt) => (
                                             <label key={opt} className="flex items-center space-x-2 text-sm">
                                                 <input
                                                     type="checkbox"
-                                                    checked={(filters[config.key] || []).includes(opt)}
-                                                    onChange={() => handleCheckboxChange(config.key, opt)}
+                                                    checked={(filters[config.filterid] || []).includes(opt)}
+                                                    onChange={() => handleCheckboxChange(config.filterid, opt)}
                                                 />
                                                 <span>{opt}</span>
                                             </label>
@@ -125,30 +130,30 @@ export default function DataTable<T extends Record<string, any>>({
                             );
                         }
 
-                        if (config.type === 'range') {
-                            const val = filters[config.key] || [config.min, config.max];
+                        if (config.filtertype === 'range') {
+                            const val = filters[config.filterid] || [config.rangemin, config.rangemax];
                             return (
-                                <div key={config.key}>
-                                    <h4 className="font-semibold">{config.title}</h4>
+                                <div key={config.filterid}>
+                                    <h4 className="font-semibold">{config.filterlabel}</h4>
                                     <div className="flex gap-2 mt-1">
                                         <input
                                             type="number"
                                             value={val[0]}
-                                            min={config.min}
+                                            min={config.rangemin}
                                             max={val[1]}
                                             className="w-full border px-2 py-1 rounded"
                                             onChange={(e) =>
-                                                handleInputChange(config.key, [Number(e.target.value), val[1]])
+                                                handleInputChange(config.filterid, [Number(e.target.value), val[1]])
                                             }
                                         />
                                         <input
                                             type="number"
                                             value={val[1]}
                                             min={val[0]}
-                                            max={config.max}
+                                            max={config.rangemax}
                                             className="w-full border px-2 py-1 rounded"
                                             onChange={(e) =>
-                                                handleInputChange(config.key, [val[0], Number(e.target.value)])
+                                                handleInputChange(config.filterid, [val[0], Number(e.target.value)])
                                             }
                                         />
                                     </div>
@@ -158,6 +163,7 @@ export default function DataTable<T extends Record<string, any>>({
 
                         return null;
                     })}
+
                 </div>
             )}
 
@@ -250,6 +256,11 @@ export default function DataTable<T extends Record<string, any>>({
                                         onDelete={() => {
                                             if (onDelete && selectedItemIndex !== null) {
                                                 onDelete(selectedItemIndex);
+                                            }
+                                        }}
+                                        onOrder={() => {
+                                            if (onOrder && selectedItemIndex !== null) {
+                                                onOrder(selectedItemIndex);
                                             }
                                         }}
                                         showOptions={showOptions}
