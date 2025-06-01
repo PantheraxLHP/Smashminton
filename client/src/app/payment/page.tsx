@@ -24,11 +24,8 @@ export default function PaymentPage() {
     const userProfile = user;
     const [timeLeft, setTimeLeft] = useState(TTL);
 
-    let studentStatus = userProfile?.isStudent;
-    studentStatus = true;
-
     let totalCourtPriceWithDiscount = totalCourtPrice;
-    if (selectedVoucherId) {
+    if (userProfile?.isStudent) {
         totalCourtPriceWithDiscount = totalCourtPrice * 0.9;
     }
 
@@ -89,8 +86,8 @@ export default function PaymentPage() {
         if (selectedMethod === 'momo') {
             const response = await createMomo(Payload);
             if (response.ok) {
-                const PaymentUrlMomo = await response.data;
-                window.location.href = PaymentUrlMomo;
+                const PaymentUrlMoMo = await response.data;
+                window.location.href = PaymentUrlMoMo;
             } else {
                 alert(response.message || 'Thanh toán thất bại!');
             }
@@ -107,8 +104,6 @@ export default function PaymentPage() {
 
     return (
         <div className="w-full space-y-4 p-4 text-sm">
-            <h1 className="text-center text-xl font-semibold">THÔNG TIN THANH TOÁN</h1>
-
             <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
@@ -185,7 +180,7 @@ export default function PaymentPage() {
                             <div className="flex items-center gap-32 pr-16">
                                 <div className="flex items-center gap-2">
                                     <span>Học sinh / Sinh viên</span>
-                                    <input type="checkbox" checked={!!studentStatus} readOnly />- 10% giá sân
+                                    <input type="checkbox" checked={!!userProfile?.isStudent} readOnly />- 10% giá sân
                                 </div>
                             </div>
                         </div>

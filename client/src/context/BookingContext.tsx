@@ -128,9 +128,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 setTTL(result.data.TTL);
                 setTotalCourtPrice(result.data.totalprice);
             }
-        } else {
-            toast.warning('Vui lòng đăng nhập');
-            router.push('/signin');
         }
     };
     const fetchOrders = async () => {

@@ -28,7 +28,7 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
     const handleQuantityChange = (productId: number, delta: number) => {
         if (delta > 0) {
             if (!selectedCourts || selectedCourts.length === 0) {
-                toast.error('Bạn phải đặt sân trước');
+                toast.warning('Bạn phải đặt sân trước khi thuê sản phẩm');
                 router.push('/booking/courts');
                 return;
             }

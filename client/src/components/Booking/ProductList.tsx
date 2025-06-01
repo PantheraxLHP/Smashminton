@@ -5,6 +5,7 @@ import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,10 +15,10 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProductItem, removeProduct } = useBooking();
+    const { addProductItem, removeProduct, selectedCourts } = useBooking();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
+    const router = useRouter();
     const getProductQuantity = (productId: number) => {
         const product = selectedProducts.find((p) => p.productid === productId);
         return product ? product.quantity : 0;
@@ -25,6 +26,11 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
 
     const handleQuantityChange = (productId: number, delta: number) => {
         if (delta > 0) {
+            if (!selectedCourts || selectedCourts.length === 0) {
+                toast.warning('Bạn cần đăng nhập để đặt sản phẩm');
+                router.push('/signin');
+                return;
+            }
             if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
