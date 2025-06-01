@@ -73,6 +73,7 @@ export default function AccessoryPage() {
     }));
 
     const filtersConfig: FilterConfig[] = [
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
         { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
         { filterid: 'brand', filterlabel: 'THƯƠNG HIỆU', filtertype: 'checkbox', filteroptions: brandOptions },

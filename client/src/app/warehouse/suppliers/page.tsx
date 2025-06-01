@@ -31,29 +31,26 @@ export default function SupplierManagementPage() {
         const fetchSuppliers = async () => {
             const response = await getSuppliers();
             if (response.ok) {
-                setSuppliers(response.data);
+                const mapped = response.data.map((item: any) => ({
+                    name: item.suppliername || '',
+                    phone: item.phonenumber || '',
+                    email: item.email || '',
+                    address: item.address || '',
+                    logo: '/default.png',
+                }));
+                setSuppliers(mapped);
             }
             console.log(response);
         };
         fetchSuppliers();
     }, []);
+      
 
     const filtersConfig: FilterConfig[] = [
-        {
-            filterid: 'name',
-            filtertype: 'search',
-            filterlabel: 'Tìm theo tên',
-        },
-        {
-            filterid: 'phone',
-            filtertype: 'search',
-            filterlabel: 'Tìm theo số điện thoại',
-        },
-        {
-            filterid: 'email',
-            filtertype: 'search',
-            filterlabel: 'Tìm theo email',
-        },
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên', },
+        { filterid: 'phone', filtertype: 'search', filterlabel: 'Tìm theo số điện thoại',},
+        { filterid: 'email', filtertype: 'search', filterlabel: 'Tìm theo email', },
     ];
 
     const columns: Column<Supplier>[] = [
@@ -178,7 +175,11 @@ export default function SupplierManagementPage() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     renderImage={(item) => (
-                        <Image src={item.logo} alt={item.name} width={40} height={40} />
+                        item.logo ? (
+                            <Image src={item.logo} alt={item.name} width={40} height={40} />
+                        ) : (
+                            <Image src="/default.png" alt="default" width={40} height={40} />
+                        )
                     )}
                     showOptions={false}
                 />
