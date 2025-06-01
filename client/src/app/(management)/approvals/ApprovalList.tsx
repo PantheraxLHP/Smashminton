@@ -2,7 +2,7 @@ import PaginationComponent from "@/components/atomic/PaginationComponent";
 import ApprovalDetails from "./ApprovalDetails";
 import ApprovalAddForm from "./ApprovalAddForm";
 import { Fragment, useState, useEffect } from "react";
-import { Employees, MonthlyNote } from "@/types/types";
+import { MonthlyNote } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { formatPrice } from '@/lib/utils';
+import { get } from "http";
 
 export const getButtonVariant = (note: MonthlyNote) => {
     if (note.notestatus === "approved") {
@@ -53,6 +55,7 @@ const ApprovalList = () => {
             employeeid: 1,
             notestatus: "approved",
             notecontent: "Đã hoàn thành công việc đúng hạn.",
+            noterewardamount: 1000000,
             createdat: new Date("2023-01-01"),
             employees: {
                 employeeid: 1,
@@ -69,6 +72,7 @@ const ApprovalList = () => {
             employeeid: 2,
             notestatus: "pending",
             notecontent: "Chưa hoàn thành công việc, cần xem xét.",
+            noterewardamount: 500000,
             createdat: new Date("2023-02-01"),
             employees: {
                 employeeid: 2,
@@ -85,6 +89,7 @@ const ApprovalList = () => {
             employeeid: 3,
             notestatus: "rejected",
             notecontent: "Không đạt yêu cầu công việc.",
+            noterewardamount: 9999000,
             createdat: new Date("2023-03-01"),
             employees: {
                 employeeid: 3,
@@ -157,8 +162,8 @@ const ApprovalList = () => {
         <div className="flex flex-col gap-4 w-full overflow-x-auto">
             <span className="text-2xl font-semibold w-full min-w-max">Danh sách ghi chú</span>
             <div className="flex flex-col w-full min-w-max overflow-x-auto">
-                {/* Table Header - 8 cols*/}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] min-w-max items-center pb-2 border-b-2 border-gray-400 w-full">
+                {/* Table Header - 9 cols*/}
+                <div className="grid grid-cols-[50px_repeat(6,_minmax(150px,_1fr))_100px_150px] min-w-max items-center pb-2 border-b-2 border-gray-400 w-full">
                     <Checkbox
                         className="size-5 cursor-pointer"
                         checked={currentPageSelectAll}
@@ -169,11 +174,12 @@ const ApprovalList = () => {
                     <span className="text-sm font-semibold">Vai trò</span>
                     <span className="text-sm font-semibold">Loại nhân viên</span>
                     <span className="text-sm font-semibold">Tháng - Năm</span>
+                    <span className="text-sm font-semibold">Số tiền thưởng</span>
                     <span className="text-sm font-semibold flex justify-center text-center">Xem ghi chú</span>
                     <span className="text-sm font-semibold flex justify-center text-center">Tình trạng</span>
                 </div>
-                {/* Table Content - 8 cols - 12 rows */}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 min-w-max items-center border-b-2 border-gray-400 w-full">
+                {/* Table Content - 9 cols - 12 rows */}
+                <div className="grid grid-cols-[50px_repeat(6,_minmax(150px,_1fr))_100px_150px] grid-rows-12 min-w-max items-center border-b-2 border-gray-400 w-full">
                     {notes.map((note) => (
                         <Fragment key={`note-${note.noteid}`}>
                             <div className="flex items-center py-2 h-14.5 border-b-2 border-gray-200">
@@ -187,10 +193,15 @@ const ApprovalList = () => {
                             <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.accounts?.fullname}</div>
                             <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.role}</div>
                             <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.employee_type}</div>
-                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{(note.createdat)?.toLocaleDateString("vi-VN", {
-                                year: 'numeric',
-                                month: '2-digit',
-                            })}</div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">
+                                {(note.createdat)?.toLocaleDateString("vi-VN", {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                })}
+                            </div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">
+                                {formatPrice(note.noterewardamount || 0)}
+                            </div>
                             <div className="flex items-center justify-center py-2 h-14.5 border-b-2 border-gray-200">
                                 <Dialog>
                                     <DialogTrigger asChild>
@@ -217,19 +228,21 @@ const ApprovalList = () => {
                                         <ApprovalDetails
                                             note={note}
                                         />
-                                        <DialogFooter className="!h-fit">
-                                            <DialogTrigger asChild>
-                                                <Button variant="secondary">
-                                                    Thoát
+                                        {getStatusText(note) === "Chờ phê duyệt" && (
+                                            <DialogFooter className="!h-fit">
+                                                <DialogTrigger asChild>
+                                                    <Button variant="secondary">
+                                                        Thoát
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => {}}
+                                                >
+                                                    Lưu
                                                 </Button>
-                                            </DialogTrigger>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => {}}
-                                            >
-                                                Lưu
-                                            </Button>
-                                        </DialogFooter>
+                                            </DialogFooter>
+                                        )}
                                     </DialogContent>
                                 </Dialog>
                             </div>

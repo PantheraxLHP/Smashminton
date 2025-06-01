@@ -363,6 +363,7 @@ export interface MonthlyNote {
     noteid: number;
     notecontent?: string;
     notestatus?: string;
+    noterewardamount?: number;
     employeeid?: number;
     employees?: Employees;
     createdat?: Date;

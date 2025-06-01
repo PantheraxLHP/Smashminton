@@ -138,11 +138,13 @@ const EmployeeList = () => {
                             <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.accounts?.fullname}</div>
                             <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.role}</div>
                             <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.employee_type}</div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{(employee.accounts?.createdat)?.toLocaleDateString("vi-VN", {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit'
-                            })}</div>
+                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">
+                                {(employee.accounts?.createdat)?.toLocaleDateString("vi-VN", {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                })}
+                            </div>
                             <div className="flex items-center justify-center py-2 h-14 border-b-2 border-gray-200">
                                 <Dialog>
                                     <DialogTrigger asChild>

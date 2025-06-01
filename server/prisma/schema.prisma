@@ -130,22 +130,23 @@ model employees {
 }
 
 model monthly_note {
-  noteid     Int        @id @default(autoincrement())
-  notecontent    String?
-  notestatus  String?
-  employeeid  Int?
-  employees   employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_monthlynote_employees")
-  createdat   DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat   DateTime?  @default(now()) @db.Timestamptz(6)
+  noteid            Int        @id @default(autoincrement())
+  notecontent       String?
+  notestatus        String?
+  noterewardamount Decimal?   @db.Decimal
+  employeeid        Int?
+  employees         employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_monthlynote_employees")
+  createdat         DateTime?  @default(now()) @db.Timestamptz(6)
+  updatedat         DateTime?  @default(now()) @db.Timestamptz(6)
 }
 
 model order_product {
-  orderid   Int
-  productid Int
-  returndate DateTime?       @db.Timestamptz(6)
-  quantity  Int?
-  orders    orders   @relation(fields: [orderid], references: [orderid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_orders")
-  products  products @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_products")
+  orderid    Int
+  productid  Int
+  returndate DateTime? @db.Timestamptz(6)
+  quantity   Int?
+  orders     orders    @relation(fields: [orderid], references: [orderid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_orders")
+  products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_products")
 
   @@id([orderid, productid], map: "pk_orderproduct")
 }
@@ -210,30 +211,30 @@ model products {
 }
 
 model product_batch {
-  batchid          Int                  @id @default(autoincrement())
-  batchname        String?
-  expirydate       DateTime?            @default(now()) @db.Timestamptz(6)
-  stockquantity    Int?
-  status           String?
-  createdat        DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat        DateTime?  @default(now()) @db.Timestamptz(6)
-  purchase_order   purchase_order[]
+  batchid        Int              @id @default(autoincrement())
+  batchname      String?
+  expirydate     DateTime?        @default(now()) @db.Timestamptz(6)
+  stockquantity  Int?
+  status         String?
+  createdat      DateTime?        @default(now()) @db.Timestamptz(6)
+  updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
+  purchase_order purchase_order[]
 }
 
 model purchase_order {
-  poid         Int        @id @default(autoincrement())
-  quantity     Int?
-  deliverydate DateTime?  @db.Timestamptz(6)
-  createdat    DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat    DateTime?  @default(now()) @db.Timestamptz(6)
-  productid    Int?
-  employeeid   Int?
-  supplierid   Int?
-  batchid      Int?
-  product_batch    product_batch? @relation(fields: [batchid], references: [batchid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_productbatch")
-  employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
-  products     products?  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
-  suppliers    suppliers? @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
+  poid          Int            @id @default(autoincrement())
+  quantity      Int?
+  deliverydate  DateTime?      @db.Timestamptz(6)
+  createdat     DateTime?      @default(now()) @db.Timestamptz(6)
+  updatedat     DateTime?      @default(now()) @db.Timestamptz(6)
+  productid     Int?
+  employeeid    Int?
+  supplierid    Int?
+  batchid       Int?
+  product_batch product_batch? @relation(fields: [batchid], references: [batchid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_productbatch")
+  employees     employees?     @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
+  products      products?      @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
+  suppliers     suppliers?     @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
 }
 
 model receipts {
@@ -277,12 +278,12 @@ model shift {
 }
 
 model shift_assignment {
-  employeeid Int
-  shiftid    Int
-  shiftdate  DateTime   @db.Timestamptz(6)
+  employeeid       Int
+  shiftid          Int
+  shiftdate        DateTime   @db.Timestamptz(6)
   assignmentstatus String?
-  employees  employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
-  shift_date shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
+  employees        employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
+  shift_date       shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftassignment")
 }
@@ -293,7 +294,7 @@ model shift_date {
   shift_assignment shift_assignment[]
   shift            shift              @relation(fields: [shiftid], references: [shiftid], onDelete: Cascade, onUpdate: NoAction, map: "fk_shiftdate_shift")
   shift_enrollment shift_enrollment[]
-  
+
   @@id([shiftid, shiftdate], map: "pk_shiftdate")
 }
 
