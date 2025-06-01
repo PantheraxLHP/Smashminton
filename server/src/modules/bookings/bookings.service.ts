@@ -6,6 +6,7 @@ import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/c
 import { AvailableCourtsAndUnavailableStartTime, Booking, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { CourtPrices } from 'src/interfaces/courts.interface';
 @Injectable()
 export class BookingsService {
 	constructor(
@@ -13,11 +14,11 @@ export class BookingsService {
 		private cacheService: CacheService,
 		private courtBookingService: CourtBookingService,
 	) { }
-	async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean): Promise<AvailableCourtsAndUnavailableStartTime> {
-		if (!zoneid || !date || !starttime || !duration || fixedCourt === undefined) {
+	async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number): Promise<AvailableCourtsAndUnavailableStartTime> {
+		if (!zoneid || !date || !starttime || !duration) {
 			throw new BadRequestException('Missing query parameters');
 		}
-		const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
+		const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration);
 		const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
 
 		return {
@@ -26,12 +27,29 @@ export class BookingsService {
 		};
 	}
 
-	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
-		const { username, court_booking } = CacheBookingDTO;
+	async getAvailableCourtsAndUnavailableStartTimeForFixedCourt(zoneid: number, date: string, starttime: string, duration: number): Promise<AvailableCourtsAndUnavailableStartTime> {
+		if (!zoneid || !date || !starttime || !duration) {
+			throw new BadRequestException('Missing query parameters');
+		}
+		const availableCourts = await this.courtBookingService.getAvailableFixedCourts(zoneid, date, starttime, duration);
+		const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimesForFixedCourt(zoneid, date, duration);
 
-		// Gọi hàm getSeparatedCourtPrices để lấy danh sách các khoảng giá đã tách
-		const separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
-		console.log('separatedCourts1', separatedCourts);
+		return {
+			availableCourts: availableCourts,
+			unavailableStartTimes: unavailableStartTimes,
+		};
+	}
+	
+	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
+		const { username, fixedCourt, court_booking } = CacheBookingDTO;
+
+		let separatedCourts: CourtPrices[] = [];
+		if (fixedCourt) {
+			separatedCourts = await this.courtBookingService.getSeparatedFixedCourtPrices(court_booking);
+		} else {
+			separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
+		}
+
 		// Kiểm tra nếu không có username
 		if (!username) {
 			throw new BadRequestException('Username is required to add booking to cache');
@@ -41,9 +59,6 @@ export class BookingsService {
 		if (!separatedCourts || separatedCourts.length === 0) {
 			throw new BadRequestException('No separated court prices found');
 		}
-
-		console.log('separatedCourts2', separatedCourts);
-
 		// Lấy cache của người dùng từ Redis
 		const bookingUserCache = await this.cacheService.getBooking(username);
 
@@ -62,7 +77,7 @@ export class BookingsService {
 					courtid: court.courtid,
 					courtname: court.courtname ?? '',
 					courtimgurl: court.courtimgurl ?? '',
-					date: court_booking.date,
+					date: court.date || '',
 					starttime: court.starttime,
 					duration: court.duration ?? 0,
 					endtime: court.endtime,
@@ -97,7 +112,7 @@ export class BookingsService {
 				courtid: court.courtid,
 				courtname: court.courtname ?? '',
 				courtimgurl: court.courtimgurl ?? '',
-				date: court_booking.date,
+				date: court.date || '',
 				starttime: court.starttime,
 				duration: court.duration ?? 0,
 				endtime: court.endtime,
@@ -106,8 +121,6 @@ export class BookingsService {
 
 			bookingUserCache.court_booking.push(newCourtBooking);
 			bookingUserCache.totalprice += newCourtBooking.price;
-
-			console.log('newCourtBooking', newCourtBooking);
 		}
 
 		// Ghi đè lại dữ liệu trong Redis

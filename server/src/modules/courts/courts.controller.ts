@@ -41,4 +41,13 @@ export class CourtsController {
     async getSeparateCourtPrice(@Body() courtBookingDTO: courtBookingDto) {
         return this.courtsService.separateCourtPrice(courtBookingDTO);
     }
+
+    @Post('separate-fixed-court-price')
+    @ApiBody({
+        description: 'Thông tin đặt sân cố định',
+        type: courtBookingDto
+    })
+    async getSeparateFixedCourtPrice(@Body() courtBookingDTO: courtBookingDto) {
+        return this.courtsService.separateFixedCourtPrice(courtBookingDTO);
+    }
 }

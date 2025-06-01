@@ -6,6 +6,7 @@ import {
     IsString,
     IsNumber,
     IsDateString,
+    IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -15,7 +16,7 @@ export class courtBookingDto {
     @IsInt()
     @IsOptional()
     zoneid?: number;
-    
+
     @ApiProperty({ example: 8 })
     @IsInt()
     @IsNotEmpty()
@@ -62,6 +63,11 @@ export class cacheBookingDTO {
     @IsString()
     @IsNotEmpty()
     username: string;
+
+    @ApiProperty({ example: false }) // example fixedCourt
+    @IsBoolean()
+    @IsOptional()
+    fixedCourt?: boolean;
 
     @ApiProperty({ type: courtBookingDto })
     @IsNotEmpty()

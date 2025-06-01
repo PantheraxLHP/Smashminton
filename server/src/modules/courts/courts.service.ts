@@ -193,13 +193,13 @@ export class CourtsService {
         const parsedStartTime = dayjs(starttime, 'HH:mm');
 
         const parsedEndTime = dayjs(endtime, 'HH:mm');
-    
+
         const parsedZoneId = Number(zoneid);
         const dayOfWeek = getEnglishDayName(date);
-    
+
         let DayFrom: string = '';
         let DayTo: string = '';
-    
+
         // Xác định khoảng thời gian theo ngày trong tuần
         if (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(dayOfWeek)) {
             DayFrom = 'Monday';
@@ -208,7 +208,7 @@ export class CourtsService {
             DayFrom = 'Saturday';
             DayTo = 'Sunday';
         }
-    
+
         // Truy vấn tất cả các giá sân phù hợp
         const zonePricesByAllCourts = await this.prisma.courts.findMany({
             where: {
@@ -237,7 +237,7 @@ export class CourtsService {
                 },
             },
         });
-    
+
         // Gộp tất cả zone_prices vào một mảng duy nhất
         const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
             court.zones?.zone_prices.map((zonePrice) => ({
@@ -250,21 +250,21 @@ export class CourtsService {
                 price: zonePrice.price,
             })) || []
         );
-    
+
         const separatedPrices: CourtPrices[] = [];
-    
+
         for (const zone of allZonePrices) {
             const zoneStart = dayjs(zone.starttime, 'HH:mm');
             const zoneEnd = dayjs(zone.endtime, 'HH:mm');
-    
+
             // Tính khoảng giao nhau giữa thời gian người dùng và khung giờ của zone
             const actualStart = parsedStartTime.isAfter(zoneStart) ? parsedStartTime : zoneStart;
             const actualEnd = parsedEndTime.isBefore(zoneEnd) ? parsedEndTime : zoneEnd;
-    
+
             if (actualStart.isBefore(actualEnd)) {
                 const durationInHours = actualEnd.diff(actualStart, 'minutes') / 60; // phút -> giờ
                 const priceForDuration = durationInHours * parseFloat((zone.price ?? '0').toString());
-    
+
                 separatedPrices.push({
                     zoneid: zone.zoneid ?? 0,
                     courtid: zone.courtid,
@@ -279,5 +279,42 @@ export class CourtsService {
             }
         }
         return separatedPrices;
+    }
+
+    async separateFixedCourtPrice(CourtBookingDTO: courtBookingDto): Promise<CourtPrices[]> {
+        const { zoneid, starttime, endtime, date, courtid } = CourtBookingDTO;
+
+        // Tạo danh sách 4 ngày đặt sân, mỗi ngày cách nhau 7 ngày
+        const bookingDates: string[] = [];
+        for (let i = 0; i < 4; i++) {
+            const bookingDate = dayjs(date).add(i * 7, 'day').format('YYYY-MM-DD');
+            bookingDates.push(bookingDate);
+        }
+
+        const allSeparatedPrices: CourtPrices[] = [];
+
+        // Tách giá cho từng ngày trong 4 tuần
+        for (let i = 0; i < bookingDates.length; i++) {
+            const currentDate = bookingDates[i];
+
+            // Tạo DTO cho ngày hiện tại
+            const currentCourtBookingDTO: courtBookingDto = {
+                ...CourtBookingDTO,
+                date: currentDate
+            };
+
+            // Gọi hàm separateCourtPrice cho ngày hiện tại
+            const separatedPricesForDate = await this.separateCourtPrice(currentCourtBookingDTO);
+
+            // Thêm thông tin tuần vào mỗi price object
+            const pricesWithWeekInfo = separatedPricesForDate.map(price => ({
+                ...price,
+                date: currentDate,
+            }));
+
+            allSeparatedPrices.push(...pricesWithWeekInfo);
+        }
+
+        return allSeparatedPrices;
     }
 }
