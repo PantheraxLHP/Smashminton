@@ -2,6 +2,7 @@ import { SelectedProducts } from '@/app/booking/courts/page';
 import { RentalListItem } from '@/app/rentals/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
@@ -17,6 +18,7 @@ interface RentalListProps {
 
 const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, returnDate }) => {
     const { addRentalItem, removeProduct, selectedCourts } = useBooking();
+    const { user } = useAuth();
     const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
     const router = useRouter();
@@ -27,7 +29,7 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
 
     const handleQuantityChange = (productId: number, delta: number) => {
         if (delta > 0) {
-            if (!selectedCourts || selectedCourts.length === 0) {
+            if (!selectedCourts || selectedCourts.length === 0 || !user) {
                 toast.warning('Bạn phải đặt sân trước khi thuê sản phẩm');
                 router.push('/booking/courts');
                 return;

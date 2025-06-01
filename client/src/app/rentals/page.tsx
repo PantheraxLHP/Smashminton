@@ -153,7 +153,7 @@ const RentalPage = () => {
 
     return (
         <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
-            <div className="flex w-full flex-col sm:w-1/5">
+            <div className="flex w-full flex-col gap-4 sm:w-1/5">
                 <div className="flex flex-col gap-2">
                     <label htmlFor="date-booking" className="text-sm font-bold">
                         Ngày nhận
@@ -170,7 +170,7 @@ const RentalPage = () => {
                         >
                             <SelectTrigger
                                 id="date-booking"
-                                className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
+                                className="w-full rounded-md border border-gray-500 p-2 text-sm placeholder:text-gray-500"
                             >
                                 <SelectValue placeholder="Chọn ngày nhận" />
                             </SelectTrigger>

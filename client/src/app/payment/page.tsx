@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatTime } from '@/lib/utils';
 import { createMomo, createPayOS } from '@/services/payment.service';
 import { getVouchers } from '@/services/vouchers.service';
 import { Voucher } from '@/types/types';
@@ -66,12 +66,6 @@ export default function PaymentPage() {
         }, 1000);
         return () => clearInterval(timerId);
     }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
-
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    };
 
     const handlePayment = async () => {
         const Payload = {

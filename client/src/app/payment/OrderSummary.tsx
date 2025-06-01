@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 export default function OrderSummary() {
     const { addProductItem, removeProduct, totalCourtPrice, totalProductPrice, selectedCourts, selectedProducts } =
         useBooking();
-    const getProductQuantity = (productid: number) => {
+    const getSelectedProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
     };
@@ -16,15 +16,15 @@ export default function OrderSummary() {
     const handleQuantityChange = (productId: number, delta: number) => {
         if (delta > 0) {
             if (
-                getProductQuantity(productId) >=
-                (selectedProducts.find((p) => p.productid === productId)?.quantity || 0)
+                getSelectedProductQuantity(productId) >=
+                (selectedProducts.find((p) => p.productid === productId)?.totalStockQuantity || 0)
             ) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
             addProductItem(productId);
         } else {
-            if (getProductQuantity(productId) == 0) {
+            if (getSelectedProductQuantity(productId) == 0) {
                 return;
             }
             removeProduct(productId);
@@ -78,7 +78,7 @@ export default function OrderSummary() {
                                     –
                                 </button>
                                 <span className="min-w-[24px] text-center">
-                                    {getProductQuantity(product.productid) || 1}
+                                    {getSelectedProductQuantity(product.productid) || 1}
                                 </span>
                                 <button
                                     onClick={() => handleQuantityChange(product.productid, 1)}
@@ -92,7 +92,7 @@ export default function OrderSummary() {
                         <td className="px-2 py-3"></td>
                         <td className="px-2 py-3">{formatPrice(product.unitprice)}</td>
                         <td className="px-2 py-3">
-                            {formatPrice(product.unitprice * (getProductQuantity(product.productid) || 1))}
+                            {formatPrice(product.unitprice * (getSelectedProductQuantity(product.productid) || 1))}
                         </td>
                     </tr>
                 ))}

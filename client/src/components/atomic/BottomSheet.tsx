@@ -2,13 +2,13 @@ import { Button } from '@/components/ui/button';
 import { useBooking } from '@/context/BookingContext';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
+import { formatTime } from '@/lib/utils';
 
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
-    onResetTimer?(resetTimerFn: () => void): void;
     selectedCourts: SelectedCourts[];
     selectedProducts: SelectedProducts[];
     TTL: number;
@@ -16,7 +16,6 @@ export interface BookingBottomSheetProps {
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
     onConfirm,
-    onResetTimer,
     selectedCourts,
     selectedProducts,
     TTL,
@@ -52,19 +51,8 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
             });
         }, 1000);
 
-        // Pass reset function to parent if onResetTimer is provided
-        if (onResetTimer) {
-            onResetTimer(() => setTimeLeft(TTL));
-        }
-
         return () => clearInterval(timerId);
-    }, [TTL, selectedCourts, timeLeft, onResetTimer, clearRentalOrder]);
-
-    const formatTime = useCallback((seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    }, []);
+    }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
 
     // onConfirm function use for booking page, if not set, it will redirect to payment page
     const handleConfirm = () => {
