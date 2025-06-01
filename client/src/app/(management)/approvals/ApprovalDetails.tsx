@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MonthlyNote } from "@/types/types";
 import { getStatusText, getButtonVariant } from "./ApprovalList";
+import { formatPrice } from '@/lib/utils';
 
 interface ApprovalDetailsProps {
     note: MonthlyNote;
@@ -12,7 +13,7 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
     note,
 }) => {
     return (
-        <div className="flex flex-col h-full gap-4">
+        <div className="flex flex-col h-full gap-4 w-full">
             <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col gap-1 w-full">
                     <span className="text-xs font-semibold">Mã nhân viên</span>
@@ -25,11 +26,25 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
             </div>
             <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col gap-1 w-full">
+                    <span className="text-xs font-semibold">Loại thưởng</span>
+                    <span className="">Thưởng hiệu suất</span>
+                </div>
+                <div className="flex flex-col gap-1 w-full">
+                    <span className="text-xs font-semibold">Số tiền thưởng</span>
+                    <span className="">
+                        + {formatPrice(note.noterewardamount || 0)}
+                    </span>
+                </div>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col gap-1 w-full">
                     <span className="text-xs font-semibold">Tháng - Năm</span>
-                    <span className="">{(note.createdat)?.toLocaleDateString("vi-VN", {
-                        month: '2-digit',
-                        year: 'numeric'
-                    })}</span>
+                    <span className="">
+                        {(note.createdat)?.toLocaleDateString("vi-VN", {
+                            month: '2-digit',
+                            year: 'numeric'
+                        })}
+                    </span>
                 </div>
                 <div className="flex flex-col gap-1 w-full">
                     <span className="text-xs font-semibold">Trạng thái</span>

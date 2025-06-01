@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
 
 export interface ProductListItem extends Products {
-    quantity: number;
+    totalStockQuantity: number;
 }
 
 const ProductsPage = () => {

@@ -30,6 +30,7 @@ export interface SelectedProducts extends Products {
     unitprice: number;
     quantity: number;
     totalamount: number;
+    totalStockQuantity: number;
 }
 
 export interface Filters {

@@ -1,10 +1,12 @@
 import { SelectedProducts } from '@/app/booking/courts/page';
 import { ProductListItem } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,18 +16,33 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProductItem, removeProduct } = useBooking();
+    const { addProductItem, removeProduct, selectedCourts } = useBooking();
+    const { user } = useAuth();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
+    const router = useRouter();
     const getProductQuantity = (productId: number) => {
+        // Get product quantity was selected
         const product = selectedProducts.find((p) => p.productid === productId);
         return product ? product.quantity : 0;
     };
 
+    const getProductTotalStockQuantity = (productId: number) => {
+        const product = products.find((p) => p.productid === productId);
+        return product ? product.totalStockQuantity : 0;
+    };
+
     const handleQuantityChange = (productId: number, delta: number) => {
         if (delta > 0) {
-            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
+            if (!user) {
+                toast.warning('Bạn cần đăng nhập để đặt sản phẩm');
+                router.push('/signin');
+                return;
+            }
+            if (
+                getProductQuantity(productId) >=
+                (products.find((p) => p.productid === productId)?.totalStockQuantity || 0)
+            ) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
@@ -113,7 +130,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                         </div>
                         {/* show stock quantity */}
                         <div className="flex items-end gap-1 text-sm text-gray-500">
-                            <span>Số lượng: {product.quantity}</span>
+                            <span>Số lượng: {product.totalStockQuantity}</span>
                             <Icon icon="mdi:racket" className="h-5 w-5" />
                         </div>
                     </div>

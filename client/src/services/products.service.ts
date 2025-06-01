@@ -63,7 +63,12 @@ export const getProducts = async (productTypeId: number, productFilterValue?: nu
             return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
         }
 
-        return ServiceResponse.success(result.data);
+        const products = result.data.map((product: any) => ({
+            ...product,
+            totalStockQuantity: product.quantity,
+        }));
+
+        return ServiceResponse.success(products);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
