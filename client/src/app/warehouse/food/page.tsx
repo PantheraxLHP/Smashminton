@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SidebarFilter from '../../../components/warehouse/SidebarFilter';
-import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
+import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import FoodModal, { FoodFormData } from './AddFood';
+import PurchaseOrderForm from '@/components/warehouse/OrderForm';
+import { BaseItem } from '@/components/warehouse/OrderForm';
 
-interface FoodItem {
-    name: string;
+export interface FoodItem extends BaseItem {
     category: string;
-    price: number;
     lot: string;
     expiry: string;
     stock: number;
@@ -18,70 +18,21 @@ interface FoodItem {
 }
 
 const rawData: FoodItem[] = [
-    {
-        name: 'Set cá viên chiên',
-        category: 'Đồ ăn',
-        price: 50000,
-        lot: '3',
-        expiry: '2024-12-12',
-        stock: 80,
-        image: '/default.png',
-    },
-    {
-        name: 'Set cá viên chiên cay',
-        category: 'Đồ ăn',
-        price: 70000,
-        lot: '3',
-        expiry: '2024-12-12',
-        stock: 60,
-        image: '/default.png',
-    },
-    {
-        name: 'Snack O’Star',
-        category: 'Snack',
-        price: 25000,
-        lot: '2',
-        expiry: '2024-12-12',
-        stock: 35,
-        image: '/default.png',
-    },
-    {
-        name: 'Revive',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '3',
-        expiry: '2025-12-12',
-        stock: 25,
-        image: '/default.png',
-    },
-    {
-        name: 'Pocari (Hết hạn)',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '1',
-        expiry: '2024-05-10',
-        stock: 22,
-        image: '/default.png',
-    },
-    {
-        name: 'Pocari (Sắp hết hạn)',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '2',
-        expiry: '2025-05-28',
-        stock: 30,
-        image: '/default.png',
-    },
+    { name: 'Set cá viên chiên', category: 'Đồ ăn', price: 50000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png' },
+    { name: 'Set cá viên chiên cay', category: 'Đồ ăn', price: 70000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png' },
+    { name: 'Snack O’Star', category: 'Snack', price: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png' },
+    { name: 'Revive', category: 'Nước uống', price: 15000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png' },
+    { name: 'Pocari (Hết hạn)', category: 'Nước uống', price: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png' },
+    { name: 'Pocari (Sắp hết hạn)', category: 'Nước uống', price: 15000, lot: '2', expiry: '2025-05-28', stock: 30, image: '/default.png' },
 ];
 
-const processDataWithStatus = (data: FoodItem[]): FoodItem[] => {
+const processDataWithStatus = (data: FoodItem[]) => {
     const today = new Date();
     const soonThreshold = 30;
 
     return data.map((item) => {
         const expiryDate = new Date(item.expiry);
-        const diffTime = expiryDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
         let status = '';
         if (diffDays < 0) status = 'Hết hạn';
@@ -98,61 +49,67 @@ const getUniqueOptions = (data: FoodItem[], key: keyof FoodItem) => {
 
 export default function FoodAndBeveragePage() {
     const [data, setData] = useState<FoodItem[]>([]);
+    const [filteredData, setFilteredData] = useState<FoodItem[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const [editData, setEditData] = useState<FoodFormData | null>(null);
+    const [openOrderForm, setOpenOrderForm] = useState(false);
+    const [selectedOrderItem, setSelectedOrderItem] = useState<FoodItem | null>(null);
+
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         category: [],
-        price: [0, 100000],
+        price: [0, 1000],
         lot: [],
-    });
+      });
 
+    // Process data and initialize filters
     useEffect(() => {
-        const fetched = processDataWithStatus(rawData);
-        setData(fetched);
+        const processed = processDataWithStatus(rawData);
+        setData(processed);
 
-        const minPrice = Math.min(...fetched.map((d) => d.price));
-        const maxPrice = Math.max(...fetched.map((d) => d.price));
-
+        const prices = processed.map((d) => d.price);
         setFilters((prev) => ({
             ...prev,
-            price: [minPrice, maxPrice],
+            price: [Math.min(...prices), Math.max(...prices)],
         }));
     }, []);
 
-    const categoryOptions = getUniqueOptions(data, 'category');
-    const lotOptions = getUniqueOptions(data, 'lot');
+    // Filter data whenever filters or data change
+    useEffect(() => {
+        const result = data.filter((item) => {
+            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+            const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
+            const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
+            const matchesLot = filters.lot.length === 0 || filters.lot.includes(item.lot);
+
+            return matchesName && matchesCategory && matchesPrice && matchesLot;
+        });
+        setFilteredData(result);
+    }, [filters, data]);
+
+    const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
+        optionlabel: option,
+        optionvalue: option,
+    }));
+    const lotOptions: FilterOption[] = getUniqueOptions(data, 'lot').map((option) => ({
+        optionlabel: option,
+        optionvalue: option,
+    }));
 
     const filtersConfig: FilterConfig[] = [
-        { key: 'name', type: 'search', placeholder: 'Tìm kiếm' },
-        { key: 'category', title: 'LOẠI', type: 'checkbox', options: categoryOptions },
-        { key: 'price', title: 'KHOẢNG GIÁ', type: 'range', min: 0, max: 100000 },
-        { key: 'lot', title: 'Lô hàng', type: 'checkbox', options: lotOptions },
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+        { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
+        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 100000 },
+        { filterid: 'lot', filterlabel: 'Lô hàng', filtertype: 'checkbox', filteroptions: lotOptions },
     ];
-
-    const filteredData = data.filter((item) => {
-        if (!filters.price || !Array.isArray(filters.price)) return true;
-
-        const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesCategory = !filters.category?.length || filters.category.includes(item.category);
-        const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
-        const matchesLot = !filters.lot?.length || filters.lot.includes(item.lot);
-        return matchesName && matchesCategory && matchesPrice && matchesLot;
-    });
 
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        {
-            header: 'Giá / đơn vị tính',
-            accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND`,
-        },
+        { header: 'Giá / đơn vị tính', accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND` },
         { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
-        {
-            header: 'Ngày hết hạn',
-            accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'),
-            align: 'center',
-        },
+        { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
         {
             header: 'Tình trạng',
@@ -160,17 +117,15 @@ export default function FoodAndBeveragePage() {
             align: 'center',
             className: (item) =>
                 item.status === 'Sắp hết hạn'
-                    ? 'text-yellow-600 px-2 py-1 rounded'
+                    ? 'text-yellow-600'
                     : item.status === 'Hết hạn'
-                        ? 'text-red-600 px-2 py-1 rounded'
-                        : 'text-green-600 px-2 py-1 rounded',
+                        ? 'text-red-600'
+                        : 'text-green-600',
         },
     ];
 
     const handleEdit = (index: number) => {
         const item = filteredData[index];
-        if (!item) return;
-
         setEditData({
             name: item.name,
             category: item.category,
@@ -184,15 +139,15 @@ export default function FoodAndBeveragePage() {
 
     const handleDelete = (index: number) => {
         const item = filteredData[index];
-        const confirmed = window.confirm(`Xác nhận xóa sản phẩm: ${item.name}?`);
-        if (confirmed) {
-            const realIndex = data.findIndex((d) => d.name === item.name);
-            if (realIndex !== -1) {
-                const newData = [...data];
-                newData.splice(realIndex, 1);
-                setData(newData);
-            }
+        if (window.confirm(`Xác nhận xóa sản phẩm: ${item.name}?`)) {
+            const newData = data.filter((d) => d.name !== item.name);
+            setData(newData);
         }
+    };
+
+    const handleOrder = (index: number) => {
+        setSelectedOrderItem(filteredData[index]);
+        setOpenOrderForm(true);
     };
 
     const handleSubmit = (formData: FoodFormData) => {
@@ -207,13 +162,11 @@ export default function FoodAndBeveragePage() {
         };
 
         if (editData) {
-            const index = data.findIndex((d) => d.name === editData.name);
-            if (index !== -1) {
-                const updated = [...data];
-                updated[index] = newFood;
-                setData(updated);
-            }
+            // Edit mode
+            const updated = data.map((item) => (item.name === editData.name ? newFood : item));
+            setData(updated);
         } else {
+            // Add mode
             setData([...data, newFood]);
         }
 
@@ -234,7 +187,11 @@ export default function FoodAndBeveragePage() {
             />
 
             <div className="w-full shrink-0 lg:w-[280px]">
-                <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
+                <Filter
+                    filters={filtersConfig}
+                    values={filters}
+                    setFilterValues={setFilters}
+                />
             </div>
 
             <div className="flex flex-1 flex-col">
@@ -257,8 +214,17 @@ export default function FoodAndBeveragePage() {
                     showOptions
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onOrder={handleOrder}
                 />
             </div>
+
+            {openOrderForm && selectedOrderItem && (
+                <PurchaseOrderForm
+                    open={openOrderForm}
+                    onClose={() => setOpenOrderForm(false)}
+                    item={selectedOrderItem}
+                />
+            )}
         </div>
     );
 }

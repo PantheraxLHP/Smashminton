@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SidebarFilter from '../../../components/warehouse/SidebarFilter';
-import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
+import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AddSupplierModal, { SupplierFormData } from './AddSuppliers';
 import { getSuppliers } from '@/services/suppliers.service';
+import Filter, { FilterConfig } from '@/components/atomic/Filter';
 
 interface Supplier {
     name: string;
@@ -15,13 +15,13 @@ interface Supplier {
     logo: string;
 }
 
-function getUniqueOptions<T>(data: T[], key: keyof T): string[] {
-    return Array.from(new Set(data.map((item) => item[key] as string))).sort();
-}
-
 export default function SupplierManagementPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [filters, setFilters] = useState<Record<string, any>>({});
+    const [filters, setFilters] = useState<Record<string, any>>({
+        name: '',
+        phone: '',
+        email: '',
+    });
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [editData, setEditData] = useState<SupplierFormData | null>(null);
@@ -31,52 +31,42 @@ export default function SupplierManagementPage() {
         const fetchSuppliers = async () => {
             const response = await getSuppliers();
             if (response.ok) {
-                setSuppliers(response.data);
+                const mapped = response.data.map((item: any) => ({
+                    name: item.suppliername || '',
+                    phone: item.phonenumber || '',
+                    email: item.email || '',
+                    address: item.address || '',
+                    logo: '/default.png',
+                }));
+                setSuppliers(mapped);
             }
             console.log(response);
         };
         fetchSuppliers();
     }, []);
+      
 
     const filtersConfig: FilterConfig[] = [
-        {
-            key: 'name',
-            type: 'search',
-            placeholder: 'Tìm theo tên',
-        },
-        {
-            key: 'phone',
-            type: 'search',
-            placeholder: 'Tìm theo số điện thoại',
-        },
-        {
-            key: 'email',
-            type: 'search',
-            placeholder: 'Tìm theo email',
-        },
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên', },
+        { filterid: 'phone', filtertype: 'search', filterlabel: 'Tìm theo số điện thoại',},
+        { filterid: 'email', filtertype: 'search', filterlabel: 'Tìm theo email', },
     ];
 
-    useEffect(() => {
-        const initial: Record<string, any> = {};
-        filtersConfig.forEach((c) => {
-            if (c.type === 'search') initial[c.key] = '';
-            if (c.type === 'checkbox') initial[c.key] = [];
-            if (c.type === 'range') initial[c.key] = [c.min, c.max];
-        });
-        setFilters(initial);
-    }, []);
-
     const columns: Column<Supplier>[] = [
-        { header: 'Nhà phân phối', accessor: 'suppliername' },
-        { header: 'Số điện thoại', accessor: 'phonenumber' },
+        { header: 'Nhà phân phối', accessor: 'name' },
+        { header: 'Số điện thoại', accessor: 'phone' },
         { header: 'Email', accessor: 'email' },
         { header: 'Địa chỉ', accessor: 'address' },
     ];
 
     const filteredData = suppliers.filter((item) => {
-        const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesPhone = !filters.phone || item.phone.includes(filters.phone);
-        const matchesEmail = !filters.email || item.email.toLowerCase().includes(filters.email.toLowerCase());
+        const matchesName =
+            !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+        const matchesPhone =
+            !filters.phone || item.phone.includes(filters.phone);
+        const matchesEmail =
+            !filters.email || item.email.toLowerCase().includes(filters.email.toLowerCase());
         return matchesName && matchesPhone && matchesEmail;
     });
 
@@ -144,7 +134,10 @@ export default function SupplierManagementPage() {
 
             {/* Mobile Filter Toggle */}
             <div className="mb-2 flex items-center justify-between lg:hidden">
-                <button onClick={() => setShowMobileFilter((prev) => !prev)} className="rounded bg-gray-200 px-3 py-2">
+                <button
+                    onClick={() => setShowMobileFilter((prev) => !prev)}
+                    className="rounded bg-gray-200 px-3 py-2"
+                >
                     {showMobileFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
                 </button>
 
@@ -156,9 +149,13 @@ export default function SupplierManagementPage() {
                 </button>
             </div>
 
-            {/* Sidebar Filter */}
+            {/* Filter Component */}
             <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
-                <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
+                <Filter
+                    filters={filtersConfig}
+                    values={filters}
+                    setFilterValues={setFilters}
+                />
             </div>
 
             {/* Main Content */}
@@ -177,7 +174,13 @@ export default function SupplierManagementPage() {
                     data={filteredData}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    renderImage={(item) => <Image src={item.logo} alt={item.name} width={40} height={40} />}
+                    renderImage={(item) => (
+                        item.logo ? (
+                            <Image src={item.logo} alt={item.name} width={40} height={40} />
+                        ) : (
+                            <Image src="/default.png" alt="default" width={40} height={40} />
+                        )
+                    )}
                     showOptions={false}
                 />
             </div>

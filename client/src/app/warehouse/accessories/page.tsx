@@ -2,125 +2,91 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SidebarFilter from '../../../components/warehouse/SidebarFilter';
-import DataTable, { Column, FilterConfig } from '../../../components/warehouse/DataTable';
+import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AccessoryModal, { AccessoryFormData } from './AddAccessories';
+import PurchaseOrderForm from '@/components/warehouse/OrderForm';
+import { BaseItem } from '@/components/warehouse/OrderForm';
 
-interface Accessory {
-    name: string;
+interface Accessory extends BaseItem {
     category: string;
     brand: string;
     distributor: string;
-    price: number;
-    weight: number;
     stock: number;
     image: string;
 }
-
-const initialData: Accessory[] = [
-    {
-        name: 'Ống cầu Taro',
-        category: 'Quả cầu lông',
-        brand: 'Taro',
-        distributor: 'VNB',
-        price: 245000,
-        weight: 1,
-        stock: 20,
-        image: '/taroShuttlecock.png',
-    },
-    {
-        name: 'Quấn cán Yonex',
-        category: 'Quấn cán',
-        brand: 'Yonex',
-        distributor: 'Đại Hưng',
-        price: 40000,
-        weight: 2,
-        stock: 50,
-        image: '/racketgrip.png',
-    },
+const rawData: Accessory[] = [
+    { name: 'Grip Yonex', category: 'Grip', price: 50000, stock: 100, brand: 'Yonex', image: '/default.png', distributor: ''},
+    { name: 'Grip Lining', category: 'Grip', price: 40000, stock: 80, brand: 'Lining', image: '/default.png', distributor: ''},
+    { name: 'Balo Yonex', category: 'Bag', price: 800000, stock: 20, brand: 'Yonex', image: '/default.png', distributor: ''},
+    { name: 'Túi đựng vợt', category: 'Bag', price: 600000, stock: 15, brand: 'Lining', image: '/default.png', distributor: ''},
+    { name: 'Bình nước', category: 'Other', price: 100000, stock: 50, brand: 'Other', image: '/default.png', distributor: ''},
 ];
 
-function getUniqueOptions<T>(data: T[], key: keyof T): string[] {
-    return Array.from(new Set(data.map((item) => item[key] as string))).sort();
-}
+const getUniqueOptions = (data: Accessory[], key: keyof Accessory) => {
+    return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
+};
 
-export default function AccessoryManagementPage() {
-    const [data, setData] = useState<Accessory[]>(initialData);
-    const [filters, setFilters] = useState<Record<string, any>>({});
+export default function AccessoryPage() {
+    const [data, setData] = useState<Accessory[]>([]);
+    const [filteredData, setFilteredData] = useState<Accessory[]>([]);
     const [openModal, setOpenModal] = useState(false);
-    const [editIndex, setEditIndex] = useState<number | null>(null);
     const [editData, setEditData] = useState<AccessoryFormData | null>(null);
-    const [showMobileFilter, setShowMobileFilter] = useState(false);
+    const [openOrderForm, setOpenOrderForm] = useState(false);
+    const [selectedOrderItem, setSelectedOrderItem] = useState<Accessory | null>(null);
 
-    const filtersConfig: FilterConfig[] = [
-        {
-            key: 'name',
-            type: 'search',
-            placeholder: 'Tìm theo tên',
-        },
-        {
-            key: 'category',
-            title: 'Loại sản phẩm',
-            type: 'checkbox',
-            options: getUniqueOptions(data, 'category'),
-        },
-        {
-            key: 'brand',
-            title: 'Thương hiệu',
-            type: 'checkbox',
-            options: getUniqueOptions(data, 'brand'),
-        },
-        {
-            key: 'price',
-            title: 'Giá (VNĐ)',
-            type: 'range',
-            min: 10000,
-            max: 1000000,
-        },
-    ];
+    const [filters, setFilters] = useState<Record<string, any>>({
+        name: '',
+        category: [],
+        brand: [],
+        price: [0, 1000000],
+    });
 
-    // Initialize filters once based on filterConfig
     useEffect(() => {
-        const initial: Record<string, any> = {};
-        filtersConfig.forEach((c) => {
-            if (c.type === 'search') initial[c.key] = '';
-            if (c.type === 'checkbox') initial[c.key] = [];
-            if (c.type === 'range') initial[c.key] = [c.min, c.max];
-        });
-        setFilters(initial);
+        setData(rawData);
+        const prices = rawData.map((d) => d.price);
+        setFilters((prev) => ({
+            ...prev,
+            price: [Math.min(...prices), Math.max(...prices)],
+        }));
     }, []);
 
-    const columns: Column<Accessory>[] = [
-        { header: 'Tên sản phẩm', accessor: 'name' },
-        { header: 'Loại', accessor: 'category' },
-        { header: 'Thương hiệu', accessor: 'brand' },
-        { header: 'Phân phối', accessor: 'distributor' },
-        {
-            header: 'Giá (VNĐ)',
-            accessor: (item) => item?.price != null ? `${item.price.toLocaleString('vi-VN')} ₫` : '—',
-            align: 'right',
-        },
-        { header: 'Lô hàng', accessor: 'weight', align: 'center' },
-        { header: 'Tồn kho', accessor: 'stock', align: 'center' },
+    useEffect(() => {
+        const result = data.filter((item) => {
+            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+            const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
+            const matchesBrand = filters.brand.length === 0 || filters.brand.includes(item.brand);
+            const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
+            return matchesName && matchesCategory && matchesBrand && matchesPrice;
+        });
+        setFilteredData(result);
+    }, [filters, data]);
+
+    const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
+        optionlabel: option,
+        optionvalue: option,
+    }));
+
+    const brandOptions: FilterOption[] = getUniqueOptions(data, 'brand').map((option) => ({
+        optionlabel: option,
+        optionvalue: option,
+    }));
+
+    const filtersConfig: FilterConfig[] = [
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+        { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
+        { filterid: 'brand', filterlabel: 'THƯƠNG HIỆU', filtertype: 'checkbox', filteroptions: brandOptions },
+        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1000000 },
     ];
 
-    const filteredData = data
-        .filter((item): item is Accessory => item !== undefined && item !== null && typeof item.price === 'number')
-        .filter((item) => {
-            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-            const matchesBrand = !filters.brand || filters.brand.length === 0 || filters.brand.includes(item.brand);
-            const matchesCategory = !filters.category || filters.category.length === 0 || filters.category.includes(item.category);
-            const matchesPrice =
-                Array.isArray(filters.price) &&
-                    filters.price.length === 2 &&
-                    typeof filters.price[0] === 'number' &&
-                    typeof filters.price[1] === 'number'
-                    ? item.price >= filters.price[0] && item.price <= filters.price[1]
-                    : true;
-
-            return matchesName && matchesBrand && matchesCategory && matchesPrice;
-        });
-
+    const columns: Column<Accessory>[] = [
+        { header: 'Tên phụ kiện', accessor: 'name' },
+        { header: 'Loại', accessor: 'category' },
+        { header: 'Thương hiệu', accessor: 'brand' },
+        { header: 'Giá', accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND`, align: 'center' },
+        { header: 'Tồn kho', accessor: 'stock', align: 'center' },
+    ];
 
     const handleEdit = (index: number) => {
         const item = filteredData[index];
@@ -128,26 +94,24 @@ export default function AccessoryManagementPage() {
             name: item.name,
             category: item.category,
             brand: item.brand,
+            price: String(item.price),
+            stock: String(item.stock),
             distributor: item.distributor,
-            price: item.price.toString(),
-            stock: item.stock.toString(),
         });
-        setEditIndex(index);
         setOpenModal(true);
     };
-        
 
     const handleDelete = (index: number) => {
         const item = filteredData[index];
-        const confirmed = window.confirm(`Xác nhận xóa phụ kiện: ${item.name}?`);
-        if (confirmed) {
-            const realIndex = data.findIndex((d) => d.name === item.name);
-            if (realIndex !== -1) {
-                const newData = [...data];
-                newData.splice(realIndex, 1);
-                setData(newData);
-            }
+        if (window.confirm(`Xác nhận xóa phụ kiện: ${item.name}?`)) {
+            const newData = data.filter((d) => d.name !== item.name);
+            setData(newData);
         }
+    };
+
+    const handleOrder = (index: number) => {
+        setSelectedOrderItem(filteredData[index]);
+        setOpenOrderForm(true);
     };
 
     const handleSubmit = (formData: AccessoryFormData) => {
@@ -155,71 +119,47 @@ export default function AccessoryManagementPage() {
             name: formData.name,
             category: formData.category,
             brand: formData.brand,
-            distributor: formData.distributor,
             price: Number(formData.price),
             stock: Number(formData.stock),
-            weight: 1,
             image: '/default.png',
+            distributor: formData.distributor || '',
         };
 
-        if (editIndex !== null) {
-            const realIndex = data.findIndex((d) => d.name === filteredData[editIndex].name);
-            if (realIndex !== -1) {
-                const updated = [...data];
-                updated[realIndex] = newAccessory;
-                setData(updated);
-            }
+        if (editData) {
+            const updated = data.map((item) => (item.name === editData.name ? newAccessory : item));
+            setData(updated);
         } else {
             setData([...data, newAccessory]);
         }
 
+        setEditData(null);
         setOpenModal(false);
-        setEditIndex(null);
     };
-    
 
     return (
-        <div className="flex flex-col lg:flex-row h-full w-full p-4 gap-4">
+        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
             <AccessoryModal
                 open={openModal}
                 onClose={() => {
                     setOpenModal(false);
                     setEditData(null);
-                    setEditIndex(null);
                 }}
                 onSubmit={handleSubmit}
                 editData={editData}
             />
 
-
-            {/* Mobile Filter Toggle */}
-            <div className="flex justify-between items-center mb-2 lg:hidden">
-                <button
-                    onClick={() => setShowMobileFilter((prev) => !prev)}
-                    className="bg-gray-200 px-3 py-2 rounded"
-                >
-                    {showMobileFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-                </button>
-
-                <button
-                    onClick={() => setOpenModal(true)}
-                    className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded"
-                >
-                    Thêm
-                </button>
+            <div className="w-full shrink-0 lg:w-[280px]">
+                <Filter filters={filtersConfig} values={filters} setFilterValues={setFilters} />
             </div>
 
-            {/* Sidebar Filter */}
-            <div className={`w-full lg:w-[280px] shrink-0 ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
-                <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                <div className="hidden lg:flex justify-end mb-2 pr-4">
+            <div className="flex flex-1 flex-col">
+                <div className="mb-2 flex justify-end pr-4">
                     <button
-                        onClick={() => setOpenModal(true)}
-                        className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded"
+                        onClick={() => {
+                            setOpenModal(true);
+                            setEditData(null);
+                        }}
+                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                     >
                         Thêm
                     </button>
@@ -228,14 +168,21 @@ export default function AccessoryManagementPage() {
                 <DataTable
                     columns={columns}
                     data={filteredData}
+                    renderImage={(item) => <Image src={item.image} alt={item.name} width={40} height={40} />}
+                    showOptions
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    renderImage={(item) => (
-                        <Image src={item.image} alt={item.name} width={40} height={40} />
-                    )}
-                    showOptions={true}
+                    onOrder={handleOrder}
                 />
             </div>
+
+            {openOrderForm && selectedOrderItem && (
+                <PurchaseOrderForm
+                    open={openOrderForm}
+                    onClose={() => setOpenOrderForm(false)}
+                    item={selectedOrderItem}
+                />
+            )}
         </div>
     );
 }
