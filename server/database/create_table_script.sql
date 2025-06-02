@@ -29,6 +29,7 @@ drop table if exists shift CASCADE;
 drop table if exists bank_detail CASCADE;
 drop table if exists employees CASCADE;
 drop table if exists accounts CASCADE;
+drop table if exists monthly_note CASCADE;
 
 create table if not exists accounts (
 	accountid integer generated always as identity primary key,
@@ -361,4 +362,15 @@ create table if not exists receipts (
 	bookingid integer,
 	constraint fk_receipts_orders foreign key (orderid) references orders(orderid),
 	constraint fk_receipts_bookings foreign key (bookingid) references bookings(bookingid)
+);
+
+create table if not exists monthly_note (
+	noteid integer generated always as identity primary key,
+	notecontent text,
+	notestatus integer,
+	noterewardamount numeric,
+	employeeid integer,
+	createdat timestamptz default now(),
+	updatedat timestamptz default now(),
+	constraint fk_monthlynote_employees foreign key (employeeid) references employees(employeeid)
 );
