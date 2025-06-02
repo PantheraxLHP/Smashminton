@@ -215,6 +215,7 @@ export default function FoodAndBeveragePage() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onOrder={handleOrder}
+                    showOrders
                 />
             </div>
 

@@ -173,6 +173,7 @@ export default function AccessoryPage() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onOrder={handleOrder}
+                    showOrders
                 />
             </div>
 

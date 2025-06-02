@@ -182,6 +182,7 @@ export default function SupplierManagementPage() {
                         )
                     )}
                     showOptions={false}
+                    showOrders={true}
                 />
             </div>
         </div>
