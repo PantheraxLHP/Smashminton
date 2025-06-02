@@ -208,6 +208,7 @@ model products {
   order_product      order_product[]
   product_attributes product_attributes[]
   purchase_order     purchase_order[]
+  supply_products supply_products[]
 }
 
 model product_batch {
@@ -224,6 +225,7 @@ model product_batch {
 model purchase_order {
   poid          Int            @id @default(autoincrement())
   quantity      Int?
+  statusorder   String?
   deliverydate  DateTime?      @db.Timestamptz(6)
   createdat     DateTime?      @default(now()) @db.Timestamptz(6)
   updatedat     DateTime?      @default(now()) @db.Timestamptz(6)
@@ -326,7 +328,17 @@ model suppliers {
   address        String?
   createdat      DateTime?        @default(now()) @db.Timestamptz(6)
   updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
-  purchase_order purchase_order[]
+  supply_products supply_products[]
+  purchase_order  purchase_order[]
+}
+
+model supply_products {
+  productid     Int
+  supplierid    Int
+  suppliers suppliers    @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
+  products  products     @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
+
+  @@id([productid, suppliers], map: "pk_fk_supplyproducts")
 }
 
 model timesheet {
@@ -395,3 +407,5 @@ model product_filter_values {
   product_attributes   product_attributes[]
   product_filter       product_filter?      @relation(fields: [productfilterid], references: [productfilterid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productfiltervalues_productfilter")
 }
+
+model 
