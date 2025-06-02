@@ -61,10 +61,12 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
             {/* AlertDialog for fixed court feature */}
             <AlertDialog open={showFixedCourtDialog} onOpenChange={setShowFixedCourtDialog}>
                 <AlertDialogContent>
-                    <AlertDialogTitle>Bạn có muốn sử dụng tính năng &quot;Đặt sân cố định&quot;?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                        Bạn có muốn sử dụng tính năng &quot;Đặt sân cố định&quot;? (Nút bật/tắt góc phải phía trên)
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                        Tính năng này sẽ giúp bạn đặt sân cố định cho nhiều buổi liên tiếp. Bạn có muốn bật tính năng
-                        này không?
+                        Tính năng này sẽ giúp bạn đặt sân cố định cho 4 buổi liên tiếp. Bạn có muốn bật tính năng này
+                        không?
                     </AlertDialogDescription>
                     <div className="mt-4 flex justify-end gap-2">
                         <AlertDialogCancel asChild>
