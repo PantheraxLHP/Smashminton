@@ -16,7 +16,7 @@ export interface BookingContextProps {
     totalCourtPrice: number;
     totalProductPrice: number;
     TTL: number;
-    addCourt: (court: SelectedCourts) => void;
+    addCourt: (court: SelectedCourts, fixedCourt: boolean) => void;
     removeCourtByIndex: (index: number) => void;
     addRentalItem: (productId: number, returnDate: string) => void;
     addProductItem: (productId: number) => void;
@@ -53,9 +53,10 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const { user } = useAuth();
     const router = useRouter();
 
-    const addCourt = async (court: SelectedCourts) => {
+    const addCourt = async (court: SelectedCourts, fixedCourt: boolean) => {
         const response = await postBookingCourt({
             username: user?.username || '',
+            fixedCourt,
             court_booking: court,
         });
         if (response.ok) {

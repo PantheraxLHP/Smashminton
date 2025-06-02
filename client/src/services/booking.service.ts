@@ -8,7 +8,6 @@ export const getCourts = async (filter: Filters) => {
             date: filter.date || '',
             duration: filter.duration ? String(filter.duration) : '0',
             starttime: filter.startTime || '',
-            fixedCourt: filter.fixedCourt ? 'true' : 'false',
         });
 
         const response = await fetch(`/api/booking/get-courts?${queryParams}`, {
@@ -55,6 +54,59 @@ export const getDisableStartTimes = async (filter: Filters) => {
     }
 };
 
+export const getFixedCourts = async (filter: Filters) => {
+    try {
+        const queryParams = new URLSearchParams({
+            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            date: filter.date || '',
+            duration: filter.duration ? String(filter.duration) : '0',
+            starttime: filter.startTime || '',
+        });
+
+        const response = await fetch(`/api/booking/get-fixed-courts?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách sân khả dụng');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân khả dụng');
+    }
+};
+
+export const getFixedCourtsDisableStartTimes = async (filter: Filters) => {
+    try {
+        const queryParams = new URLSearchParams({
+            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            date: filter.date || '',
+            duration: filter.duration ? String(filter.duration) : '0',
+        });
+
+        const response = await fetch(`/api/booking/get-fixed-courts-disable-starttimes?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách giờ không khả dụng');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể tải danh sách giờ không khả dụng',
+        );
+    }
+};
+
 export const getBookingRedis = async (username: string) => {
     try {
         const queryParams = new URLSearchParams({
@@ -77,7 +129,11 @@ export const getBookingRedis = async (username: string) => {
     }
 };
 
-export const postBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts }) => {
+export const postBookingCourt = async (bookingData: {
+    username?: string;
+    fixedCourt: boolean;
+    court_booking: SelectedCourts;
+}) => {
     try {
         const modifiedBookingData = {
             ...bookingData,
