@@ -65,6 +65,48 @@ export class ProductTypesService {
   //   return allProducts;
   // }
 
+  async getProductById(productId: number) {
+    const now = new Date();
+
+    const product = await this.prisma.products.findUnique({
+      where: {
+        productid: productId,
+      },
+    });
+
+    if (!product) {
+      throw new Error(`Product with ID ${productId} not found`);
+    }
+
+    const purchaseOrders = await this.prisma.purchase_order.findMany({
+      where: {
+        productid: productId,
+        product_batch: {
+          expirydate: {
+            gte: now,
+          },
+        },
+      },
+      include: {
+        product_batch: true,
+      },
+    });
+
+    const quantity = purchaseOrders.reduce((sum, po) => {
+      return sum + (po.product_batch?.stockquantity || 0);
+    }, 0);
+
+    return {
+      productid: product.productid,
+      productname: product.productname,
+      sellingprice: product.sellingprice,
+      rentalprice: product.rentalprice,
+      productimgurl: product.productimgurl,
+      quantity,
+    };
+  }
+
+
   async findAllProductsFromProductType(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;

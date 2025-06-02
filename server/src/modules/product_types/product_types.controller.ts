@@ -26,6 +26,11 @@ export class ProductTypesController {
     return this.productTypesService.findAllProductFilters();
   }
 
+  @Get(':id')
+  getProductById(@Param('id') id: string) {
+    return this.productTypesService.getProductById(+id);
+  }
+
   @Get('/:id/products')
   @ApiQuery({
     name: 'productfiltervalue',
@@ -34,9 +39,9 @@ export class ProductTypesController {
     description: 'Comma-separated list of productfiltervalue IDs',
   })
   findAllProductsFromProductType(@Param('id') id: number,
-                                @Query('page') page: string = '1',
-                                @Query('pageSize') pageSize: string = '12',
-                                @Query('productfiltervalue') productFilterValueQuery?: string) {
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '12',
+    @Query('productfiltervalue') productFilterValueQuery?: string) {
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
     // Validation
