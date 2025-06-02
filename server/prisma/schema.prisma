@@ -341,7 +341,7 @@ model supply_products {
   suppliers suppliers    @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
   products  products     @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
 
-  @@id([productid, suppliers], map: "pk_fk_supplyproducts")
+  @@id([productid, supplierid], map: "pk_fk_supplyproducts")
 }
 
 model timesheet {
@@ -410,5 +410,3 @@ model product_filter_values {
   product_attributes   product_attributes[]
   product_filter       product_filter?      @relation(fields: [productfilterid], references: [productfilterid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productfiltervalues_productfilter")
 }
-
-model 

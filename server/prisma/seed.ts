@@ -28,6 +28,7 @@ async function main() {
         'zones',
         'suppliers',
         'products',
+        'supply_products',
         'product_types',
         'product_filter',
         'product_filter_values',
