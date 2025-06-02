@@ -42,6 +42,7 @@ export interface Employee {
     expiry_cccd?: Date;
     taxcode?: string;
     salary?: number;
+    createdat?: Date;
     bankdetails?: BankDetail;
     rewardrecords?: RewardRecord[];
     penaltyrecords?: PenaltyRecord[];
