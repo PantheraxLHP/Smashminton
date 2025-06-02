@@ -1,10 +1,18 @@
 'use client';
 
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBooking } from '@/context/BookingContext';
-import { getCourts, getDisableStartTimes } from '@/services/booking.service';
+import {
+    getCourts,
+    getDisableStartTimes,
+    getFixedCourts,
+    getFixedCourtsDisableStartTimes,
+} from '@/services/booking.service';
 import { Products } from '@/types/types';
+import { Icon } from '@iconify/react/dist/iconify.js';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import BookingBottomSheet from '../../../components/atomic/BottomSheet';
 import BookingStepper from '../_components/BookingStepper';
@@ -16,14 +24,11 @@ export interface SelectedCourts {
     courtid: number;
     courtname: string | null;
     courtimgurl: string | null;
-    dayfrom: string | null;
-    dayto: string | null;
     date: string;
     starttime: string;
     endtime: string;
     duration: number;
     price: number;
-    fixedCourt: boolean;
 }
 
 export interface SelectedProducts extends Products {
@@ -38,14 +43,13 @@ export interface Filters {
     date?: string;
     duration?: number;
     startTime?: string;
-    fixedCourt?: boolean;
 }
 
 export default function BookingCourtsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { selectedCourts, selectedProducts, TTL } = useBooking();
-
+    const [fixedCourt, setFixedCourt] = useState(false);
     // Parse params and convert to correct types
     const zone = searchParams.get('zone') || '';
     const date = searchParams.get('date') || '';
@@ -57,14 +61,9 @@ export default function BookingCourtsPage() {
         date,
         duration,
         startTime,
-        fixedCourt: false,
     });
     const [courts, setCourts] = useState<SelectedCourts[]>([]);
     const [disableTimes, setDisableTimes] = useState<string[]>([]);
-    const resetTimerRef = useRef<(() => void) | null>(null);
-    const handleResetTimer = useCallback((resetFn: () => void) => {
-        resetTimerRef.current = resetFn;
-    }, []);
 
     // Update filters, including fixedCourt
     const handleFilterChange = useCallback((newFilters: Filters) => {
@@ -74,13 +73,6 @@ export default function BookingCourtsPage() {
         }));
     }, []);
 
-    const handleToggleChange = useCallback(
-        (isFixed: boolean) => {
-            handleFilterChange({ fixedCourt: isFixed });
-        },
-        [handleFilterChange],
-    );
-
     // Update filters when search params change
     useEffect(() => {
         setFilters({
@@ -88,38 +80,65 @@ export default function BookingCourtsPage() {
             date: searchParams.get('date') || '',
             duration: parseFloat(searchParams.get('duration') || '0'),
             startTime: searchParams.get('startTime') || '',
-            fixedCourt: filters.fixedCourt,
         });
     }, [searchParams]);
 
     // Use to fetch courts and disable start times when filters change
+    const fetchDisableStartTimes = async () => {
+        if (filters.zone && filters.date && filters.duration) {
+            const result = await getDisableStartTimes(filters);
+            if (!result.ok) {
+                setDisableTimes([]);
+            } else {
+                setDisableTimes(result.data);
+            }
+        }
+    };
+
+    const fetchCourts = async () => {
+        if (filters.zone && filters.date && filters.duration && filters.startTime) {
+            const result = await getCourts(filters);
+            if (!result.ok) {
+                setCourts([]);
+                toast.error(result.message || 'Không thể tải danh sách sân khả dụng');
+            } else {
+                setCourts(result.data);
+            }
+        }
+    };
+
+    const fetchFixedCourtsDisableStartTimes = async () => {
+        if (filters.zone && filters.date && filters.duration) {
+            const result = await getFixedCourtsDisableStartTimes(filters);
+            if (!result.ok) {
+                setDisableTimes([]);
+            } else {
+                setDisableTimes(result.data);
+            }
+        }
+    };
+
+    const fetchFixedCourts = async () => {
+        if (filters.zone && filters.date && filters.duration && filters.startTime) {
+            const result = await getFixedCourts(filters);
+            if (!result.ok) {
+                setCourts([]);
+                toast.error(result.message || 'Không thể tải danh sách sân khả dụng');
+            } else {
+                setCourts(result.data);
+            }
+        }
+    };
+
     useEffect(() => {
-        const fetchDisableStartTimes = async () => {
-            if (filters.zone && filters.date && filters.duration) {
-                const result = await getDisableStartTimes(filters);
-                if (!result.ok) {
-                    setDisableTimes([]);
-                } else {
-                    setDisableTimes(result.data);
-                }
-            }
-        };
-
-        const fetchCourts = async () => {
-            if (filters.zone && filters.date && filters.duration && filters.startTime) {
-                const result = await getCourts(filters);
-                if (!result.ok) {
-                    setCourts([]);
-                    toast.error(result.message || 'Không thể tải danh sách sân khả dụng');
-                } else {
-                    setCourts(result.data);
-                }
-            }
-        };
-
-        fetchDisableStartTimes();
-        fetchCourts();
-    }, [filters]);
+        if (fixedCourt) {
+            fetchFixedCourtsDisableStartTimes();
+            fetchFixedCourts();
+        } else {
+            fetchDisableStartTimes();
+            fetchCourts();
+        }
+    }, [filters, fixedCourt]);
 
     const handleConfirm = () => {
         router.push('/booking/payment');
@@ -138,8 +157,7 @@ export default function BookingCourtsPage() {
                     />
                     <div className="flex-1">
                         <BookingStepper currentStep={1} />
-
-                        <BookingCourtList courts={courts} filters={filters} onToggleChange={handleToggleChange} />
+                        <BookingCourtList courts={courts} fixedCourt={fixedCourt} setFixedCourt={setFixedCourt} />
                     </div>
                 </div>
             </div>
@@ -147,7 +165,6 @@ export default function BookingCourtsPage() {
             {hasSelectedItems && (
                 <BookingBottomSheet
                     onConfirm={handleConfirm}
-                    onResetTimer={handleResetTimer}
                     selectedCourts={selectedCourts}
                     selectedProducts={selectedProducts}
                     TTL={TTL}
