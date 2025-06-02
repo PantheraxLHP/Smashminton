@@ -3,7 +3,6 @@
 import { SelectedCourts, SelectedProducts } from '@/app/booking/courts/page';
 import { deleteBookingCourt, getBookingRedis, postBookingCourt } from '@/services/booking.service';
 import { deleteOrder, deleteRentalOrder, getOrderRedis, postOrder } from '@/services/orders.service';
-import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
@@ -51,7 +50,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const [totalCourtPrice, setTotalCourtPrice] = useState(0);
     const [totalProductPrice, setTotalProductPrice] = useState(0);
     const { user } = useAuth();
-    const router = useRouter();
 
     const addCourt = async (court: SelectedCourts, fixedCourt: boolean) => {
         const response = await postBookingCourt({

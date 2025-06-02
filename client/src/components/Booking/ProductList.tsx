@@ -16,7 +16,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProductItem, removeProduct, selectedCourts } = useBooking();
+    const { addProductItem, removeProduct } = useBooking();
     const { user } = useAuth();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
