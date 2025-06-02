@@ -6,8 +6,8 @@ interface MaskedFieldProps {
 }
 
 const maskfield = (value: string) => {
-    if (value.length <= 4) return "X".repeat(value.length);
-    const maskedValue = value.replace(/(?<=.{2}).(?=.{2})/g, "X");
+    if (value.length <= 4) return "*".repeat(value.length);
+    const maskedValue = value.replace(/(?<=.{2}).(?=.{2})/g, "*");
     return maskedValue;
 }
 
@@ -16,7 +16,7 @@ const MaskedField: React.FC<MaskedFieldProps> = ({
 }) => {
     const [isRevealed, setIsRevealed] = useState(false);
     return (
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-5 w-full">
             <span className="text-sm">
                 {isRevealed ? value : maskfield(value)}
             </span>

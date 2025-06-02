@@ -29,9 +29,10 @@ interface DataTableProps<T> {
     filters?: Record<string, any>;
     setFilters?: (f: Record<string, any>) => void;
     onEdit?: (index: number) => void;
-    onDelete?: (index: number) => void; 
+    onDelete?: (index: number) => void;
     onOrder?: (index: number) => void;
     showOptions?: boolean;
+    showOrders?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -45,6 +46,7 @@ export default function DataTable<T extends Record<string, any>>({
     onDelete,
     onOrder,
     showOptions,
+    showOrders,
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -59,13 +61,13 @@ export default function DataTable<T extends Record<string, any>>({
                 : [...current, value],
         });
     };
-    
+
 
     const handleInputChange = (filterid: string, value: any) => {
         if (!setFilters || !filters) return;
         setFilters({ ...filters, [filterid]: value });
     };
-    
+
 
     const applyFilters = (item: T): boolean => {
         if (!filterConfig || !filters) return true;
@@ -87,7 +89,7 @@ export default function DataTable<T extends Record<string, any>>({
             }
         });
     };
-    
+
 
     const filteredData = filters ? data.filter(applyFilters) : data;
 
@@ -176,18 +178,17 @@ export default function DataTable<T extends Record<string, any>>({
                             {columns.map((col, i) => (
                                 <th
                                     key={i}
-                                    className={`px-3 py-2 font-medium ${
-                                        col.align === 'right'
-                                            ? 'text-right'
-                                            : col.align === 'center'
-                                              ? 'text-center'
-                                              : 'text-left'
-                                    }`}
+                                    className={`px-3 py-2 font-medium ${col.align === 'right'
+                                        ? 'text-right'
+                                        : col.align === 'center'
+                                            ? 'text-center'
+                                            : 'text-left'
+                                        }`}
                                 >
                                     {col.header}
                                 </th>
                             ))}
-                            <th className="px-3 py-2"></th>
+                            {showOrders && <th className="px-3 py-2"></th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -214,32 +215,33 @@ export default function DataTable<T extends Record<string, any>>({
                                     return (
                                         <td
                                             key={i}
-                                            className={`px-3 py-3 ${
-                                                col.align === 'right'
+                                            className={`px-3 py-3 ${col.align === 'right'
                                                     ? 'text-right'
                                                     : col.align === 'center'
-                                                      ? 'text-center'
-                                                      : ''
-                                            } ${cellClass}`}
+                                                        ? 'text-center'
+                                                        : ''
+                                                } ${cellClass}`}
                                         >
                                             {value}
                                         </td>
                                     );
                                 })}
-                                <td className="relative px-3 py-3 text-right">
-                                    <button
-                                        className="text-gray-500 hover:text-gray-700"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const rect = e.currentTarget.getBoundingClientRect();
-                                            setSelectedItemIndex(idx);
-                                            setMenuPosition({ x: rect.left - 40, y: rect.bottom + window.scrollY });
-                                        }}
-                                    >
-                                        <MoreVertical size={18} />
-                                    </button>
-                                </td>
-                                {menuPosition !== null && selectedItemIndex !== null && (
+                                {showOrders && (
+                                    <td className="relative px-3 py-3 text-right">
+                                        <button
+                                            className="text-gray-500 hover:text-gray-700"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                setSelectedItemIndex(idx);
+                                                setMenuPosition({ x: rect.left - 40, y: rect.bottom + window.scrollY });
+                                            }}
+                                        >
+                                            <MoreVertical size={18} />
+                                        </button>
+                                    </td>
+                                )}
+                                {showOrders && menuPosition !== null && selectedItemIndex !== null && (
                                     <MoreActionsMenu
                                         position={menuPosition}
                                         onClose={() => {

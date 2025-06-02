@@ -29,6 +29,7 @@ drop table if exists shift CASCADE;
 drop table if exists bank_detail CASCADE;
 drop table if exists employees CASCADE;
 drop table if exists accounts CASCADE;
+drop table if exists monthly_note CASCADE;
 drop table if exists supply_products CASCADE;
 
 create table if not exists accounts (
@@ -51,6 +52,10 @@ create table if not exists accounts (
 create table if not exists employees (
 	employeeid integer primary key,
 	fingerprintid integer default NULL,
+	cccd text default NULL,
+	expired_cccd timestamptz default NULL,
+	taxcode text default NULL,
+	salary numeric default NULL,
 	last_week_shift_type text check (last_week_shift_type in ('Morning', 'Evening', 'Mix')),
 	employee_type text check (employee_type in ('Full-time', 'Part-time')),
 	role text,
@@ -62,8 +67,7 @@ create table if not exists bank_detail (
 	bankname text,
 	banknumber text,
 	bankholder text,
-	bankbranch text,
-	linkedphonenumber text,
+	active boolean default false,
 	employeeid integer,
 	constraint fk_bankdetail_employeeid foreign key (employeeid) references employees(employeeid)
 );
@@ -96,6 +100,7 @@ create table if not exists shift_assignment (
 	employeeid integer,
 	shiftid integer,
 	shiftdate timestamptz,
+	status text check (status in ('Confirmed', 'Pending', 'Refused')),
 	constraint pk_shiftassignment primary key (employeeid, shiftid, shiftdate),
 	constraint fk_shiftassignment_employees foreign key (employeeid) references employees(employeeid),
 	constraint fk_shiftassignment_shiftdate foreign key (shiftid, shiftdate) references shift_date(shiftid, shiftdate)
@@ -367,4 +372,15 @@ create table if not exists receipts (
 	bookingid integer,
 	constraint fk_receipts_orders foreign key (orderid) references orders(orderid),
 	constraint fk_receipts_bookings foreign key (bookingid) references bookings(bookingid)
+);
+
+create table if not exists monthly_note (
+	noteid integer generated always as identity primary key,
+	notecontent text,
+	notestatus integer,
+	noterewardamount numeric,
+	employeeid integer,
+	createdat timestamptz default now(),
+	updatedat timestamptz default now(),
+	constraint fk_monthlynote_employees foreign key (employeeid) references employees(employeeid)
 );

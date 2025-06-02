@@ -52,8 +52,7 @@ model bank_detail {
   bankname          String?
   banknumber        String?
   bankholder        String?
-  bankbranch        String?
-  linkedphonenumber String?
+  active            Boolean?  @default(false)
   employeeid        Int?
   employees         employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_bankdetail_employeeid")
 }
@@ -116,6 +115,10 @@ model employees {
   last_week_shift_type String?
   employee_type        String?
   role                 String?
+  cccd                 String?
+  expiry_cccd           DateTime?          @db.Timestamptz(6)
+  taxcode              String?
+  salary              Decimal?           @db.Decimal
   monthly_note         monthly_note[]
   bank_detail          bank_detail[]
   bookings             bookings[]

@@ -20,6 +20,9 @@ async function main() {
         'accounts',
         'reward_rules',
         'penalty_rules',
+        'reward_records',
+        'penalty_records',
+        'bank_detail',
         'zone_prices',
         'courts',
         'zones',
@@ -334,6 +337,11 @@ async function main() {
                 data: {
                     employeeid: employeeIds[i],
                     employee_type: 'Part-time',
+                    cccd: `079212345678`,
+                    expiry_cccd: new Date('2045-01-01'),
+                    role: 'employee',
+                    salary: 5000000,
+                    taxcode: `123456789`,
                 },
             });
         }
@@ -1165,16 +1173,30 @@ async function main() {
         });
     });
 
-    // parttimeEmployeeIds.forEach(async (employeeId) => {
-    //     const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
-    //     await prisma.shift_assignment.create({
-    //         data: {
-    //             employeeid: employeeId,
-    //             shiftid: randomShiftDate.shiftid,
-    //             shiftdate: randomShiftDate.shiftdate,
-    //         },
-    //     });
-    // });
+    const totalEmployees = parttimeEmployeeIds.length;
+    const groupSize = Math.ceil(totalEmployees / 3);
+
+    parttimeEmployeeIds.forEach(async (employeeId, index) => {
+        const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
+
+        let status: string;
+        if (index < groupSize) {
+            status = 'Confirmed';
+        } else if (index < groupSize * 2) {
+            status = 'Pending';
+        } else {
+            status = 'Refused';
+        }
+
+        await prisma.shift_assignment.create({
+            data: {
+                employeeid: employeeId,
+                shiftid: randomShiftDate.shiftid,
+                shiftdate: randomShiftDate.shiftdate,
+                assignmentstatus: status,
+            },
+        });
+    });
 
     await prisma.bookings.createMany({
         data: [
@@ -2079,6 +2101,357 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 30,
+            },
+        ],
+    });
+
+    // Insert Bank Details - Mỗi employee có 1 bank_detail
+    await prisma.bank_detail.createMany({
+        data: [
+            {
+                bankname: 'Ngân hàng TMCP Ngoại Thương Việt Nam',
+                banknumber: '0123456789012345',
+                bankholder: 'Admin',
+                active: true,
+                employeeid: 1,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam',
+                banknumber: '1234567890123456',
+                bankholder: 'NGUYEN VAN A',
+                active: true,
+                employeeid: 2,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Công Thương Việt Nam',
+                banknumber: '2345678901234567',
+                bankholder: 'TRAN THI B',
+                active: true,
+                employeeid: 3,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Kỹ Thương Việt Nam',
+                banknumber: '3456789012345678',
+                bankholder: 'LE HONG C',
+                active: true,
+                employeeid: 4,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Á Châu',
+                banknumber: '4567890123456789',
+                bankholder: 'LE HOANG D',
+                active: true,
+                employeeid: 5,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Sài Gòn Thương Tín',
+                banknumber: '5678901234567890',
+                bankholder: 'NGUYEN MINH E',
+                active: true,
+                employeeid: 6,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Việt Nam Thịnh Vượng',
+                banknumber: '6789012345678901',
+                bankholder: 'BUI THANH F',
+                active: true,
+                employeeid: 7,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Đông Nam Á',
+                banknumber: '7890123456789012',
+                bankholder: 'TRAN TIEN G',
+                active: true,
+                employeeid: 8,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Quân Đội',
+                banknumber: '8901234567890123',
+                bankholder: 'PHAM THI H',
+                active: true,
+                employeeid: 9,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Bưu Điện Liên Việt',
+                banknumber: '9012345678901234',
+                bankholder: 'PHU MY I',
+                active: true,
+                employeeid: 10,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Hàng Hải Việt Nam',
+                banknumber: '0123456789012346',
+                bankholder: 'CAO BA J',
+                active: true,
+                employeeid: 11,
+            },
+            {
+                bankname: 'Ngân hàng TMCP Xuất Nhập Khẩu Việt Nam',
+                banknumber: '1234567890123457',
+                bankholder: 'HOANG THI K',
+                active: true,
+                employeeid: 12,
+            },
+        ],
+    });
+
+    // Insert Reward Records - Mỗi employee có nhiều reward_record
+    await prisma.reward_records.createMany({
+        data: [
+            // Employee 1 (Admin)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 1,
+            },
+            {
+                rewarddate: new Date('2025-06-10'),
+                finalrewardamount: 1000000,
+                rewardapplieddate: new Date('2025-06-15'),
+                rewardruleid: 1, // Employee of the Month
+                employeeid: 1,
+            },
+            // Employee 2 (Nguyễn Văn A)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 2,
+            },
+            {
+                rewarddate: new Date('2025-06-08'),
+                finalrewardamount: 300000,
+                rewardapplieddate: new Date('2025-06-12'),
+                rewardruleid: 2, // Attendance Bonus
+                employeeid: 2,
+            },
+            {
+                rewarddate: new Date('2025-06-15'),
+                finalrewardamount: 200000,
+                rewardapplieddate: new Date('2025-06-20'),
+                rewardruleid: 3, // Performance Bonus
+                employeeid: 2,
+            },
+            // Employee 3 (Trần Thị B)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 3,
+            },
+            {
+                rewarddate: new Date('2025-06-12'),
+                finalrewardamount: 1000000,
+                rewardapplieddate: new Date('2025-06-18'),
+                rewardruleid: 1, // Employee of the Month
+                employeeid: 3,
+            },
+            // Employee 4 (Lê Hồng C)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 4,
+            },
+            {
+                rewarddate: new Date('2025-06-06'),
+                finalrewardamount: 300000,
+                rewardapplieddate: new Date('2025-06-10'),
+                rewardruleid: 2, // Attendance Bonus
+                employeeid: 4,
+            },
+            // Employee 5 (Lê Hoàng D)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 5,
+            },
+            {
+                rewarddate: new Date('2025-06-14'),
+                finalrewardamount: 200000,
+                rewardapplieddate: new Date('2025-06-18'),
+                rewardruleid: 3, // Performance Bonus
+                employeeid: 5,
+            },
+            // Employee 6 (Nguyễn Minh E)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 6,
+            },
+            {
+                rewarddate: new Date('2025-06-20'),
+                finalrewardamount: 1000000,
+                rewardapplieddate: new Date('2025-06-25'),
+                rewardruleid: 1, // Employee of the Month
+                employeeid: 6,
+            },
+            // Employee 7 (Bùi Thành F)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 7,
+            },
+            // Employee 8 (Trần Tiến G)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 8,
+            },
+            {
+                rewarddate: new Date('2025-06-16'),
+                finalrewardamount: 300000,
+                rewardapplieddate: new Date('2025-06-20'),
+                rewardruleid: 2, // Attendance Bonus
+                employeeid: 8,
+            },
+            // Employee 9 (Phạm Thị H)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 9,
+            },
+            // Employee 10 (Phù Mỹ I)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 10,
+            },
+            {
+                rewarddate: new Date('2025-06-22'),
+                finalrewardamount: 200000,
+                rewardapplieddate: new Date('2025-06-26'),
+                rewardruleid: 3, // Performance Bonus
+                employeeid: 10,
+            },
+            // Employee 11 (Cao Bá J)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 11,
+            },
+            // Employee 12 (Hoàng Thị K)
+            {
+                rewarddate: new Date('2025-06-01'),
+                finalrewardamount: 500000,
+                rewardapplieddate: new Date('2025-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 12,
+            },
+            {
+                rewarddate: new Date('2025-06-25'),
+                finalrewardamount: 1000000,
+                rewardapplieddate: new Date('2025-06-28'),
+                rewardruleid: 1, // Employee of the Month
+                employeeid: 12,
+            },
+        ],
+    });
+
+    // Insert Penalty Records - Một số employee có penalty_record
+    await prisma.penalty_records.createMany({
+        data: [
+            // Employee 2 (Nguyễn Văn A) - Đến trễ 2 lần
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 2,
+                violationdate: new Date('2025-06-03'),
+                finalpenaltyamount: 20000,
+                penaltyapplieddate: new Date('2025-06-04'),
+            },
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 2,
+                violationdate: new Date('2025-06-17'),
+                finalpenaltyamount: 40000,
+                penaltyapplieddate: new Date('2025-06-18'),
+            },
+            // Employee 4 (Lê Hồng C) - Vắng mặt không phép 1 lần
+            {
+                penaltyruleid: 2, // Unauthorized absence
+                employeeid: 4,
+                violationdate: new Date('2025-06-05'),
+                finalpenaltyamount: 100000,
+                penaltyapplieddate: new Date('2025-06-06'),
+            },
+            // Employee 6 (Nguyễn Minh E) - Vi phạm quy định 1 lần
+            {
+                penaltyruleid: 3, // Failure to comply with workplace policies
+                employeeid: 6,
+                violationdate: new Date('2025-06-07'),
+                finalpenaltyamount: 20000,
+                penaltyapplieddate: new Date('2025-06-08'),
+            },
+            // Employee 7 (Bùi Thành F) - Đến trễ 3 lần
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 7,
+                violationdate: new Date('2025-06-02'),
+                finalpenaltyamount: 20000,
+                penaltyapplieddate: new Date('2025-06-03'),
+            },
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 7,
+                violationdate: new Date('2025-06-10'),
+                finalpenaltyamount: 40000,
+                penaltyapplieddate: new Date('2025-06-11'),
+            },
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 7,
+                violationdate: new Date('2025-06-23'),
+                finalpenaltyamount: 60000,
+                penaltyapplieddate: new Date('2025-06-24'),
+            },
+            // Employee 9 (Phạm Thị H) - Vi phạm quy định 2 lần
+            {
+                penaltyruleid: 3, // Failure to comply with workplace policies
+                employeeid: 9,
+                violationdate: new Date('2025-06-09'),
+                finalpenaltyamount: 20000,
+                penaltyapplieddate: new Date('2025-06-10'),
+            },
+            {
+                penaltyruleid: 3, // Failure to comply with workplace policies
+                employeeid: 9,
+                violationdate: new Date('2025-06-19'),
+                finalpenaltyamount: 40000,
+                penaltyapplieddate: new Date('2025-06-20'),
+            },
+            // Employee 11 (Cao Bá J) - Vắng mặt không phép 1 lần và đến trễ 1 lần
+            {
+                penaltyruleid: 2, // Unauthorized absence
+                employeeid: 11,
+                violationdate: new Date('2025-06-11'),
+                finalpenaltyamount: 100000,
+                penaltyapplieddate: new Date('2025-06-12'),
+            },
+            {
+                penaltyruleid: 1, // Late for work
+                employeeid: 11,
+                violationdate: new Date('2025-06-26'),
+                finalpenaltyamount: 20000,
+                penaltyapplieddate: new Date('2025-06-27'),
             },
         ],
     });
