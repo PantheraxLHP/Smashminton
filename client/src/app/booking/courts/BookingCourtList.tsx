@@ -1,24 +1,34 @@
 import { useDebounce } from '@/app/hooks/useDebounce';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Filters, SelectedCourts } from './page';
+import { SelectedCourts } from './page';
+import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
+import { Icon } from '@iconify/react/dist/iconify.js';
+import { Switch } from '@/components/ui/switch';
 
 interface BookingCourtListProps {
     courts: SelectedCourts[];
     fixedCourt: boolean;
+    setFixedCourt: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedCourt }) => {
+const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedCourt, setFixedCourt }) => {
     const { selectedCourts, addCourt, removeCourtByIndex } = useBooking();
-    const [pendingCourt, setPendingCourt] = useState<SelectedCourts | null>(null);
-    const [pendingIsSelected, setPendingIsSelected] = useState(false);
-    const [pendingScCourtIndex, setPendingScCourtIndex] = useState(-1);
-
-    // Check if dialog has been shown in this session
-    const hasShownDialog = typeof window !== 'undefined' && sessionStorage.getItem('fixedCourtDialogShown') === 'true';
+    const [showFixedCourtDialog, setShowFixedCourtDialog] = useState(false);
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+    // Remove storage, use local state for dialog tracking
+    const [hasShownDialog, setHasShownDialog] = useState(false);
 
     const handleAddCourt = (scCourt: SelectedCourts) => {
         addCourt(scCourt, fixedCourt);
@@ -28,17 +38,94 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
         removeCourtByIndex(index);
     };
 
-    // Debounced click handler
-    const debouncedHandleClick = useDebounce((court: SelectedCourts, isSelected: boolean, scCourtIndex: number) => {
+    // New handler for booking button
+    const handleBookingButtonClick = (court: SelectedCourts, isSelected: boolean, scCourtIndex: number) => {
         if (isSelected) {
             handleRemoveCourtByIndex(scCourtIndex);
         } else {
-            handleAddCourt(court);
+            // Only show dialog if fixedCourt is false and dialog hasn't been shown in this page load
+            if (!fixedCourt && !hasShownDialog) {
+                setShowFixedCourtDialog(true);
+                setHasShownDialog(true);
+            } else {
+                handleAddCourt(court);
+            }
         }
-    }, 300); // 300ms delay
+    };
+
+    // Debounced click handler
+    const debouncedHandleClick = useDebounce(handleBookingButtonClick, 300);
 
     return (
         <div className="px-4">
+            {/* AlertDialog for fixed court feature */}
+            <AlertDialog open={showFixedCourtDialog} onOpenChange={setShowFixedCourtDialog}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Bạn có muốn sử dụng tính năng &quot;Đặt sân cố định&quot;?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Tính năng này sẽ giúp bạn đặt sân cố định cho nhiều buổi liên tiếp. Bạn có muốn bật tính năng
+                        này không?
+                    </AlertDialogDescription>
+                    <div className="mt-4 flex justify-end gap-2">
+                        <AlertDialogCancel asChild>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowFixedCourtDialog(false);
+                                    setFixedCourt(false);
+                                }}
+                            >
+                                Không
+                            </Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button
+                                onClick={() => {
+                                    setShowFixedCourtDialog(false);
+                                    setFixedCourt(true);
+                                }}
+                            >
+                                Có
+                            </Button>
+                        </AlertDialogAction>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Toggle đặt sân cố định */}
+            <div className="mb-4 flex items-center justify-end">
+                <span className="text-gray-600">Đặt sân cố định:</span>
+                {/* Tooltip icon */}
+                <Tooltip>
+                    <TooltipRoot open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                        <TooltipTrigger>
+                            <button
+                                aria-label="Thông tin đặt sân cố định"
+                                className="bg-primary-500 mr-2 ml-2 flex items-center justify-center rounded-full p-1 text-white"
+                                onClick={() => setTooltipOpen(!tooltipOpen)}
+                            >
+                                <Icon icon="mdi:information-outline" className="text-lg text-white" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="z-1000 max-w-xs rounded-md bg-white p-2 text-sm shadow-md">
+                            <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
+                            <ul className="list-disc pl-4">
+                                <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>
+                                <li>Sau khi kiểm tra, hệ thống sẽ hiển thị các sân phù hợp.</li>
+                                <li>Nếu không tìm thấy, hãy chọn khung giờ hoặc thời lượng chơi khác.</li>
+                                <li>Nếu không có sân nào, hệ thống sẽ tắt chức năng này và thử đặt thủ công.</li>
+                            </ul>
+                        </TooltipContent>
+                    </TooltipRoot>
+                </Tooltip>
+                {/* Switch from shadcn/ui */}
+                <Switch
+                    id="fixedCourt"
+                    checked={fixedCourt}
+                    onCheckedChange={() => setFixedCourt(!fixedCourt)}
+                    className="ml-2"
+                />
+            </div>
             {/* Tiêu đề */}
             <h2 className="text-center text-lg font-semibold">
                 Tổng cộng có <span className="text-primary-600 font-bold">{courts?.length || 0} sân</span> có sẵn tại
