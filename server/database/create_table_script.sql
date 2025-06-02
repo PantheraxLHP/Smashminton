@@ -30,6 +30,7 @@ drop table if exists bank_detail CASCADE;
 drop table if exists employees CASCADE;
 drop table if exists accounts CASCADE;
 drop table if exists monthly_note CASCADE;
+drop table if exists supply_products CASCADE;
 
 create table if not exists accounts (
 	accountid integer generated always as identity primary key,
@@ -314,12 +315,21 @@ create table if not exists product_attributes (
 	constraint fk_productattributes_productfiltervalues foreign key (productfiltervalueid) references product_filter_values(productfiltervalueid)
 );
 
+create table if not exists supply_products (
+	productid integer,
+	supplierid integer,
+	constraint pk_supplyproducts primary key (productid, supplierid),
+	constraint fk_supplyproducts_products foreign key (productid) references products(productid),
+	constraint fk_supplyproducts_suppliers foreign key (supplierid) references suppliers(supplierid)
+);
+
 create table if not exists purchase_order (
 	poid integer generated always as identity primary key,
 	quantity integer,
 	deliverydate timestamptz,
 	createdat timestamptz default now(),
 	updatedat timestamptz default now(),
+	statusorder text check (statusorder in ('Pending', 'Completed', 'Cancelled')),
 	productid integer,
 	employeeid integer,
 	supplierid integer,
