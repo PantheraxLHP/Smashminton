@@ -14,7 +14,7 @@ import {
 
 @Controller('product-types')
 export class ProductTypesController {
-  constructor(private readonly productTypesService: ProductTypesService) {}
+  constructor(private readonly productTypesService: ProductTypesService) { }
 
   @Post()
   create(@Body() createProductTypeDto: CreateProductTypeDto) {
@@ -34,12 +34,23 @@ export class ProductTypesController {
     description: 'Comma-separated list of productfiltervalue IDs',
   })
   findAllProductsFromProductType(@Param('id') id: number,
-                                @Query('productfiltervalue') productFilterValueQuery?: string)
-  {
+                                @Query('page') page: string = '1',
+                                @Query('pageSize') pageSize: string = '12',
+                                @Query('productfiltervalue') productFilterValueQuery?: string) {
+    const pageNumber = parseInt(page) || 1;
+    const pageSizeNumber = parseInt(pageSize) || 12;
+    // Validation
+    if (pageNumber < 1) {
+      throw new Error('Page number must be greater than 0');
+    }
+    if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+      throw new Error('Page size must be between 1 and 100');
+    }
+
     const filterValues: number[] | undefined = productFilterValueQuery
       ? productFilterValueQuery.split(',').map((v) => +v)
       : undefined;
-    return this.productTypesService.findAllProductsFromProductType(+id, filterValues);
+    return this.productTypesService.findAllProductsFromProductType(+id, filterValues, pageNumber, pageSizeNumber);
   }
 
 
