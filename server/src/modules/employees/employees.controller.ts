@@ -41,36 +41,41 @@ export class EmployeesController {
   @ApiQuery({
     name: 'role',
     required: false,
-    description: 'Lọc theo vai trò (hr_manager, wh_manager)',
-    example: 'hr_manager',
+    description: 'Lọc theo vai trò (có thể truyền nhiều giá trị)',
     type: String,
-    enum: ['hr_manager', 'wh_manager']
+    isArray: true,
+    example: ['hr_manager', 'wh_manager']
   })
   @ApiQuery({
     name: 'employee_type',
     required: false,
-    description: 'Lọc theo loại nhân viên (Full-time, Part-time)',
-    example: 'Full-time',
+    description: 'Lọc theo loại nhân viên (có thể truyền nhiều giá trị)',
     type: String,
-    enum: ['Full-time', 'Part-time']
+    isArray: true,
+    example: ['Full-time', 'Part-time']
   })
   @ApiQuery({
     name: 'fingerprintid',
     required: false,
-    description: 'Lọc theo fingerprintid',
-    example: 'null',
+    description: 'Lọc theo fingerprintid (có thể truyền nhiều giá trị, ví dụ: 123, 456, null, notnull)',
     type: String,
-    enum: ['null', 'notnull']
+    isArray: true,
+    example: ['null', 'notnull']
   })
   async getAllEmployees(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '12',
-    @Query('role') role?: string,
-    @Query('employee_type') employee_type?: string,
-    @Query('fingerprintid') fingerprintid?: string
+    @Query('role') role?: string[] | string,
+    @Query('employee_type') employee_type?: string[] | string,
+    @Query('fingerprintid') fingerprintid?: string[] | string
   ) {
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
+
+    // Đảm bảo các filter là mảng nếu có nhiều giá trị, hoặc undefined nếu không truyền
+    const roleArr = Array.isArray(role) ? role : (role ? String(role).split(',') : undefined);
+    const employeeTypeArr = Array.isArray(employee_type) ? employee_type : (employee_type ? String(employee_type).split(',') : undefined);
+    const fingerprintidArr = Array.isArray(fingerprintid) ? fingerprintid : (fingerprintid ? String(fingerprintid).split(',') : undefined);
 
     // Validation
     if (pageNumber < 1) {
@@ -85,9 +90,9 @@ export class EmployeesController {
       pageNumber,
       pageSizeNumber,
       {
-        role,
-        employee_type,
-        fingerprintid: fingerprintid ? fingerprintid : undefined
+        role: roleArr,
+        employee_type: employeeTypeArr,
+        fingerprintid: fingerprintidArr,
       }
     );
   }
