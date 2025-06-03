@@ -8,14 +8,18 @@ import { ProductTypes, Products } from '@/types/types';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface ProductListItem extends Products {
-    totalStockQuantity: number;
+    quantity: number;
 }
 
 const ProductsPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
     const router = useRouter();
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(10);
+    const [pageSize, setPageSize] = useState(2);
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [filters, setFilters] = useState<FilterConfig[]>([]);
@@ -89,18 +93,23 @@ const ProductsPage = () => {
                 return;
             }
 
-            const productsResponse = await getProducts(
+            const result = await getProducts(
                 selectedProductTypeId,
+                page,
+                pageSize,
                 selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
             );
 
-            if (productsResponse.ok) {
-                setProducts(productsResponse.data);
+            if (result.ok) {
+                console.log('fasdfas', result.data);
+                setProducts(result.data.data);
+                setPage(result.data.pagination.page);
+                setTotalPages(result.data.pagination.totalPages);
             }
         };
 
         loadProducts();
-    }, [filterValues]);
+    }, [filterValues, page, pageSize]);
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
@@ -144,7 +153,12 @@ const ProductsPage = () => {
                     onFilterChange={handleFilterChange}
                 />
             </div>
-            <ProductList products={products} selectedProducts={selectedProducts} />
+            <div className="flex w-full flex-col gap-4 sm:w-4/5">
+                <ProductList products={products} selectedProducts={selectedProducts} />
+                <div className="mt-4 flex justify-center">
+                    <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
+                </div>
+            </div>
             {hasSelectedItems && (
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}
