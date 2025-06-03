@@ -1,7 +1,6 @@
 'use client';
 
-import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import {
     getCourts,
@@ -10,7 +9,6 @@ import {
     getFixedCourtsDisableStartTimes,
 } from '@/services/booking.service';
 import { Products } from '@/types/types';
-import { Icon } from '@iconify/react/dist/iconify.js';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -49,6 +47,7 @@ export default function BookingCourtsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { selectedCourts, selectedProducts, TTL } = useBooking();
+    const { user } = useAuth();
     const [fixedCourt, setFixedCourt] = useState(false);
     // Parse params and convert to correct types
     const zone = searchParams.get('zone') || '';
@@ -131,6 +130,11 @@ export default function BookingCourtsPage() {
     };
 
     useEffect(() => {
+        if (!user) {
+            toast.warning('Bạn cần đăng nhập để đặt sân');
+            router.push('/signin');
+            return;
+        }
         if (fixedCourt) {
             fetchFixedCourtsDisableStartTimes();
             fetchFixedCourts();

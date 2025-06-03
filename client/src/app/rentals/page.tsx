@@ -9,6 +9,7 @@ import { ProductTypes, Products } from '@/types/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import BookingBottomSheet from '../../components/atomic/BottomSheet';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface RentalListItem extends Products {
     quantity: number;
@@ -25,6 +26,9 @@ function formatDateDMY(dateString: string) {
 
 const RentalPage = () => {
     const router = useRouter();
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [pageSize, setPageSize] = useState(12);
     const { selectedCourts, selectedProducts, TTL } = useBooking();
     const bookingDates = Array.from(
         new Set(
@@ -106,18 +110,26 @@ const RentalPage = () => {
                 return;
             }
 
-            const productsResponse = await getProducts(
+            const result = await getProducts(
                 selectedProductTypeId,
+                page,
+                pageSize,
                 selectedProductFilterValueIds.length > 0 ? selectedProductFilterValueIds : undefined,
             );
 
-            if (productsResponse.ok) {
-                setProducts(productsResponse.data);
+            if (result.ok) {
+                setProducts(result.data.data);
+                setTotalPages(result.data.pagination.totalPages);
+                if (result.data.pagination.totalPages < result.data.pagination.page) {
+                    setPage(result.data.pagination.totalPages);
+                } else {
+                    setPage(result.data.pagination.page);
+                }
             }
         };
 
         loadProducts();
-    }, [filterValues]);
+    }, [filterValues, page, pageSize]);
 
     const hasSelectedItems = (selectedCourts?.length > 0 || selectedProducts?.length > 0) ?? false;
 
@@ -202,11 +214,16 @@ const RentalPage = () => {
                     onFilterChange={handleFilterChange}
                 />
             </div>
-            <RentalList
-                products={products}
-                selectedProducts={selectedProducts}
-                returnDate={filterValues.selectedDate}
-            />
+            <div className="flex w-full flex-col gap-4 sm:w-4/5">
+                <RentalList
+                    products={products}
+                    selectedProducts={selectedProducts}
+                    returnDate={filterValues.selectedDate}
+                />
+                <div className="mt-4 flex justify-center">
+                    <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
+                </div>
+            </div>
             {hasSelectedItems && (
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}

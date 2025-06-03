@@ -29,6 +29,7 @@ drop table if exists shift CASCADE;
 drop table if exists bank_detail CASCADE;
 drop table if exists employees CASCADE;
 drop table if exists accounts CASCADE;
+drop table if exists supply_products CASCADE;
 
 create table if not exists accounts (
 	accountid integer generated always as identity primary key,
@@ -50,6 +51,10 @@ create table if not exists accounts (
 create table if not exists employees (
 	employeeid integer primary key,
 	fingerprintid integer default NULL,
+	cccd text default NULL,
+	expired_cccd timestamptz default NULL,
+	taxcode text default NULL,
+	salary numeric default NULL,
 	last_week_shift_type text check (last_week_shift_type in ('Morning', 'Evening', 'Mix')),
 	employee_type text check (employee_type in ('Full-time', 'Part-time')),
 	role text,
@@ -61,8 +66,7 @@ create table if not exists bank_detail (
 	bankname text,
 	banknumber text,
 	bankholder text,
-	bankbranch text,
-	linkedphonenumber text,
+	active boolean default false,
 	employeeid integer,
 	constraint fk_bankdetail_employeeid foreign key (employeeid) references employees(employeeid)
 );
@@ -95,6 +99,7 @@ create table if not exists shift_assignment (
 	employeeid integer,
 	shiftid integer,
 	shiftdate timestamptz,
+	status text check (status in ('Confirmed', 'Pending', 'Refused')),
 	constraint pk_shiftassignment primary key (employeeid, shiftid, shiftdate),
 	constraint fk_shiftassignment_employees foreign key (employeeid) references employees(employeeid),
 	constraint fk_shiftassignment_shiftdate foreign key (shiftid, shiftdate) references shift_date(shiftid, shiftdate)
@@ -133,6 +138,8 @@ create table if not exists reward_records (
 	rewardrecordid integer generated always as identity primary key,
 	rewarddate timestamptz,
 	finalrewardamount numeric,
+	rewardnote text,
+	rewardrecordstatus text check (rewardrecordstatus in ('Pending', 'Approved', 'Rejected')),
 	rewardapplieddate timestamptz,
 	rewardruleid integer,
 	employeeid integer,
@@ -309,12 +316,21 @@ create table if not exists product_attributes (
 	constraint fk_productattributes_productfiltervalues foreign key (productfiltervalueid) references product_filter_values(productfiltervalueid)
 );
 
+create table if not exists supply_products (
+	productid integer,
+	supplierid integer,
+	constraint pk_supplyproducts primary key (productid, supplierid),
+	constraint fk_supplyproducts_products foreign key (productid) references products(productid),
+	constraint fk_supplyproducts_suppliers foreign key (supplierid) references suppliers(supplierid)
+);
+
 create table if not exists purchase_order (
 	poid integer generated always as identity primary key,
 	quantity integer,
 	deliverydate timestamptz,
 	createdat timestamptz default now(),
 	updatedat timestamptz default now(),
+	statusorder text check (statusorder in ('Pending', 'Completed', 'Cancelled')),
 	productid integer,
 	employeeid integer,
 	supplierid integer,

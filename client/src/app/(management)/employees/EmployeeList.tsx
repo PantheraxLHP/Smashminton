@@ -1,57 +1,51 @@
-import PaginationComponent from "@/components/atomic/PaginationComponent";
-import EmployeeAddForm from "./EmployeeAddForm";
-import EmployeeDetails from "./EmployeeDetails";
-import { Fragment, useState, useEffect } from "react";
-import { Employees } from "@/types/types";
-import { useRouter } from "next/navigation";
+import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { getEmployees } from '@/services/employees.service';
+import { Accounts, Employees } from '@/types/types';
+import { Icon } from '@iconify/react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useRouter } from 'next/navigation';
+import { Fragment, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import EmployeeAddForm from './EmployeeAddForm';
+import EmployeeDetails from './EmployeeDetails';
 
-const EmployeeList = () => {
+export interface EmployeesProps extends Employees, Accounts {
+    cccd: string;
+}
+
+interface EmployeeListProps {
+    filterValue: Record<string, any>;
+}
+
+const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     const router = useRouter();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(12);
-    const [employees, setEmployees] = useState<Employees[]>([
-        {
-            employeeid: 1,
-            role: "Quản lý sân",
-            employee_type: "Bán thời gian",
-            fingerprintid: 1,
-            accounts: {
-                accountid: 1,
-                fullname: "Nguyễn Văn A",
-                createdat: new Date("2023-01-01"),
-            }
-        },
-        {
-            employeeid: 2,
-            role: "Quản lý kho hàng",
-            employee_type: "Toàn thời gian",
-            accounts: {
-                accountid: 2,
-                fullname: "Trần Thị B",
-                createdat: new Date("2023-02-01"),
-            }
-        }
-    ]);
+    const [employees, setEmployees] = useState<EmployeesProps[]>([]);
 
     const [selectedEmployees, setSelectedEmployees] = useState<Employees[]>([]);
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    const fetchEmployees = async () => {
+        const result = await getEmployees(page, pageSize);
+        if (!result.ok) {
+            setEmployees([]);
+        } else {
+            setEmployees(result.data.data);
+            setTotalPages(result.data.pagination.totalPages);
+            setPage(result.data.pagination.page);
+        }
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, [filterValue, page, pageSize]);
 
     useEffect(() => {
         if (employees.length === 0) {
@@ -59,8 +53,8 @@ const EmployeeList = () => {
             return;
         }
 
-        const allSelected = employees.every(employee =>
-            selectedEmployees.some(selected => selected.employeeid === employee.employeeid)
+        const allSelected = employees.every((employee) =>
+            selectedEmployees.some((selected) => selected.employeeid === employee.employeeid),
         );
 
         setCurrentPageSelectAll(allSelected);
@@ -68,11 +62,11 @@ const EmployeeList = () => {
 
     const handleSelectAllChange = (checked: boolean) => {
         if (checked) {
-            setSelectedEmployees(prev => {
-                const currentIds = new Set(prev.map(e => e.employeeid));
+            setSelectedEmployees((prev) => {
+                const currentIds = new Set(prev.map((e) => e.employeeid));
                 const newSelected = [...prev];
 
-                employees.forEach(employee => {
+                employees.forEach((employee) => {
                     if (!currentIds.has(employee.employeeid)) {
                         newSelected.push(employee);
                     }
@@ -81,35 +75,35 @@ const EmployeeList = () => {
                 return newSelected;
             });
         } else {
-            setSelectedEmployees(prev => {
-                const currentIds = new Set(employees.map(e => e.employeeid));
-                return prev.filter(employee => !currentIds.has(employee.employeeid));
+            setSelectedEmployees((prev) => {
+                const currentIds = new Set(employees.map((e) => e.employeeid));
+                return prev.filter((employee) => !currentIds.has(employee.employeeid));
             });
         }
     };
 
     const handleSingleCheckboxChange = (employee: Employees, checked: boolean) => {
         if (checked) {
-            setSelectedEmployees(prev => {
-                const currentIds = new Set(prev.map(e => e.employeeid));
+            setSelectedEmployees((prev) => {
+                const currentIds = new Set(prev.map((e) => e.employeeid));
                 if (!currentIds.has(employee.employeeid)) {
                     return [...prev, employee];
                 }
                 return prev;
             });
         } else {
-            setSelectedEmployees(prev => {
-                return prev.filter(selected => selected.employeeid !== employee.employeeid);
+            setSelectedEmployees((prev) => {
+                return prev.filter((selected) => selected.employeeid !== employee.employeeid);
             });
         }
-    }
+    };
 
     return (
-        <div className="flex flex-col gap-4 w-full overflow-x-auto">
-            <span className="text-2xl font-semibold w-full min-w-max">Danh sách nhân viên</span>
-            <div className="flex flex-col w-full min-w-max overflow-x-auto">
+        <div className="flex w-full flex-col gap-4 overflow-x-auto">
+            <span className="w-full min-w-max text-2xl font-semibold">Danh sách nhân viên</span>
+            <div className="flex w-full min-w-max flex-col overflow-x-auto">
                 {/* Table Header - 8 cols*/}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] min-w-max items-center pb-2 border-b-2 border-gray-400 w-full">
+                <div className="grid w-full min-w-max grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] items-center border-b-2 border-gray-400 pb-2">
                     <Checkbox
                         className="size-5 cursor-pointer"
                         checked={currentPageSelectAll}
@@ -120,62 +114,80 @@ const EmployeeList = () => {
                     <span className="text-sm font-semibold">Vai trò</span>
                     <span className="text-sm font-semibold">Loại nhân viên</span>
                     <span className="text-sm font-semibold">Ngày bắt đầu làm việc</span>
-                    <span className="text-sm font-semibold flex justify-center text-center">Xem chi tiết</span>
-                    <span className="text-sm font-semibold flex justify-center text-center">Sinh trắc học vân tay (Nhấn để thêm)</span>
+                    <span className="flex justify-center text-center text-sm font-semibold">Xem chi tiết</span>
+                    <span className="flex justify-center text-center text-sm font-semibold">
+                        Sinh trắc học vân tay (Nhấn để thêm)
+                    </span>
                 </div>
                 {/* Table Content - 8 cols - 12 rows */}
-                <div className="grid grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 min-w-max items-center border-b-2 border-gray-400 w-full">
+                <div className="grid w-full min-w-max grid-cols-[50px_repeat(5,_minmax(150px,_1fr))_100px_150px] grid-rows-12 items-center border-b-2 border-gray-400">
                     {employees.map((employee) => (
                         <Fragment key={`employee-${employee.employeeid}`}>
-                            <div className="flex items-center py-2 h-14 border-b-2 border-gray-200">
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2">
                                 <Checkbox
-                                    checked={selectedEmployees.some(selected => selected.employeeid === employee.employeeid)}
-                                    onCheckedChange={(checked) => handleSingleCheckboxChange(employee, Boolean(checked))}
+                                    checked={selectedEmployees.some(
+                                        (selected) => selected.employeeid === employee.employeeid,
+                                    )}
+                                    onCheckedChange={(checked) =>
+                                        handleSingleCheckboxChange(employee, Boolean(checked))
+                                    }
                                     className="size-5 cursor-pointer"
                                 />
                             </div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.employeeid}</div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.accounts?.fullname}</div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.role}</div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">{employee.employee_type}</div>
-                            <div className="flex items-center text-sm py-2 h-14 border-b-2 border-gray-200">
-                                {(employee.accounts?.createdat)?.toLocaleDateString("vi-VN", {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit'
-                                })}
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
+                                {employee.employeeid}
                             </div>
-                            <div className="flex items-center justify-center py-2 h-14 border-b-2 border-gray-200">
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
+                                {employee.fullname}
+                            </div>
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
+                                {employee.role}
+                            </div>
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
+                                {employee.employee_type}
+                            </div>
+                            <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
+                                {employee.createdat
+                                    ? new Date(employee.createdat).toLocaleDateString('vi-VN', {
+                                          year: 'numeric',
+                                          month: '2-digit',
+                                          day: '2-digit',
+                                      })
+                                    : ''}
+                            </div>
+                            <div className="flex h-14 items-center justify-center border-b-2 border-gray-200 py-2">
                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <Icon
                                             icon="material-symbols:info-outline-rounded"
-                                            className="size-8 text-primary-300 cursor-pointer hover:text-primary-500"
+                                            className="text-primary-300 hover:text-primary-500 size-8 cursor-pointer"
                                         />
                                     </DialogTrigger>
-                                    <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
+                                    <DialogContent className="!flex h-[80vh] !max-w-[80vw] flex-col gap-2 overflow-y-auto">
                                         <DialogHeader className="!h-1">
                                             <DialogTitle className="!h-fit">
                                                 <VisuallyHidden>
-                                                    {`Chi tiết thông tin của nhân viên ${employee.accounts?.fullname || "chưa có tên"}`}
+                                                    {`Chi tiết thông tin của nhân viên ${employee.accounts?.fullname || 'chưa có tên'}`}
                                                 </VisuallyHidden>
                                             </DialogTitle>
                                         </DialogHeader>
-                                        <EmployeeDetails />
+                                        <EmployeeDetails employee={employee} />
                                     </DialogContent>
                                 </Dialog>
                             </div>
-                            <div className="flex items-center justify-center text-sm py-2 h-14 border-b-2 border-gray-200">
+                            <div className="flex h-14 items-center justify-center border-b-2 border-gray-200 py-2 text-sm">
                                 <Button
-                                    variant={employee.fingerprintid ? "default" : "outline_destructive"}
-                                    className={`w-full ${employee.fingerprintid ? "cursor-default" : ""}`}
+                                    variant={employee.fingerprintid ? 'default' : 'outline_destructive'}
+                                    className={`w-full ${employee.fingerprintid ? 'cursor-default' : ''}`}
                                     onClick={() => {
                                         if (!employee.fingerprintid) {
-                                            router.push(`/fingerprint?employeeid=${employee.employeeid}&fullname=${encodeURIComponent(employee.accounts?.fullname || "")}`);
+                                            router.push(
+                                                `/fingerprint?employeeid=${employee.employeeid}&fullname=${encodeURIComponent(employee.fullname || '')}`,
+                                            );
                                         }
                                     }}
                                 >
-                                    {employee.fingerprintid ? "Đã thêm" : "Chưa thêm"}
+                                    {employee.fingerprintid ? 'Đã thêm' : 'Chưa thêm'}
                                 </Button>
                             </div>
                         </Fragment>
@@ -183,15 +195,13 @@ const EmployeeList = () => {
                 </div>
             </div>
             {/*Số lượng nhân viên được chọn, phân trang, hành động thêm/xóa nhân viên */}
-            <div className="flex justify-between items-center gap-5 w-full min-w-max">
-                <span className="text-primary">Đã chọn <b>{selectedEmployees.length}</b> nhân viên</span>
+            <div className="flex w-full min-w-max items-center justify-between gap-5">
+                <span className="text-primary">
+                    Đã chọn <b>{selectedEmployees.length}</b> nhân viên
+                </span>
                 <div>
-                    <PaginationComponent
-                        page={page}
-                        setPage={setPage}
-                        totalPages={totalPages}
-                    />
-                </div>                
+                    <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
+                </div>
                 <div className="flex gap-4">
                     {/* Dialog khi nhấn nút xóa nhân sự */}
                     <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -200,9 +210,9 @@ const EmployeeList = () => {
                             className="w-30"
                             onClick={() => {
                                 if (selectedEmployees.length > 0) {
-                                    setIsDeleteDialogOpen(true)
+                                    setIsDeleteDialogOpen(true);
                                 } else {
-                                    toast.error("Vui lòng chọn ít nhất một nhân sự để xóa.");
+                                    toast.error('Vui lòng chọn ít nhất một nhân sự để xóa.');
                                 }
                             }}
                         >
@@ -217,16 +227,10 @@ const EmployeeList = () => {
                                 <span className="text-red-500">Hành động này không thể hoàn tác.</span>
                             </div>
                             <DialogFooter>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setIsDeleteDialogOpen(false)}
-                                >
+                                <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)}>
                                     Thoát
                                 </Button>
-                                <Button
-                                    variant="outline_destructive"
-                                    onClick={() => { }}
-                                >
+                                <Button variant="outline_destructive" onClick={() => {}}>
                                     Xóa
                                 </Button>
                             </DialogFooter>
@@ -245,16 +249,10 @@ const EmployeeList = () => {
                             </DialogHeader>
                             <EmployeeAddForm />
                             <DialogFooter>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setIsAddDialogOpen(false)}
-                                >
+                                <Button variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
                                     Thoát
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => { }}
-                                >
+                                <Button variant="outline" onClick={() => {}}>
                                     Thêm
                                 </Button>
                             </DialogFooter>
@@ -264,6 +262,6 @@ const EmployeeList = () => {
             </div>
         </div>
     );
-}
+};
 
 export default EmployeeList;

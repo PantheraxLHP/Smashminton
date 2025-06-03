@@ -2,7 +2,7 @@ import PaginationComponent from "@/components/atomic/PaginationComponent";
 import ApprovalDetails from "./ApprovalDetails";
 import ApprovalAddForm from "./ApprovalAddForm";
 import { Fragment, useState, useEffect } from "react";
-import { MonthlyNote } from "@/types/types";
+import { RewardRecords, Employees } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
@@ -19,29 +19,29 @@ import {
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { formatPrice } from '@/lib/utils';
-import { get } from "http";
 
-export const getButtonVariant = (note: MonthlyNote) => {
-    if (note.notestatus === "approved") {
-        return "default";
-    }
-    else if (note.notestatus === "pending") {
-        return "secondary";
-    }
-    else if (note.notestatus === "rejected") {
-        return "destructive";
+export const getButtonVariant = (rc: RewardRecords) => {
+    switch ((rc.rewardrecordstatus)?.toLocaleLowerCase()) {
+        case "pending":
+            return "secondary";
+        case "rejected":
+            return "destructive";
+        case "approved":
+            return "default";
     }
 }
 
-export const getStatusText = (note: MonthlyNote) => {
-    if (note.notestatus === "approved") {
-        return "Đã phê duyệt";
-    } else if (note.notestatus === "pending") {
-        return "Chờ phê duyệt";
-    } else if (note.notestatus === "rejected") {
-        return "Đã từ chối";
+export const getStatusText = (rc: RewardRecords) => {
+    switch ((rc.rewardrecordstatus)?.toLocaleLowerCase()) {
+        case "pending":
+            return "Chờ phê duyệt";
+        case "rejected":
+            return "Đã từ chối";
+        case "approved":
+            return "Đã phê duyệt";
+        default:
+            return "Không rõ trạng thái";
     }
-    return "Không rõ trạng thái";
 }
 
 const ApprovalList = () => {
@@ -49,14 +49,14 @@ const ApprovalList = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(12);
-    const [notes, setNotes] = useState<MonthlyNote[]>([
+    const [rewardRecords, setRewardRecords] = useState<RewardRecords[]>([
         {
-            noteid: 1,
+            rewardrecordid: 1,
             employeeid: 1,
-            notestatus: "approved",
-            notecontent: "Đã hoàn thành công việc đúng hạn.",
-            noterewardamount: 1000000,
-            createdat: new Date("2023-01-01"),
+            rewardrecordstatus: "Approved",
+            rewardnote: "Đã hoàn thành công việc đúng hạn.",
+            finalrewardamount: 1000000,
+            rewarddate: new Date("2023-01-01"),
             employees: {
                 employeeid: 1,
                 role: "Quản lý sân",
@@ -68,12 +68,12 @@ const ApprovalList = () => {
             }
         },
         {
-            noteid: 2,
+            rewardrecordid: 2,
             employeeid: 2,
-            notestatus: "pending",
-            notecontent: "Chưa hoàn thành công việc, cần xem xét.",
-            noterewardamount: 500000,
-            createdat: new Date("2023-02-01"),
+            rewardrecordstatus: "Pending",
+            rewardnote: "Chưa hoàn thành công việc, cần xem xét.",
+            finalrewardamount: 500000,
+            rewarddate: new Date("2023-02-01"),
             employees: {
                 employeeid: 2,
                 role: "Quản lý kho hàng",
@@ -85,12 +85,12 @@ const ApprovalList = () => {
             }
         },
         {
-            noteid: 3,
+            rewardrecordid: 3,
             employeeid: 3,
-            notestatus: "rejected",
-            notecontent: "Không đạt yêu cầu công việc.",
-            noterewardamount: 9999000,
-            createdat: new Date("2023-03-01"),
+            rewardrecordstatus: "Rejected",
+            rewardnote: "Không đạt yêu cầu công việc.",
+            finalrewardamount: 9999000,
+            rewarddate: new Date("2023-03-01"),
             employees: {
                 employeeid: 3,
                 role: "Quản lý sân",
@@ -103,60 +103,62 @@ const ApprovalList = () => {
         }
     ]);
 
-    const [selectedNotes, setSelectedNotes] = useState<MonthlyNote[]>([]);
+    const [selectedRewardRecords, setSelectedRewardRecords] = useState<RewardRecords[]>([]);
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
     useEffect(() => {
-        if (notes.length === 0) {
+        if (rewardRecords.length === 0) {
             setCurrentPageSelectAll(false);
             return;
         }
 
-        const allSelected = notes.every(note =>
-            selectedNotes.some(selected => selected.noteid === note.noteid)
+        const allSelected = rewardRecords.every(rc =>
+            selectedRewardRecords.some(selected => selected.rewardrecordid === rc.rewardrecordid)
         );
 
         setCurrentPageSelectAll(allSelected);
-    }, [notes, selectedNotes]);
+    }, [rewardRecords, selectedRewardRecords]);
 
     const handleSelectAllChange = (checked: boolean) => {
         if (checked) {
-            setSelectedNotes(prev => {
-                const currentIds = new Set(prev.map(n => n.noteid));
+            setSelectedRewardRecords(prev => {
+                const currentIds = new Set(prev.map(rc => rc.rewardrecordid));
                 const newSelected = [...prev];
 
-                notes.forEach(note => {
-                    if (!currentIds.has(note.noteid)) {
-                        newSelected.push(note);
+                rewardRecords.forEach(rc => {
+                    if (!currentIds.has(rc.rewardrecordid)) {
+                        newSelected.push(rc);
                     }
                 });
 
                 return newSelected;
             });
         } else {
-            setSelectedNotes(prev => {
-                const currentIds = new Set(prev.map(n => n.noteid));
-                return prev.filter(note => !currentIds.has(note.noteid));
+            setSelectedRewardRecords(prev => {
+                const currentIds = new Set(prev.map(rc => rc.rewardrecordid));
+                return prev.filter(rc => !currentIds.has(rc.rewardrecordid));
             });
         }
     };
 
-    const handleSingleCheckboxChange = (note: MonthlyNote, checked: boolean) => {
+    const handleSingleCheckboxChange = (rc: RewardRecords, checked: boolean) => {
         if (checked) {
-            setSelectedNotes(prev => {
-                const currentIds = new Set(prev.map(n => n.noteid));
-                if (!currentIds.has(note.noteid)) {
-                    return [...prev, note];
+            setSelectedRewardRecords(prev => {
+                const currentIds = new Set(prev.map(rc => rc.rewardrecordid));
+                if (!currentIds.has(rc.rewardrecordid)) {
+                    return [...prev, rc];
                 }
                 return prev;
             });
         } else {
-            setSelectedNotes(prev => {
-                return prev.filter(selected => selected.noteid !== note.noteid);
+            setSelectedRewardRecords(prev => {
+                return prev.filter(selected => selected.rewardrecordid !== rc.rewardrecordid);
             });
         }
     }
+
+    const employees: Employees[] = rewardRecords.map(rc => rc.employees).filter((employee): employee is Employees => employee !== undefined);
 
     return (
         <div className="flex flex-col gap-4 w-full overflow-x-auto">
@@ -180,27 +182,27 @@ const ApprovalList = () => {
                 </div>
                 {/* Table Content - 9 cols - 12 rows */}
                 <div className="grid grid-cols-[50px_repeat(6,_minmax(150px,_1fr))_100px_150px] grid-rows-12 min-w-max items-center border-b-2 border-gray-400 w-full">
-                    {notes.map((note) => (
-                        <Fragment key={`note-${note.noteid}`}>
+                    {rewardRecords.map((rc) => (
+                        <Fragment key={`rc-${rc.rewardrecordid}`}>
                             <div className="flex items-center py-2 h-14.5 border-b-2 border-gray-200">
                                 <Checkbox
-                                    checked={selectedNotes.some(selected => selected.noteid === note.noteid)}
-                                    onCheckedChange={(checked) => handleSingleCheckboxChange(note, Boolean(checked))}
+                                    checked={selectedRewardRecords.some(selected => selected.rewardrecordid === rc.rewardrecordid)}
+                                    onCheckedChange={(checked) => handleSingleCheckboxChange(rc, Boolean(checked))}
                                     className="size-5 cursor-pointer"
                                 />
                             </div>
-                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employeeid}</div>
-                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.accounts?.fullname}</div>
-                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.role}</div>
-                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{note.employees?.employee_type}</div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{rc.employeeid}</div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{rc.employees?.accounts?.fullname}</div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{rc.employees?.role}</div>
+                            <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">{rc.employees?.employee_type}</div>
                             <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">
-                                {(note.createdat)?.toLocaleDateString("vi-VN", {
+                                {(rc.rewarddate)?.toLocaleDateString("vi-VN", {
                                     year: 'numeric',
                                     month: '2-digit',
                                 })}
                             </div>
                             <div className="flex items-center text-sm py-2 h-14.5 border-b-2 border-gray-200">
-                                {formatPrice(note.noterewardamount || 0)}
+                                {formatPrice(rc.finalrewardamount || 0)}
                             </div>
                             <div className="flex items-center justify-center py-2 h-14.5 border-b-2 border-gray-200">
                                 <Dialog>
@@ -217,8 +219,8 @@ const ApprovalList = () => {
                                             </DialogTitle>
                                             <DialogDescription className="!h-fit">
                                                 {
-                                                    `Nhân viên ${note.employeeid} - ${note.employees?.accounts?.fullname || "chưa có tên"} trong ` +
-                                                    `${(note.createdat)?.toLocaleDateString("vi-VN", {
+                                                    `Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || "chưa có tên"} trong ` +
+                                                    `${(rc.rewarddate)?.toLocaleDateString("vi-VN", {
                                                         year: 'numeric',
                                                         month: '2-digit',
                                                     })}`
@@ -226,9 +228,9 @@ const ApprovalList = () => {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ApprovalDetails
-                                            note={note}
+                                            record={rc}
                                         />
-                                        {getStatusText(note) === "Chờ phê duyệt" && (
+                                        {getStatusText(rc) === "Chờ phê duyệt" && (
                                             <DialogFooter className="!h-fit">
                                                 <DialogTrigger asChild>
                                                     <Button variant="secondary">
@@ -248,10 +250,10 @@ const ApprovalList = () => {
                             </div>
                             <div className="flex items-center justify-center text-sm py-2 h-14.5 border-b-2 border-gray-200">
                                 <Button
-                                    variant={getButtonVariant(note)}
+                                    variant={getButtonVariant(rc)}
                                     className={`w-full`}
                                 >
-                                    {getStatusText(note)}
+                                    {getStatusText(rc)}
                                 </Button>
                             </div>
                         </Fragment>
@@ -260,7 +262,7 @@ const ApprovalList = () => {
             </div>
             {/*Số lượng nhân viên được chọn, phân trang, hành động duyệt/từ chối ghi chú và thêm ghi chú */}
             <div className="flex justify-between items-center gap-5 w-full min-w-max">
-                <span className="text-primary">Đã chọn <b>{selectedNotes.length}</b> ghi chú</span>
+                <span className="text-primary">Đã chọn <b>{selectedRewardRecords.length}</b> ghi chú</span>
                 <div>
                     <PaginationComponent
                         page={page}
@@ -288,11 +290,29 @@ const ApprovalList = () => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
-                            <DialogHeader className="!h-1">
+                        <DialogContent className="h-[60vh] overflow-y-auto !flex flex-col gap-2">
+                            <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
                             </DialogHeader>
-                            <ApprovalAddForm />
+                            <ApprovalAddForm
+                                employees={employees}
+                            />
+                            <DialogFooter className="!h-fit">
+                                <DialogTrigger asChild>
+                                    <Button variant="secondary">
+                                        Hủy
+                                    </Button>
+                                </DialogTrigger>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        toast.success("Ghi chú đã được thêm thành công!");
+                                        setIsAddDialogOpen(false);
+                                    }}
+                                >
+                                    Lưu
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>

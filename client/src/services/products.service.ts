@@ -40,7 +40,12 @@ export const getRentalFilters = async () => {
     }
 };
 
-export const getProducts = async (productTypeId: number, productFilterValue?: number[]) => {
+export const getProducts = async (
+    productTypeId: number,
+    page: number,
+    pageSize: number,
+    productFilterValue?: number[],
+) => {
     try {
         const queryParams = new URLSearchParams();
 
@@ -50,6 +55,14 @@ export const getProducts = async (productTypeId: number, productFilterValue?: nu
 
         if (productFilterValue && productFilterValue.length > 0) {
             queryParams.set('productFilterValues', productFilterValue.join(','));
+        }
+
+        if (page) {
+            queryParams.set('page', page.toString());
+        }
+
+        if (pageSize) {
+            queryParams.set('pageSize', pageSize.toString());
         }
 
         const response = await fetch(`/api/products/get-products?${queryParams.toString()}`, {
@@ -63,12 +76,32 @@ export const getProducts = async (productTypeId: number, productFilterValue?: nu
             return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
         }
 
-        const products = result.data.map((product: any) => ({
-            ...product,
-            totalStockQuantity: product.quantity,
-        }));
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};
 
-        return ServiceResponse.success(products);
+export const getSingleProduct = async (productId: number) => {
+    try {
+        const queryParams = new URLSearchParams();
+
+        if (productId) {
+            queryParams.set('productId', productId.toString());
+        }
+
+        const response = await fetch(`/api/products/get-single-product?${queryParams.toString()}`, {
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }

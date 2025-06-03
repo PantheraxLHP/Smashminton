@@ -48,14 +48,13 @@ model autoassignment_rules {
 }
 
 model bank_detail {
-  bankdetailid      Int        @id @default(autoincrement())
-  bankname          String?
-  banknumber        String?
-  bankholder        String?
-  bankbranch        String?
-  linkedphonenumber String?
-  employeeid        Int?
-  employees         employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_bankdetail_employeeid")
+  bankdetailid Int        @id @default(autoincrement())
+  bankname     String?
+  banknumber   String?
+  bankholder   String?
+  active       Boolean?   @default(false)
+  employeeid   Int?
+  employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_bankdetail_employeeid")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -116,7 +115,10 @@ model employees {
   last_week_shift_type String?
   employee_type        String?
   role                 String?
-  monthly_note         monthly_note[]
+  cccd                 String?
+  expiry_cccd          DateTime?          @db.Timestamptz(6)
+  taxcode              String?
+  salary               Decimal?           @db.Decimal
   bank_detail          bank_detail[]
   bookings             bookings[]
   accounts             accounts           @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employees_accounts")
@@ -127,17 +129,6 @@ model employees {
   shift_assignment     shift_assignment[]
   shift_enrollment     shift_enrollment[]
   timesheet            timesheet[]
-}
-
-model monthly_note {
-  noteid            Int        @id @default(autoincrement())
-  notecontent       String?
-  notestatus        String?
-  noterewardamount Decimal?   @db.Decimal
-  employeeid        Int?
-  employees         employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_monthlynote_employees")
-  createdat         DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat         DateTime?  @default(now()) @db.Timestamptz(6)
 }
 
 model order_product {
@@ -208,6 +199,7 @@ model products {
   order_product      order_product[]
   product_attributes product_attributes[]
   purchase_order     purchase_order[]
+  supply_products    supply_products[]
 }
 
 model product_batch {
@@ -215,7 +207,6 @@ model product_batch {
   batchname      String?
   expirydate     DateTime?        @default(now()) @db.Timestamptz(6)
   stockquantity  Int?
-  status         String?
   createdat      DateTime?        @default(now()) @db.Timestamptz(6)
   updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
   purchase_order purchase_order[]
@@ -224,6 +215,7 @@ model product_batch {
 model purchase_order {
   poid          Int            @id @default(autoincrement())
   quantity      Int?
+  statusorder   String?
   deliverydate  DateTime?      @db.Timestamptz(6)
   createdat     DateTime?      @default(now()) @db.Timestamptz(6)
   updatedat     DateTime?      @default(now()) @db.Timestamptz(6)
@@ -250,14 +242,16 @@ model receipts {
 }
 
 model reward_records {
-  rewardrecordid    Int           @id @default(autoincrement())
-  rewarddate        DateTime?     @db.Timestamptz(6)
-  finalrewardamount Decimal?      @db.Decimal
-  rewardapplieddate DateTime?     @db.Timestamptz(6)
-  rewardruleid      Int?
-  employeeid        Int?
-  employees         employees?    @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_employees")
-  reward_rules      reward_rules? @relation(fields: [rewardruleid], references: [rewardruleid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_rewardrules")
+  rewardrecordid     Int           @id @default(autoincrement())
+  rewarddate         DateTime?     @db.Timestamptz(6)
+  finalrewardamount  Decimal?      @db.Decimal
+  rewardnote         String?
+  rewardrecordstatus String?
+  rewardapplieddate  DateTime?     @db.Timestamptz(6)
+  rewardruleid       Int?
+  employeeid         Int?
+  employees          employees?    @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_employees")
+  reward_rules       reward_rules? @relation(fields: [rewardruleid], references: [rewardruleid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_rewardrules")
 }
 
 model reward_rules {
@@ -318,15 +312,25 @@ model student_card {
 }
 
 model suppliers {
-  supplierid     Int              @id @default(autoincrement())
-  suppliername   String?
-  contactname    String?
-  phonenumber    String?
-  email          String?
-  address        String?
-  createdat      DateTime?        @default(now()) @db.Timestamptz(6)
-  updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
-  purchase_order purchase_order[]
+  supplierid      Int               @id @default(autoincrement())
+  suppliername    String?
+  contactname     String?
+  phonenumber     String?
+  email           String?
+  address         String?
+  createdat       DateTime?         @default(now()) @db.Timestamptz(6)
+  updatedat       DateTime?         @default(now()) @db.Timestamptz(6)
+  supply_products supply_products[]
+  purchase_order  purchase_order[]
+}
+
+model supply_products {
+  productid  Int
+  supplierid Int
+  suppliers  suppliers @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
+  products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
+
+  @@id([productid, supplierid], map: "pk_fk_supplyproducts")
 }
 
 model timesheet {

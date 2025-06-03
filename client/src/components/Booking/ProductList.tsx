@@ -15,8 +15,8 @@ interface ProductListProps {
     selectedProducts: SelectedProducts[];
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProductItem, removeProduct, selectedCourts } = useBooking();
+const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProducts }) => {
+    const { addProductItem, removeProduct } = useBooking();
     const { user } = useAuth();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
@@ -29,7 +29,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
 
     const getProductTotalStockQuantity = (productId: number) => {
         const product = products.find((p) => p.productid === productId);
-        return product ? product.totalStockQuantity : 0;
+        return product ? product.quantity : 0;
     };
 
     const handleQuantityChange = (productId: number, delta: number) => {
@@ -39,10 +39,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                 router.push('/signin');
                 return;
             }
-            if (
-                getProductQuantity(productId) >=
-                (products.find((p) => p.productid === productId)?.totalStockQuantity || 0)
-            ) {
+            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
@@ -56,6 +53,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
     };
 
     const getSortedProducts = () => {
+        if (!Array.isArray(products)) return [];
         return [...products].sort((a, b) => {
             if (sortBy === 'sellingprice') {
                 const priceA = a.sellingprice || 0;
@@ -130,7 +128,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                         </div>
                         {/* show stock quantity */}
                         <div className="flex items-end gap-1 text-sm text-gray-500">
-                            <span>Số lượng: {product.totalStockQuantity}</span>
+                            <span>Số lượng: {product.quantity}</span>
                             <Icon icon="mdi:racket" className="h-5 w-5" />
                         </div>
                     </div>
