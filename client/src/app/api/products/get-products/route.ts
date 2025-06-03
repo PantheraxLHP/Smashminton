@@ -4,10 +4,12 @@ export async function GET(request: Request) {
     try {
         const queryParams = new URLSearchParams(request.url.split('?')[1]);
         const productTypeId = queryParams.get('productTypeId');
-        const productFilterValues = queryParams.get('productFilterValues');
+        const page = queryParams.get('page');
+        const pageSize = queryParams.get('pageSize');
+        const productFilterValues = queryParams.get('productfiltervalue');
 
         const response = await fetch(
-            `${process.env.SERVER}/api/v1/product-types/${productTypeId}/products${productFilterValues ? `?productfiltervalue=${productFilterValues}` : ''}`,
+            `${process.env.SERVER}/api/v1/product-types/${productTypeId}/products?page=${page}&pageSize=${pageSize}${productFilterValues ? `&productfiltervalue=${productFilterValues}` : ''}`,
             {
                 headers: {
                     'Content-Type': 'application/json',

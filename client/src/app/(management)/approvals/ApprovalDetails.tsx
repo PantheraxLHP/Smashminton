@@ -14,7 +14,7 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
 }) => {
     return (
         <div className="flex flex-col h-full gap-4 w-full">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-10">
                 <div className="flex flex-col gap-1 w-full">
                     <span className="text-xs font-semibold">Mã nhân viên</span>
                     <span className="">{note.employeeid}</span>
@@ -24,19 +24,7 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
                     <span className="">{note.employees?.accounts?.fullname}</span>
                 </div>
             </div>
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex flex-col gap-1 w-full">
-                    <span className="text-xs font-semibold">Loại thưởng</span>
-                    <span className="">Thưởng hiệu suất</span>
-                </div>
-                <div className="flex flex-col gap-1 w-full">
-                    <span className="text-xs font-semibold">Số tiền thưởng</span>
-                    <span className="">
-                        + {formatPrice(note.noterewardamount || 0)}
-                    </span>
-                </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-10">
                 <div className="flex flex-col gap-1 w-full">
                     <span className="text-xs font-semibold">Tháng - Năm</span>
                     <span className="">
@@ -57,6 +45,18 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
                     </Button>
                 </div>
             </div>
+            <div className="flex items-center justify-between gap-10">
+                <div className="flex flex-col gap-1 w-full">
+                    <span className="text-xs font-semibold">Loại thưởng</span>
+                    <span className="">Thưởng hiệu suất</span>
+                </div>
+                <div className="flex flex-col gap-1 w-full">
+                    <span className="text-xs font-semibold">Số tiền thưởng</span>
+                    <span className="">
+                        + {formatPrice(note.noterewardamount || 0)}
+                    </span>
+                </div>
+            </div>
             <div className="flex flex-col h-full gap-1">
                 <Label
                     className="text-xs font-semibold"
@@ -65,6 +65,7 @@ const ApprovalDetails: React.FC<ApprovalDetailsProps> = ({
                     Ghi chú
                 </Label>
                 <Textarea
+                    disabled={note.notestatus !== "pending"}
                     id="note"
                     placeholder="Nhập ghi chú tại đây..."
                     value={note.notecontent}

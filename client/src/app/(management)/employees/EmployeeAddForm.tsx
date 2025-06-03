@@ -1,5 +1,12 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const EmployeeAddForm = () => {
     return (
@@ -37,21 +44,36 @@ const EmployeeAddForm = () => {
                     />
                 </div>
             </div>
-
-            <div className="flex flex-col gap-1">
-                <Label
-                    htmlFor="employeeUsername"
-                    className="text-xs"
-                >
-                    Tên đăng nhập (Hệ thống tạo tự động nếu để trống)
-                </Label>
-                <Input
-                    id="employeeUsername"
-                    name="employeeUsername"
-                    type="text"
-                    placeholder="Nhập tên đăng nhập"
-                    className="w-full"
-                />
+            <div className="flex gap-4 w-full">
+                <div className="flex flex-col gap-1 w-full">
+                    <Label
+                        htmlFor="employeeUsername"
+                        className="text-xs"
+                    >
+                        Tên đăng nhập (Hệ thống tạo tự động nếu để trống)
+                    </Label>
+                    <Input
+                        id="employeeUsername"
+                        name="employeeUsername"
+                        type="text"
+                        placeholder="Nhập tên đăng nhập"
+                        className="w-full"
+                    />
+                </div>
+                <div className="flex flex-col gap-1 w-full h-full justify-between">
+                    <span className="text-xs">
+                        Vai trò
+                    </span>
+                    <Select>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Chọn vai trò" />
+                        </SelectTrigger>
+                        <SelectContent className="w-full">
+                            <SelectItem value="role-employee">Quản lý sân</SelectItem>
+                            <SelectItem value="role-wh_manager">Quản lý kho hàng</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <div className="flex flex-col gap-1">
                 <Label
