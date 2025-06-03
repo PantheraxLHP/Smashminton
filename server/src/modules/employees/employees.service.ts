@@ -18,7 +18,7 @@ export class EmployeesService {
   async getAllEmployees(
     page: number = 1,
     limit: number = 12,
-    filter?: { role?: string; employee_type?: string; fingerprintid?: string }
+    filter?: { role?: string[]; employee_type?: string[]; fingerprintid?: string[] }
   ): Promise<PaginatedResult<Employee[]>> {
     const skip = (page - 1) * limit;
 
@@ -28,18 +28,22 @@ export class EmployeesService {
         status: 'Active',
       },
     };
-    if (filter?.role) {
-      where.role = filter.role;
+    if (filter?.role && Array.isArray(filter.role)) {
+      where.role = { in: filter.role };
     }
-    if (filter?.employee_type) {
-      where.employee_type = filter.employee_type;
+    if (filter?.employee_type && Array.isArray(filter.employee_type)) {
+      where.employee_type = { in: filter.employee_type };
     }
-    if (filter?.fingerprintid === 'null') {
-      where.fingerprintid = null;
-    } else if (filter?.fingerprintid === 'notnull') {
-      where.NOT = { ...(where.NOT || {}), fingerprintid: null };
-    } else if (filter?.fingerprintid && !isNaN(Number(filter.fingerprintid))) {
-      where.fingerprintid = Number(filter.fingerprintid);
+    // fingerprintid: hỗ trợ null, notnull, số, hoặc mảng
+    if (filter?.fingerprintid && Array.isArray(filter.fingerprintid)) {
+      const hasNull = filter.fingerprintid.includes('null');
+      const hasNotNull = filter.fingerprintid.includes('notnull');
+      if (hasNull && !hasNotNull) {
+        where.fingerprintid = null;
+      } else if (!hasNull && hasNotNull) {
+        where.NOT = { ...(where.NOT || {}), fingerprintid: null };
+      }
+      // Nếu có cả null và notnull thì không filter gì cả
     }
 
     const employees = await this.prisma.employees.findMany({

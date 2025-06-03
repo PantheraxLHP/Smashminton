@@ -27,8 +27,8 @@ function formatDateDMY(dateString: string) {
 const RentalPage = () => {
     const router = useRouter();
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(10);
-    const [pageSize, setPageSize] = useState(2);
+    const [totalPages, setTotalPages] = useState(0);
+    const [pageSize, setPageSize] = useState(12);
     const { selectedCourts, selectedProducts, TTL } = useBooking();
     const bookingDates = Array.from(
         new Set(
@@ -119,8 +119,12 @@ const RentalPage = () => {
 
             if (result.ok) {
                 setProducts(result.data.data);
-                setPage(result.data.pagination.page);
                 setTotalPages(result.data.pagination.totalPages);
+                if (result.data.pagination.totalPages < result.data.pagination.page) {
+                    setPage(result.data.pagination.totalPages);
+                } else {
+                    setPage(result.data.pagination.page);
+                }
             }
         };
 

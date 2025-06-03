@@ -6,7 +6,7 @@ export async function GET(request: Request) {
         const productTypeId = queryParams.get('productTypeId');
         const page = queryParams.get('page');
         const pageSize = queryParams.get('pageSize');
-        const productFilterValues = queryParams.get('productfiltervalue');
+        const productFilterValues = queryParams.get('productFilterValues');
 
         const response = await fetch(
             `${process.env.SERVER}/api/v1/product-types/${productTypeId}/products?page=${page}&pageSize=${pageSize}${productFilterValues ? `&productfiltervalue=${productFilterValues}` : ''}`,

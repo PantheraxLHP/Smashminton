@@ -2,6 +2,7 @@
 
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
+import { getSingleProduct } from '@/services/products.service';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
@@ -13,12 +14,18 @@ export default function OrderSummary() {
         return product ? product.quantity : 0;
     };
 
-    const handleQuantityChange = (productId: number, delta: number) => {
+    const getProductStockQuantity = async (productId: number) => {
+        const result = await getSingleProduct(productId);
+        if (result.ok) {
+            console.log('result: ', result.data.quantity);
+            return result.data.quantity;
+        }
+        return 0;
+    };
+
+    const handleQuantityChange = async (productId: number, delta: number) => {
         if (delta > 0) {
-            if (
-                getSelectedProductQuantity(productId) >=
-                (selectedProducts.find((p) => p.productid === productId)?.totalStockQuantity || 0)
-            ) {
+            if (getSelectedProductQuantity(productId) >= (await getProductStockQuantity(productId))) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
