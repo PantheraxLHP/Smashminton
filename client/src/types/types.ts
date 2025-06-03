@@ -40,6 +40,10 @@ export interface Employees {
     last_week_shift_type?: string;
     employee_type?: string;
     role?: string;
+    cccd?: string;
+    expiry_cccd?: Date;
+    taxcode?: string;
+    salary?: number;
     bank_detail?: BankDetail[];
     bookings?: Bookings[];
     accounts?: Accounts;
@@ -75,8 +79,7 @@ export interface BankDetail {
     bankname?: string;
     banknumber?: string;
     bankholder?: string;
-    bankbranch?: string;
-    linkedphonenumber?: string;
+    active?: boolean;
     employeeid?: number;
     employees?: Employees;
 }
@@ -125,6 +128,7 @@ export interface Courts {
 export interface OrderProduct {
     orderid: number;
     productid: number;
+    returndate?: Date;
     quantity?: number;
     orders?: Orders;
     products?: Products;
@@ -186,6 +190,7 @@ export interface Products {
     order_product?: OrderProduct[];
     product_attributes?: ProductAttributes[];
     purchase_order?: PurchaseOrder[];
+    supply_products?: SupplyProducts[];
 }
 
 export interface ProductBatch {
@@ -202,6 +207,7 @@ export interface ProductBatch {
 export interface PurchaseOrder {
     poid: number;
     quantity?: number;
+    statusorder?: string;
     deliverydate?: Date;
     createdat?: Date;
     updatedat?: Date;
@@ -261,7 +267,7 @@ export interface ShiftAssignment {
     employeeid: number;
     shiftid: number;
     shiftdate: Date;
-    status?: string;
+    assignmentstatus?: string;
     employees?: Employees;
     shift_date?: ShiftDate;
 }
@@ -307,9 +313,8 @@ export interface Timesheet {
 export interface Voucher {
     voucherid: number;
     vouchername?: string;
-    vouchertype?: string;
     discountamount?: number;
-    duration?: string;
+    startdate?: Date;
     expireddate?: Date;
     bookings?: Bookings[];
 }
@@ -358,4 +363,11 @@ export interface ProductFilterValues {
     productfilterid?: number;
     product_attributes?: ProductAttributes[];
     product_filter?: ProductFilter;
+}
+
+export interface SupplyProducts {
+    productid: number;
+    supplierid: number;
+    suppliers?: Suppliers;
+    products?: Products;
 }
