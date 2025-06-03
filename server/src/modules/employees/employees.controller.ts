@@ -2,11 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { AddEmployeeDto } from './dto/add-employee.dto';
 import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(private readonly employeesService: EmployeesService) { }
 
   @Get()
   @ApiOperation({
@@ -23,17 +24,17 @@ export class EmployeesController {
     status: 400,
     description: 'Invalid query parameters provided.'
   })
-  @ApiQuery({ 
-    name: 'page', 
-    required: true, 
-    description: 'Số trang (bắt đầu từ 1)', 
+  @ApiQuery({
+    name: 'page',
+    required: true,
+    description: 'Số trang (bắt đầu từ 1)',
     example: 1,
     type: Number
   })
-  @ApiQuery({ 
-    name: 'pageSize', 
-    required: true, 
-    description: 'Số lượng items mỗi trang', 
+  @ApiQuery({
+    name: 'pageSize',
+    required: true,
+    description: 'Số lượng items mỗi trang',
     example: 12,
     type: Number
   })
@@ -68,5 +69,38 @@ export class EmployeesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.employeesService.remove(+id);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: 'Add new employee',
+    description: 'Create a new employee account with automatic username and password generation'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Tạo nhân viên thành công',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dữ liệu không hợp lệ hoặc username/email đã tồn tại'
+  })
+  async addEmployee(@Body() addEmployeeDto: AddEmployeeDto) {
+    try {
+      const result = await this.employeesService.addEmployee(addEmployeeDto);
+
+      return {
+        success: true,
+        message: 'Tạo nhân viên thành công',
+        data: {
+          employeeid: result.employee.employeeid,
+          username: result.account.username,
+          fullname: result.account.fullname,
+          email: result.account.email,
+          role: result.employee.role,
+        }
+      };
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }

@@ -23,6 +23,7 @@ import { ShiftDateModule } from './modules/shift_date/shift_date.module';
 import { VoucherModule } from './modules/voucher/voucher.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
+import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
 
 @Module({
     imports: [
@@ -48,7 +49,8 @@ import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
         ShiftDateModule,
         VoucherModule,
         SuppliersModule,
-        ZonePricesModule
+        ZonePricesModule,
+        NodemailerModule
     ],
     controllers: [AppController],
     providers: [AppService],
