@@ -12,13 +12,9 @@ import { toast } from 'sonner';
 import EmployeeAddForm from './EmployeeAddForm';
 import EmployeeDetails from './EmployeeDetails';
 
-// interface EmployeesResponse {
-//     data: Employees & Accounts;
-//     pagination: {
-//         totalPages: number;
-//         page: number;
-//     };
-// }
+export interface EmployeesProps extends Employees, Accounts {
+    cccd: string;
+}
 
 interface EmployeeListProps {
     filterValue: Record<string, any>;
@@ -29,7 +25,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(12);
-    const [employees, setEmployees] = useState<Employees[]>([]);
+    const [employees, setEmployees] = useState<EmployeesProps[]>([]);
 
     const [selectedEmployees, setSelectedEmployees] = useState<Employees[]>([]);
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
@@ -151,11 +147,13 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                 {employee.employee_type}
                             </div>
                             <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {employee.accounts?.createdat?.toLocaleDateString('vi-VN', {
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                })}
+                                {employee.createdat
+                                    ? new Date(employee.createdat).toLocaleDateString('vi-VN', {
+                                          year: 'numeric',
+                                          month: '2-digit',
+                                          day: '2-digit',
+                                      })
+                                    : ''}
                             </div>
                             <div className="flex h-14 items-center justify-center border-b-2 border-gray-200 py-2">
                                 <Dialog>
@@ -173,7 +171,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                                 </VisuallyHidden>
                                             </DialogTitle>
                                         </DialogHeader>
-                                        <EmployeeDetails />
+                                        <EmployeeDetails employee={employee} />
                                     </DialogContent>
                                 </Dialog>
                             </div>
