@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { formatPrice, formatDateString } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { EmployeesProps } from './EmployeeList';
 
 interface EmployeeDetailsProps {
@@ -26,8 +26,14 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
     const [isEditing, setIsEditing] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const editAvatarRef = useRef<HTMLInputElement>(null);
 
-    console.log('test create at: ', formatDateString(employee.createdat || ''));
+    const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file);
+        }
+    }
 
     return (
         <div className="flex h-full flex-col gap-5">
@@ -41,6 +47,26 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-contain"
                     />
+                    <div
+                        className="absolute bottom-0 right-0 translate-y-1/2 translate-x-1/2 cursor-pointer w-7 h-7 flex items-center justify-center rounded-full border-2 border-primary bg-white hover:bg-primary-100"
+                    >
+                        <Icon
+                            icon="material-symbols:edit-outline"
+                            className="text-primary size-5"
+                            onClick={() => {
+                                if (editAvatarRef.current) {
+                                    editAvatarRef.current.click();
+                                }
+                            }}
+                        />
+                        <input
+                            ref={editAvatarRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            className="hidden"
+                        />
+                    </div>
                 </div>
                 <div className="flex w-full flex-col gap-1.5">
                     <div className="flex items-center gap-2">
