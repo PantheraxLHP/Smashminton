@@ -12,20 +12,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { set } from "date-fns";
 
 interface ApprovalAddFormProps {
     employees: Employees[]
     rewardRules?: any[];
-    noteContent?: string;
-    setNoteContent?: React.Dispatch<React.SetStateAction<string>>;
+    rewardNote?: string;
+    setRewardNote?: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
     employees,
     rewardRules,
-    noteContent,
-    setNoteContent,
+    rewardNote,
+    setRewardNote,
 }) => {
     const cbItems: ComboboxItem[] = employees.map((employee) => ({
         cblabel: `${employee.employeeid} - ${employee.accounts?.fullname}`,
@@ -91,16 +90,16 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
             <div className="flex flex-col h-full gap-1">
                 <Label
                     className="text-xs font-semibold"
-                    htmlFor="new-monthlynote"
+                    htmlFor="new-rewardnote"
                 >
                     Ghi chú
                 </Label>
                 <Textarea
-                    id="new-monthlynote"
+                    id="new-rewardnote"
                     placeholder="Nhập ghi chú tại đây..."
-                    value={noteContent || ''}
+                    value={rewardNote || ''}
                     onChange={(e) => {
-                        setNoteContent && setNoteContent(e.target.value);
+                        setRewardNote && setRewardNote(e.target.value);
                     }}
                     className="h-full border-2 border-gray-400"
                 />
