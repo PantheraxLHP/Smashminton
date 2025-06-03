@@ -3,20 +3,14 @@ import { ApiResponse } from '@/lib/apiResponse';
 export async function GET(request: Request) {
     try {
         const queryParams = new URLSearchParams(request.url.split('?')[1]);
-        const productTypeId = queryParams.get('productTypeId');
-        const page = queryParams.get('page');
-        const pageSize = queryParams.get('pageSize');
-        const productFilterValues = queryParams.get('productfiltervalue');
+        const productId = queryParams.get('productId');
 
-        const response = await fetch(
-            `${process.env.SERVER}/api/v1/product-types/${productTypeId}/products?page=${page}&pageSize=${pageSize}${productFilterValues ? `&productfiltervalue=${productFilterValues}` : ''}`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
+        const response = await fetch(`${process.env.SERVER}/api/v1/product-types/${productId}`, {
+            headers: {
+                'Content-Type': 'application/json',
             },
-        );
+            credentials: 'include',
+        });
 
         if (!response.ok) {
             return ApiResponse.error(`HTTP error! Status: ${response.status}`);
