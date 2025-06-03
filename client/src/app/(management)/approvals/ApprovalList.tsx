@@ -288,11 +288,29 @@ const ApprovalList = () => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="!max-w-[80vw] h-[80vh] overflow-y-auto !flex flex-col gap-2">
-                            <DialogHeader className="!h-1">
+                        <DialogContent className="h-[60vh] overflow-y-auto !flex flex-col gap-2">
+                            <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
                             </DialogHeader>
-                            <ApprovalAddForm />
+                            <ApprovalAddForm
+                                employees={[]}
+                            />
+                            <DialogFooter className="!h-fit">
+                                <DialogTrigger asChild>
+                                    <Button variant="secondary">
+                                        Hủy
+                                    </Button>
+                                </DialogTrigger>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        toast.success("Ghi chú đã được thêm thành công!");
+                                        setIsAddDialogOpen(false);
+                                    }}
+                                >
+                                    Lưu
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>
