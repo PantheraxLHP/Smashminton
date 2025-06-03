@@ -29,7 +29,6 @@ drop table if exists shift CASCADE;
 drop table if exists bank_detail CASCADE;
 drop table if exists employees CASCADE;
 drop table if exists accounts CASCADE;
-drop table if exists monthly_note CASCADE;
 drop table if exists supply_products CASCADE;
 
 create table if not exists accounts (
@@ -139,6 +138,8 @@ create table if not exists reward_records (
 	rewardrecordid integer generated always as identity primary key,
 	rewarddate timestamptz,
 	finalrewardamount numeric,
+	rewardnote text,
+	rewardrecordstatus text check (rewardrecordstatus in ('Pending', 'Approved', 'Rejected')),
 	rewardapplieddate timestamptz,
 	rewardruleid integer,
 	employeeid integer,
@@ -372,15 +373,4 @@ create table if not exists receipts (
 	bookingid integer,
 	constraint fk_receipts_orders foreign key (orderid) references orders(orderid),
 	constraint fk_receipts_bookings foreign key (bookingid) references bookings(bookingid)
-);
-
-create table if not exists monthly_note (
-	noteid integer generated always as identity primary key,
-	notecontent text,
-	notestatus integer,
-	noterewardamount numeric,
-	employeeid integer,
-	createdat timestamptz default now(),
-	updatedat timestamptz default now(),
-	constraint fk_monthlynote_employees foreign key (employeeid) references employees(employeeid)
 );
