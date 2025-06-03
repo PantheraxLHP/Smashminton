@@ -15,17 +15,37 @@ export class EmployeesService {
     private nodemailerService: NodemailerService,
   ) { }
 
-  async getAllEmployees(page: number = 1, limit: number = 12): Promise<PaginatedResult<Employee[]>> {
+  async getAllEmployees(
+    page: number = 1,
+    limit: number = 12,
+    filter?: { role?: string; employee_type?: string; fingerprintid?: string }
+  ): Promise<PaginatedResult<Employee[]>> {
     const skip = (page - 1) * limit;
+
+    // Xây dựng điều kiện where động
+    const where: any = {
+      accounts: {
+        status: 'Active',
+      },
+    };
+    if (filter?.role) {
+      where.role = filter.role;
+    }
+    if (filter?.employee_type) {
+      where.employee_type = filter.employee_type;
+    }
+    if (filter?.fingerprintid === 'null') {
+      where.fingerprintid = null;
+    } else if (filter?.fingerprintid === 'notnull') {
+      where.NOT = { ...(where.NOT || {}), fingerprintid: null };
+    } else if (filter?.fingerprintid && !isNaN(Number(filter.fingerprintid))) {
+      where.fingerprintid = Number(filter.fingerprintid);
+    }
 
     const employees = await this.prisma.employees.findMany({
       skip: skip,
       take: limit,
-      where: {
-        accounts: {
-          status: 'Active',
-        },
-      },
+      where,
       select: {
         // Employee fields
         employeeid: true,
@@ -74,6 +94,11 @@ export class EmployeesService {
             rewardapplieddate: true,
             rewardruleid: true,
             employeeid: true,
+            reward_rules: {
+              select: {
+                rewardname: true,
+              }
+            }
           },
           where: {
             rewarddate: {
@@ -91,6 +116,11 @@ export class EmployeesService {
             violationdate: true,
             finalpenaltyamount: true,
             penaltyapplieddate: true,
+            penalty_rules: {
+              select: {
+                penaltyname: true,
+              }
+            }
           },
           where: {
             violationdate: {
@@ -114,8 +144,8 @@ export class EmployeesService {
       };
     });
 
-    const total = await this.prisma.employees.count();
-
+    // Đếm tổng số bản ghi với filter
+    const total = await this.prisma.employees.count({ where });
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -247,7 +277,7 @@ export class EmployeesService {
       if (!emailResult || emailResult.accepted.length === 0) {
         throw new Error('Không thể gửi email thông báo tài khoản mới');
       }
-      
+
       return result;
     } catch (error) {
       throw new Error(`Lỗi khi tạo nhân viên: ${error.message}`);

@@ -38,9 +38,36 @@ export class EmployeesController {
     example: 12,
     type: Number
   })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    description: 'Lọc theo vai trò (hr_manager, wh_manager)',
+    example: 'hr_manager',
+    type: String,
+    enum: ['hr_manager', 'wh_manager']
+  })
+  @ApiQuery({
+    name: 'employee_type',
+    required: false,
+    description: 'Lọc theo loại nhân viên (Full-time, Part-time)',
+    example: 'Full-time',
+    type: String,
+    enum: ['Full-time', 'Part-time']
+  })
+  @ApiQuery({
+    name: 'fingerprintid',
+    required: false,
+    description: 'Lọc theo fingerprintid',
+    example: 'null',
+    type: String,
+    enum: ['null', 'notnull']
+  })
   async getAllEmployees(
     @Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '12'
+    @Query('pageSize') pageSize: string = '12',
+    @Query('role') role?: string,
+    @Query('employee_type') employee_type?: string,
+    @Query('fingerprintid') fingerprintid?: string
   ) {
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
@@ -53,7 +80,16 @@ export class EmployeesController {
       throw new Error('Page size must be between 1 and 100');
     }
 
-    return await this.employeesService.getAllEmployees(pageNumber, pageSizeNumber);
+    // Truyền filter vào service
+    return await this.employeesService.getAllEmployees(
+      pageNumber,
+      pageSizeNumber,
+      {
+        role,
+        employee_type,
+        fingerprintid: fingerprintid ? fingerprintid : undefined
+      }
+    );
   }
 
   @Get(':id')
