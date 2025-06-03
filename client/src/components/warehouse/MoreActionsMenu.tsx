@@ -21,13 +21,13 @@ export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, s
 
     const menu = (
         <div
-            className="absolute z-1 w-24 bg-white border rounded shadow"
+            className="absolute z-1 w-20 bg-white border rounded shadow"
             style={{ top: position.y, left: position.x }}
             onClick={(e) => e.stopPropagation()}
         >
             <ul className="text-sm">
                 <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => {
                         onEdit();
                         onClose();
@@ -36,7 +36,7 @@ export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, s
                     Sửa
                 </li>
                 <li
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => {
                         onDelete();
                         onClose();
@@ -44,7 +44,7 @@ export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, s
                 >
                     Xoá
                 </li>
-                {showOptions && (<li className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                {showOptions && (<li className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => {
                         onClose();
                         onOrder?.();

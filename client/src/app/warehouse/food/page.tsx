@@ -79,7 +79,11 @@ export default function FoodAndBeveragePage() {
         const result = data.filter((item) => {
             const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
-            const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
+            const matchesPrice =
+                Array.isArray(filters.price) &&
+                filters.price.length === 2 &&
+                item.price >= filters.price[0] &&
+                item.price <= filters.price[1];
             const matchesLot = filters.lot.length === 0 || filters.lot.includes(item.lot);
 
             return matchesName && matchesCategory && matchesPrice && matchesLot;
@@ -175,7 +179,7 @@ export default function FoodAndBeveragePage() {
     };
 
     return (
-        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
+        <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
             <FoodModal
                 open={openModal}
                 onClose={() => {
@@ -195,7 +199,7 @@ export default function FoodAndBeveragePage() {
             </div>
 
             <div className="flex flex-1 flex-col">
-                <div className="mb-2 flex justify-end pr-4">
+                <div className="mb-2 flex justify-end">
                     <button
                         onClick={() => {
                             setOpenModal(true);
@@ -215,7 +219,8 @@ export default function FoodAndBeveragePage() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onOrder={handleOrder}
-                    showOrders
+                    showMoreOption
+                    showHeader
                 />
             </div>
 

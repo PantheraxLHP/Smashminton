@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from "react";
-import { Service } from "../type";
+import { Service } from "./page";
 
 interface ServiceModalProps {
     open: boolean;
@@ -25,12 +25,9 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     const modalRef = useRef<HTMLDivElement>(null);
 
     const [formData, setFormData] = useState<Service>({
-        name: "",
+        productname: "",
         price: "",
-        type: "",
-        product: "",
-        startTime: "06:00",
-        endTime: "21:30",
+        servicetype: "",
         image: "",
     });
 
@@ -39,18 +36,13 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             setFormData({
                 ...editData,
                 price: editData.price.replace(/[^\d]/g, ""), // loại bỏ dấu và VND
-                startTime: normalizeTimeString(editData.startTime),
-                endTime: normalizeTimeString(editData.endTime),
                 image: editData.image || "", // tránh lỗi src=""
             });
         } else {
             setFormData({
-                name: "",
+                productname: "",
                 price: "",
-                type: "",
-                product: "",
-                startTime: "06:00",
-                endTime: "21:30",
+                servicetype: "",
                 image: "",
             });
         }
@@ -82,9 +74,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             onSubmit({
                 ...formData,
                 price: formatPrice(formData.price),
-                startTime: normalizeTimeString(formData.startTime),
-                endTime: normalizeTimeString(formData.endTime),
-                image: formData.image || "", // luôn gán rỗng để tránh warning
+                image: formData.image || "",
             });
         }
         onClose();
@@ -111,7 +101,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                             <input
                                 name="name"
                                 type="text"
-                                value={formData.name}
+                                value={formData.productname}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
@@ -126,21 +116,11 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 className="w-full border rounded px-3 py-2"
                             />
                         </div>
-                        {/* <div>
-                            <label className="block text-sm mb-1">Loại</label>
-                            <input
-                                name="type"
-                                type="text"
-                                value={formData.type}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
-                        </div> */}
                         <div>
                             <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
                             <select
                                 name="type"
-                                value={formData.type}
+                                value={formData.servicetype}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             >
@@ -149,26 +129,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 <option value="Thuê vợt">Thuê vợt</option>
                                 {/* <option value="Atlas">Atlas</option> */}
                             </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Giờ bắt đầu</label>
-                            <input
-                                name="startTime"
-                                type="time"
-                                value={formData.startTime}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Giờ kết thúc</label>
-                            <input
-                                name="endTime"
-                                type="time"
-                                value={formData.endTime}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
                         </div>
                     </div>
 

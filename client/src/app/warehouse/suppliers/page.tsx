@@ -120,7 +120,7 @@ export default function SupplierManagementPage() {
     };
 
     return (
-        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
+        <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
             <AddSupplierModal
                 open={openModal}
                 onClose={() => {
@@ -131,23 +131,6 @@ export default function SupplierManagementPage() {
                 onSubmit={handleSubmit}
                 editData={editData}
             />
-
-            {/* Mobile Filter Toggle */}
-            <div className="mb-2 flex items-center justify-between lg:hidden">
-                <button
-                    onClick={() => setShowMobileFilter((prev) => !prev)}
-                    className="rounded bg-gray-200 px-3 py-2"
-                >
-                    {showMobileFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-                </button>
-
-                <button
-                    onClick={() => setOpenModal(true)}
-                    className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
-                >
-                    Thêm
-                </button>
-            </div>
 
             {/* Filter Component */}
             <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
@@ -160,7 +143,7 @@ export default function SupplierManagementPage() {
 
             {/* Main Content */}
             <div className="flex flex-1 flex-col">
-                <div className="mb-2 hidden justify-end pr-4 lg:flex">
+                <div className="mb-2 hidden justify-end lg:flex">
                     <button
                         onClick={() => setOpenModal(true)}
                         className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
@@ -182,7 +165,8 @@ export default function SupplierManagementPage() {
                         )
                     )}
                     showOptions={false}
-                    showOrders={true}
+                    showMoreOption={true}
+                    showHeader
                 />
             </div>
         </div>

@@ -149,7 +149,7 @@ export default function PurchaseOrderPage() {
     return (
         <div className="p-4 sm:p-6">
             {/* Tabs */}
-            <div className="w-full max-w-[96%] mx-auto flex space-x-2">
+            <div className="w-full max-w-[96%] mx-auto flex space-x-2 p-6">
                 <Button
                     variant={activeTab === 'pending' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('pending')}
@@ -179,7 +179,8 @@ export default function PurchaseOrderPage() {
                     setOrdersState((prev) => prev.filter((_, i) => i !== index));
                 }}
                 showOptions={false}
-                showOrders={false}
+                showMoreOption={false}
+                showHeader
             />
         </div>
     );
