@@ -18,8 +18,8 @@ const ProductsPage = () => {
     const { selectedCourts, selectedProducts, TTL } = useBooking();
     const router = useRouter();
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(10);
-    const [pageSize, setPageSize] = useState(2);
+    const [totalPages, setTotalPages] = useState(0);
+    const [pageSize, setPageSize] = useState(12);
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [filters, setFilters] = useState<FilterConfig[]>([]);
@@ -103,8 +103,12 @@ const ProductsPage = () => {
             if (result.ok) {
                 console.log('fasdfas', result.data);
                 setProducts(result.data.data);
-                setPage(result.data.pagination.page);
                 setTotalPages(result.data.pagination.totalPages);
+                if (result.data.pagination.totalPages < result.data.pagination.page) {
+                    setPage(result.data.pagination.totalPages);
+                } else {
+                    setPage(result.data.pagination.page);
+                }
             }
         };
 
