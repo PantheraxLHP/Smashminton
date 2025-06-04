@@ -1,12 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { getUser } from '@/services/accounts.service';
-import { Accounts } from '@/types/types';
 import Image from 'next/image';
 import Link from 'next/link'; // Import Link from next/link
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
