@@ -16,6 +16,7 @@ import {
 import { CustomerService } from '../customers/customers.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Accounts')
 @Controller('accounts')
@@ -48,20 +49,21 @@ export class AccountsController {
         return this.accountsService.createCustomer(createAccountDto, files);
     }
 
-    // @Post()
-    // @ApiOperation({ summary: 'Create an account employee' })
-    // @ApiCreatedResponse({
-    //     description: 'Account was created',
-    //     type: CreateAccountDto,
-    // })
-    // @ApiBadRequestResponse({ description: 'Invalid input' })
-    // async createAccountEmployee(@Body() createAccountDto: CreateAccountDto) {
-    //     const account = await this.accountsService.create(createAccountDto);
-
-    //     if (account.accounttype === 'Employee') {
-    //         await this.customerService.create(account.accountid);
-    //     }
-    // }
+    @Put(':id/password')
+    @ApiOperation({ summary: 'Change account password' })
+    @ApiBody({
+        description: 'Change account password',
+        type: ChangePasswordDto,
+    })
+    @ApiOkResponse({ description: 'Password was changed successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid input' })
+    @ApiParam({ name: 'id', required: true, description: 'Account ID', example: 15 })
+    async changePassword(@Param('id') id: number, @Body() changePasswordDto: ChangePasswordDto) {
+        if (!changePasswordDto) {
+            throw new BadRequestException('Invalid password data');
+        }
+        return this.accountsService.changePassword(+id, changePasswordDto);
+    }
 
     @Get()
     @ApiOperation({ summary: 'Find all accounts' })
