@@ -31,6 +31,9 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const handleSuccess = () => {
+        setIsAddDialogOpen(false);
+    };
 
     const fetchEmployees = async () => {
         const result = await getEmployees(page, pageSize);
@@ -247,15 +250,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                             <DialogHeader>
                                 <DialogTitle>Thêm nhân sự mới</DialogTitle>
                             </DialogHeader>
-                            <EmployeeAddForm />
-                            <DialogFooter>
-                                <Button variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
-                                    Thoát
-                                </Button>
-                                <Button variant="outline" onClick={() => {}}>
-                                    Thêm
-                                </Button>
-                            </DialogFooter>
+                            <EmployeeAddForm onSuccess={handleSuccess} />
                         </DialogContent>
                     </Dialog>
                 </div>

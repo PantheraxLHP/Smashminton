@@ -5,10 +5,12 @@ export const menus = {
         { label: 'Dịch vụ', link: '/rentals' },
     ],
     customer: [
+        { label: 'Đặt sân', link: '/booking' },
         { label: 'Sản phẩm', link: '/products' },
         { label: 'Dịch vụ', link: '/rentals' },
     ],
     employee: [
+        { label: 'Đặt sân', link: '/booking' },
         { label: 'Hỗ trợ khách hàng', link: '/support' },
         { label: 'Quản lý công việc', link: '/work-management' },
     ],
@@ -41,7 +43,7 @@ export const menus = {
         },
     ],
     admin: [
-        { label: 'Thống kê kinh doanh', link: '/business-stats' },
+        { label: 'Thống kê kinh doanh', link: '/dashboard' },
         { label: 'Hỗ trợ dự đoán', link: '/prediction-support' },
     ],
 };
