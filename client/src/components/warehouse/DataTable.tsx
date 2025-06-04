@@ -32,7 +32,8 @@ interface DataTableProps<T> {
     onDelete?: (index: number) => void;
     onOrder?: (index: number) => void;
     showOptions?: boolean;
-    showOrders?: boolean;
+    showMoreOption?: boolean;
+    showHeader?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -46,7 +47,8 @@ export default function DataTable<T extends Record<string, any>>({
     onDelete,
     onOrder,
     showOptions,
-    showOrders,
+    showMoreOption,
+    showHeader,
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -94,7 +96,7 @@ export default function DataTable<T extends Record<string, any>>({
     const filteredData = filters ? data.filter(applyFilters) : data;
 
     return (
-        <div className="space-y-4 p-4 sm:p-6">
+        <div className="space-y-4">
             {/* Filter form (nếu có) */}
             {filterConfig.length > 0 && filters && setFilters && (
                 <div className="space-y-4 rounded border bg-white p-4 text-sm">
@@ -170,27 +172,32 @@ export default function DataTable<T extends Record<string, any>>({
             )}
 
             {/* Table */}
-            <div className="border-primary-200 max-w-[calc(100vw-70px)] overflow-x-auto rounded border">
+            <div
+                className={`border-primary-200 max-w-[calc(100vw-6vw)] overflow-x-auto border
+                ${!showHeader ? 'border-t-0' : ''} mx-auto`}
+            >
                 <table className="w-full text-sm">
-                    <thead className="bg-primary-50 text-left text-gray-700">
-                        <tr>
-                            {renderImage && <th className="px-3 py-2"></th>}
-                            {columns.map((col, i) => (
-                                <th
-                                    key={i}
-                                    className={`px-3 py-2 font-medium ${col.align === 'right'
-                                        ? 'text-right'
-                                        : col.align === 'center'
-                                            ? 'text-center'
-                                            : 'text-left'
-                                        }`}
-                                >
-                                    {col.header}
-                                </th>
-                            ))}
-                            {showOrders && <th className="px-3 py-2"></th>}
-                        </tr>
-                    </thead>
+                    {showHeader && (
+                        <thead className="bg-primary-50 text-center text-gray-700">
+                            <tr>
+                                {renderImage && <th className="px-3 py-2"></th>}
+                                {columns.map((col, i) => (
+                                    <th
+                                        key={i}
+                                        className={`px-3 py-2 font-semibold ${col.align === 'right'
+                                            ? 'text-right'
+                                            : col.align === 'center'
+                                                ? 'text-center'
+                                                : 'text-left'
+                                            }`}
+                                    >
+                                        {col.header}
+                                    </th>
+                                ))}
+                                {showMoreOption && <th className="px-3 py-2"></th>}
+                            </tr>
+                        </thead>
+                    )}
                     <tbody>
                         {filteredData.map((item, idx) => (
                             <tr key={idx} className="border-t transition hover:bg-gray-50">
@@ -216,17 +223,17 @@ export default function DataTable<T extends Record<string, any>>({
                                         <td
                                             key={i}
                                             className={`px-3 py-3 ${col.align === 'right'
-                                                    ? 'text-right'
-                                                    : col.align === 'center'
-                                                        ? 'text-center'
-                                                        : ''
+                                                ? 'text-right'
+                                                : col.align === 'center'
+                                                    ? 'text-center'
+                                                    : ''
                                                 } ${cellClass}`}
                                         >
                                             {value}
                                         </td>
                                     );
                                 })}
-                                {showOrders && (
+                                {showMoreOption && (
                                     <td className="relative px-3 py-3 text-right">
                                         <button
                                             className="text-gray-500 hover:text-gray-700"
@@ -234,14 +241,14 @@ export default function DataTable<T extends Record<string, any>>({
                                                 e.stopPropagation();
                                                 const rect = e.currentTarget.getBoundingClientRect();
                                                 setSelectedItemIndex(idx);
-                                                setMenuPosition({ x: rect.left - 40, y: rect.bottom + window.scrollY });
+                                                setMenuPosition({ x: rect.left - 32, y: rect.bottom + window.scrollY });
                                             }}
                                         >
                                             <MoreVertical size={18} />
                                         </button>
                                     </td>
                                 )}
-                                {showOrders && menuPosition !== null && selectedItemIndex !== null && (
+                                {showMoreOption && menuPosition !== null && selectedItemIndex !== null && (
                                     <MoreActionsMenu
                                         position={menuPosition}
                                         onClose={() => {

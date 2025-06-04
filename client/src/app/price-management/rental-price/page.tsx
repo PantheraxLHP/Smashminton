@@ -1,57 +1,44 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Service } from '../type';
+//import { Button } from '@/components/ui/button';
 import ServiceModal from './AddEditService';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 
+export interface Service {
+    productname: string;
+    servicetype: string;
+    price: string;
+    image: string;
+}
+
 const rawServices: Service[] = [
     {
-        name: "Vợt Yonex",
-        type: "Thuê vợt",
-        product: "001F",
+        productname: "Vợt Yonex",
+        servicetype: "Thuê vợt",
         price: "200.000 VND",
-        startTime: "6:00",
-        endTime: "22:00",
         image: "/default.png",
     },
     {
-        name: "Giày Atlas",
-        type: "Thuê giày",
-        product: "Atlas",
+        productname: "Giày Atlas",
+        servicetype: "Thuê giày",
         price: "200.000 VND",
-        startTime: "6:00",
-        endTime: "22:00",
         image: "/default.png",
     },
     {
-        name: "Giày Nike",
-        type: "Thuê giày",
-        product: "Nike",
+        productname: "Giày Nike",
+        servicetype: "Thuê giày",
         price: "150.000 VND",
-        startTime: "18:00",
-        endTime: "22:00",
         image: "/default.png",
     },
 ];
 
-function normalizeTimeString(time: string) {
-    const [hour, minute] = time.split(':').map(Number);
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-}
 
-const services = rawServices.map((s) => ({
-    ...s,
-    startTime: normalizeTimeString(s.startTime),
-    endTime: normalizeTimeString(s.endTime),
-}));
 
 export default function RentalPriceManager() {
-    const [servicesState, setServicesState] = useState<Service[]>(services);
+    const [servicesState, setServicesState] = useState<Service[]>(rawServices);
     const [editData, setEditData] = useState<Service | null>(null);
     const [showModal, setShowModal] = useState(false);
-    // const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const columns: Column<Service>[] = [
@@ -60,32 +47,17 @@ export default function RentalPriceManager() {
             accessor: (item) => (
                 <div className="flex items-center gap-2">
                     <img src={item.image} alt="" className="w-8 h-8 rounded object-cover" />
-                    {item.name}
+                    {item.productname}
                 </div>
             ),
         },
-        { header: 'Dịch vụ áp dụng', accessor: 'type' },
+        { header: 'Dịch vụ áp dụng', accessor: 'servicetype' },
+        { header: 'Thời gian áp dụng', accessor: () => 'Cả ngày' },
         { header: 'Giá / h', accessor: 'price' },
-        {
-            header: 'Thời gian áp dụng',
-            accessor: (item) => `${item.startTime} - ${item.endTime}`,
-        },
     ];
 
     return (
-        <div className="p-4 sm:p-6">
-            <div className="flex justify-end pr-6">
-                <Button
-                    onClick={() => {
-                        setEditData(null);
-                        setShowModal(true);
-                    }}
-                    className="bg-primary-500 hover:bg-primary-600 text-white"
-                >
-                    Thêm dịch vụ
-                </Button>
-            </div>
-
+        <div className="p-4 sm:p-6 space-y-4 mt-5">
             <DataTable
                 columns={columns}
                 data={servicesState}
@@ -102,6 +74,8 @@ export default function RentalPriceManager() {
                     setServicesState((prev) => prev.filter((_, i) => i !== index));
                 }}
                 showOptions={false}
+                showMoreOption={true}
+                showHeader
             />
 
             <ServiceModal

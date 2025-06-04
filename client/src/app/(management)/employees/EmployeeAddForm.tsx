@@ -11,11 +11,11 @@ import {
 const EmployeeAddForm = () => {
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex gap-4 w-full">
+            <div className="flex gap-10 w-full">
                 <div className="flex flex-col gap-1 w-full">
                     <Label
                         htmlFor="employeeFullname"
-                        className="text-xs"
+                        className="text-xs font-semibold"
                     >
                         Họ tên nhân viên
                     </Label>
@@ -31,7 +31,7 @@ const EmployeeAddForm = () => {
                 <div className="flex flex-col gap-1 w-full">
                     <Label
                         htmlFor="employeDob"
-                        className="text-xs"
+                        className="text-xs font-semibold"
                     >
                         Ngày sinh
                     </Label>
@@ -44,11 +44,11 @@ const EmployeeAddForm = () => {
                     />
                 </div>
             </div>
-            <div className="flex gap-4 w-full">
+            <div className="flex gap-10 w-full">
                 <div className="flex flex-col gap-1 w-full">
                     <Label
                         htmlFor="employeeUsername"
-                        className="text-xs"
+                        className="text-xs font-semibold"
                     >
                         Tên đăng nhập (Hệ thống tạo tự động nếu để trống)
                     </Label>
@@ -61,7 +61,7 @@ const EmployeeAddForm = () => {
                     />
                 </div>
                 <div className="flex flex-col gap-1 w-full h-full justify-between">
-                    <span className="text-xs">
+                    <span className="text-xs font-semibold">
                         Vai trò
                     </span>
                     <Select>
@@ -78,7 +78,7 @@ const EmployeeAddForm = () => {
             <div className="flex flex-col gap-1">
                 <Label
                     htmlFor="employeePassword"
-                    className="text-xs"
+                    className="text-xs font-semibold"
                 >
                     Mật khẩu (Mặc đinh là ngày sinh của nhân viên DDMMYYYY nếu để trống)
                 </Label>
@@ -93,7 +93,7 @@ const EmployeeAddForm = () => {
             <div className="flex flex-col gap-1">
                 <Label
                     htmlFor="employeeEmail"
-                    className="text-xs"
+                    className="text-xs font-semibold"
                 >
                     Email nhân viên để gửi thông tin tài khoản
                 </Label>

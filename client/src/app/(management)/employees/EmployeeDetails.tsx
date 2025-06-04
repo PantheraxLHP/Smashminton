@@ -6,6 +6,7 @@ import {
     DialogDescription,
     DialogFooter,
     DialogHeader,
+    DialogTrigger,
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -13,8 +14,9 @@ import { Label } from '@/components/ui/label';
 import { formatPrice, formatDateString } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { EmployeesProps } from './EmployeeList';
+import BankDetailAddForm from './BankDetailAddForm';
 
 interface EmployeeDetailsProps {
     employee: EmployeesProps;
@@ -26,8 +28,14 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
     const [isEditing, setIsEditing] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const editAvatarRef = useRef<HTMLInputElement>(null);
 
-    console.log('test create at: ', formatDateString(employee.createdat || ''));
+    const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file);
+        }
+    }
 
     return (
         <div className="flex h-full flex-col gap-5">
@@ -41,6 +49,27 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-contain"
                     />
+                    <div
+                        className={`absolute bottom-0 right-0 translate-y-1/2 translate-x-1/2 w-7 h-7 flex items-center justify-center rounded-full border-2 border-primary bg-white hover:bg-primary-100 ${isEditing ? 'opacity-100 cursor-pointer' : 'opacity-0'}`}
+                        onClick={() => {
+                                if (editAvatarRef.current) {
+                                    editAvatarRef.current.click();
+                                }
+                            }}
+                    >
+                        <Icon
+                            icon="material-symbols:edit-outline"
+                            className={`text-primary size-5`}
+                        />
+                        <input
+                            disabled={!isEditing}
+                            ref={editAvatarRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            className="hidden"
+                        />
+                    </div>
                 </div>
                 <div className="flex w-full flex-col gap-1.5">
                     <div className="flex items-center gap-2">
@@ -106,7 +135,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 Mã nhân viên
                             </Label>
                             <Input
-                                disabled={!isEditing}
+                                disabled={true}
                                 id="employee-id"
                                 type="text"
                                 value={employee.employeeid || ''}
@@ -279,18 +308,14 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                         Vui lòng điền đầy đủ thông tin ngân hàng của nhân viên.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="flex flex-col gap-4">
-                                    <Label htmlFor="bank-name" className="text-xs font-semibold">
-                                        Tên ngân hàng
-                                    </Label>
-                                    <Input id="bank-name" type="text" placeholder="Ngân hàng ABC" className="" />
-                                    <Label htmlFor="bank-account-number" className="text-xs font-semibold">
-                                        Số tài khoản
-                                    </Label>
-                                    <Input id="bank-account-number" type="text" placeholder="1234567890" className="" />
-                                </div>
+                                <BankDetailAddForm />
                                 <DialogFooter>
-                                    <Button type="submit">Lưu</Button>
+                                    <DialogTrigger asChild>
+                                        <Button variant="secondary">
+                                            Hủy
+                                        </Button>
+                                    </DialogTrigger>
+                                    <Button variant="outline">Lưu</Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
@@ -300,7 +325,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                     Số tài khoản ngân hàng
                                 </span>
                                 <span className="w-full border-b-2 border-gray-400 p-2 text-xs font-semibold">
-                                    Tên chủ tài khoảng
+                                    Tên chủ tài khoản
                                 </span>
                                 <span className="w-full border-b-2 border-gray-400 p-2 text-xs font-semibold">
                                     Tên ngân hàng
@@ -321,7 +346,6 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                         <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
                                             {bank.bankname}
                                         </span>
-
                                         <span className="flex h-full w-full items-center justify-center border-b-2 border-gray-200 p-2 text-center">
                                             <Icon icon="nrk:check-active" className="text-primary size-5" />
                                         </span>

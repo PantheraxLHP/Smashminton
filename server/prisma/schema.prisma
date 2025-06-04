@@ -207,7 +207,6 @@ model product_batch {
   batchname      String?
   expirydate     DateTime?        @default(now()) @db.Timestamptz(6)
   stockquantity  Int?
-  status         String?
   createdat      DateTime?        @default(now()) @db.Timestamptz(6)
   updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
   purchase_order purchase_order[]

@@ -56,7 +56,11 @@ export default function AccessoryPage() {
             const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
             const matchesBrand = filters.brand.length === 0 || filters.brand.includes(item.brand);
-            const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
+            const matchesPrice =
+                Array.isArray(filters.price) &&
+                filters.price.length === 2 &&
+                item.price >= filters.price[0] &&
+                item.price <= filters.price[1];
             return matchesName && matchesCategory && matchesBrand && matchesPrice;
         });
         setFilteredData(result);
@@ -137,7 +141,7 @@ export default function AccessoryPage() {
     };
 
     return (
-        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
+        <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
             <AccessoryModal
                 open={openModal}
                 onClose={() => {
@@ -153,7 +157,7 @@ export default function AccessoryPage() {
             </div>
 
             <div className="flex flex-1 flex-col">
-                <div className="mb-2 flex justify-end pr-4">
+                <div className="mb-2 flex justify-end">
                     <button
                         onClick={() => {
                             setOpenModal(true);
@@ -173,7 +177,8 @@ export default function AccessoryPage() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onOrder={handleOrder}
-                    showOrders
+                    showMoreOption
+                    showHeader
                 />
             </div>
 
