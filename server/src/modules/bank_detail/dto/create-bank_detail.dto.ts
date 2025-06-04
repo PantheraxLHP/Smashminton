@@ -50,5 +50,4 @@ export class CreateBankDetailDto {
     @IsNumber()
     @Type(() => Number)
     employeeid?: number;
-    static active: boolean;
 }

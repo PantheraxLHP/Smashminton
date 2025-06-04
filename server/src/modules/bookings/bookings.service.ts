@@ -98,9 +98,6 @@ export class BookingsService {
 			const TTL = await this.cacheService.getTTL('booking::booking:' + username);
 
 			newCacheBooking.TTL = TTL;
-
-			console.log('newCacheBooking', newCacheBooking);
-
 			return newCacheBooking;
 		}
 
@@ -166,7 +163,6 @@ export class BookingsService {
 		}
 
 		const { courtid, date, starttime, duration } = court_booking;
-		console.log('court_booking', court_booking);
 
 		const courtBookingToRemove = bookingUserCache.court_booking.find((court) =>
 			court.courtid === courtid &&
