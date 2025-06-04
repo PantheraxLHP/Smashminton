@@ -12,7 +12,9 @@ export async function PUT(request: NextRequest) {
         formData.append('address', body.address);
         formData.append('position', body.position);
         formData.append('salary', body.salary.toString());
-        formData.append('avatar', body.avatar);
+        if (body.avatar) {  
+            formData.append('avatar', body.avatar);
+        }
         const response = await fetch(`${process.env.SERVER}/api/v1/employees/${employeeId}`, {
             headers: {
                 'Content-Type': 'multipart/form-data',

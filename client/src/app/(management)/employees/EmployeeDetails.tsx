@@ -261,7 +261,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 Ngày bắt đầu làm việc
                             </Label>
                             <Input
-                                disabled={!isEditing}
+                                disabled={true}
                                 id="employee-startday"
                                 type="date"
                                 value={formatDateString(employee.createdat || '')}

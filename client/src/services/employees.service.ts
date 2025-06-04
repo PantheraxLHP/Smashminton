@@ -72,7 +72,9 @@ export const putEmployee = async (
         formData.append('address', employeeData.address || '');
         formData.append('position', employeeData.position || '');
         formData.append('salary', employeeData.salary?.toString() || '');
-        formData.append('avatar', employeeData.avatar || new Blob());
+        if (employeeData.avatar) {
+            formData.append('avatar', employeeData.avatar);
+        }
         const response = await fetch('/api/employees/put-employee', {
             method: 'PUT',
             headers: { 'Content-Type': 'multipart/form-data' },
