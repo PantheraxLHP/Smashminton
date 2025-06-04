@@ -7,11 +7,6 @@ import { Type } from 'class-transformer';
 export class updateEmployeeDto {
     @IsOptional()
     @IsString()
-    @ApiProperty({ description: 'Username', example: 'lehongc', required: false })
-    username?: string;
-
-    @IsOptional()
-    @IsString()
     @ApiProperty({ description: 'Full name', example: 'Lê Hồng C', required: false })
     fullname?: string;
 
@@ -26,12 +21,10 @@ export class updateEmployeeDto {
     status?: string;
 
     @IsOptional()
-    @IsEmail()
     @ApiProperty({ description: 'Email address', example: 'lehongc@example.com', required: false })
     email?: string;
 
     @IsOptional()
-    @IsDate()
     @Type(() => Date)
     @ApiProperty({ description: 'Date of birth', example: '1991-03-03T00:00:00Z', required: false })
     dob?: Date;
@@ -76,7 +69,6 @@ export class updateEmployeeDto {
     cccd?: string;
 
     @IsOptional()
-    @IsDate()
     @Type(() => Date)
     @ApiProperty({ description: 'CCCD expiry date', example: '2030-01-01T00:00:00Z', required: false })
     expiry_cccd?: Date;

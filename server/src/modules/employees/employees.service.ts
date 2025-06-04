@@ -226,7 +226,7 @@ export class EmployeesService {
     }
 
     // Phân tách trường update cho accounts và employees
-    const { username, fullname, gender, email, dob, phonenumber, address, avatarurl, status, fingerprintid, employee_type, role, cccd, expiry_cccd, taxcode, salary } = updateEmployeeDto;
+    const { fullname, gender, email, dob, phonenumber, address, avatarurl, status, fingerprintid, employee_type, role, cccd, expiry_cccd, taxcode, salary } = updateEmployeeDto;
 
     // Update bảng employees
     const updatedEmployee = await this.prisma.employees.update({
@@ -252,7 +252,6 @@ export class EmployeesService {
         ...(phonenumber && { phonenumber }),
         ...(address && { address }),
         ...(status && { status }),
-        ...(username && { username }),
         avatarurl: url_avatar,
       },
     });
