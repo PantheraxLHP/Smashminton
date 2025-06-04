@@ -1,10 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { updateEmployeeDto } from './dto/update-employee.dto';
 import { AddEmployeeDto } from './dto/add-employee.dto';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+    ApiTags,
+    ApiBadRequestResponse,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiNotFoundResponse,
+    ApiConsumes,
+    ApiBody,
+    ApiParam,
+    ApiQuery,
+    ApiResponse
+} from '@nestjs/swagger';
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) { }
@@ -102,9 +115,36 @@ export class EmployeesController {
     return this.employeesService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
-    return this.employeesService.update(+id, updateEmployeeDto);
+  @Put(':id')
+  @UseInterceptors(
+      FileInterceptor('avatarurl', {
+          limits: {
+              fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+          },
+          fileFilter: (req, file, cb) => {
+              if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                  return cb(new Error('Only image files are allowed!'), false);
+              }
+              cb(null, true);
+          },
+      }),
+  )
+  @ApiOperation({ summary: 'Update an account with profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+      description: 'Update account with profile picture', 
+      type: updateEmployeeDto,
+  })
+  @ApiOkResponse({ description: 'Account was updated' })
+  @ApiBadRequestResponse({ description: 'Invalid input' })
+  @ApiNotFoundResponse({ description: 'Employee not found' })
+  @ApiParam({ name: 'id', required: true, description: 'Employee ID', example: 4 })
+  async update(
+    @Param('id') id: string,
+    @Body() updateEmployeeDto: updateEmployeeDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.employeesService.update(+id, updateEmployeeDto, file);
   }
 
   @Delete(':id')

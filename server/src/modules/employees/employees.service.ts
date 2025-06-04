@@ -1,18 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { updateEmployeeDto } from './dto/update-employee.dto';
 import { AddEmployeeDto } from './dto/add-employee.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginatedResult } from 'src/interfaces/pagination.interface';
 import { Employee } from 'src/interfaces/employees.interface';
 import * as bcrypt from 'bcryptjs';
 import { NodemailerService } from '../nodemailer/nodemailer.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     private prisma: PrismaService,
     private nodemailerService: NodemailerService,
+    private cloudinaryService: CloudinaryService,
   ) { }
 
   async getAllEmployees(
@@ -206,8 +208,57 @@ export class EmployeesService {
     });
   }
 
-  update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
-    return `This action updates a #${id} employee`;
+  async update(id: number, updateEmployeeDto: updateEmployeeDto, file?: Express.Multer.File) {
+    // Lấy account hiện tại
+    const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
+    if (!existingAccount) {
+      throw new BadRequestException('Account not found');
+    }
+
+    let url_avatar: string = existingAccount.avatarurl || '';
+    if (file) {
+      // Upload file lên Cloudinary
+      const uploadResults = await this.cloudinaryService.uploadAvatar(file);
+      url_avatar = uploadResults.secure_url || '';
+      if (!url_avatar) {
+        throw new BadRequestException('Failed to upload avatar');
+      }
+    }
+
+    // Phân tách trường update cho accounts và employees
+    const { username, fullname, gender, email, dob, phonenumber, address, avatarurl, status, createdat, employeeid, fingerprintid, employee_type, role, cccd, expiry_cccd, taxcode, salary } = updateEmployeeDto;
+
+    // Update bảng employees
+    const updatedEmployee = await this.prisma.employees.update({
+      where: { employeeid: id },
+      data: {
+        fingerprintid: fingerprintid ? Number(fingerprintid) : null,
+        employee_type: employee_type || null, // Mặc định nếu không có
+        role: role || null, // Mặc định nếu không có
+        cccd: cccd || null,
+        expiry_cccd: expiry_cccd ? new Date(expiry_cccd) : null,
+        taxcode: taxcode || null,
+        salary: salary ? Number(salary) : null,
+      },
+    });
+
+    // Update bảng accounts
+    const updatedAccount = await this.prisma.accounts.update({
+      where: { accountid: id },
+      data: {
+        ...(fullname && { fullname }),
+        ...(email && { email }),
+        ...(dob && { dob: new Date(dob) }),
+        ...(phonenumber && { phonenumber }),
+        ...(address && { address }),
+        ...(status && { status }),
+        ...(username && { username }),
+        ...(createdat && { createdat: new Date(createdat) }),
+        avatarurl: url_avatar,
+      },
+    });
+
+    return { updatedAccount, updatedEmployee };
   }
 
   remove(id: number) {
