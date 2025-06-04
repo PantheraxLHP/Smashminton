@@ -1,10 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { updateEmployeeDto } from './dto/update-employee.dto';
 import { AddEmployeeDto } from './dto/add-employee.dto';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiNotFoundResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+  ApiQuery,
+  ApiResponse
+} from '@nestjs/swagger';
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) { }
@@ -102,14 +115,90 @@ export class EmployeesController {
     return this.employeesService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
-    return this.employeesService.update(+id, updateEmployeeDto);
+  @Put(':id')
+  @UseInterceptors(
+    FileInterceptor('avatarurl', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @ApiOperation({ summary: 'Update an account with profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Update account with profile picture',
+    type: updateEmployeeDto,
+  })
+  @ApiOkResponse({ description: 'Account was updated' })
+  @ApiBadRequestResponse({ description: 'Invalid input' })
+  @ApiNotFoundResponse({ description: 'Employee not found' })
+  @ApiParam({ name: 'id', required: true, description: 'Employee ID', example: 4 })
+  async update(
+    @Param('id') id: string,
+    @Body() updateEmployeeDto: updateEmployeeDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.employeesService.update(+id, updateEmployeeDto, file);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.employeesService.remove(+id);
+  @Delete()
+  @ApiOperation({
+    summary: 'Deactivate multiple employees',
+    description: 'Set status to Inactive for multiple employees by their account IDs'
+  })
+  @ApiBody({
+    description: 'Array of employee account IDs to deactivate',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'number'
+      },
+      example: [1, 2, 3, 4, 5]
+    },
+    examples: {
+      single: {
+        summary: 'Deactivate single employee',
+        value: [1]
+      },
+      multiple: {
+        summary: 'Deactivate multiple employees',
+        value: [1, 2, 3, 4, 5]
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Employees successfully deactivated'
+  })
+  async bulkDeactivateEmployees(@Body() ids: number[]) {
+    // Validation
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('IDs array cannot be empty');
+    }
+
+    // Validate all elements are numbers
+    const invalidIds = ids.filter(id => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new BadRequestException(`Invalid IDs: ${invalidIds.join(', ')}`);
+    }
+
+    try {
+      const result = await this.employeesService.remove(ids);
+
+      return {
+        message: `Successfully deactivated ${result.count} employees`,
+        count: result.count,
+        processedIds: ids
+      };
+    } catch (error) {
+      throw new BadRequestException(`Failed to deactivate employees: ${error.message}`);
+    }
   }
 
   @Post()

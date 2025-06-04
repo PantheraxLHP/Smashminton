@@ -17,6 +17,8 @@ import Image from 'next/image';
 import { useState, useRef } from 'react';
 import { EmployeesProps } from './EmployeeList';
 import BankDetailAddForm from './BankDetailAddForm';
+import { putEmployee } from '@/services/employees.service';
+import { toast } from 'sonner';
 
 interface EmployeeDetailsProps {
     employee: EmployeesProps;
@@ -29,13 +31,37 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const editAvatarRef = useRef<HTMLInputElement>(null);
-
+    const [isSaving, setIsSaving] = useState(false);
+    const [avatar, setAvatar] = useState<File | null>(null);
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            console.log('Selected file:', file);
+            setAvatar(file);
         }
-    }
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        const result = await putEmployee(employee.employeeid, {
+            fullname: employee.fullname || '',
+            email: employee.email || '',
+            phone: employee.phonenumber || '',
+            address: employee.address || '',
+            position: employee.employee_type || '',
+            salary: employee.salary || 0,
+            avatar: avatar || undefined,
+        });
+        console.log(result);
+        if (result.ok) {
+            toast.success('Cập nhật thông tin nhân viên thành công');
+            setIsEditing(false);
+        } else {
+            setIsEditing(false);
+            setIsSaving(false);
+            toast.error(result.message || 'Cập nhật thông tin nhân viên thất bại');
+        }
+        setIsSaving(false);
+    };
 
     return (
         <div className="flex h-full flex-col gap-5">
@@ -50,17 +76,14 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                         className="object-contain"
                     />
                     <div
-                        className={`absolute bottom-0 right-0 translate-y-1/2 translate-x-1/2 w-7 h-7 flex items-center justify-center rounded-full border-2 border-primary bg-white hover:bg-primary-100 ${isEditing ? 'opacity-100 cursor-pointer' : 'opacity-0'}`}
+                        className={`border-primary hover:bg-primary-100 absolute right-0 bottom-0 flex h-7 w-7 translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full border-2 bg-white ${isEditing ? 'cursor-pointer opacity-100' : 'opacity-0'}`}
                         onClick={() => {
-                                if (editAvatarRef.current) {
-                                    editAvatarRef.current.click();
-                                }
-                            }}
+                            if (editAvatarRef.current) {
+                                editAvatarRef.current.click();
+                            }
+                        }}
                     >
-                        <Icon
-                            icon="material-symbols:edit-outline"
-                            className={`text-primary size-5`}
-                        />
+                        <Icon icon="material-symbols:edit-outline" className={`text-primary size-5`} />
                         <input
                             disabled={!isEditing}
                             ref={editAvatarRef}
@@ -102,8 +125,14 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                             <Button variant="secondary" onClick={() => setIsEditing(false)}>
                                 Hủy
                             </Button>
-                            <Button variant="outline" onClick={() => setIsEditing(false)}>
-                                Lưu
+                            <Button
+                                variant="outline"
+                                disabled={isSaving}
+                                onClick={() => {
+                                    handleSave();
+                                }}
+                            >
+                                {isSaving ? 'Đang lưu...' : 'Lưu'}
                             </Button>
                         </div>
                     ) : (
@@ -232,7 +261,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 Ngày bắt đầu làm việc
                             </Label>
                             <Input
-                                disabled={!isEditing}
+                                disabled={true}
                                 id="employee-startday"
                                 type="date"
                                 value={formatDateString(employee.createdat || '')}
@@ -311,9 +340,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 <BankDetailAddForm />
                                 <DialogFooter>
                                     <DialogTrigger asChild>
-                                        <Button variant="secondary">
-                                            Hủy
-                                        </Button>
+                                        <Button variant="secondary">Hủy</Button>
                                     </DialogTrigger>
                                     <Button variant="outline">Lưu</Button>
                                 </DialogFooter>

@@ -210,7 +210,7 @@ const Filter: React.FC<FilterProps> = ({
     };
 
     return (
-        <div className="flex w-full max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
+        <div className="flex w-full sm:max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
