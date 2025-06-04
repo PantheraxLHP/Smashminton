@@ -6,12 +6,6 @@ import { Type } from 'class-transformer';
 
 export class updateEmployeeDto {
     @IsOptional()
-    @IsNumber()
-    @Type(() => Number)
-    @ApiProperty({ description: 'Employee ID', example: 4 })
-    employeeid: number;
-
-    @IsOptional()
     @IsString()
     @ApiProperty({ description: 'Username', example: 'lehongc', required: false })
     username?: string;
@@ -97,10 +91,4 @@ export class updateEmployeeDto {
     @Type(() => Number)
     @ApiProperty({ description: 'Salary', example: 50000, required: false })
     salary?: number;
-
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    @ApiProperty({ description: 'Created date', example: '2024-01-01T00:00:00Z', required: false })
-    createdat?: Date;
 }
