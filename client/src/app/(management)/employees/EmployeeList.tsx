@@ -2,7 +2,7 @@ import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getEmployees } from '@/services/employees.service';
+import { deleteEmployees, getEmployees } from '@/services/employees.service';
 import { Accounts, Employees } from '@/types/types';
 import { Icon } from '@iconify/react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -31,6 +31,14 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     const [currentPageSelectAll, setCurrentPageSelectAll] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const handleSuccess = () => {
+        setIsAddDialogOpen(false);
+    };
+
+    const getMarkedDeletingEmployees = () => {
+        const result = selectedEmployees.map((employee) => employee.employeeid);
+        return result;
+    };
 
     const fetchEmployees = async () => {
         const result = await getEmployees(page, pageSize);
@@ -95,6 +103,16 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
             setSelectedEmployees((prev) => {
                 return prev.filter((selected) => selected.employeeid !== employee.employeeid);
             });
+        }
+    };
+
+    const handleDeleteEmployees = async () => {
+        const result = await deleteEmployees(getMarkedDeletingEmployees());
+        if (result.ok) {
+            toast.success('Xóa nhân viên thành công');
+            fetchEmployees();
+        } else {
+            toast.error(result.message || 'Xóa nhân viên thất bại');
         }
     };
 
@@ -211,6 +229,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                             onClick={() => {
                                 if (selectedEmployees.length > 0) {
                                     setIsDeleteDialogOpen(true);
+                                    handleDeleteEmployees();
                                 } else {
                                     toast.error('Vui lòng chọn ít nhất một nhân sự để xóa.');
                                 }
@@ -247,15 +266,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                             <DialogHeader>
                                 <DialogTitle>Thêm nhân sự mới</DialogTitle>
                             </DialogHeader>
-                            <EmployeeAddForm />
-                            <DialogFooter>
-                                <Button variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
-                                    Thoát
-                                </Button>
-                                <Button variant="outline" onClick={() => {}}>
-                                    Thêm
-                                </Button>
-                            </DialogFooter>
+                            <EmployeeAddForm onSuccess={handleSuccess} />
                         </DialogContent>
                     </Dialog>
                 </div>
