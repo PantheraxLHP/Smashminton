@@ -252,6 +252,7 @@ export class EmployeesService {
         ...(phonenumber && { phonenumber }),
         ...(address && { address }),
         ...(status && { status }),
+        ...(gender && { gender }),
         avatarurl: url_avatar,
       },
     });
