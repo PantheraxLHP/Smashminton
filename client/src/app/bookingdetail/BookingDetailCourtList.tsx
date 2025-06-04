@@ -1,6 +1,16 @@
 import { Icon } from '@iconify/react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Fragment } from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import BookingEvents from './BookingEvents';
+import { formatDate } from '@/lib/utils';
 
 interface tmpCourt {
     courtid: number;
@@ -8,7 +18,6 @@ interface tmpCourt {
 }
 
 const BookingDetailCourtList = () => {
-    const router = useRouter();
     const [courts, setCourts] = useState<tmpCourt[]>([
         { courtid: 1, courtname: 'Sân 1' },
         { courtid: 2, courtname: 'Sân 2' },
@@ -31,23 +40,39 @@ const BookingDetailCourtList = () => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 w-full">
             {courts.map((court: tmpCourt) => (
-                <div
+                <Fragment
                     key={court.courtid}
-                    className="group p-4 rounded-lg border shadow transition-shadow duration-200 hover:shadow-xl hover:bg-primary-50 flex flex-col items-center gap-2 cursor-pointer h-fit w-full"
-                    onClick={() => {
-                        router.push(`/bookingdetail/events?courtid=${court.courtid}&date=${new Date().toISOString()}`);
-                    }}
                 >
-                    <Icon
-                        icon="game-icons:tennis-court"
-                        className="size-25 sm:size-30 md:size-35 lg:size-40 xl:size-45 2xl:size-50 group-hover:text-primary group-hover:scale-105 group-hover:-translate-y-2 transition-transform duration-200"
-                    />
-                    <span
-                        className="flex items-center gap-5 text-xl group-hover:text-primary group-hover:underline-offset-2 group-hover:underline"
-                    >
-                        {court.courtid} - {court.courtname}
-                    </span>
-                </div>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <div
+                                className="group p-4 rounded-lg border shadow transition-shadow duration-200 hover:shadow-xl hover:bg-primary-50 flex flex-col items-center gap-2 cursor-pointer h-fit w-full"
+                            >
+                                <Icon
+                                    icon="game-icons:tennis-court"
+                                    className="size-25 sm:size-30 md:size-35 lg:size-40 xl:size-45 2xl:size-50 group-hover:text-primary group-hover:scale-105 group-hover:-translate-y-2 transition-transform duration-200"
+                                />
+                                <span
+                                    className="flex items-center gap-5 text-xl group-hover:text-primary group-hover:underline-offset-2 group-hover:underline"
+                                >
+                                    {court.courtid} - {court.courtname}
+                                </span>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent className="!flex flex-col gap-2 max-h-[80vh] overflow-y-auto">
+                            <DialogHeader className="!h-fit">
+                                <DialogTitle className="!h-fit">
+                                    Chi tiết sự kiện sân {court.courtname} - {"Zone A"} - Ngày {formatDate(new Date())}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <BookingEvents
+                                zone={"A"}
+                                courtId={court.courtid.toString()}
+                                date={new Date()}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </Fragment>
             ))}
         </div>
     );
