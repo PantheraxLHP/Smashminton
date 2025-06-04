@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
+import VerifyOrderModal from './VerifyOrder';
 
-interface PurchaseOrder {
+export interface PurchaseOrder {
     orderid: number;
     productid: number;
     productname: string;
@@ -58,28 +59,86 @@ export default function PurchaseOrderPage() {
     const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
     const [ordersState, setOrdersState] = useState<PurchaseOrder[]>(rawOrderPurchase);
 
-    const handleMarkAsDelivered = (orderId: number) => {
-        const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
-        setOrdersState((prev) =>
-            prev.map((order) =>
-                order.orderid === orderId
-                    ? { ...order, status: 'Đã giao hàng', deliverydate: today }
-                    : order
-            )
-        );
+    const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+
+    const handleOpenVerifyModal = (order: PurchaseOrder) => {
+        setSelectedOrder(order);
+        setVerifyModalOpen(true);
     };
+
+    const handleVerifySubmit = (data: PurchaseOrder) => {
+        const today = new Date().toISOString().split('T')[0];
+
+        setOrdersState((prev) => {
+            const orderIndex = prev.findIndex((order) => order.orderid === data.orderid);
+            if (orderIndex === -1) return prev;
+
+            const order = prev[orderIndex];
+
+            if (data.quantity > order.quantity) {
+                alert('Số lượng giao không hợp lệ!');
+                return prev;
+            }
+
+            // Nếu giao đủ
+            if (data.quantity === order.quantity) {
+                const updatedOrder: PurchaseOrder = {
+                    ...order,
+                    status: 'Đã giao hàng',
+                    deliverydate: today,
+                };
+
+                return [
+                    ...prev.slice(0, orderIndex),
+                    updatedOrder,
+                    ...prev.slice(orderIndex + 1),
+                ];
+            }
+
+            if (data.quantity < order.quantity) {
+                const remainingQuantity = order.quantity - data.quantity;
+                console.log('Remaining Quantity:', remainingQuantity);
+                console.log('Order Quantity:', order.quantity);
+                console.log('Data Quantity:', data.quantity);
+
+                // Đơn hàng đã giao
+                const deliveredOrder: PurchaseOrder = {
+                    ...order,
+                    quantity: data.quantity,
+                    status: 'Đã giao hàng',
+                    deliverydate: today,
+                };
+
+                // Đơn hàng còn lại
+                const pendingOrder: PurchaseOrder = {
+                    ...order,
+                    quantity: remainingQuantity,
+                    status: 'Đang giao hàng',
+                    deliverydate: undefined,
+                };
+
+                return [
+                    ...prev.slice(0, orderIndex),
+                    deliveredOrder,
+                    pendingOrder,
+                    ...prev.slice(orderIndex + 1),
+                ];
+            }            
+            return prev;
+        });
+    };
+    
+       
 
     const handleCancelOrder = (orderId: number) => {
         setOrdersState((prev) =>
             prev.map((order) =>
-                order.orderid === orderId
-                    ? { ...order, status: 'Đã huỷ' }
-                    : order
+                order.orderid === orderId ? { ...order, status: 'Đã huỷ' } : order
             )
         );
     };
 
-    // Columns cơ bản
     const columns: Column<PurchaseOrder>[] = [
         { header: 'Mã đơn hàng', accessor: 'orderid' },
         { header: 'Nhà cung cấp', accessor: 'suppliername' },
@@ -119,10 +178,10 @@ export default function PurchaseOrderPage() {
             accessor: (item) =>
                 item.status !== 'Đã giao hàng' && item.status !== 'Đã huỷ' ? (
                     <button
-                        className='bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 mr-2 cursor-pointer'
-                        onClick={() => handleMarkAsDelivered(item.orderid)}
+                        className="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 mr-2 cursor-pointer"
+                        onClick={() => handleOpenVerifyModal(item)}
                     >
-                        Đã nhận hàng
+                        Xác nhận đơn
                     </button>
                 ) : null,
         });
@@ -131,7 +190,7 @@ export default function PurchaseOrderPage() {
             accessor: (item) =>
                 item.status === 'Đang giao hàng' ? (
                     <button
-                        className='bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer'
+                        className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer"
                         onClick={() => handleCancelOrder(item.orderid)}
                     >
                         Huỷ đơn
@@ -153,14 +212,14 @@ export default function PurchaseOrderPage() {
                 <Button
                     variant={activeTab === 'pending' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('pending')}
-                    className='flex items-center justify-center flex-1'
+                    className="flex items-center justify-center flex-1"
                 >
                     Đơn hàng chưa giao
                 </Button>
                 <Button
                     variant={activeTab === 'completed' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('completed')}
-                    className='flex items-center justify-center flex-1'
+                    className="flex items-center justify-center flex-1"
                 >
                     Đơn hàng đã hoàn thành
                 </Button>
@@ -181,6 +240,14 @@ export default function PurchaseOrderPage() {
                 showOptions={false}
                 showMoreOption={false}
                 showHeader
+            />
+
+            {/* Verify Order Modal */}
+            <VerifyOrderModal
+                open={verifyModalOpen}
+                onClose={() => setVerifyModalOpen(false)}
+                onSubmit={handleVerifySubmit}
+                orderData={selectedOrder}
             />
         </div>
     );

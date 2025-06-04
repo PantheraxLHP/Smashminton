@@ -3,15 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import AddZoneModal from './AddZone';
+import AddCourtModal from './AddCourt';
+import { Switch } from '@/components/ui/switch';
 
-interface Zone {
+
+export interface Zone {
     zoneid: number;
     zonename: string;
     type: string;
     image: string;
 }
 
-interface Court {
+export interface Court {
     courtname: string;
     image: string;
     status: string;
@@ -40,6 +44,8 @@ function normalizeTimeString(time: string) {
 
 export default function ZoneCourtManager() {
     const [courtState, setCourtState] = useState<Court[]>(rawCourt);
+    const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
+    const [isAddCourtModalOpen, setIsAddCourtModalOpen] = useState(false);
     const [filters, setFilters] = useState<Record<string, any>>({
         zonename: rawZone.map((z) => z.zonename),
     });
@@ -59,6 +65,29 @@ export default function ZoneCourtManager() {
         },
 
     ];
+
+
+    function handleSubmit(newZone: Zone) {
+        const maxId = Math.max(...rawZone.map((z) => z.zoneid), 0);
+        const zoneToAdd: Zone = {
+            ...newZone,
+            zoneid: maxId + 1,
+            image: newZone.image || '/default.png',
+        };
+        rawZone.push(zoneToAdd);
+
+        setFilters((prev) => ({
+            ...prev,
+            zonename: rawZone.map((z) => z.zonename),
+        }));
+    }
+
+    function handleSubmitCourt(newCourt: Court) {
+        rawCourt.push(newCourt);
+        setCourtState((prev) => [...prev, newCourt]);
+        setIsAddCourtModalOpen(false);
+    }
+
 
     useEffect(() => {
         if (!filters.zonename || filters.zonename.length === 0) {
@@ -83,7 +112,37 @@ export default function ZoneCourtManager() {
                 </div>
             ),
         },
-        { header: 'Tình trạng', accessor: 'status' },
+        {
+            header: 'Tình trạng',
+            accessor: (item) => {
+                const isActive = item.status === 'Đang hoạt động';
+
+                function handleSwitchChange(checked: boolean) {
+                    const newStatus = checked ? 'Đang hoạt động' : 'Bảo trì';
+
+                    const updatedCourts = courtState.map((c) =>
+                        c.courtname === item.courtname ? { ...c, status: newStatus } : c
+                    );
+                    setCourtState(updatedCourts);
+                }
+
+                const colorClass = isActive ? 'text-primary-600' : 'text-orange-500';
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <span className={`${colorClass} font-semibold`}>
+                            {item.status}
+                        </span>
+                        <Switch
+                            id={`switch-${item.courtname}`}
+                            checked={isActive}
+                            onCheckedChange={handleSwitchChange}
+                            className="ml-2"
+                        />
+                    </div>
+                );
+            },
+        },
         { header: 'Điểm số đánh giá', accessor: 'avgrating' },
         { header: 'Thời gian đánh giá', accessor: (item) => normalizeTimeString(item.timecalavg) },
     ];
@@ -101,18 +160,26 @@ export default function ZoneCourtManager() {
                 <div className="flex flex-row gap-4 justify-end mb-2">
                     <div className="mb-2 hidden justify-end lg:flex">
                         <button
-                            onClick={() => ''}
-                            className="rounded bg-green-500 px-4 py-2 text-white text-sm hover:bg-green-600 cursor-pointer"
+                            onClick={() => setIsAddZoneModalOpen(true)}
+                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
                         >
                             Thêm Zone
                         </button>
                     </div>
                     <div className="mb-2 hidden justify-end lg:flex">
                         <button
-                            onClick={() => ''}
-                            className="rounded bg-green-500 px-4 py-2 text-white text-sm hover:bg-green-600 cursor-pointer"
+                            onClick={() => setIsAddCourtModalOpen(true)}
+                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
                         >
                             Thêm sân
+                        </button>
+                    </div>
+                    <div className="mb-2 hidden justify-end lg:flex">
+                        <button
+                            onClick={() => ''}
+                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
+                        >
+                            Cập nhật điểm
                         </button>
                     </div>
                 </div>
@@ -126,11 +193,22 @@ export default function ZoneCourtManager() {
                         filters={{}}
                         setFilters={() => { }}
                         showOptions={false}
-                        showMoreOption={true}
+                        showMoreOption={false}
                         showHeader={true}
                     />
                 </div>
             </div>
+
+            <AddZoneModal
+                onClose={() => setIsAddZoneModalOpen(false)}
+                open={isAddZoneModalOpen}
+                onSubmit={handleSubmit}
+            />
+            <AddCourtModal
+                onClose={() => setIsAddCourtModalOpen(false)}
+                open={isAddCourtModalOpen}
+                onSubmit={handleSubmitCourt}
+            />
         </div>
     );
 }
