@@ -56,7 +56,7 @@ export const deleteEmployees = async (employeeIds: number[]) => {
         const response = await fetch('/api/employees/delete-employee', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ employeeIds }),
+            body: JSON.stringify( employeeIds ),
             credentials: 'include',
         });
         const result = await response.json();

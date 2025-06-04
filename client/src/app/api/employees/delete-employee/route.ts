@@ -3,13 +3,14 @@ import { NextRequest } from 'next/server';
 
 export async function DELETE(request: NextRequest) {
     try {
-        const { employeeIds } = await request.json();
-        const response = await fetch(`${process.env.SERVER}/api/v1/orders/remove-rental-products/${employeeIds}`, {
+        const body = await request.json();
+        const response = await fetch(`${process.env.SERVER}/api/v1/employees`, {
             headers: {
                 'Content-Type': 'application/json',
                 credentials: 'include',
             },
             method: 'DELETE',
+            body: JSON.stringify(body),
         });
 
         if (!response.ok) {

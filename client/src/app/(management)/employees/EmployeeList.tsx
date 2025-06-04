@@ -111,8 +111,10 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
         if (result.ok) {
             toast.success('Xóa nhân viên thành công');
             fetchEmployees();
+            setIsDeleteDialogOpen(false);
         } else {
             toast.error(result.message || 'Xóa nhân viên thất bại');
+            setIsDeleteDialogOpen(false);
         }
     };
 
@@ -229,7 +231,6 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                             onClick={() => {
                                 if (selectedEmployees.length > 0) {
                                     setIsDeleteDialogOpen(true);
-                                    handleDeleteEmployees();
                                 } else {
                                     toast.error('Vui lòng chọn ít nhất một nhân sự để xóa.');
                                 }
@@ -249,7 +250,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                 <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)}>
                                     Thoát
                                 </Button>
-                                <Button variant="outline_destructive" onClick={() => {}}>
+                                <Button variant="outline_destructive" onClick={handleDeleteEmployees}>
                                     Xóa
                                 </Button>
                             </DialogFooter>
