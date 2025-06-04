@@ -29,7 +29,7 @@ export class AddEmployeeDto {
     @ApiProperty({
         description: 'Vai trò',
         example: 'hr_manager',
-        enum: ['wh_manager', 'hr_manager']
+        enum: ['wh_manager', 'hr_manager', 'employee']
     })
     @IsString()
     @IsNotEmpty({ message: 'Vui lòng chọn vai trò' })

@@ -261,9 +261,13 @@ export class EmployeesService {
     return { updatedAccount, updatedEmployee };
   }
 
-  remove(id: number) {
-    return this.prisma.accounts.update({
-      where: { accountid: id },
+  remove(ids: number[]) {
+    return this.prisma.accounts.updateMany({
+      where: {
+        accountid: {
+          in: ids
+        }
+      },
       data: { status: 'Inactive' }
     });
   }

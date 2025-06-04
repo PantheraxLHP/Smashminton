@@ -164,9 +164,9 @@ const RentalPage = () => {
     };
 
     return (
-        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
-            <div className="flex w-full flex-col gap-4 sm:w-1/5">
-                <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row w-full">
+            <div className="flex w-full sm:max-w-xs flex-col gap-4">
+                <div className="flex flex-col gap-2 w-full sm:max-w-xs">
                     <label htmlFor="date-booking" className="text-sm font-bold">
                         Ngày nhận
                     </label>
@@ -182,7 +182,7 @@ const RentalPage = () => {
                         >
                             <SelectTrigger
                                 id="date-booking"
-                                className="w-full rounded-md border border-gray-500 p-2 text-sm placeholder:text-gray-500"
+                                className="w-full sm:max-w-xs rounded-md border border-gray-500 p-2 text-sm placeholder:text-gray-500"
                             >
                                 <SelectValue placeholder="Chọn ngày nhận" />
                             </SelectTrigger>
@@ -198,7 +198,7 @@ const RentalPage = () => {
                         <Select value="" disabled>
                             <SelectTrigger
                                 id="date-booking"
-                                className="w-full rounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
+                                    className="w-full sm:max-w-xsrounded-md border border-gray-300 p-2 text-sm placeholder:text-gray-500"
                             >
                                 <SelectValue placeholder="Chọn ngày nhận" />
                             </SelectTrigger>
@@ -207,12 +207,14 @@ const RentalPage = () => {
                     )}
                 </div>
 
-                <Filter
-                    filters={filters}
-                    values={filterValues}
-                    setFilterValues={setFilterValues}
-                    onFilterChange={handleFilterChange}
-                />
+                <div className="w-full">
+                    <Filter
+                        filters={filters}
+                        values={filterValues}
+                        setFilterValues={setFilterValues}
+                        onFilterChange={handleFilterChange}
+                    />
+                </div>
             </div>
             <div className="flex w-full flex-col gap-4 sm:w-4/5">
                 <RentalList
