@@ -111,7 +111,7 @@ model customers {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model employees {
   employeeid           Int                @id
-  fingerprintid        Int?
+  fingerprintid         Int?
   last_week_shift_type String?
   employee_type        String?
   role                 String?
