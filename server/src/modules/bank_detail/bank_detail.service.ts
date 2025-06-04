@@ -70,9 +70,7 @@ export class BankDetailService {
     const bankDetailInActive = await this.prisma.bank_detail.findMany({
       where: { employeeid, active: false },
     });
-    console.log('bankDetailInActive', bankDetailInActive);
     if (bankDetailInActive.length > 0 && updateBankDetailDto.active === true) {
-      console.log('update bank detail active');
       await this.prisma.bank_detail.update({
         where: { bankdetailid: bankDetailInActive[0].bankdetailid},
         data: {
