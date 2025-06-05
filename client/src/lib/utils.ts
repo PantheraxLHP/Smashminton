@@ -22,6 +22,18 @@ export const formatPrice = (price: number | string) => {
         .replace('₫', 'VND');
 };
 
+export const formatNumber = (num: number | string) => {
+    let number: number;
+    if (typeof num === 'string') {
+        // Remove all non-digit characters
+        number = parseFloat(num.replace(/[^\d.-]/g, ''));
+        if (isNaN(number)) number = 0;
+    } else {
+        number = num;
+    }
+    return number.toLocaleString('vi-VN');
+}
+
 export const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
