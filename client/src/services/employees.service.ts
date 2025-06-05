@@ -55,29 +55,41 @@ export const putEmployee = async (
     employeeId: number,
     employeeData: {
         fullname?: string;
+        gender?: string;
         email?: string;
+        dob?: string;
         phone?: string;
         address?: string;
-        position?: string;
-        salary?: number;
         avatar?: File;
+        fingerprint?: string;
+        position?: string;
+        role?: string;
+        cccd?: string;
+        expiry_cccd?: string;
+        taxcode?: string;
+        salary?: number;
     },
 ) => {
     try {
         const formData = new FormData();
         formData.append('employeeId', employeeId.toString());
         formData.append('fullname', employeeData.fullname || '');
+        formData.append('gender', employeeData.gender || '');
+        formData.append('dob', employeeData.dob || '');
         formData.append('email', employeeData.email || '');
         formData.append('phone', employeeData.phone || '');
         formData.append('address', employeeData.address || '');
         formData.append('position', employeeData.position || '');
+        formData.append('role', employeeData.role || '');
+        formData.append('cccd', employeeData.cccd || '');
+        formData.append('expiry_cccd', employeeData.expiry_cccd || '');
+        formData.append('taxcode', employeeData.taxcode || '');
         formData.append('salary', employeeData.salary?.toString() || '');
         if (employeeData.avatar) {
             formData.append('avatar', employeeData.avatar);
         }
         const response = await fetch('/api/employees/put-employee', {
             method: 'PUT',
-            headers: { 'Content-Type': 'multipart/form-data' },
             body: formData,
             credentials: 'include',
         });

@@ -3,25 +3,34 @@ import { NextRequest } from 'next/server';
 
 export async function PUT(request: NextRequest) {
     try {
-        const formData = new FormData();
-        const { employeeId, ...body } = await request.json();
-        formData.append('employeeId', employeeId.toString());
-        formData.append('fullname', body.fullname);
-        formData.append('email', body.email);
-        formData.append('phone', body.phone);
-        formData.append('address', body.address);
-        formData.append('position', body.position);
-        formData.append('salary', body.salary.toString());
-        if (body.avatar) {  
-            formData.append('avatar', body.avatar);
+        const formData = await request.formData();
+        const employeeId = formData.get('employeeId');
+
+        // Create new FormData for the backend request
+        const backendFormData = new FormData();
+        backendFormData.append('employeeId', employeeId?.toString() || '');
+        backendFormData.append('fullname', formData.get('fullname')?.toString() || '');
+        backendFormData.append('gender', formData.get('gender')?.toString() || '');
+        backendFormData.append('dob', formData.get('dob')?.toString() || '');
+        backendFormData.append('email', formData.get('email')?.toString() || '');
+        backendFormData.append('phone', formData.get('phone')?.toString() || '');
+        backendFormData.append('address', formData.get('address')?.toString() || '');
+        backendFormData.append('position', formData.get('position')?.toString() || '');
+        backendFormData.append('role', formData.get('role')?.toString() || '');
+        backendFormData.append('cccd', formData.get('cccd')?.toString() || '');
+        backendFormData.append('expiry_cccd', formData.get('expiry_cccd')?.toString() || '');
+        backendFormData.append('taxcode', formData.get('taxcode')?.toString() || '');
+        backendFormData.append('salary', formData.get('salary')?.toString() || '');
+
+        const avatar = formData.get('avatar') as File;
+        if (avatar && avatar.size > 0) {
+            backendFormData.append('avatar', avatar);
         }
+
         const response = await fetch(`${process.env.SERVER}/api/v1/employees/${employeeId}`, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                credentials: 'include',
-            },
             method: 'PUT',
-            body: formData,
+            body: backendFormData,
+            credentials: 'include',
         });
 
         if (!response.ok) {

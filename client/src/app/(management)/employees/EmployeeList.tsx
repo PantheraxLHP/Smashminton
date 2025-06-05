@@ -33,6 +33,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const handleSuccess = () => {
         setIsAddDialogOpen(false);
+        fetchEmployees();
     };
 
     const getMarkedDeletingEmployees = () => {
@@ -191,7 +192,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                                 </VisuallyHidden>
                                             </DialogTitle>
                                         </DialogHeader>
-                                        <EmployeeDetails employee={employee} />
+                                        <EmployeeDetails employee={employee} onSuccess={handleSuccess} />
                                     </DialogContent>
                                 </Dialog>
                             </div>

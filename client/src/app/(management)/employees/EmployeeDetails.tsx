@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { formatPrice, formatDateString } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { EmployeesProps } from './EmployeeList';
 import BankDetailAddForm from './BankDetailAddForm';
 import { putEmployee } from '@/services/employees.service';
@@ -22,9 +22,25 @@ import { toast } from 'sonner';
 
 interface EmployeeDetailsProps {
     employee: EmployeesProps;
+    onSuccess: () => void;
 }
 
-const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
+interface FormData {
+    fullname: string;
+    gender: string;
+    dob: string;
+    email: string;
+    phonenumber: string;
+    address: string;
+    employee_type: string;
+    salary: number;
+    cccd: string;
+    expiry_cccd: string;
+    taxcode: string;
+    role: string;
+}
+
+const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const [randomGender, setRandomGender] = useState<number>(Math.floor(Math.random() * 2 + 1));
     const tabs = ['Thông tin cơ bản', 'Thông tin ngân hàng', 'Thông tin lương, thưởng, phạt'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
@@ -33,6 +49,54 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
     const editAvatarRef = useRef<HTMLInputElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [avatar, setAvatar] = useState<File | null>(null);
+
+    // Helper function to safely convert date to string
+    const dateToString = (date: string | Date | undefined): string => {
+        if (!date) return '';
+        if (typeof date === 'string') return date;
+        return date.toISOString().split('T')[0]; // Convert Date to YYYY-MM-DD format
+    };
+
+    const [formData, setFormData] = useState<FormData>({
+        fullname: employee.fullname || '',
+        gender: employee.gender || '',
+        dob: dateToString(employee.dob),
+        email: employee.email || '',
+        phonenumber: employee.phonenumber || '',
+        address: employee.address || '',
+        employee_type: employee.employee_type || '',
+        salary: employee.salary || 0,
+        cccd: employee.cccd || '',
+        expiry_cccd: dateToString(employee.expiry_cccd),
+        taxcode: employee.taxcode || '',
+        role: employee.role || '',
+    });
+
+    // Reset form data when employee prop changes or when canceling edit
+    useEffect(() => {
+        setFormData({
+            fullname: employee.fullname || '',
+            gender: employee.gender || '',
+            dob: dateToString(employee.dob),
+            email: employee.email || '',
+            phonenumber: employee.phonenumber || '',
+            address: employee.address || '',
+            employee_type: employee.employee_type || '',
+            salary: employee.salary || 0,
+            cccd: employee.cccd || '',
+            expiry_cccd: dateToString(employee.expiry_cccd),
+            taxcode: employee.taxcode || '',
+            role: employee.role || '',
+        });
+    }, [employee]);
+
+    const handleInputChange = (field: keyof FormData, value: string | number) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
     const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -40,27 +104,62 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
         }
     };
 
+    const handleCancel = () => {
+        // Reset form data to original employee data
+        setFormData({
+            fullname: employee.fullname || '',
+            gender: employee.gender || '',
+            dob: dateToString(employee.dob),
+            email: employee.email || '',
+            phonenumber: employee.phonenumber || '',
+            address: employee.address || '',
+            employee_type: employee.employee_type || '',
+            salary: employee.salary || 0,
+            cccd: employee.cccd || '',
+            expiry_cccd: dateToString(employee.expiry_cccd),
+            taxcode: employee.taxcode || '',
+            role: employee.role || '',
+        });
+        setAvatar(null);
+        setIsEditing(false);
+    };
+
     const handleSave = async () => {
         setIsSaving(true);
-        const result = await putEmployee(employee.employeeid, {
-            fullname: employee.fullname || '',
-            email: employee.email || '',
-            phone: employee.phonenumber || '',
-            address: employee.address || '',
-            position: employee.employee_type || '',
-            salary: employee.salary || 0,
-            avatar: avatar || undefined,
-        });
-        console.log(result);
-        if (result.ok) {
-            toast.success('Cập nhật thông tin nhân viên thành công');
-            setIsEditing(false);
-        } else {
-            setIsEditing(false);
+        try {
+            const result = await putEmployee(employee.employeeid, {
+                fullname: formData.fullname,
+                gender: formData.gender,
+                dob: formatDateString(formData.dob),
+                email: formData.email,
+                phone: formData.phonenumber,
+                address: formData.address,
+                position: formData.employee_type,
+                salary: formData.salary,
+                cccd: formData.cccd,
+                expiry_cccd: formData.expiry_cccd,
+                taxcode: formData.taxcode,
+                role: formData.role,
+                avatar: avatar || undefined,
+            });
+
+            console.log(result);
+            if (result.ok) {
+                toast.success('Cập nhật thông tin nhân viên thành công');
+                setIsEditing(false);
+                setAvatar(null);
+                // Update the original employee data with new values
+                Object.assign(employee, formData);
+                onSuccess();
+            } else {
+                toast.error(result.message || 'Cập nhật thông tin nhân viên thất bại');
+            }
+        } catch (error) {
+            console.error('Error updating employee:', error);
+            toast.error('Có lỗi xảy ra khi cập nhật thông tin nhân viên');
+        } finally {
             setIsSaving(false);
-            toast.error(result.message || 'Cập nhật thông tin nhân viên thất bại');
         }
-        setIsSaving(false);
     };
 
     return (
@@ -97,41 +196,35 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                 <div className="flex w-full flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                         <Icon icon="lucide:user-round-pen" className="text-primary size-5" />
-                        {employee.fullname || ''}
+                        {formData.fullname}
                     </div>
                     <div className="flex items-center gap-2">
                         <Icon
                             icon={`${randomGender % 2 === 0 ? 'tdesign:gender-male' : 'tdesign:gender-female'}`}
                             className="text-primary size-5"
                         />
-                        {employee.gender || ''}
+                        {formData.gender}
                     </div>
                     <div className="flex items-center gap-2">
                         <Icon icon="material-symbols:work-outline" className="text-primary size-5" />
-                        {employee.employee_type}
+                        {formData.employee_type}
                     </div>
                     <div className="flex items-center gap-2">
                         <Icon icon="mdi:phone" className="text-primary size-5" />
-                        {employee.phonenumber || ''}
+                        {formData.phonenumber}
                     </div>
                     <div className="flex items-center gap-2">
                         <Icon icon="material-symbols:mail" className="text-primary size-5" />
-                        {employee.email || ''}
+                        {formData.email}
                     </div>
                 </div>
                 <div className="flex h-full flex-col justify-end">
                     {isEditing ? (
                         <div className="flex items-center gap-2">
-                            <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                            <Button variant="secondary" onClick={handleCancel}>
                                 Hủy
                             </Button>
-                            <Button
-                                variant="outline"
-                                disabled={isSaving}
-                                onClick={() => {
-                                    handleSave();
-                                }}
-                            >
+                            <Button variant="outline" disabled={isSaving} onClick={handleSave}>
                                 {isSaving ? 'Đang lưu...' : 'Lưu'}
                             </Button>
                         </div>
@@ -168,7 +261,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 id="employee-id"
                                 type="text"
                                 value={employee.employeeid || ''}
-                                onChange={() => {}}
+                                readOnly
                                 className=""
                             />
                         </div>
@@ -180,8 +273,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-name"
                                 type="text"
-                                value={employee.fullname || ''}
-                                onChange={() => {}}
+                                value={formData.fullname}
+                                onChange={(e) => handleInputChange('fullname', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -195,8 +288,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-dob"
                                 type="date"
-                                value={formatDateString(employee.dob || '')}
-                                onChange={() => {}}
+                                value={formatDateString(formData.dob)}
+                                onChange={(e) => handleInputChange('dob', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -208,8 +301,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-gender"
                                 type="text"
-                                value={employee.gender || ''}
-                                onChange={() => {}}
+                                value={formData.gender}
+                                onChange={(e) => handleInputChange('gender', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -223,8 +316,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-phonenumber"
                                 type="text"
-                                value={employee.phonenumber || ''}
-                                onChange={() => {}}
+                                value={formData.phonenumber}
+                                onChange={(e) => handleInputChange('phonenumber', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -236,8 +329,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-email"
                                 type="email"
-                                value={employee.email || ''}
-                                onChange={() => {}}
+                                value={formData.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -251,8 +344,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-address"
                                 type="text"
-                                value={employee.address || ''}
-                                onChange={() => {}}
+                                value={formData.address}
+                                onChange={(e) => handleInputChange('address', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -265,7 +358,7 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 id="employee-startday"
                                 type="date"
                                 value={formatDateString(employee.createdat || '')}
-                                onChange={() => {}}
+                                readOnly
                                 className=""
                             />
                         </div>
@@ -283,8 +376,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-cccd"
                                 type="text"
-                                value={employee.cccd || ''}
-                                onChange={() => {}}
+                                value={formData.cccd}
+                                onChange={(e) => handleInputChange('cccd', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -296,8 +389,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-cccdexpireddate"
                                 type="date"
-                                value={`${employee.expiry_cccd}`}
-                                onChange={() => {}}
+                                value={formData.expiry_cccd}
+                                onChange={(e) => handleInputChange('expiry_cccd', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -311,8 +404,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-taxcode"
                                 type="text"
-                                value={employee.taxcode || ''}
-                                onChange={() => {}}
+                                value={formData.taxcode}
+                                onChange={(e) => handleInputChange('taxcode', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -394,8 +487,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-role"
                                 type="text"
-                                value={employee.role || ''}
-                                onChange={() => {}}
+                                value={formData.role}
+                                onChange={(e) => handleInputChange('role', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -407,8 +500,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                                 disabled={!isEditing}
                                 id="employee-type"
                                 type="text"
-                                value={employee.employee_type || ''}
-                                onChange={() => {}}
+                                value={formData.employee_type}
+                                onChange={(e) => handleInputChange('employee_type', e.target.value)}
                                 className=""
                             />
                         </div>
@@ -421,9 +514,9 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
                             <Input
                                 disabled={!isEditing}
                                 id="employee-salary"
-                                type="text"
-                                value={formatPrice(employee.salary || 0)}
-                                onChange={() => {}}
+                                type="number"
+                                value={formData.salary}
+                                onChange={(e) => handleInputChange('salary', Number(e.target.value))}
                                 className=""
                             />
                         </div>
