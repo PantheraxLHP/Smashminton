@@ -102,6 +102,7 @@ export class EmployeesService {
             bankname: true,
             banknumber: true,
             bankholder: true,
+            active: true,
           }
         },
         reward_records: {
