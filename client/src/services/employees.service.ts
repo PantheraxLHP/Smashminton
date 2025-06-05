@@ -1,12 +1,23 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export const getEmployees = async (page: number, pageSize: number) => {
+export const getEmployees = async (page: number, pageSize: number, filterValue: Record<string, any> = {}) => {
     try {
         const queryParams = new URLSearchParams({
             page: page.toString(),
             pageSize: pageSize.toString(),
         });
+        // Serialize filterValue
+        Object.entries(filterValue).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+                value.forEach((v) => {
+                    if (v !== undefined && v !== null && v !== '') queryParams.append(key, v);
+                });
+            } else if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value);
+            }
+        });
 
+        console.log('Query params:', queryParams.toString());
         const response = await fetch(`/api/employees/get-employees?${queryParams}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -110,6 +121,32 @@ export const deleteEmployees = async (employeeIds: number[]) => {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(employeeIds),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};
+
+export const postBankDetail = async (bankDetailData: {
+    employeeid?: number;
+    banknumber?: string;
+    bankholder?: string;
+    bankname?: string;
+    isactive?: boolean;
+}) => {
+    try {
+        const response = await fetch('/api/employees/post-employee-bankdetail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bankDetailData),
             credentials: 'include',
         });
         const result = await response.json();

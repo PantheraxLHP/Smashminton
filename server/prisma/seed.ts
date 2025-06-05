@@ -2173,6 +2173,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 1,
@@ -2180,6 +2181,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-10'),
                 finalrewardamount: 1000000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-15'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 1,
@@ -2188,6 +2190,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 2,
@@ -2195,6 +2198,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-08'),
                 finalrewardamount: 300000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-12'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 2,
@@ -2202,6 +2206,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-15'),
                 finalrewardamount: 200000,
+                rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 2,
@@ -2210,6 +2215,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 3,
@@ -2217,6 +2223,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-12'),
                 finalrewardamount: 1000000,
+                rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-18'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 3,
@@ -2225,6 +2232,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 4,
@@ -2232,6 +2240,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-06'),
                 finalrewardamount: 300000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-10'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 4,
@@ -2240,6 +2249,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 5,
@@ -2247,6 +2257,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-14'),
                 finalrewardamount: 200000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-18'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 5,
@@ -2255,6 +2266,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 6,
@@ -2262,6 +2274,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-20'),
                 finalrewardamount: 1000000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-25'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 6,
@@ -2270,6 +2283,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 7,
@@ -2278,6 +2292,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 8,
@@ -2285,6 +2300,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-16'),
                 finalrewardamount: 300000,
+                rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 8,
@@ -2293,6 +2309,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 9,
@@ -2301,6 +2318,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 10,
@@ -2308,6 +2326,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-22'),
                 finalrewardamount: 200000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-26'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 10,
@@ -2316,6 +2335,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 11,
@@ -2324,6 +2344,7 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-01'),
                 finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 12,
@@ -2331,7 +2352,34 @@ async function main() {
             {
                 rewarddate: new Date('2025-06-25'),
                 finalrewardamount: 1000000,
+                rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-28'),
+                rewardruleid: 1, // Employee of the Month
+                employeeid: 12,
+            },
+            // Employee 11 (Cao Bá J)
+            {
+                rewarddate: new Date('2024-06-01'),
+                finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
+                rewardapplieddate: new Date('2024-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 11,
+            },
+            // Employee 12 (Hoàng Thị K)
+            {
+                rewarddate: new Date('2024-06-01'),
+                finalrewardamount: 500000,
+                rewardrecordstatus: 'approved',
+                rewardapplieddate: new Date('2024-06-05'),
+                rewardruleid: 5, // Holidays Bonus
+                employeeid: 12,
+            },
+            {
+                rewarddate: new Date('2024-06-25'),
+                finalrewardamount: 1000000,
+                rewardrecordstatus: 'rejected',
+                rewardapplieddate: new Date('2024-06-28'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 12,
             },

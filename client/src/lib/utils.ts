@@ -14,20 +14,22 @@ export const formatPrice = (price: number | string) => {
     } else {
         numPrice = price;
     }
-    return numPrice.toLocaleString('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).replace('₫', 'VND');
+    return numPrice
+        .toLocaleString('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        })
+        .replace('₫', 'VND');
 };
 
 export const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
 export const formatDateTime = (date: Date | string) => {
-    const d = (typeof date === 'string') ? new Date(date) : date;
+    const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('vi-VN', {
         year: 'numeric',
         month: '2-digit',
@@ -35,10 +37,10 @@ export const formatDateTime = (date: Date | string) => {
         hour: '2-digit',
         minute: '2-digit',
     });
-}
+};
 
 export const formatDate = (date: Date | string) => {
-    const d = (typeof date === 'string') ? new Date(date) : date;
+    const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('vi-VN', {
         year: 'numeric',
         month: '2-digit',
@@ -47,14 +49,36 @@ export const formatDate = (date: Date | string) => {
 };
 
 export const formatMonthYear = (date: Date | string) => {
-    const d = (typeof date === 'string') ? new Date(date) : date;
+    const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('vi-VN', {
         month: '2-digit',
         year: 'numeric',
     });
-}
+};
 
 export const formatDateString = (date: Date | string) => {
-    const d = (typeof date === 'string') ? new Date(date) : date;
+    const d = typeof date === 'string' ? new Date(date) : date;
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-}
+};
+
+export const formatRole = (role: string) => {
+    switch (role) {
+        case 'admin':
+            return 'Quản trị viên';
+        case 'employee':
+            return 'Quản lý sân';
+        case 'wh_manager':
+            return 'Quản lý kho hàng';
+        case 'hr_manager':
+            return 'Quản lý nhân sự';
+    }
+};
+
+export const formatEmployeeType = (employee_type: string) => {
+    switch (employee_type) {
+        case 'Full-time':
+            return 'Toàn thời gian';
+        case 'Part-time':
+            return 'Bán thời gian';
+    }
+};
