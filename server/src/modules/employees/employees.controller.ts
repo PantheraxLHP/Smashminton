@@ -280,7 +280,7 @@ export class EmployeesController {
     description: 'Lọc theo vai trò (có thể truyền nhiều giá trị)',
     type: String,
     isArray: true,
-    example: ['employee', 'wh_manager']
+    example: ['employee', 'wh_manager', 'hr_manager']
   })
   @ApiQuery({
     name: 'employee_type',
