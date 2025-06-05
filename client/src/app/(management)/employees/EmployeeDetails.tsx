@@ -67,6 +67,12 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         avatar: null,
     });
 
+    const handleBankDetailSuccess = () => {
+        toast.success('Thêm thông tin ngân hàng thành công');
+        setIsEditing(false);
+        onSuccess();
+    };
+
     const handleRoleChange = (value: string) => {
         setFormData({ ...formData, role: value });
     };
@@ -436,13 +442,8 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                         Vui lòng điền đầy đủ thông tin ngân hàng của nhân viên.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <BankDetailAddForm />
-                                <DialogFooter>
-                                    <DialogTrigger asChild>
-                                        <Button variant="secondary">Hủy</Button>
-                                    </DialogTrigger>
-                                    <Button variant="outline">Lưu</Button>
-                                </DialogFooter>
+                                <BankDetailAddForm onSuccess={handleBankDetailSuccess} employeeId={employee.employeeid} />
+
                             </DialogContent>
                         </Dialog>
                         <div className="flex h-full w-full flex-col">

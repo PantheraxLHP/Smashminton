@@ -12,6 +12,7 @@ const filters: FilterConfig[] = [
         filterlabel: 'VAI TRÒ',
         filtertype: 'checkbox',
         filteroptions: [
+            { optionlabel: 'Quản lý nhân sự', optionvalue: 'hr_manager' },
             { optionlabel: 'Quản lý sân', optionvalue: 'employee' },
             { optionlabel: 'Quản lý kho hàng', optionvalue: 'wh_manager' },
         ],
@@ -21,17 +22,17 @@ const filters: FilterConfig[] = [
         filterlabel: 'LOẠI NHÂN VIÊN',
         filtertype: 'checkbox',
         filteroptions: [
-            { optionlabel: 'Toàn thời gian', optionvalue: 'fulltime' },
-            { optionlabel: 'Bán thời gian', optionvalue: 'parttime' },
+            { optionlabel: 'Toàn thời gian', optionvalue: 'Full-time' },
+            { optionlabel: 'Bán thời gian', optionvalue: 'Part-time' },
         ],
     },
     {
-        filterid: 'fingerprint',
+        filterid: 'fingerprintid',
         filterlabel: 'SINH TRẮC HỌC VÂN TAY',
         filtertype: 'checkbox',
         filteroptions: [
-            { optionlabel: 'Đã thêm', optionvalue: 'true' },
-            { optionlabel: 'Chưa thêm', optionvalue: 'false' },
+            { optionlabel: 'Đã thêm', optionvalue: 'notnull' },
+            { optionlabel: 'Chưa thêm', optionvalue: 'null' },
         ],
     },
 ];

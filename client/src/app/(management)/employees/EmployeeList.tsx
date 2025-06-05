@@ -43,7 +43,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
     };
 
     const fetchEmployees = async () => {
-        const result = await getEmployees(page, pageSize);
+        const result = await getEmployees(page, pageSize, filterValue);
         if (!result.ok) {
             setEmployees([]);
         } else {
