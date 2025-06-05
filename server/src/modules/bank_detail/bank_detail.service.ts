@@ -12,7 +12,7 @@ export class BankDetailService {
     }
     const bankDetailOfEmployee = await this.findAllByEmployeeID(createBankDetailDto.employeeid);
 
-    let newBankDetail = null;
+    let newBankDetail;
     if (bankDetailOfEmployee.length === 0) {
       newBankDetail = await this.prisma.bankDetail.create({
         data: {
@@ -25,8 +25,8 @@ export class BankDetailService {
       return newBankDetail;
     }
 
-    if (CreateBankDetailDto.active === true) {
-      await this.prisma.bankDetail.update({
+    if (createBankDetailDto.active === true) {
+      await this.prisma.bank_detail.updateMany({
         where: {
           employeeid: createBankDetailDto.employeeid,
           active: true
@@ -37,7 +37,7 @@ export class BankDetailService {
       });
     }
 
-    newBankDetail = await this.prisma.bankDetail.create({
+    newBankDetail = await this.prisma.bank_detail.create({
       data: createBankDetailDto,
     });
 
@@ -45,33 +45,41 @@ export class BankDetailService {
   }
 
   findAllByEmployeeID(employeeid: number) {
-    return this.prisma.bankDetail.findMany({
+    console.log('employeeid', employeeid);
+    return this.prisma.bank_detail.findMany({
       where: { employeeid },
     });
   }
 
-  async update(employeeid: number, active: boolean) {
-    if (active === true) {
-      await this.prisma.bankDetail.update({
+  async update(employeeid: number, updateBankDetailDto: UpdateBankDetailDto) {
+    await this.prisma.bank_detail.updateMany({
         where: { employeeid, active: true },
         data: {
           active: false,
         },
       });
-    }
-    return this.prisma.bankDetail.update({
-      where: { employeeid },
+    return this.prisma.bank_detail.update({
+      where: { bankdetailid: updateBankDetailDto.bankdetailid },
       data: {
-        active,
+        active: updateBankDetailDto.active,
       },
     });
   }
 
-  // remove(employeeid: number, active: boolean) {
-  //   if (active === true) {
-    
-  //   return this.prisma.bankDetail.delete({
-  //     where: { id },
-  //   });
-  // }
+  async remove(employeeid: number, updateBankDetailDto: UpdateBankDetailDto) {
+    const bankDetailInActive = await this.prisma.bank_detail.findMany({
+      where: { employeeid, active: false },
+    });
+    if (bankDetailInActive.length > 0 && updateBankDetailDto.active === true) {
+      await this.prisma.bank_detail.update({
+        where: { bankdetailid: bankDetailInActive[0].bankdetailid},
+        data: {
+          active: true,
+        },
+      });
+    }
+    return this.prisma.bank_detail.delete({
+      where: { bankdetailid: updateBankDetailDto.bankdetailid },
+    });
+  }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
@@ -174,7 +175,12 @@ export default function PaymentPage() {
                             <div className="flex items-center gap-32 pr-16">
                                 <div className="flex items-center gap-2">
                                     <span>Học sinh / Sinh viên</span>
-                                    <input type="checkbox" checked={!!userProfile?.isStudent} readOnly />- 10% giá sân
+                                    <Checkbox
+                                        disabled
+                                        checked={!!userProfile?.isStudent}
+                                        className="disabled:opacity-100 disabled:cursor-default size-5"
+                                    />
+                                    - 10% giá sân
                                 </div>
                             </div>
                         </div>

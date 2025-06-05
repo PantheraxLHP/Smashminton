@@ -105,7 +105,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                         {/* Danh sách sản phẩm */}
                         {selectedProducts && selectedProducts.length > 0 && (
                             <div className="flex items-center gap-2">
-                                <Icon icon="mdi:racket" className="h-5 w-5" />
+                                <Icon icon="mdi:package-variant-closed" className="size-6" />
                                 <span>
                                     <b>
                                         {selectedProducts.reduce((sum, product) => sum + product.quantity, 0)} sản phẩm

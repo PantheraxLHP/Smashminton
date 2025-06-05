@@ -17,7 +17,7 @@ export const formatPrice = (price: number | string) => {
     return numPrice.toLocaleString('vi-VN', {
         style: 'currency',
         currency: 'VND',
-    }).replace('₫', ' VND');
+    }).replace('₫', 'VND');
 };
 
 export const formatTime = (seconds: number) => {

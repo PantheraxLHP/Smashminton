@@ -11,6 +11,7 @@ import { TesseractOcrService } from '../tesseract-ocr/tesseract-ocr.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CacheService } from '../cache/cache.service';
 import { Accounts } from 'src/interfaces/accounts.interface';
+import { ChangePasswordDto } from './dto/change-password.dto';
 @Injectable()
 export class AccountsService {
     constructor(
@@ -177,5 +178,28 @@ export class AccountsService {
             where: { studentcardid: customerId },
         });
         return studentCard ? true : false;
+    }
+
+    async changePassword(accountId: number, changePassword: ChangePasswordDto): Promise<any> {
+        const account = await this.findOne(accountId);
+        if (!account) {
+            throw new BadRequestException('Account not found');
+        }
+
+        if (changePassword.newPassword !== changePassword.confirmPassword) {
+            throw new BadRequestException('New password and confirm password do not match');
+        }
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(changePassword.newPassword, 10);
+
+        // Update the password in the database
+        const updatedAccount = await this.prisma.accounts.update({
+            where: { accountid: accountId },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
+        return updatedAccount;
     }
 }
