@@ -123,3 +123,29 @@ export const deleteEmployees = async (employeeIds: number[]) => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 };
+
+export const postBankDetail = async (bankDetailData: {
+    employeeid?: number;
+    banknumber?: string;
+    bankholder?: string;
+    bankname?: string;
+    isactive?: boolean;
+}) => {
+    try {
+        const response = await fetch('/api/employees/post-employee-bankdetail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bankDetailData),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};
