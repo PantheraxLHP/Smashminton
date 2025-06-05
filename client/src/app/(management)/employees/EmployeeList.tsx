@@ -11,6 +11,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import EmployeeAddForm from './EmployeeAddForm';
 import EmployeeDetails from './EmployeeDetails';
+import { formatEmployeeType, formatRole } from '@/lib/utils';
 
 export interface EmployeesProps extends Employees, Accounts {
     cccd: string;
@@ -162,10 +163,10 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                 {employee.fullname}
                             </div>
                             <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {employee.role}
+                                {formatRole(employee.role || '')}
                             </div>
                             <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {employee.employee_type}
+                                {formatEmployeeType(employee.employee_type || '')}
                             </div>
                             <div className="flex h-14 items-center border-b-2 border-gray-200 py-2 text-sm">
                                 {employee.createdat

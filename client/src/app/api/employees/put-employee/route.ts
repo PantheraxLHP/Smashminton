@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest) {
         backendFormData.append('gender', formData.get('gender')?.toString() || '');
         backendFormData.append('dob', formData.get('dob')?.toString() || '');
         backendFormData.append('email', formData.get('email')?.toString() || '');
-        backendFormData.append('phone', formData.get('phone')?.toString() || '');
+        backendFormData.append('phonenumber', formData.get('phone')?.toString() || '');
         backendFormData.append('address', formData.get('address')?.toString() || '');
         backendFormData.append('position', formData.get('position')?.toString() || '');
         backendFormData.append('role', formData.get('role')?.toString() || '');
@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest) {
 
         const avatar = formData.get('avatar') as File;
         if (avatar && avatar.size > 0) {
-            backendFormData.append('avatar', avatar);
+            backendFormData.append('avatarurl', avatar);
         }
 
         const response = await fetch(`${process.env.SERVER}/api/v1/employees/${employeeId}`, {
