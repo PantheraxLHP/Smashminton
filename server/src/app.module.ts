@@ -25,6 +25,7 @@ import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
 import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
 import { BankDetailModule } from './modules/bank_detail/bank_detail.module';
+import { RewardRecordsModule } from './modules/reward_records/reward_records.module';
 
 @Module({
     imports: [
@@ -53,6 +54,7 @@ import { BankDetailModule } from './modules/bank_detail/bank_detail.module';
         ZonePricesModule,
         NodemailerModule,
         BankDetailModule,
+        RewardRecordsModule,
     ],
     controllers: [AppController],
     providers: [AppService],
