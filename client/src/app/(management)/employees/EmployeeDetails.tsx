@@ -43,6 +43,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const editAvatarRef = useRef<HTMLInputElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [bankDetails, setBankDetails] = useState(employee.bank_detail || []);
     const [formData, setFormData] = useState<FormData>({
         fullname: employee.fullname || '',
         gender: employee.gender || '',
@@ -59,8 +60,14 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         avatar: null,
     });
 
-    const handleBankDetailSuccess = () => {
+    const handleBankDetailSuccess = (newBankDetail?: any) => {
         toast.success('Thêm thông tin ngân hàng thành công');
+
+        // Optimistically update the bank details immediately
+        if (newBankDetail) {
+            setBankDetails((prev) => [...prev, newBankDetail]);
+        }
+
         setIsEditing(false);
         setIsAddDialogOpen(false);
         onSuccess();
@@ -69,6 +76,13 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const handleBankActive = async (bankdetailid: number) => {
         const result = await putBankActive(employee.employeeid || 0, { bankdetailid: bankdetailid, active: true });
         if (result.ok) {
+            // Optimistically update the bank details
+            setBankDetails((prev) =>
+                prev.map((bank) => ({
+                    ...bank,
+                    active: bank.bankdetailid === bankdetailid,
+                })),
+            );
             toast.success('Cập nhật thông tin ngân hàng thành công');
         } else {
             toast.error(result.message || 'Cập nhật thông tin ngân hàng thất bại');
@@ -466,7 +480,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                 </span>
                             </div>
                             <div className="flex h-full max-h-full w-full flex-col overflow-y-auto">
-                                {employee.bank_detail?.map((bank) => (
+                                {bankDetails?.map((bank) => (
                                     <div key={bank.bankdetailid} className="flex w-full items-center">
                                         <div className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
                                             <MaskedField value={`${bank.banknumber}`} />
