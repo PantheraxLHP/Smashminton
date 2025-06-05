@@ -29,7 +29,7 @@ export class ZonePricesService {
       dayto: item.dayto,
       starttime: item.starttime,
       endtime: item.endtime,
-      price: item.price
+      price: Number(item.price)
     }));
   }
 

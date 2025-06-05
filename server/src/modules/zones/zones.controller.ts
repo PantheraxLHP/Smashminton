@@ -1,18 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/decorators/public.decorator';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 
 @ApiTags('Zones')
 @Controller('zones')
 export class ZonesController {
-    constructor(private readonly zonesService: ZonesService) {}
+    constructor(private readonly zonesService: ZonesService) { }
 
     @Post()
-    create(@Body() createZoneDto: CreateZoneDto) {
-        return this.zonesService.create(createZoneDto);
+    @UseInterceptors(
+        FileInterceptor('avatarurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    create(@Body() createZoneDto: CreateZoneDto,
+        @UploadedFile() file: Express.Multer.File) {
+        return this.zonesService.create(createZoneDto, file);
     }
 
     @Public()
