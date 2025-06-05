@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException,
 import { RewardRecordsService } from './reward_records.service';
 import { CreateRewardRecordDto } from './dto/create-reward_record.dto';
 import { UpdateRewardRecordDto } from './dto/update-reward_record.dto';
-import { ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 
 @Controller('reward-records')
 export class RewardRecordsController {
@@ -112,4 +112,43 @@ export class RewardRecordsController {
 
     return this.rewardRecordsService.getEmployeesInRewardRecords(pageNum, pageSizeNum, filters);
   }
+
+  @Patch('approve')
+  @ApiOperation({ summary: 'Approve multiple reward records' })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: { type: 'number' },
+      example: [5, 6, 7]
+    }
+  })
+  async approveRewardRecords(@Body() ids: number[]) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('Invalid IDs array');
+    }
+
+    const result = await this.rewardRecordsService.approvedReward(ids);
+
+    return result;
+  }
+
+  @Patch('reject')
+  @ApiOperation({ summary: 'Reject multiple reward records' })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: { type: 'number' },
+      example: [5, 6, 7]
+    }
+  })
+  async rejectRewardRecords(@Body() ids: number[]) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('Invalid IDs array');
+    }
+
+    const result = await this.rewardRecordsService.rejectedReward(ids);
+
+    return result;
+  }
+
 }
