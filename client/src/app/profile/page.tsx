@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
+import { updatePassword } from '@/services/accounts.service';
+import { toast } from 'sonner';
 
 interface Booking {
     time: string;
@@ -65,7 +67,7 @@ const UserProfilePage = () => {
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
     const { user, setUser } = useAuth();
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const userProfile = user;
 
     const handleUpdateStudentStatus = () => {
@@ -84,6 +86,28 @@ const UserProfilePage = () => {
         router.replace(newPath);
     };
 
+    const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const newPassword = formData.get('newPassword') as string;
+        const confirmPassword = formData.get('confirmPassword') as string;
+
+        setIsSubmitting(true);
+        const response = await updatePassword(userProfile?.accountid, {
+            newPassword: newPassword,
+            confirmPassword: confirmPassword,
+        });
+
+        if (!response.ok) {
+            toast.error(response.message);
+            return;
+        }
+
+        if (response.ok) {
+            toast.success('Mật khẩu đã được thay đổi thành công');
+        }
+        setIsSubmitting(false);
+    };
     return (
         <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
             <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
@@ -247,25 +271,19 @@ const UserProfilePage = () => {
 
                 {activeTab === 'changepassword' && (
                     <div className="flex justify-center">
-                        <form
-                            className="mt-4 w-full max-w-md space-y-4"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                // Handle password change submission here
-                            }}
-                        >
+                        <form className="mt-4 w-full max-w-md space-y-4" onSubmit={handleChangePassword}>
                             <div>
-                                <label className="text-md block py-2 font-medium">Mật khẩu mới</label>
+                                <label className="block py-2 text-sm font-medium">Mật khẩu mới</label>
                                 <input
                                     type="password"
-                                    name="password"
+                                    name="newPassword"
                                     className="w-full rounded border px-3 py-2"
                                     autoComplete="new-password"
                                 />
                             </div>
 
                             <div>
-                                <label className="text-md block py-2 font-medium">Nhập lại mật khẩu</label>
+                                <label className="block py-2 text-sm font-medium">Nhập lại mật khẩu</label>
                                 <input
                                     type="password"
                                     name="confirmPassword"
@@ -275,6 +293,7 @@ const UserProfilePage = () => {
                             </div>
 
                             <button
+                                disabled={isSubmitting}
                                 type="submit"
                                 className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white"
                             >
