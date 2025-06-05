@@ -1,25 +1,17 @@
 import MaskedField from '@/components/atomic/MaskedField';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTrigger,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatPrice, formatDateString } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatDateString, formatPrice } from '@/lib/utils';
+import { putBankActive, putEmployee } from '@/services/employees.service';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState, useRef } from 'react';
-import { EmployeesProps } from './EmployeeList';
-import BankDetailAddForm from './BankDetailAddForm';
-import { putEmployee } from '@/services/employees.service';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import BankDetailAddForm from './BankDetailAddForm';
+import { EmployeesProps } from './EmployeeList';
 
 interface EmployeeDetailsProps {
     employee: EmployeesProps;
@@ -70,7 +62,17 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const handleBankDetailSuccess = () => {
         toast.success('Thêm thông tin ngân hàng thành công');
         setIsEditing(false);
+        setIsAddDialogOpen(false);
         onSuccess();
+    };
+
+    const handleBankActive = async (bankdetailid: number) => {
+        const result = await putBankActive(employee.employeeid || 0, { bankdetailid: bankdetailid, active: true });
+        if (result.ok) {
+            toast.success('Cập nhật thông tin ngân hàng thành công');
+        } else {
+            toast.error(result.message || 'Cập nhật thông tin ngân hàng thất bại');
+        }
     };
 
     const handleRoleChange = (value: string) => {
@@ -442,8 +444,10 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                         Vui lòng điền đầy đủ thông tin ngân hàng của nhân viên.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <BankDetailAddForm onSuccess={handleBankDetailSuccess} employeeId={employee.employeeid} />
-
+                                <BankDetailAddForm
+                                    onSuccess={handleBankDetailSuccess}
+                                    employeeId={employee.employeeid}
+                                />
                             </DialogContent>
                         </Dialog>
                         <div className="flex h-full w-full flex-col">
@@ -474,7 +478,14 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                             {bank.bankname}
                                         </span>
                                         <span className="flex h-full w-full items-center justify-center border-b-2 border-gray-200 p-2 text-center">
-                                            <Icon icon="nrk:check-active" className="text-primary size-5" />
+                                            <Icon
+                                                icon={bank.active ? 'nrk:check-active' : 'nrk:check-active'}
+                                                className={`text-primary size-5 ${!isEditing ? (!bank.active ? 'opacity-0' : '') : !bank.active ? 'cursor-pointer opacity-30 hover:opacity-100' : 'opacity-100'} `}
+                                                onClick={() => {
+                                                    if (!isEditing || bank.active) return;
+                                                    handleBankActive(bank.bankdetailid);
+                                                }}
+                                            />
                                         </span>
                                     </div>
                                 ))}
