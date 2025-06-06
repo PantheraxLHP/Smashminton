@@ -151,4 +151,36 @@ export class RewardRecordsController {
     return result;
   }
 
+  @Get('reward-rules')
+  @ApiOperation({
+    summary: 'Get all reward rules',
+    description: 'Retrieve a list of all reward rules available in the system.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the list of reward rules.',
+  })
+  async getAllRewardRules() {
+    return this.rewardRecordsService.getAllRewardRules();
+  }
+
+  @Post()
+  @ApiOperation({ 
+    summary: 'Create new reward record',
+    description: 'Tạo reward record mới cho nhân viên'
+  })
+  @ApiBody({
+    type: CreateRewardRecordDto,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Reward record created successfully'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data'
+  })
+  async createRewardRecord(@Body() createRewardRecordDto: CreateRewardRecordDto) {
+    return this.rewardRecordsService.create(createRewardRecordDto);
+  }
 }

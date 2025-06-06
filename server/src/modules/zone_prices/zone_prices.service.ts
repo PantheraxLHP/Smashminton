@@ -21,18 +21,17 @@ export class ZonePricesService {
             },
         });
 
-        return data.map((item) => ({
-            zoneid: item.zoneid,
-            zonepriceid: item.zonepriceid,
-            zonename: item.zones?.zonename || null,
-            zoneimgurl: item.zones?.zoneimgurl || null,
-            dayfrom: item.dayfrom,
-            dayto: item.dayto,
-            starttime: item.starttime,
-            endtime: item.endtime,
-            price: item.price,
-        }));
-    }
+    return data.map(item => ({
+      zoneid: item.zoneid,
+      zonename: item.zones?.zonename || null,
+      zoneimgurl: item.zones?.zoneimgurl || null,
+      dayfrom: item.dayfrom,
+      dayto: item.dayto,
+      starttime: item.starttime,
+      endtime: item.endtime,
+      price: Number(item.price)
+    }));
+  }
 
     findOne(id: number) {
         return `This action returns a #${id} zonePrice`;

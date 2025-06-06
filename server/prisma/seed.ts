@@ -331,6 +331,10 @@ async function main() {
                     employeeid: employeeIds[i],
                     employee_type: 'Full-time',
                     role: defaultRoles[i],
+                    cccd: `079212345678`,
+                    expiry_cccd: new Date('2045-01-01'),
+                    salary: 5000000,
+                    taxcode: `123456789`,
                 },
             });
         } else {
@@ -354,27 +358,31 @@ async function main() {
                 rewardname: 'Employee of the Month',
                 rewarddescription: 'Thưởng nhân viên xuất sắc nhất tháng',
                 rewardtype: 'Product',
+                rewardvalue: 0.2,
             },
             {
                 rewardname: 'Attendance Bonus',
                 rewarddescription: 'Thưởng theo chuyên cần',
                 rewardtype: 'Commendation',
+                rewardvalue: 0.1,
             },
             {
                 rewardname: 'Perfomance Bonus',
                 rewarddescription: 'Thưởng theo hiệu suất làm việc',
                 rewardtype: 'Voucher',
+                rewardvalue: 0.15,
             },
             {
                 rewardname: 'Profit-sharing Bonus',
                 rewarddescription: 'Thưởng theo kết quả kinh doanh trong 1 năm',
                 rewardtype: '1 Month Salary',
+                rewardvalue: 0.2,
             },
             {
                 rewardname: 'Holidays Bonus',
                 rewarddescription: 'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
                 rewardtype: 'Money',
-                rewardvalue: 500000,
+                rewardvalue: 0.2,
             },
         ],
     });

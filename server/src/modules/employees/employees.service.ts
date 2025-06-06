@@ -376,5 +376,116 @@ export class EmployeesService {
     return `${day}${month}${year}`;
   }
 
+  async searchEmployees(
+    searchTerm: string
+  ): Promise<any[]> {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return [];
+    }
 
+    const trimmedSearch = searchTerm.trim();
+
+    const whereCondition: any = {
+      accounts: {
+        status: 'Active'
+      },
+      role: { not: 'admin' },
+      OR: []
+    };
+
+    // Parse search term
+    let searchId: number | null = null;
+    let searchName: string = '';
+
+    if (trimmedSearch.includes('-')) {
+      const parts = trimmedSearch.split('-', 2);
+      const leftPart = parts[0].trim();
+      const rightPart = parts[1] ? parts[1].trim() : '';
+
+      // Extract ID if present
+      if (leftPart && !isNaN(parseInt(leftPart))) {
+        searchId = parseInt(leftPart);
+      }
+
+      // Extract name if present
+      if (rightPart) {
+        searchName = rightPart;
+      } else if (leftPart && isNaN(parseInt(leftPart))) {
+        searchName = leftPart;
+      }
+
+      // ✅ KEY FIX: Nếu có cả ID và name, chỉ tìm kết hợp chính xác
+      if (searchId !== null && searchName) {
+        whereCondition.OR.push({
+          AND: [
+            { employeeid: searchId },
+            {
+              accounts: {
+                fullname: {
+                  contains: searchName,
+                  mode: 'insensitive'
+                }
+              }
+            }
+          ]
+        });
+      }
+      // Nếu chỉ có ID
+      else if (searchId !== null && !searchName) {
+        whereCondition.OR.push({
+          employeeid: searchId
+        });
+      }
+      // Nếu chỉ có name
+      else if (!searchId && searchName) {
+        whereCondition.OR.push({
+          accounts: {
+            fullname: {
+              contains: searchName,
+              mode: 'insensitive'
+            }
+          }
+        });
+      }
+    } else {
+      // No dash - could be ID or name
+      if (/^\d+$/.test(trimmedSearch)) {
+        whereCondition.OR.push({
+          employeeid: parseInt(trimmedSearch)
+        });
+      } else {
+        whereCondition.OR.push({
+          accounts: {
+            fullname: {
+              contains: trimmedSearch,
+              mode: 'insensitive'
+            }
+          }
+        });
+      }
+    }
+
+    const employees = await this.prisma.employees.findMany({
+      where: whereCondition,
+      take: 50,
+      select: {
+        employeeid: true,
+        salary: true,
+        accounts: {
+          select: {
+            fullname: true,
+          }
+        }
+      },
+      orderBy: [
+        { employeeid: 'asc' },
+        { accounts: { fullname: 'asc' } }
+      ]
+    });
+
+    return employees.map(employee => ({
+      search: `${employee.employeeid}-${employee.accounts.fullname}`,
+      salary: employee.salary
+    }));
+  }
 }
