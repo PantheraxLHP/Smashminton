@@ -2,7 +2,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RewardRecords } from '@/types/types';
-import { getButtonVariant } from './ApprovalList';
+import { formatButtonVariant } from './ApprovalList';
 import { formatMonthYear, formatPrice } from '@/lib/utils';
 
 interface ApprovalDetailsProps {
@@ -25,13 +25,11 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
             <div className="flex items-center justify-between gap-10">
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Tháng - Năm</span>
-                    <span className="">
-                        {record.rewarddate ? formatMonthYear(record.rewarddate) : ''}
-                    </span>
+                    <span className="">{record.rewarddate ? formatMonthYear(record.rewarddate) : ''}</span>
                 </div>
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Trạng thái</span>
-                    <Button variant={getButtonVariant(record)} disabled className="w-fit disabled:opacity-100">
+                    <Button variant={formatButtonVariant(record)} disabled className="w-fit disabled:opacity-100">
                         {record.rewardrecordstatus}
                     </Button>
                 </div>

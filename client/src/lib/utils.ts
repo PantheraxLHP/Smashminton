@@ -32,7 +32,7 @@ export const formatNumber = (num: number | string) => {
         number = num;
     }
     return number.toLocaleString('vi-VN');
-}
+};
 
 export const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -93,4 +93,24 @@ export const formatEmployeeType = (employee_type: string) => {
         case 'Part-time':
             return 'Bán thời gian';
     }
+};
+
+export const serializeFilterValue = (queryParams: URLSearchParams, filterValue: Record<string, any>) => {
+    Object.entries(filterValue).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            value.forEach((v) => {
+                if (v !== undefined && v !== null && v !== '') queryParams.append(key, v);
+            });
+        } else if (value && typeof value === 'object' && 'month' in value && 'year' in value) {
+            // Handle monthyear filter objects
+            if (value.month !== undefined && value.month !== null) {
+                queryParams.append(`month`, value.month.toString());
+            }
+            if (value.year !== undefined && value.year !== null) {
+                queryParams.append(`year`, value.year.toString());
+            }
+        } else if (value !== undefined && value !== null && value !== '') {
+            queryParams.append(key, value);
+        }
+    });
 };

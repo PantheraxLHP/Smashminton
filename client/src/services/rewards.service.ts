@@ -1,4 +1,5 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
+import { serializeFilterValue } from '@/lib/utils';
 
 export const getRewards = async (page: number, pageSize: number, filterValue: Record<string, any> = {}) => {
     try {
@@ -6,16 +7,8 @@ export const getRewards = async (page: number, pageSize: number, filterValue: Re
             page: page.toString(),
             pageSize: pageSize.toString(),
         });
-        // Serialize filterValue
-        Object.entries(filterValue).forEach(([key, value]) => {
-            if (Array.isArray(value)) {
-                value.forEach((v) => {
-                    if (v !== undefined && v !== null && v !== '') queryParams.append(key, v);
-                });
-            } else if (value !== undefined && value !== null && value !== '') {
-                queryParams.append(key, value);
-            }
-        });
+
+        serializeFilterValue(queryParams, filterValue);
 
         const response = await fetch(`/api/reward-record/get-rewards?${queryParams}`, {
             method: 'GET',

@@ -16,10 +16,10 @@ import {
     DialogFooter,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { formatDate, formatMonthYear, formatPrice } from '@/lib/utils';
+import { formatDate, formatEmployeeType, formatMonthYear, formatPrice, formatRole } from '@/lib/utils';
 import { getRewards } from '@/services/rewards.service';
 
-export const getButtonVariant = (rc: RewardRecords) => {
+export const formatButtonVariant = (rc: RewardRecords) => {
     switch (rc.rewardrecordstatus?.toLocaleLowerCase()) {
         case 'pending':
             return 'secondary';
@@ -27,6 +27,17 @@ export const getButtonVariant = (rc: RewardRecords) => {
             return 'destructive';
         case 'approved':
             return 'default';
+    }
+};
+
+export const formatApprovalStatus = (status: string) => {
+    switch (status) {
+        case 'pending':
+            return 'Chờ phê duyệt';
+        case 'rejected':
+            return 'Từ chối';
+        case 'approved':
+            return 'Xác nhận';
     }
 };
 
@@ -154,10 +165,10 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 {rc.employees?.accounts?.fullname}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {rc.employees?.role}
+                                {formatRole(rc.employees?.role || '')}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {rc.employees?.employee_type}
+                                {formatEmployeeType(rc.employees?.employee_type || '')}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
                                 {rc.rewarddate ? formatMonthYear(rc.rewarddate) : ''}
@@ -196,8 +207,8 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 </Dialog>
                             </div>
                             <div className="flex h-14.5 items-center justify-center border-b-2 border-gray-200 py-2 text-sm">
-                                <Button variant={getButtonVariant(rc)} className={`w-full`}>
-                                    {rc.rewardrecordstatus}
+                                <Button variant={formatButtonVariant(rc)} className={`w-full`}>
+                                    {formatApprovalStatus(rc.rewardrecordstatus || '')}
                                 </Button>
                             </div>
                         </Fragment>
