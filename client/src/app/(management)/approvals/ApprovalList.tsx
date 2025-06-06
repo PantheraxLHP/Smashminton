@@ -237,9 +237,12 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="!flex h-[60vh] flex-col gap-2 overflow-y-auto">
+                        <DialogContent className="h-[65vh] overflow-y-auto !flex flex-col gap-2">
                             <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
+                                <DialogDescription className="!h-fit">
+                                    Vui lòng điền thông tin ghi chú mới cho nhân viên.
+                                </DialogDescription>
                             </DialogHeader>
                             <ApprovalAddForm employees={employees} />
                             <DialogFooter className="!h-fit">

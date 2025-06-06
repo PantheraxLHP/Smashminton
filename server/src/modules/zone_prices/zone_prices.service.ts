@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ZonePricesService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
     create(createZonePriceDto: CreateZonePriceDto) {
         return 'This action adds a new zonePrice';
@@ -21,17 +21,18 @@ export class ZonePricesService {
             },
         });
 
-    return data.map(item => ({
-      zoneid: item.zoneid,
-      zonename: item.zones?.zonename || null,
-      zoneimgurl: item.zones?.zoneimgurl || null,
-      dayfrom: item.dayfrom,
-      dayto: item.dayto,
-      starttime: item.starttime,
-      endtime: item.endtime,
-      price: Number(item.price)
-    }));
-  }
+        return data.map(item => ({
+            zoneid: item.zoneid,
+            zonepriceid: item.zonepriceid,
+            zonename: item.zones?.zonename || null,
+            zoneimgurl: item.zones?.zoneimgurl || null,
+            dayfrom: item.dayfrom,
+            dayto: item.dayto,
+            starttime: item.starttime,
+            endtime: item.endtime,
+            price: Number(item.price)
+        }));
+    }
 
     findOne(id: number) {
         return `This action returns a #${id} zonePrice`;

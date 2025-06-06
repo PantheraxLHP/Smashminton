@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export interface CustomLineChartProps {
+export interface SingleLineChartProps {
     className?: string;
     chartData: any[];
     chartConfig: ChartConfig;
@@ -21,7 +21,7 @@ export interface CustomLineChartProps {
     yAxisDataType: "number" | "category";
 }
 
-const CustomLineChart: React.FC<CustomLineChartProps> = ({
+const SingleLineChart: React.FC<SingleLineChartProps> = ({
     className,
     chartData,
     chartConfig,
@@ -99,4 +99,4 @@ const CustomLineChart: React.FC<CustomLineChartProps> = ({
     );
 };
 
-export default CustomLineChart;
+export default SingleLineChart;
