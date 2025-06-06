@@ -232,4 +232,13 @@ export class EmployeesController {
       throw new Error(error.message);
     }
   }
+
+  @Get('search-employees')
+  @ApiOperation({ summary: 'Search employees' })
+  @ApiQuery({ name: 'q', description: 'Search term', required: true })
+  async searchEmployees(
+    @Query('q') searchTerm: string,
+  ) {
+    return this.employeesService.searchEmployees(searchTerm);
+  }
 }

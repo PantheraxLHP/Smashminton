@@ -135,4 +135,27 @@ export class RewardRecordsService {
       data: { rewardrecordstatus: 'rejected' }
     });
   }
+
+  async getAllRewardRules(){
+    return this.prisma.reward_rules.findMany({
+      select: {
+        rewardruleid: true,
+        rewardname: true,
+      },
+      orderBy: {
+        rewardruleid: 'asc'
+      }
+    });
+  }
+  async create(createRewardRecordDto: CreateRewardRecordDto) {
+    const rewardRecord = await this.prisma.reward_records.create({
+      data: createRewardRecordDto,
+    });
+
+    if (!rewardRecord) {
+      throw new Error('Failed to create reward record');
+    }
+
+    return rewardRecord;
+  }
 }
