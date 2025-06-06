@@ -8,7 +8,7 @@ const filters: FilterConfig[] = [
     { filterid: 'search', filterlabel: 'Tìm kiếm tên/mã nhân viên', filtertype: 'search' },
     { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
     {
-        filterid: 'monthYear',
+        filterid: 'monthyear',
         filterlabel: 'THÁNG - NĂM',
         filtertype: 'monthyear',
     },
