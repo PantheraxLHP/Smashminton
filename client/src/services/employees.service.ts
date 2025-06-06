@@ -17,7 +17,6 @@ export const getEmployees = async (page: number, pageSize: number, filterValue: 
             }
         });
 
-        console.log('Query params:', queryParams.toString());
         const response = await fetch(`/api/employees/get-employees?${queryParams}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
