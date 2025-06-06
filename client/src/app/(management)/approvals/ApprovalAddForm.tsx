@@ -2,7 +2,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Employees } from "@/types/types";
-import Combobox, { ComboboxItem } from "@/components/atomic/Combobox";
 import { formatPrice } from '@/lib/utils';
 import { useState } from "react";
 import {
@@ -12,6 +11,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
+import { Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+export interface ComboboxItem {
+    cblabel: string,
+    cbvalue: string | number,
+}
 
 interface ApprovalAddFormProps {
     employees: Employees[]
@@ -35,14 +49,40 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
 
     return (
         <div className="flex flex-col h-full gap-4 w-full">
-            <div className="flex flex-col gap-1 w-full">
-                <span className="text-xs font-semibold">Mã - Tên nhân viên</span>
-                <Combobox
-                    cbSearchLabel="mã - tên nhân viên"
-                    items={cbItems}
-                    selectedValue={selectedValue}
-                    onSelect={setSelectedValue}
-                />
+            <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-end gap-5 w-full">
+                    <span className="text-xs font-semibold flex-shrink-0">
+                        Mã - Tên nhân viên
+                    </span>
+                    <div className="w-full px-3 py-2 h-full border rounded-lg">
+                        {selectedValue || "Chọn mã - tên nhân viên ..."}
+                    </div>
+                </div>
+                <Command className="border-2 rounded-lg">
+                    <CommandInput placeholder={`Tìm kiếm mã - tên nhân viên ...`} />
+                    <CommandList>
+                        <CommandEmpty>{`Không tìm thấy mã - tên nhân viên`}</CommandEmpty>
+                        <CommandGroup className="max-h-40 overflow-y-auto ">
+                            {cbItems.map((item) => (
+                                <CommandItem
+                                    key={item.cbvalue}
+                                    value={(item.cbvalue).toString()}
+                                    onSelect={(newValue) => {
+                                        setSelectedValue(newValue === selectedValue ? undefined : newValue)
+                                    }}
+                                >
+                                    {item.cblabel}
+                                    <Check
+                                        className={cn(
+                                            "ml-auto",
+                                            selectedValue === item.cbvalue ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
             </div>
             <div className="flex items-center justify-between gap-10">
                 <div className="flex flex-col gap-1 w-full">
