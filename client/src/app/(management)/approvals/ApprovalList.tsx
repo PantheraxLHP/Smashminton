@@ -17,7 +17,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { formatDate, formatEmployeeType, formatMonthYear, formatPrice, formatRole } from '@/lib/utils';
-import { getRewards } from '@/services/rewards.service';
+import { approveRewards, getRewards, rejectRewards } from '@/services/rewards.service';
 
 export const formatButtonVariant = (rc: RewardRecords) => {
     switch (rc.rewardrecordstatus?.toLocaleLowerCase()) {
@@ -63,6 +63,31 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
             setRewardRecords(result.data.data);
             setTotalPages(result.data.pagination.totalPages);
             setPage(result.data.pagination.page);
+        }
+    };
+
+    const getMarkedApprovingApproval = () => {
+        const result = selectedRewardRecords.map((employee) => employee.rewardrecordid);
+        return result;
+    };
+
+    const handleApprove = async () => {
+        const result = await approveRewards(getMarkedApprovingApproval());
+        if (result.ok) {
+            toast.success('Phê duyệt thành công');
+            fetchRewardRecords();
+        } else {
+            toast.error(result.message || 'Phê duyệt thất bại');
+        }
+    };
+
+    const handleReject = async () => {
+        const result = await rejectRewards(getMarkedApprovingApproval());
+        if (result.ok) {
+            toast.success('Từ chối thành công');
+            fetchRewardRecords();
+        } else {
+            toast.error(result.message || 'Từ chối thất bại');
         }
     };
 
@@ -224,10 +249,10 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                     <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline_destructive" className="w-30">
+                    <Button variant="outline_destructive" className="w-30" onClick={handleReject}>
                         Từ chối
                     </Button>
-                    <Button variant="outline" className="w-30">
+                    <Button variant="outline" className="w-30" onClick={handleApprove}>
                         Phê duyệt
                     </Button>
                     {/* Dialog khi nhấn nút thêm ghi chú */}
@@ -237,7 +262,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="h-[65vh] overflow-y-auto !flex flex-col gap-2">
+                        <DialogContent className="!flex h-[65vh] flex-col gap-2 overflow-y-auto">
                             <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
                                 <DialogDescription className="!h-fit">
