@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export interface CustomBarChartProps {
+export interface SingleBarChartProps {
     className?: string;
     chartData: any[];
     chartConfig: ChartConfig;
@@ -21,7 +21,7 @@ export interface CustomBarChartProps {
     yAxisDataType: "number" | "category";
 }
 
-const CustomBarChart: React.FC<CustomBarChartProps> = ({
+const SingleBarChart: React.FC<SingleBarChartProps> = ({
     className,
     chartData,
     chartConfig,
@@ -74,16 +74,14 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({
                             <ChartTooltip
                                 cursor={false}
                                 content={<ChartTooltipContent
-                                    
+
                                 />}
                             />
-                            {Object.keys(chartConfig).map((key) => (
-                                <Bar
-                                    dataKey={mainDataKey}
-                                    fill={`var(--color-${key})`}
-                                    radius={4}
-                                /> 
-                            ))}
+                            <Bar
+                                dataKey={mainDataKey}
+                                fill={`var(--color-${mainDataKey})`}
+                                radius={4}
+                            />
                         </BarChart>
                     </ChartContainer>
                 </div>
@@ -92,4 +90,4 @@ const CustomBarChart: React.FC<CustomBarChartProps> = ({
     );
 }
 
-export default CustomBarChart;
+export default SingleBarChart;

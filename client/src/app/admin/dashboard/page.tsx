@@ -4,9 +4,10 @@ import { formatNumber } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { ChartConfig } from "@/components/ui/chart";
-import CustomBarChart from "./CustomBarChart";
-import CustomLineChart from "./CustomLineChart";
+import SingleBarChart from "./SingleBarChart";
+import SingleLineChart from "./SingleLineChart";
 import CustomPieChart from "./CustomPieChart";
+import MultipleBarChart from "./MultipleBarChart";
 
 const topCourtChartConfig: ChartConfig = {
     bookingCount: {
@@ -41,13 +42,24 @@ const revenuePerZoneChartConfig: ChartConfig = {
     },
 }
 
+const revenueOfProductsandRentalsChartConfig: ChartConfig = {
+    productRevenue: {
+        label: "Doanh thu sản phẩm",
+        color: "var(--color-green-200)",
+    },
+    rentalRevenue: {
+        label: "Doanh thu cho thuê",
+        color: "var(--color-blue-200)",
+    },
+}
+
 const DashboardPage = () => {
     const newCustomerTabs = ["số lượng", "tỉ lệ %"];
     const [activeTab, setActiveTab] = useState<string>(newCustomerTabs[0]);
     const topCourtData = [
-        {courtName: "Sân 1", bookingCount: 150},
-        {courtName: "Sân 2", bookingCount: 120},
-        {courtName: "Sân 3", bookingCount: 100},
+        {courtName: "Sân 1", bookingCount: 150, fill: "var(--color-primary-200)"},
+        {courtName: "Sân 2", bookingCount: 120, fill: "var(--color-blue-200)"},
+        {courtName: "Sân 3", bookingCount: 130, fill: "var(--color-red-200)"},
     ]
 
     const numberOfOrdersData = [
@@ -70,6 +82,21 @@ const DashboardPage = () => {
         { zone: "zoneB", revenue: 7000000, fill: "var(--color-blue-200)" },
         { zone: "zoneC", revenue: 6000000, fill: "var(--color-red-200)" },
         { zone: "zoneD", revenue: 8000000, fill: "var(--color-yellow-200)" },
+    ]
+
+    const revenueOfProductsandRentalsData = [
+        { month: "T1", productRevenue: 3000000, rentalRevenue: 5000000 },
+        { month: "T2", productRevenue: 4000000, rentalRevenue: 6000000 },
+        { month: "T3", productRevenue: 3500000, rentalRevenue: 5500000 },
+        { month: "T4", productRevenue: 4500000, rentalRevenue: 6500000 },
+        { month: "T5", productRevenue: 5000000, rentalRevenue: 7000000 },
+        { month: "T6", productRevenue: 6000000, rentalRevenue: 8000000 },
+        { month: "T7", productRevenue: 7000000, rentalRevenue: 9000000 },
+        { month: "T8", productRevenue: 8000000, rentalRevenue: 10000000 },
+        { month: "T9", productRevenue: 9000000, rentalRevenue: 11000000 },
+        { month: "T10", productRevenue: 10000000, rentalRevenue: 12000000 },
+        { month: "T11", productRevenue: 11000000, rentalRevenue: 13000000 },
+        { month: "T12", productRevenue: 12000000, rentalRevenue: 14000000 },
     ]
 
     return (
@@ -162,7 +189,7 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
-            <CustomBarChart
+            <SingleBarChart
                 chartData={topCourtData}
                 chartConfig={topCourtChartConfig}
                 chartTitle="Xếp hạng sân được đặt nhiều nhất"
@@ -176,7 +203,7 @@ const DashboardPage = () => {
                 mainDataKey="bookingCount"
                 className=""
             />
-            <CustomLineChart
+            <SingleLineChart
                 chartData={numberOfOrdersData}
                 chartConfig={numberOfOrdersChartConfig}
                 chartTitle="Số lượng đơn hàng theo tháng"
@@ -198,6 +225,20 @@ const DashboardPage = () => {
                 chartHeight="400px"
                 mainDataKey="revenue"
                 nameKey="zone"
+                className=""
+            />
+            <MultipleBarChart
+                chartData={revenueOfProductsandRentalsData}
+                chartConfig={revenueOfProductsandRentalsChartConfig}
+                chartTitle="Doanh thu sản phẩm và dịch vụ cho thuê theo tháng"
+                layout="horizontal"
+                chartWidth="100%"
+                chartHeight="400px"
+                xAxisDataType="category"
+                xAxisDataKey="month"
+                yAxisDataType="number"
+                yAxisDataKey="rentalRevenue"
+                mainDataKey={["productRevenue", "rentalRevenue"]}
                 className=""
             />
         </div>
