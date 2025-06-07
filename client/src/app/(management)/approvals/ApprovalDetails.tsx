@@ -2,8 +2,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RewardRecords } from '@/types/types';
-import { getButtonVariant } from './ApprovalList';
+import { formatApprovalStatus, formatButtonVariant } from './ApprovalList';
 import { formatMonthYear, formatPrice } from '@/lib/utils';
+import { DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 
 interface ApprovalDetailsProps {
     record: RewardRecords;
@@ -25,14 +26,12 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
             <div className="flex items-center justify-between gap-10">
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Tháng - Năm</span>
-                    <span className="">
-                        {record.rewarddate ? formatMonthYear(record.rewarddate) : ''}
-                    </span>
+                    <span className="">{record.rewarddate ? formatMonthYear(record.rewarddate) : ''}</span>
                 </div>
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Trạng thái</span>
-                    <Button variant={getButtonVariant(record)} disabled className="w-fit disabled:opacity-100">
-                        {record.rewardrecordstatus}
+                    <Button variant={formatButtonVariant(record)} disabled className="w-fit disabled:opacity-100">
+                        {record.rewardrecordstatus ? formatApprovalStatus(record.rewardrecordstatus) : ''}
                     </Button>
                 </div>
             </div>
@@ -51,7 +50,7 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
                     Ghi chú
                 </Label>
                 <Textarea
-                    disabled={record.rewardrecordstatus !== 'pending'}
+                    disabled={record.rewardrecordstatus?.toLocaleLowerCase() === 'approved'}
                     id="note"
                     placeholder="Nhập ghi chú tại đây..."
                     value={record.rewardnote || ''}
@@ -61,6 +60,16 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
                     className="h-full border-2 border-gray-400"
                 />
             </div>
+            {record.rewardrecordstatus === 'pending' && (
+                <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={() => {}}>
+                        Thoát
+                    </Button>
+                    <Button variant="outline" onClick={() => {}}>
+                        Lưu
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };

@@ -16,10 +16,10 @@ import {
     DialogFooter,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { formatDate, formatMonthYear, formatPrice } from '@/lib/utils';
-import { getRewards } from '@/services/rewards.service';
+import { formatDate, formatEmployeeType, formatMonthYear, formatPrice, formatRole } from '@/lib/utils';
+import { approveRewards, getRewards, rejectRewards } from '@/services/rewards.service';
 
-export const getButtonVariant = (rc: RewardRecords) => {
+export const formatButtonVariant = (rc: RewardRecords) => {
     switch (rc.rewardrecordstatus?.toLocaleLowerCase()) {
         case 'pending':
             return 'secondary';
@@ -27,6 +27,17 @@ export const getButtonVariant = (rc: RewardRecords) => {
             return 'destructive';
         case 'approved':
             return 'default';
+    }
+};
+
+export const formatApprovalStatus = (status: string) => {
+    switch (status) {
+        case 'pending':
+            return 'Chờ phê duyệt';
+        case 'rejected':
+            return 'Từ chối';
+        case 'approved':
+            return 'Xác nhận';
     }
 };
 
@@ -49,9 +60,36 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
         if (!result.ok) {
             setRewardRecords([]);
         } else {
-            setRewardRecords(result.data.data);
+            setRewardRecords(
+                result.data.data.sort((a: RewardRecords, b: RewardRecords) => a.rewardrecordid - b.rewardrecordid),
+            );
             setTotalPages(result.data.pagination.totalPages);
             setPage(result.data.pagination.page);
+        }
+    };
+
+    const getMarkedApprovingApproval = () => {
+        const result = selectedRewardRecords.map((employee) => employee.rewardrecordid);
+        return result;
+    };
+
+    const handleApprove = async () => {
+        const result = await approveRewards(getMarkedApprovingApproval());
+        if (result.ok) {
+            toast.success('Phê duyệt thành công');
+            fetchRewardRecords();
+        } else {
+            toast.error(result.message || 'Phê duyệt thất bại');
+        }
+    };
+
+    const handleReject = async () => {
+        const result = await rejectRewards(getMarkedApprovingApproval());
+        if (result.ok) {
+            toast.success('Từ chối thành công');
+            fetchRewardRecords();
+        } else {
+            toast.error(result.message || 'Từ chối thất bại');
         }
     };
 
@@ -154,10 +192,10 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 {rc.employees?.accounts?.fullname}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {rc.employees?.role}
+                                {formatRole(rc.employees?.role || '')}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {rc.employees?.employee_type}
+                                {formatEmployeeType(rc.employees?.employee_type || '')}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
                                 {rc.rewarddate ? formatMonthYear(rc.rewarddate) : ''}
@@ -182,22 +220,12 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ApprovalDetails record={rc} />
-                                        {rc.rewardrecordstatus === 'pending' && (
-                                            <DialogFooter className="!h-fit">
-                                                <DialogTrigger asChild>
-                                                    <Button variant="secondary">Thoát</Button>
-                                                </DialogTrigger>
-                                                <Button variant="outline" onClick={() => {}}>
-                                                    Lưu
-                                                </Button>
-                                            </DialogFooter>
-                                        )}
                                     </DialogContent>
                                 </Dialog>
                             </div>
                             <div className="flex h-14.5 items-center justify-center border-b-2 border-gray-200 py-2 text-sm">
-                                <Button variant={getButtonVariant(rc)} className={`w-full`}>
-                                    {rc.rewardrecordstatus}
+                                <Button variant={formatButtonVariant(rc)} className={`w-full`}>
+                                    {formatApprovalStatus(rc.rewardrecordstatus || '')}
                                 </Button>
                             </div>
                         </Fragment>
@@ -213,10 +241,10 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                     <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline_destructive" className="w-30">
+                    <Button variant="outline_destructive" className="w-30" onClick={handleReject}>
                         Từ chối
                     </Button>
-                    <Button variant="outline" className="w-30">
+                    <Button variant="outline" className="w-30" onClick={handleApprove}>
                         Phê duyệt
                     </Button>
                     {/* Dialog khi nhấn nút thêm ghi chú */}
@@ -226,25 +254,14 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="!flex h-[60vh] flex-col gap-2 overflow-y-auto">
+                        <DialogContent className="!flex h-[65vh] flex-col gap-2 overflow-y-auto">
                             <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
+                                <DialogDescription className="!h-fit">
+                                    Vui lòng điền thông tin ghi chú mới cho nhân viên.
+                                </DialogDescription>
                             </DialogHeader>
                             <ApprovalAddForm employees={employees} />
-                            <DialogFooter className="!h-fit">
-                                <DialogTrigger asChild>
-                                    <Button variant="secondary">Hủy</Button>
-                                </DialogTrigger>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        toast.success('Ghi chú đã được thêm thành công!');
-                                        setIsAddDialogOpen(false);
-                                    }}
-                                >
-                                    Lưu
-                                </Button>
-                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>

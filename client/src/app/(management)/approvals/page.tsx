@@ -13,25 +13,26 @@ const filters: FilterConfig[] = [
         filtertype: 'monthyear',
     },
     {
-        filterid: 'checkbox1',
+        filterid: 'role',
         filterlabel: 'VAI TRÒ',
         filtertype: 'checkbox',
         filteroptions: [
             { optionlabel: 'Quản lý sân', optionvalue: 'employee' },
             { optionlabel: 'Quản lý kho hàng', optionvalue: 'wh_manager' },
+            { optionlabel: 'Quản lý nhân sự', optionvalue: 'hr_manager' },
         ],
     },
     {
-        filterid: 'checkbox2',
+        filterid: 'employee_type',
         filterlabel: 'LOẠI NHÂN VIÊN',
         filtertype: 'checkbox',
         filteroptions: [
-            { optionlabel: 'Toàn thời gian', optionvalue: 'fulltime' },
-            { optionlabel: 'Bán thời gian', optionvalue: 'parttime' },
+            { optionlabel: 'Toàn thời gian', optionvalue: 'Full-time' },
+            { optionlabel: 'Bán thời gian', optionvalue: 'Part-time' },
         ],
     },
     {
-        filterid: 'checkbox3',
+        filterid: 'rewardrecordstatus',
         filterlabel: 'TRẠNG THÁI',
         filtertype: 'checkbox',
         filteroptions: [
