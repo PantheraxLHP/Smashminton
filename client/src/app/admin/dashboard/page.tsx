@@ -34,11 +34,11 @@ const revenuePerZoneChartConfig: ChartConfig = {
     },
     zoneC: {
         label: "Khu vực C",
-        color: "var(--color-red-200)",
+        color: "var(--color-red-100)",
     },
     zoneD: {
         label: "Khu vực D",
-        color: "var(--color-yellow-200)",
+        color: "var(--color-yellow-100)",
     },
 }
 
@@ -53,13 +53,30 @@ const revenueOfProductsandRentalsChartConfig: ChartConfig = {
     },
 }
 
+const topProductsChartConfig: ChartConfig = {
+    salesCount: {
+        label: "Số lượng bán",
+        color: "var(--color-secondary)",
+    },
+}
+
+const topRentalsChartConfig: ChartConfig = {
+    rentalCount: {
+        label: "Số lượng cho thuê",
+        color: "var(--color-secondary)",
+    },
+}
+
 const DashboardPage = () => {
     const newCustomerTabs = ["số lượng", "tỉ lệ %"];
     const [activeTab, setActiveTab] = useState<string>(newCustomerTabs[0]);
     const topCourtData = [
         {courtName: "Sân 1", bookingCount: 150, fill: "var(--color-primary-200)"},
         {courtName: "Sân 2", bookingCount: 120, fill: "var(--color-blue-200)"},
-        {courtName: "Sân 3", bookingCount: 130, fill: "var(--color-red-200)"},
+        {courtName: "Sân 3", bookingCount: 130, fill: "var(--color-red-100)"},
+        { courtName: "Sân 4", bookingCount: 170, fill: "var(--color-yellow-100)" },
+        { courtName: "Sân 5", bookingCount: 110, fill: "var(--color-blue-500)" },
+        { courtName: "Sân 6", bookingCount: 140, fill: "var(--color-gray-400)" },
     ]
 
     const numberOfOrdersData = [
@@ -80,8 +97,8 @@ const DashboardPage = () => {
     const revenuePerZoneData = [
         { zone: "zoneA", revenue: 5000000, fill: "var(--color-primary-200)" },
         { zone: "zoneB", revenue: 7000000, fill: "var(--color-blue-200)" },
-        { zone: "zoneC", revenue: 6000000, fill: "var(--color-red-200)" },
-        { zone: "zoneD", revenue: 8000000, fill: "var(--color-yellow-200)" },
+        { zone: "zoneC", revenue: 6000000, fill: "var(--color-red-100)" },
+        { zone: "zoneD", revenue: 8000000, fill: "var(--color-yellow-100)" },
     ]
 
     const revenueOfProductsandRentalsData = [
@@ -97,6 +114,20 @@ const DashboardPage = () => {
         { month: "T10", productRevenue: 10000000, rentalRevenue: 12000000 },
         { month: "T11", productRevenue: 11000000, rentalRevenue: 13000000 },
         { month: "T12", productRevenue: 12000000, rentalRevenue: 14000000 },
+    ]
+
+    const topProductsData = [
+        { productName: "Sản phẩm A", salesCount: 500, fill: "var(--color-green-200)" },
+        { productName: "Sản phẩm B", salesCount: 300, fill: "var(--color-blue-200)" },
+        { productName: "Sản phẩm C", salesCount: 400, fill: "var(--color-red-100)" },
+        { productName: "Sản phẩm D", salesCount: 600, fill: "var(--color-yellow-100)" },
+    ]
+
+    const topRentalsData = [
+        { rentalName: "Dịch vụ A", rentalCount: 200, fill: "var(--color-green-200)" },
+        { rentalName: "Dịch vụ B", rentalCount: 150, fill: "var(--color-blue-200)" },
+        { rentalName: "Dịch vụ C", rentalCount: 180, fill: "var(--color-red-100)" },
+        { rentalName: "Dịch vụ D", rentalCount: 220, fill: "var(--color-yellow-100)" },
     ]
 
     return (
@@ -189,58 +220,92 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
-            <SingleBarChart
-                chartData={topCourtData}
-                chartConfig={topCourtChartConfig}
-                chartTitle="Xếp hạng sân được đặt nhiều nhất"
-                layout="vertical"
-                chartWidth="100%"
-                chartHeight="400px"
-                xAxisDataType="number"
-                xAxisDataKey="bookingCount"
-                yAxisDataType="category"
-                yAxisDataKey="courtName"
-                mainDataKey="bookingCount"
-                className=""
-            />
-            <SingleLineChart
-                chartData={numberOfOrdersData}
-                chartConfig={numberOfOrdersChartConfig}
-                chartTitle="Số lượng đơn hàng theo tháng"
-                layout="horizontal"
-                chartWidth="100%"
-                chartHeight="400px"
-                xAxisDataType="category"
-                xAxisDataKey="month"
-                yAxisDataType="number"
-                yAxisDataKey="orderCount"
-                mainDataKey="orderCount"
-                className=""
-            />
-            <CustomPieChart
-                chartData={revenuePerZoneData}
-                chartConfig={revenuePerZoneChartConfig}
-                chartTitle="Doanh thu theo khu vực sân (Zone)"
-                chartWidth="100%"
-                chartHeight="400px"
-                mainDataKey="revenue"
-                nameKey="zone"
-                className=""
-            />
-            <MultipleBarChart
-                chartData={revenueOfProductsandRentalsData}
-                chartConfig={revenueOfProductsandRentalsChartConfig}
-                chartTitle="Doanh thu sản phẩm và dịch vụ cho thuê theo tháng"
-                layout="horizontal"
-                chartWidth="100%"
-                chartHeight="400px"
-                xAxisDataType="category"
-                xAxisDataKey="month"
-                yAxisDataType="number"
-                yAxisDataKey="rentalRevenue"
-                mainDataKey={["productRevenue", "rentalRevenue"]}
-                className=""
-            />
+            <div className="flex items-center gap-2 w-full h-80">
+                <SingleBarChart
+                    chartData={topCourtData}
+                    chartConfig={topCourtChartConfig}
+                    chartTitle="Xếp hạng sân được đặt nhiều nhất"
+                    layout="vertical"
+                    chartWidth="100%"
+                    chartHeight="100%"
+                    xAxisDataType="number"
+                    xAxisDataKey="bookingCount"
+                    yAxisDataType="category"
+                    yAxisDataKey="courtName"
+                    mainDataKey="bookingCount"
+                    className=""
+                />
+                <CustomPieChart
+                    chartData={revenuePerZoneData}
+                    chartConfig={revenuePerZoneChartConfig}
+                    chartTitle="Doanh thu theo khu vực sân (Zone)"
+                    chartWidth="40%"
+                    chartHeight="100%"
+                    mainDataKey="revenue"
+                    nameKey="zone"
+                    className=""
+                />
+            </div>
+            <div className="flex items-center gap-2 w-full h-80">
+                <SingleLineChart
+                    chartData={numberOfOrdersData}
+                    chartConfig={numberOfOrdersChartConfig}
+                    chartTitle="Số lượng đơn hàng theo tháng"
+                    layout="horizontal"
+                    chartWidth="100%"
+                    chartHeight="100%"
+                    xAxisDataType="category"
+                    xAxisDataKey="month"
+                    yAxisDataType="number"
+                    yAxisDataKey="orderCount"
+                    mainDataKey="orderCount"
+                    className=""
+                />
+                <MultipleBarChart
+                    chartData={revenueOfProductsandRentalsData}
+                    chartConfig={revenueOfProductsandRentalsChartConfig}
+                    chartTitle="Doanh thu sản phẩm và dịch vụ cho thuê theo tháng"
+                    layout="horizontal"
+                    chartWidth="100%"
+                    chartHeight="100%"
+                    xAxisDataType="category"
+                    xAxisDataKey="month"
+                    yAxisDataType="number"
+                    yAxisDataKey="rentalRevenue"
+                    mainDataKey={["productRevenue", "rentalRevenue"]}
+                    className=""
+                />
+            </div>
+            <div className="flex items-center gap-2 w-full h-80">
+                <SingleBarChart
+                    chartData={topProductsData}
+                    chartConfig={topProductsChartConfig}
+                    chartTitle="Top sản phẩm bán chạy nhất"
+                    layout="horizontal"
+                    chartWidth="100%"
+                    chartHeight="100%"
+                    xAxisDataType="category"
+                    xAxisDataKey="productName"
+                    yAxisDataType="number"
+                    yAxisDataKey="salesCount"
+                    mainDataKey="salesCount"
+                    className=""
+                />
+                <SingleBarChart
+                    chartData={topRentalsData}
+                    chartConfig={topRentalsChartConfig}
+                    chartTitle="Top dịch vụ cho thuê nhiều nhất"
+                    layout="horizontal"
+                    chartWidth="100%"
+                    chartHeight="100%"
+                    xAxisDataType="category"
+                    xAxisDataKey="rentalName"
+                    yAxisDataType="number"
+                    yAxisDataKey="rentalCount"
+                    mainDataKey="rentalCount"
+                    className=""
+                />
+            </div>
         </div>
     );
 }
