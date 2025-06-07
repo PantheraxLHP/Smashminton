@@ -371,3 +371,8 @@ export interface SupplyProducts {
     suppliers?: Suppliers;
     products?: Products;
 }
+
+export interface EmployeeSearchResult {
+    search: string; // Format: "ID-Name"
+    salary: string;
+}

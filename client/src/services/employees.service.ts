@@ -1,6 +1,29 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 import { serializeFilterValue } from '@/lib/utils';
 
+export const searchEmployees = async (query: string) => {
+    try {
+        const queryParams = new URLSearchParams({
+            q: query.trim() || '',
+        });
+
+        const response = await fetch(`/api/employees/search-employees?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tìm kiếm nhân viên');
+        }
+
+        return ServiceResponse.success(result.data || []);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tìm kiếm nhân viên');
+    }
+};
+
 export const getEmployees = async (page: number, pageSize: number, filterValue: Record<string, any> = {}) => {
     try {
         const queryParams = new URLSearchParams({
