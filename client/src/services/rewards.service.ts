@@ -68,3 +68,49 @@ export const rejectRewards = async (recordIds: number[]) => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách thưởng');
     }
 };
+
+export const postRewardRecord = async (rewardData: {
+    employeeId: number;
+    rewardType: string;
+    rewardAmount: number;
+    rewardNote: string;
+}) => {
+    try {
+        const response = await fetch(`/api/reward-record/post-reward`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(rewardData),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thêm ghi chú');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thêm ghi chú');
+    }
+};
+
+export const getRewardRules = async () => {
+    try {
+        const response = await fetch(`/api/reward-record/get-reward-rules`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách thưởng');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách thưởng');
+    }
+};

@@ -60,7 +60,9 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
         if (!result.ok) {
             setRewardRecords([]);
         } else {
-            setRewardRecords(result.data.data);
+            setRewardRecords(
+                result.data.data.sort((a: RewardRecords, b: RewardRecords) => a.rewardrecordid - b.rewardrecordid),
+            );
             setTotalPages(result.data.pagination.totalPages);
             setPage(result.data.pagination.page);
         }
@@ -218,16 +220,6 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ApprovalDetails record={rc} />
-                                        {rc.rewardrecordstatus === 'pending' && (
-                                            <DialogFooter className="!h-fit">
-                                                <DialogTrigger asChild>
-                                                    <Button variant="secondary">Thoát</Button>
-                                                </DialogTrigger>
-                                                <Button variant="outline" onClick={() => {}}>
-                                                    Lưu
-                                                </Button>
-                                            </DialogFooter>
-                                        )}
                                     </DialogContent>
                                 </Dialog>
                             </div>
@@ -270,20 +262,6 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 </DialogDescription>
                             </DialogHeader>
                             <ApprovalAddForm employees={employees} />
-                            <DialogFooter className="!h-fit">
-                                <DialogTrigger asChild>
-                                    <Button variant="secondary">Hủy</Button>
-                                </DialogTrigger>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        toast.success('Ghi chú đã được thêm thành công!');
-                                        setIsAddDialogOpen(false);
-                                    }}
-                                >
-                                    Lưu
-                                </Button>
-                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>
