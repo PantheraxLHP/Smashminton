@@ -125,7 +125,7 @@ export class RewardRecordsService {
     });
   }
 
-    rejectedReward(ids: number[]) {
+  rejectedReward(ids: number[]) {
     return this.prisma.reward_records.updateMany({
       where: {
         rewardrecordid: {
@@ -136,16 +136,23 @@ export class RewardRecordsService {
     });
   }
 
-  async getAllRewardRules(){
-    return this.prisma.reward_rules.findMany({
+  async getAllRewardRules() {
+    const rewardRules = await this.prisma.reward_rules.findMany({
       select: {
         rewardruleid: true,
         rewardname: true,
+        rewardvalue: true,
       },
       orderBy: {
         rewardruleid: 'asc'
       }
     });
+
+    // Convert rewardvalue to number
+    return rewardRules.map(rule => ({
+      ...rule,
+      rewardvalue: rule.rewardvalue ? Number(rule.rewardvalue) : 0
+    }));
   }
   async create(createRewardRecordDto: CreateRewardRecordDto) {
     const rewardRecord = await this.prisma.reward_records.create({
