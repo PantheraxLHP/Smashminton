@@ -1,16 +1,15 @@
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Employees, RewardRules, EmployeeSearchResult } from '@/types/types';
-import { formatPrice } from '@/lib/utils';
-import { useEffect, useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import { getRewardRules, postRewardRecord } from '@/services/rewards.service';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useEmployeeSearch } from '@/hooks/useEmployeeSearch';
+import { cn, formatPrice } from '@/lib/utils';
+import { getRewardRules, postRewardRecord } from '@/services/rewards.service';
+import { Employees, EmployeeSearchResult, RewardRules } from '@/types/types';
+import { Check, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export interface ComboboxItem {
     cblabel: string;
@@ -38,6 +37,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
     setIsAddDialogOpen,
 }) => {
     const [rewardRules, setRewardRules] = useState<RewardRules[]>([]);
+    const [rewardValue, setRewardValue] = useState<number>(0);
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSearchResult | null>(null);
     const { searchResults, isSearching, searchError, handleSearch, clearSearch } = useEmployeeSearch(300);
 
@@ -72,10 +72,13 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         if (formData.rewardType && rewardRules.length > 0) {
             const selectedRule = rewardRules.find((rule) => rule.rewardruleid.toString() === formData.rewardType);
             if (selectedRule && selectedRule.rewardvalue !== undefined) {
-                setFormData((prev) => ({ ...prev, rewardAmount: selectedRule.rewardvalue || 0 }));
+                const rewardAmount = selectedRule.rewardvalue || 0;
+                setFormData((prev) => ({ ...prev, rewardAmount }));
+                setRewardValue(rewardAmount);
             }
         } else {
             setFormData((prev) => ({ ...prev, rewardAmount: 0 }));
+            setRewardValue(0);
         }
     }, [formData.rewardType, rewardRules]);
 
@@ -97,10 +100,18 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
             return;
         }
 
-        const result = await postRewardRecord(formData);
+        const apiData = {
+            finalrewardamount: formData.rewardAmount * rewardValue,
+            rewardnote: formData.rewardNote,
+            rewardrecordstatus: 'pending',
+            rewardapplieddate: new Date().toISOString(),
+            rewardruleid: parseInt(formData.rewardType),
+            employeeid: formData.employeeId,
+        };
+
+        const result = await postRewardRecord(apiData);
         if (result.ok) {
             toast.success('Đã thêm đề xuất thưởng thành công!');
-            // Reset form after successful submission
             setFormData({
                 employeeId: 0,
                 rewardType: '',
@@ -108,6 +119,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
                 rewardNote: rewardNote || '',
             });
             setSelectedEmployee(null);
+            setRewardValue(0);
             clearSearch();
         } else {
             toast.error('Đã thêm đề xuất thưởng thất bại!');
