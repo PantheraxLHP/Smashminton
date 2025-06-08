@@ -26,7 +26,9 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
             <div className="flex items-center justify-between gap-10">
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Tháng - Năm</span>
-                    <span className="">{record.rewarddate ? formatMonthYear(record.rewarddate) : ''}</span>
+                    <span className="">
+                        {record.rewardapplieddate ? formatMonthYear(record.rewardapplieddate) : ''}
+                    </span>
                 </div>
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Trạng thái</span>
@@ -38,7 +40,7 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
             <div className="flex items-center justify-between gap-10">
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Loại thưởng</span>
-                    <span className="">Thưởng hiệu suất</span>
+                    <span className="">{record.reward_rules?.rewardname || ''}</span>
                 </div>
                 <div className="flex w-full flex-col gap-1">
                     <span className="text-xs font-semibold">Số tiền thưởng</span>

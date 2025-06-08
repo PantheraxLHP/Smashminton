@@ -198,7 +198,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 {formatEmployeeType(rc.employees?.employee_type || '')}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {rc.rewarddate ? formatMonthYear(rc.rewarddate) : ''}
+                                {rc.rewardapplieddate ? formatMonthYear(rc.rewardapplieddate) : ''}
                             </div>
                             <div className="flex h-14.5 items-center border-b-2 border-gray-200 py-2 text-sm">
                                 {formatPrice(rc.finalrewardamount || 0)}
@@ -216,7 +216,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                             <DialogTitle className="!h-fit">Chi tiết ghi chú</DialogTitle>
                                             <DialogDescription className="!h-fit">
                                                 {`Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || 'chưa có tên'} trong ` +
-                                                    `${rc.rewarddate ? formatDate(rc.rewarddate) : ''}`}
+                                                    `${rc.rewardapplieddate ? formatDate(rc.rewardapplieddate) : ''}`}
                                             </DialogDescription>
                                         </DialogHeader>
                                         <ApprovalDetails record={rc} />
@@ -241,22 +241,30 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                     <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline_destructive" className="w-30" onClick={() => {
-                        if (selectedRewardRecords.length > 0) {
-                            handleReject();
-                        } else {
-                            toast.error('Vui lòng chọn ít nhất một ghi chú để từ chối');
-                        }
-                    }}>
+                    <Button
+                        variant="outline_destructive"
+                        className="w-30"
+                        onClick={() => {
+                            if (selectedRewardRecords.length > 0) {
+                                handleReject();
+                            } else {
+                                toast.error('Vui lòng chọn ít nhất một ghi chú để từ chối');
+                            }
+                        }}
+                    >
                         Từ chối
                     </Button>
-                    <Button variant="outline" className="w-30" onClick={() => {
-                        if (selectedRewardRecords.length > 0) {
-                            handleApprove();
-                        } else {
-                            toast.error('Vui lòng chọn ít nhất một ghi chú để phê duyệt');
-                        }
-                    }}>
+                    <Button
+                        variant="outline"
+                        className="w-30"
+                        onClick={() => {
+                            if (selectedRewardRecords.length > 0) {
+                                handleApprove();
+                            } else {
+                                toast.error('Vui lòng chọn ít nhất một ghi chú để phê duyệt');
+                            }
+                        }}
+                    >
                         Phê duyệt
                     </Button>
                     {/* Dialog khi nhấn nút thêm ghi chú */}
@@ -266,7 +274,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="h-[80vh] overflow-y-auto !flex flex-col gap-2">
+                        <DialogContent className="!flex h-[80vh] flex-col gap-2 overflow-y-auto">
                             <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
                                 <DialogDescription className="!h-fit">

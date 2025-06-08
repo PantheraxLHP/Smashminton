@@ -72,15 +72,38 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         if (formData.rewardType && rewardRules.length > 0) {
             const selectedRule = rewardRules.find((rule) => rule.rewardruleid.toString() === formData.rewardType);
             if (selectedRule && selectedRule.rewardvalue !== undefined) {
-                const rewardAmount = selectedRule.rewardvalue || 0;
-                setFormData((prev) => ({ ...prev, rewardAmount }));
-                setRewardValue(rewardAmount);
+                // Get the base reward value from the rule
+                const baseRewardValue = selectedRule.rewardvalue || 0;
+
+                // If an employee is selected, multiply by their salary
+                if (selectedEmployee && selectedEmployee.salary) {
+                    const employeeSalary = parseFloat(selectedEmployee.salary.toString()) || 0;
+                    const calculatedAmount = baseRewardValue * employeeSalary;
+                    setFormData((prev) => ({ ...prev, rewardAmount: calculatedAmount }));
+                } else {
+                    // If no employee selected, just show the base reward value
+                    setFormData((prev) => ({ ...prev, rewardAmount: baseRewardValue }));
+                }
+                setRewardValue(baseRewardValue);
             }
         } else {
             setFormData((prev) => ({ ...prev, rewardAmount: 0 }));
             setRewardValue(0);
         }
-    }, [formData.rewardType, rewardRules]);
+    }, [formData.rewardType, rewardRules, selectedEmployee]);
+
+    // Recalculate reward amount when employee selection changes
+    useEffect(() => {
+        if (formData.rewardType && rewardRules.length > 0 && selectedEmployee) {
+            const selectedRule = rewardRules.find((rule) => rule.rewardruleid.toString() === formData.rewardType);
+            if (selectedRule && selectedRule.rewardvalue !== undefined && selectedEmployee.salary) {
+                const baseRewardValue = selectedRule.rewardvalue || 0;
+                const employeeSalary = parseFloat(selectedEmployee.salary.toString()) || 0;
+                const calculatedAmount = baseRewardValue * employeeSalary;
+                setFormData((prev) => ({ ...prev, rewardAmount: calculatedAmount }));
+            }
+        }
+    }, [selectedEmployee, formData.rewardType, rewardRules]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -101,7 +124,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         }
 
         const apiData = {
-            finalrewardamount: formData.rewardAmount * rewardValue,
+            finalrewardamount: formData.rewardAmount,
             rewardnote: formData.rewardNote,
             rewardrecordstatus: 'approved',
             rewardapplieddate: new Date().toISOString(),

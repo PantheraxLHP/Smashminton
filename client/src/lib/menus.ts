@@ -15,6 +15,10 @@ export const menus = {
     ],
     hr_manager: [
         {
+            label: 'Đăng ký ca làm',
+            link: '/assignments',
+        },
+        {
             label: 'Quản lý nhân viên',
             link: '/employees',
         },

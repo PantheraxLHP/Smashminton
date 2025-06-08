@@ -617,7 +617,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                     return (
                                         <div key={reward.rewardrecordid} className="flex w-full items-center">
                                             <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                {formatDateString(reward.rewarddate || '')}
+                                                {formatDateString(reward.rewardapplieddate || '')}
                                             </span>
                                             <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
                                                 {reward.reward_rules?.rewardname || ''}
