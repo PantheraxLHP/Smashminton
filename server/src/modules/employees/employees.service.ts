@@ -327,7 +327,7 @@ export class EmployeesService {
           data: {
             employeeid: newAccount.accountid,
             role: role,
-            employee_type: 'Toàn thời gian', // Mặc định
+            employee_type: 'Full-time', // Mặc định
           }
         });
 

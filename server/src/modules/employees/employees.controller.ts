@@ -18,6 +18,7 @@ import {
   ApiQuery,
   ApiResponse
 } from '@nestjs/swagger';
+@ApiTags('Employees')
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) { }
@@ -65,7 +66,7 @@ export class EmployeesController {
     description: 'Lọc theo loại nhân viên (có thể truyền nhiều giá trị)',
     type: String,
     isArray: true,
-    example: ['Toàn thời gian', 'Bán thời gian']
+    example: ['Full-time', 'Part-time']
   })
   @ApiQuery({
     name: 'fingerprintid',

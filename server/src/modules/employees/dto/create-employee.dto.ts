@@ -56,7 +56,7 @@ export class CreateEmployeeDto {
     @IsNumber()
     fingerprintid?: number;
 
-    @ApiProperty({ description: 'Employee type', example: 'Toàn thời gian', required: false })
+    @ApiProperty({ description: 'Employee type', example: 'Full-time', required: false })
     @IsOptional()
     @IsString()
     employee_type?: string;

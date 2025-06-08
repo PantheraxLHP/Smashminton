@@ -329,7 +329,7 @@ async function main() {
             await prisma.employees.create({
                 data: {
                     employeeid: employeeIds[i],
-                    employee_type: 'Toàn thời gian',
+                    employee_type: 'Full-time',
                     role: defaultRoles[i],
                     cccd: `079212345678`,
                     expiry_cccd: new Date('2045-01-01'),
@@ -419,32 +419,32 @@ async function main() {
             {
                 shiftstarthour: '06:00:00',
                 shiftendhour: '14:00:00',
-                shifttype: 'Toàn thời gian',
+                shifttype: 'Full-time',
             },
             {
                 shiftstarthour: '14:00:00',
                 shiftendhour: '22:00:00',
-                shifttype: 'Toàn thời gian',
+                shifttype: 'Full-time',
             },
             {
                 shiftstarthour: '06:00:00',
                 shiftendhour: '10:00:00',
-                shifttype: 'Bán thời gian',
+                shifttype: 'Part-time',
             },
             {
                 shiftstarthour: '10:00:00',
                 shiftendhour: '14:00:00',
-                shifttype: 'Bán thời gian',
+                shifttype: 'Part-time',
             },
             {
                 shiftstarthour: '14:00:00',
                 shiftendhour: '18:00:00',
-                shifttype: 'Bán thời gian',
+                shifttype: 'Part-time',
             },
             {
                 shiftstarthour: '18:00:00',
                 shiftendhour: '22:00:00',
-                shifttype: 'Bán thời gian',
+                shifttype: 'Part-time',
             },
         ],
     });

@@ -63,7 +63,7 @@ export class RewardRecordsController {
     description: 'Lọc theo loại nhân viên (có thể truyền nhiều giá trị)',
     type: String,
     isArray: true,
-    example: ['Toàn thời gian', 'Bán thời gian']
+    example: ['Full-time', 'Part-time']
   })
   @ApiQuery({
     name: 'rewardrecordstatus',

@@ -52,8 +52,8 @@ public class Employee {
     }
 
     public enum EmployeeType {
-        Full_time("Toàn thời gian"),
-        Part_time("Bán thời gian");
+        Full_time("Full-time"),
+        Part_time("Part-time");
 
         private final String value;
 
