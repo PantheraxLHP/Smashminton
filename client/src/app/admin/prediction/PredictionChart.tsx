@@ -26,7 +26,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, sortOrder, onSo
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Tỉ lệ phần trăm sản phẩm được bán ra</h2>
                 <div className="flex items-center gap-2">
-                    <label className="text-sm">Sắp xếp:</label>
+                    {/* <label className="text-sm">Sắp xếp:</label>
                     <select
                         value={sortOrder}
                         onChange={(e) => onSortOrderChange(e.target.value as "asc" | "desc")}
@@ -34,7 +34,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, sortOrder, onSo
                     >
                         <option value="asc">Tăng dần</option>
                         <option value="desc">Giảm dần</option>
-                    </select>
+                    </select> */}
                 </div>
             </div>
 
