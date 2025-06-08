@@ -4,6 +4,8 @@ import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
 } from "@/components/ui/chart"
 
 export interface MultipleBarChartProps {
@@ -74,6 +76,9 @@ const MultipleBarChart: React.FC<MultipleBarChartProps> = ({
                                 content={<ChartTooltipContent
 
                                 />}
+                            />
+                            <ChartLegend
+                                content={<ChartLegendContent />}
                             />
                             {mainDataKey.map((key) => (
                                 <Bar

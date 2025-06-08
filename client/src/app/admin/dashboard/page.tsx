@@ -131,7 +131,7 @@ const DashboardPage = () => {
     ]
 
     return (
-        <div className="flex flex-col w-full min-h-screen h-full p-4 gap-4 bg-gray-400">
+        <div className="flex flex-col w-full min-h-screen h-full p-4 gap-4 bg-gray-200">
             <div className="flex items-center gap-10">
                 <span className="text-2xl font-semibold">Dashboard</span>
                 <div>

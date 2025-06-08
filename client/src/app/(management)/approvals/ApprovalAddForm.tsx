@@ -207,12 +207,6 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
                         })}
                     </span>
                 </div>
-                <div className="flex w-full flex-col gap-1">
-                    <span className="text-xs font-semibold">Trạng thái</span>
-                    <Button variant="secondary" disabled className="w-fit disabled:opacity-100">
-                        Chờ phê duyệt
-                    </Button>
-                </div>
             </div>
             <div className="flex items-center justify-between gap-10">
                 <div className="flex w-full flex-col gap-1">

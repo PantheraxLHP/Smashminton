@@ -31,7 +31,7 @@ export const formatButtonVariant = (rc: RewardRecords) => {
 };
 
 export const formatApprovalStatus = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
         case 'pending':
             return 'Chờ phê duyệt';
         case 'rejected':
@@ -254,7 +254,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                 Thêm ghi chú
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="!flex h-[65vh] flex-col gap-2 overflow-y-auto">
+                        <DialogContent className="h-[80vh] overflow-y-auto !flex flex-col gap-2">
                             <DialogHeader className="!h-fit">
                                 <DialogTitle className="!h-fit">Thêm ghi chú mới</DialogTitle>
                                 <DialogDescription className="!h-fit">
