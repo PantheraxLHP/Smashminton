@@ -11,16 +11,14 @@ export const menus = {
     ],
     employee: [
         { label: 'Đặt sân', link: '/booking' },
-        { label: 'Hỗ trợ khách hàng', link: '/support' },
-        { label: 'Quản lý công việc', link: '/work-management' },
+        { label: 'Chi tiết đặt sân', link: '/booking-detail' },
     ],
     hr_manager: [
         {
             label: 'Quản lý nhân viên',
-            link: '/staff-management',
-            subMenu: [{ label: 'Danh sách', link: '/staff/list' }],
+            link: '/employees',
         },
-        { label: 'Phân công công việc', link: '/tasks' },
+        { label: 'Danh sách ghi chú', link: '/approvals' },
     ],
     wh_manager: [
         {
@@ -35,15 +33,15 @@ export const menus = {
             label: 'Kho hàng',
             link: '/warehouse',
             subMenu: [
+                { label: 'Khu vực/Sân', link: '/warehouse/zone-court' },
                 { label: 'Hàng hoá', link: '/warehouse/accessories' },
                 { label: 'Nhà cung cấp', link: '/warehouse/suppliers' },
-                { label: 'Phiếu đặt hàng', link: '/warehouse/orders' },
-                { label: 'Nhập/Xuất hàng', link: '/warehouse/transactions' },
+                { label: 'Đơn đặt hàng', link: '/warehouse/orders' },
             ],
         },
     ],
     admin: [
-        { label: 'Thống kê kinh doanh', link: '/dashboard' },
-        { label: 'Hỗ trợ dự đoán', link: '/prediction-support' },
+        { label: 'Thống kê kinh doanh', link: '/admin/dashboard' },
+        { label: 'Hỗ trợ dự đoán', link: '/admin/prediction' },
     ],
 };
