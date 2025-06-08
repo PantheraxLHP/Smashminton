@@ -83,6 +83,8 @@ export const formatRole = (role: string) => {
             return 'Quản lý kho hàng';
         case 'hr_manager':
             return 'Quản lý nhân sự';
+        default:
+            return role;
     }
 };
 
@@ -92,6 +94,8 @@ export const formatEmployeeType = (employee_type: string) => {
             return 'Toàn thời gian';
         case 'Part-time':
             return 'Bán thời gian';
+        default:
+            return employee_type;
     }
 };
 

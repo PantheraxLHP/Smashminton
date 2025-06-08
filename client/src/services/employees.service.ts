@@ -154,7 +154,7 @@ export const postBankDetail = async (bankDetailData: {
     banknumber?: string;
     bankholder?: string;
     bankname?: string;
-    isactive?: boolean;
+    active?: boolean;
 }) => {
     try {
         const response = await fetch('/api/employees/post-employee-bankdetail', {
