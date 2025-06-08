@@ -103,7 +103,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         const apiData = {
             finalrewardamount: formData.rewardAmount * rewardValue,
             rewardnote: formData.rewardNote,
-            rewardrecordstatus: 'pending',
+            rewardrecordstatus: 'approved',
             rewardapplieddate: new Date().toISOString(),
             rewardruleid: parseInt(formData.rewardType),
             employeeid: formData.employeeId,
