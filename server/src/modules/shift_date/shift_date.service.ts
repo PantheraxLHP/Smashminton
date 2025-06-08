@@ -43,6 +43,46 @@ export class ShiftDateService {
     });
   }
 
+  getShiftDateByDayFromDayToByEmployee(dayfrom: string, dayto: string, employeeid: number) {
+    const dayFromDate = new Date(dayfrom + 'T00:00:00');
+    const dayToDate = new Date(dayto + 'T23:59:59');
+    return this.prisma.shift_date.findMany({
+      where: {
+        shiftdate: {
+          gte: dayFromDate,
+          lte: dayToDate,
+        },
+        shift_assignment: {
+          some: {
+            employees: {
+              employeeid: employeeid,
+            },
+          },
+        },
+      },
+      select: {
+        shiftid: true,
+        shiftdate: true,
+        shift_assignment: {
+          select: {
+            employees: {
+              select: {
+                employeeid: true,
+                employee_type: true,
+                accounts: {
+                  select: {
+                    fullname: true,
+                    avatarurl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async getEmployeesNotInShift(dayfrom: string, dayto: string) {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
     const dayToDate = new Date(dayto + 'T23:59:59');

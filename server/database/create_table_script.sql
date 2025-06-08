@@ -56,7 +56,7 @@ create table if not exists employees (
 	taxcode text default NULL,
 	salary numeric default NULL,
 	last_week_shift_type text check (last_week_shift_type in ('Morning', 'Evening', 'Mix')),
-	employee_type text check (employee_type in ('Full-time', 'Part-time')),
+	employee_type text check (employee_type in ('Toàn thời gian', 'Bán thời gian')),
 	role text,
 	constraint fk_employees_accounts foreign key (employeeid) references accounts(accountid)
 );
