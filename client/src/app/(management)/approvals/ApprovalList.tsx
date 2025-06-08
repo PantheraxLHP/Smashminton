@@ -241,10 +241,22 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                     <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline_destructive" className="w-30" onClick={handleReject}>
+                    <Button variant="outline_destructive" className="w-30" onClick={() => {
+                        if (selectedRewardRecords.length > 0) {
+                            handleReject();
+                        } else {
+                            toast.error('Vui lòng chọn ít nhất một ghi chú để từ chối');
+                        }
+                    }}>
                         Từ chối
                     </Button>
-                    <Button variant="outline" className="w-30" onClick={handleApprove}>
+                    <Button variant="outline" className="w-30" onClick={() => {
+                        if (selectedRewardRecords.length > 0) {
+                            handleApprove();
+                        } else {
+                            toast.error('Vui lòng chọn ít nhất một ghi chú để phê duyệt');
+                        }
+                    }}>
                         Phê duyệt
                     </Button>
                     {/* Dialog khi nhấn nút thêm ghi chú */}
