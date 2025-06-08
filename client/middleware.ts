@@ -1,13 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-// Define role permissions based on the menu structure
+// Define role permissions based on the menu structure from menus.ts
 const ROLE_PERMISSIONS = {
     guest: ['/booking', '/products', '/rentals'],
-    customer: ['/booking', '/products', '/rentals', '/profile', '/payment', '/bookingdetail'],
-    employee: ['/booking', '/support', '/work-management'],
+    customer: ['/booking', '/products', '/rentals'],
+    employee: ['/booking', '/booking-detail'],
     hr_manager: ['/employees', '/approvals'],
-    wh_manager: ['/price-management', '/warehouse'],
-    admin: ['/dashboard', '/prediction-support'],
+    wh_manager: [
+        '/price-management',
+        '/price-management/court-price',
+        '/price-management/rental-price',
+        '/warehouse',
+        '/warehouse/zone-court',
+        '/warehouse/accessories',
+        '/warehouse/suppliers',
+        '/warehouse/orders',
+    ],
+    admin: ['/admin/dashboard', '/admin/prediction'],
 } as const;
 
 // Public routes that don't require authentication
@@ -16,14 +26,14 @@ const PUBLIC_ROUTES = ['/', '/auth/signin', '/auth/signup', '/contact', '/terms'
 // Common authenticated routes accessible to all logged-in users
 const COMMON_AUTH_ROUTES = ['/profile'] as const;
 
-// Default redirects for each role
+// Default redirects for each role based on their first menu item
 const ROLE_REDIRECTS = {
-    admin: '/dashboard',
+    admin: '/admin/dashboard',
     hr_manager: '/employees',
     wh_manager: '/price-management',
     employee: '/booking',
     customer: '/booking',
-    guest: '/',
+    guest: '/booking',
 } as const;
 
 function isPublicRoute(pathname: string): boolean {
@@ -38,14 +48,45 @@ function hasPermission(role: string, pathname: string): boolean {
     if (isCommonAuthRoute(pathname)) return true;
 
     const permissions = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS] || [];
-    return permissions.some(
-        (route) =>
-            pathname === route ||
-            pathname.startsWith(`${route}/`) ||
-            // Allow sub-routes for wh_manager
-            (role === 'wh_manager' &&
-                (pathname.startsWith('/price-management/') || pathname.startsWith('/warehouse/'))),
-    );
+
+    // Debug logging (remove in production)
+    console.log(`[Middleware] Checking permission for role: ${role}, pathname: ${pathname}`);
+    console.log(`[Middleware] Allowed routes for ${role}:`, permissions);
+
+    // Check exact route matches first
+    const exactMatch = permissions.some((route) => route === pathname);
+    if (exactMatch) {
+        console.log(`[Middleware] Exact match found for ${pathname}`);
+        return true;
+    }
+
+    // For sub-routes, be very explicit about what's allowed
+    for (const route of permissions) {
+        if (pathname.startsWith(`${route}/`)) {
+            console.log(`[Middleware] Sub-route check: ${pathname} starts with ${route}/`);
+
+            // Special handling for wh_manager only
+            if (role === 'wh_manager' && (route === '/price-management' || route === '/warehouse')) {
+                console.log(`[Middleware] Allowing wh_manager sub-route access`);
+                return true;
+            }
+
+            // For other roles, only allow if it's not a restricted admin route
+            if (pathname.startsWith('/admin/') && role !== 'admin') {
+                console.log(`[Middleware] BLOCKING: Non-admin trying to access admin route`);
+                return false;
+            }
+
+            // Allow other sub-routes for non-admin routes
+            if (!pathname.startsWith('/admin/')) {
+                console.log(`[Middleware] Allowing non-admin sub-route`);
+                return true;
+            }
+        }
+    }
+
+    console.log(`[Middleware] ACCESS DENIED for ${role} to ${pathname}`);
+    return false;
 }
 
 function decodeJWT(token: string) {
@@ -70,6 +111,7 @@ function getEffectiveRole(payload: any): string {
     return accounttype === 'Customer' ? 'customer' : role || 'guest';
 }
 
+// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
@@ -108,6 +150,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
 }
 
+// See "Matching Paths" below to learn more
 export const config = {
     matcher: [
         /*

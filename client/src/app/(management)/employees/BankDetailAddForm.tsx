@@ -31,21 +31,25 @@ const BankDetailAddForm = ({ onSuccess, employeeId }: BankDetailAddFormProps) =>
     const [isActive, setIsActive] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setIsSubmitting(true);
+
         const result = await postBankDetail({
             employeeid: employeeId,
             banknumber: bankNumber,
             bankholder: bankHolder,
             bankname: bankName,
-            isactive: isActive,
+            active: isActive,
         });
+
         if (result.ok) {
             toast.success('Thêm thông tin ngân hàng thành công');
             onSuccess();
         } else {
             toast.error(result.message || 'Thêm thông tin ngân hàng thất bại');
         }
+
         setIsSubmitting(false);
     };
 

@@ -33,6 +33,7 @@ const EmployeeAddForm = ({ onSuccess }: EmployeeAddFormProps) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        console.log(employeeData);
         const result = await postEmployee(employeeData);
         if (result.ok) {
             toast.success('Thêm nhân viên thành công');

@@ -11,15 +11,15 @@ export class BankDetailService {
       throw new Error('employeeid must be provided and must be a number');
     }
     const bankDetailOfEmployee = await this.findAllByEmployeeID(createBankDetailDto.employeeid);
-
     let newBankDetail;
     if (bankDetailOfEmployee.length === 0) {
-      newBankDetail = await this.prisma.bankDetail.create({
+      newBankDetail = await this.prisma.bank_detail.create({
         data: {
           bankname: createBankDetailDto.bankname,
           banknumber: createBankDetailDto.banknumber,
           bankholder: createBankDetailDto.bankholder,
           active: true,
+          employeeid: createBankDetailDto.employeeid,
         }
       });
       return newBankDetail;
