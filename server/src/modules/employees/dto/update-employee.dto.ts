@@ -55,7 +55,7 @@ export class updateEmployeeDto {
 
     @IsOptional()
     @IsString()
-    @ApiProperty({ description: 'Employee type', example: 'Full-time', required: false })
+    @ApiProperty({ description: 'Employee type', example: 'Toàn thời gian', required: false })
     employee_type?: string;
 
     @IsOptional()
