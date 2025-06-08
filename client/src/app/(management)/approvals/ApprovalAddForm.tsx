@@ -1,15 +1,15 @@
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Employees, RewardRules } from '@/types/types';
-import { formatPrice } from '@/lib/utils';
-import { useEffect, useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEmployeeSearch } from '@/hooks/useEmployeeSearch';
+import { cn, formatPrice } from '@/lib/utils';
 import { getRewardRules, postRewardRecord } from '@/services/rewards.service';
+import { Employees, EmployeeSearchResult, RewardRules } from '@/types/types';
+import { Check, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export interface ComboboxItem {
     cblabel: string;
@@ -37,6 +37,9 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
     setIsAddDialogOpen,
 }) => {
     const [rewardRules, setRewardRules] = useState<RewardRules[]>([]);
+    const [rewardValue, setRewardValue] = useState<number>(0);
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSearchResult | null>(null);
+    const { searchResults, isSearching, searchError, handleSearch, clearSearch } = useEmployeeSearch(300);
 
     useEffect(() => {
         const fetchRewardRules = async () => {
@@ -47,13 +50,14 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         fetchRewardRules();
     }, []);
 
-    const uniqueEmployees = employees.filter(
-        (employee, index, self) => index === self.findIndex((t) => t.employeeid === employee.employeeid),
+    // Use only search results from API
+    const uniqueEmployees = searchResults.filter(
+        (employee, index, self) => index === self.findIndex((t) => t.search === employee.search),
     );
 
     const cbItems: ComboboxItem[] = uniqueEmployees.map((employee) => ({
-        cblabel: `${employee.employeeid} - ${employee.accounts?.fullname}`,
-        cbvalue: `${employee.employeeid} - ${employee.accounts?.fullname}`,
+        cblabel: employee.search,
+        cbvalue: employee.search,
     }));
 
     const [formData, setFormData] = useState<ApprovalFormData>({
@@ -62,6 +66,21 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
         rewardAmount: 0,
         rewardNote: rewardNote || '',
     });
+
+    // Update reward amount when reward type changes
+    useEffect(() => {
+        if (formData.rewardType && rewardRules.length > 0) {
+            const selectedRule = rewardRules.find((rule) => rule.rewardruleid.toString() === formData.rewardType);
+            if (selectedRule && selectedRule.rewardvalue !== undefined) {
+                const rewardAmount = selectedRule.rewardvalue || 0;
+                setFormData((prev) => ({ ...prev, rewardAmount }));
+                setRewardValue(rewardAmount);
+            }
+        } else {
+            setFormData((prev) => ({ ...prev, rewardAmount: 0 }));
+            setRewardValue(0);
+        }
+    }, [formData.rewardType, rewardRules]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -81,9 +100,27 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
             return;
         }
 
-        const result = await postRewardRecord(formData);
+        const apiData = {
+            finalrewardamount: formData.rewardAmount * rewardValue,
+            rewardnote: formData.rewardNote,
+            rewardrecordstatus: 'pending',
+            rewardapplieddate: new Date().toISOString(),
+            rewardruleid: parseInt(formData.rewardType),
+            employeeid: formData.employeeId,
+        };
+
+        const result = await postRewardRecord(apiData);
         if (result.ok) {
             toast.success('Đã thêm đề xuất thưởng thành công!');
+            setFormData({
+                employeeId: 0,
+                rewardType: '',
+                rewardAmount: 0,
+                rewardNote: rewardNote || '',
+            });
+            setSelectedEmployee(null);
+            setRewardValue(0);
+            clearSearch();
         } else {
             toast.error('Đã thêm đề xuất thưởng thất bại!');
         }
@@ -112,33 +149,50 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
                 <div className="flex w-full items-end gap-5">
                     <span className="flex-shrink-0 text-xs font-semibold">Mã - Tên nhân viên</span>
                     <div className="h-full w-full rounded-lg border px-3 py-2">
-                        {formData.employeeId || 'Chọn mã - tên nhân viên ...'}
+                        {selectedEmployee ? selectedEmployee.search : 'Chọn mã - tên nhân viên ...'}
                     </div>
                 </div>
                 <Command className="rounded-lg border-2">
-                    <CommandInput placeholder={`Tìm kiếm mã - tên nhân viên ...`} />
+                    <CommandInput placeholder={`Tìm kiếm mã - tên nhân viên ...`} onValueChange={handleSearch} />
                     <CommandList>
-                        <CommandEmpty>{`Không tìm thấy mã - tên nhân viên`}</CommandEmpty>
+                        <CommandEmpty>
+                            {isSearching ? (
+                                <div className="flex items-center justify-center gap-2 py-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span>Đang tìm kiếm...</span>
+                                </div>
+                            ) : searchError ? (
+                                <span className="text-red-500">{searchError}</span>
+                            ) : searchResults.length === 0 && cbItems.length === 0 ? (
+                                'Nhập tên hoặc mã nhân viên để tìm kiếm...'
+                            ) : (
+                                'Không tìm thấy mã - tên nhân viên'
+                            )}
+                        </CommandEmpty>
                         <CommandGroup className="max-h-40 overflow-y-auto">
-                            {cbItems.map((item, index) => (
-                                <CommandItem
-                                    key={`${item.cbvalue}-${index}`}
-                                    value={item.cbvalue.toString()}
-                                    onSelect={(newValue) => {
-                                        const idString = newValue.split(' - ')[0];
-                                        const selectedEmployeeId = Number(idString);
-                                        setFormData((prev) => ({ ...prev, employeeId: selectedEmployeeId }));
-                                    }}
-                                >
-                                    {item.cblabel}
-                                    <Check
-                                        className={cn(
-                                            'ml-auto',
-                                            formData.employeeId === item.cbvalue ? 'opacity-100' : 'opacity-0',
-                                        )}
-                                    />
-                                </CommandItem>
-                            ))}
+                            {cbItems.map((item, index) => {
+                                const employeeId = Number(item.cbvalue.toString().split('-')[0]);
+                                const isSelected = formData.employeeId === employeeId;
+
+                                return (
+                                    <CommandItem
+                                        key={`${item.cbvalue}-${index}`}
+                                        value={item.cbvalue.toString()}
+                                        onSelect={(newValue) => {
+                                            const idString = newValue.split('-')[0];
+                                            const selectedEmployeeId = Number(idString);
+                                            const employee = uniqueEmployees.find((emp) => emp.search === newValue);
+
+                                            setFormData((prev) => ({ ...prev, employeeId: selectedEmployeeId }));
+                                            setSelectedEmployee(employee || null);
+                                            clearSearch();
+                                        }}
+                                    >
+                                        {item.cblabel}
+                                        <Check className={cn('ml-auto', isSelected ? 'opacity-100' : 'opacity-0')} />
+                                    </CommandItem>
+                                );
+                            })}
                         </CommandGroup>
                     </CommandList>
                 </Command>
@@ -174,7 +228,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
                             {rewardRules && rewardRules.length > 0 ? (
                                 rewardRules.map((rule) => (
                                     <SelectItem key={rule.rewardruleid} value={rule.rewardruleid.toString()}>
-                                        {rule.rewardname}
+                                        {rule.rewardname} - x{rule.rewardvalue}
                                     </SelectItem>
                                 ))
                             ) : (

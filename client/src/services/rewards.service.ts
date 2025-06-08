@@ -70,10 +70,12 @@ export const rejectRewards = async (recordIds: number[]) => {
 };
 
 export const postRewardRecord = async (rewardData: {
-    employeeId: number;
-    rewardType: string;
-    rewardAmount: number;
-    rewardNote: string;
+    finalrewardamount: number;
+    rewardnote: string;
+    rewardrecordstatus: string;
+    rewardapplieddate: string;
+    rewardruleid: number;
+    employeeid: number;
 }) => {
     try {
         const response = await fetch(`/api/reward-record/post-reward`, {
