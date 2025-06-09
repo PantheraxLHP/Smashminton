@@ -10,10 +10,11 @@ import { FaRegEdit } from 'react-icons/fa';
 
 
 export interface Zone {
-    zoneid: number;
+    //zoneid: number;
     zonename: string;
     type: string;
     image: string;
+    description: string;
 }
 
 export interface Court {
@@ -22,20 +23,22 @@ export interface Court {
     status: string;
     avgrating: number;
     timecalavg: string;
-    zoneid: number;
+    zonename: string; 
 }
+  
 
 const rawZone: Zone[] = [
-    { zoneid: 1, zonename: 'Zone A', type: 'Cool', image: '/default.png' },
-    { zoneid: 2, zonename: 'Zone B', type: 'Air Conditioner', image: '/default.png' },
-    { zoneid: 3, zonename: 'Zone C', type: 'Private', image: '/default.png' },
+    { zonename: 'Zone A', type: 'Cool', image: '/default.png', description: 'Khu vực mát mẻ' },
+    { zonename: 'Zone B', type: 'Air Conditioner', image: '/default.png', description: 'Khu vực có điều hòa' },
+    { zonename: 'Zone C', type: 'Private', image: '/default.png', description: 'Khu vực riêng tư' },
 ];
 
 const rawCourt: Court[] = [
-    { courtname: 'Sân 1', image: '/default.png', status: 'Đang hoạt động', avgrating: 4.5, timecalavg: '2025-06-05', zoneid: 1 },
-    { courtname: 'Sân 2', image: '/default.png', status: 'Bảo trì', avgrating: 4.0, timecalavg: '2025-06-05', zoneid: 2 },
-    { courtname: 'Sân 3', image: '/default.png', status: 'Đang hoạt động', avgrating: 4.8, timecalavg: '2025-06-05', zoneid: 3 },
+    { courtname: 'Sân 1', image: '/default.png', status: 'Đang hoạt động', avgrating: 4.5, timecalavg: '2025-06-05', zonename: 'Zone A' },
+    { courtname: 'Sân 2', image: '/default.png', status: 'Bảo trì', avgrating: 4.0, timecalavg: '2025-06-05', zonename: 'Zone B' },
+    { courtname: 'Sân 3', image: '/default.png', status: 'Đang hoạt động', avgrating: 4.8, timecalavg: '2025-06-05', zonename: 'Zone C' },
 ];
+  
 
 function normalizeTimeString(time: string) {
     if (!time.includes(':')) return time;
@@ -71,19 +74,16 @@ export default function ZoneCourtManager() {
 
 
     function handleSubmit(newZone: Zone) {
-        const maxId = Math.max(...rawZone.map((z) => z.zoneid), 0);
-        const zoneToAdd: Zone = {
+        rawZone.push({
             ...newZone,
-            zoneid: maxId + 1,
             image: newZone.image || '/default.png',
-        };
-        rawZone.push(zoneToAdd);
+        });
 
         setFilters((prev) => ({
             ...prev,
             zonename: rawZone.map((z) => z.zonename),
         }));
-    }
+    }      
 
     function handleSubmitCourt(newCourt: Court) {
         rawCourt.push(newCourt);
@@ -96,14 +96,11 @@ export default function ZoneCourtManager() {
         if (!filters.zonename || filters.zonename.length === 0) {
             setCourtState(rawCourt);
         } else {
-            const selectedZoneIds = rawZone
-                .filter((z) => filters.zonename.includes(z.zonename))
-                .map((z) => z.zoneid);
-
-            const filteredCourts = rawCourt.filter((c) => selectedZoneIds.includes(c.zoneid));
+            const filteredCourts = rawCourt.filter((c) => filters.zonename.includes(c.zonename));
             setCourtState(filteredCourts);
         }
     }, [filters.zonename]);
+      
 
     const CourtColumns: Column<Court>[] = [
         {
@@ -253,6 +250,7 @@ export default function ZoneCourtManager() {
                 onClose={() => setIsAddZoneModalOpen(false)}
                 open={isAddZoneModalOpen}
                 onSubmit={handleSubmit}
+                onSuccess={() => setIsAddCourtModalOpen(false)}
             />
             <AddCourtModal
                 onClose={() => setIsAddCourtModalOpen(false)}
