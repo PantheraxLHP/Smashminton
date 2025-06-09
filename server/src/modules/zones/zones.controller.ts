@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Upl
 import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -13,7 +13,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ZonesController {
     constructor(private readonly zonesService: ZonesService) { }
 
-    @Post()
+    @Post('new-zone')
+    @ApiOperation({ summary: 'Create a new zone with an avatar image' })
     @UseInterceptors(
         FileInterceptor('avatarurl', {
             limits: {
