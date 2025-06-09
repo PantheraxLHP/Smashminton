@@ -63,16 +63,67 @@ const pastBookings: Booking[] = [
 const UserProfilePage = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(false);
-    const [showStudentPopup, setShowStudentPopup] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
     const { user, setUser } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [frontImage, setFrontImage] = useState<File | null>(null);
+    const [backImage, setBackImage] = useState<File | null>(null);
+    const [frontImagePreview, setFrontImagePreview] = useState<string | null>(null);
+    const [backImagePreview, setBackImagePreview] = useState<string | null>(null);
     const userProfile = user;
 
-    const handleUpdateStudentStatus = () => {
-        setIsStudentStatusUpdated(true);
-        setShowStudentPopup(false);
+    const handleImageUpload = (file: File, type: 'front' | 'back') => {
+        if (type === 'front') {
+            setFrontImage(file);
+            const reader = new FileReader();
+            reader.onload = (e) => setFrontImagePreview(e.target?.result as string);
+            reader.readAsDataURL(file);
+        } else {
+            setBackImage(file);
+            const reader = new FileReader();
+            reader.onload = (e) => setBackImagePreview(e.target?.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleUpdateStudentStatus = async () => {
+        if (!frontImage || !backImage) {
+            toast.error('Vui lòng tải lên cả hai mặt của thẻ sinh viên');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('frontImage', frontImage);
+            formData.append('backImage', backImage);
+            formData.append('accountId', String(userProfile?.accountid || ''));
+
+            // Replace this URL with your actual API endpoint
+            const response = await fetch('/api/student-verification', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                setIsStudentStatusUpdated(true);
+                toast.success('Thẻ sinh viên đã được gửi để xác minh');
+                // Reset form
+                setFrontImage(null);
+                setBackImage(null);
+                setFrontImagePreview(null);
+                setBackImagePreview(null);
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Có lỗi xảy ra khi tải lên');
+            }
+        } catch (error) {
+            console.error('Error uploading student card:', error);
+            toast.error('Có lỗi xảy ra khi tải lên');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleTabClick = (tabName: string) => {
@@ -250,21 +301,76 @@ const UserProfilePage = () => {
 
                 {/* Content for "Học sinh/Sinh viên" */}
                 {activeTab === 'student' && (
-                    <div className="mt-4 text-center text-gray-600">
+                    <div className="mt-4">
                         {isStudentStatusUpdated ? (
-                            <p>Tình trạng học sinh/sinh viên đã được cập nhật.</p>
+                            <div className="text-center text-gray-600">
+                                <p>Tình trạng học sinh/sinh viên đã được cập nhật.</p>
+                            </div>
                         ) : (
-                            <>
-                                <div className="flex items-center justify-center gap-2 text-center text-gray-600">
-                                    <p> Chưa cập nhật tình trạng học sinh/sinh viên...</p>
-                                    <button
-                                        onClick={() => setShowStudentPopup(true)}
-                                        className="hover:text-primary-700 text-primary-600 cursor-pointer"
-                                    >
-                                        Cập nhật ngay →
-                                    </button>
+                            <div className="mx-auto max-w-md">
+                                <h3 className="mb-4 text-lg font-semibold">Xác minh thẻ sinh viên</h3>
+                                <p className="mb-4 text-sm text-gray-600">
+                                    Vui lòng tải lên hình ảnh mặt trước và mặt sau của thẻ sinh viên để xác minh.
+                                </p>
+
+                                {/* Front Image Upload */}
+                                <div className="mb-4">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                        Mặt trước thẻ sinh viên
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleImageUpload(file, 'front');
+                                        }}
+                                        className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
+                                    />
+                                    {frontImagePreview && (
+                                        <div className="mt-2">
+                                            <Image
+                                                src={frontImagePreview}
+                                                alt="Front preview"
+                                                className="h-32 w-full rounded border object-cover"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            </>
+
+                                {/* Back Image Upload */}
+                                <div className="mb-6">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                        Mặt sau thẻ sinh viên
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleImageUpload(file, 'back');
+                                        }}
+                                        className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
+                                    />
+                                    {backImagePreview && (
+                                        <div className="mt-2">
+                                            <Image
+                                                src={backImagePreview}
+                                                alt="Back preview"
+                                                className="h-32 w-full rounded border object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={handleUpdateStudentStatus}
+                                    disabled={isSubmitting || !frontImage || !backImage}
+                                    className="bg-primary-600 hover:bg-primary-700 w-full rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
+                                >
+                                    {isSubmitting ? 'Đang tải lên...' : 'Gửi xác minh'}
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
@@ -300,28 +406,6 @@ const UserProfilePage = () => {
                                 Xác nhận thay đổi mật khẩu
                             </button>
                         </form>
-                    </div>
-                )}
-
-                {/* Popup to Update Student Status */}
-                {showStudentPopup && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md">
-                        <div className="w-full max-w-sm rounded bg-white p-6 shadow-2xl">
-                            <h3 className="mb-4 text-lg font-semibold">Cập nhật tình trạng học sinh/sinh viên</h3>
-                            {/* Add your form fields or content to update the status here */}
-                            <button
-                                onClick={handleUpdateStudentStatus}
-                                className="bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold text-white"
-                            >
-                                Cập nhật
-                            </button>
-                            <button
-                                onClick={() => setShowStudentPopup(false)}
-                                className="mt-2 text-gray-600 hover:text-gray-800"
-                            >
-                                Đóng
-                            </button>
-                        </div>
                     </div>
                 )}
             </div>
