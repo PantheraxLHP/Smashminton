@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatDateString, formatPrice } from '@/lib/utils';
+import { formatDateString, formatEmployeeType, formatPrice } from '@/lib/utils';
 import { putBankActive, putEmployee } from '@/services/employees.service';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
@@ -60,14 +60,37 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         avatar: null,
     });
 
+    // Reusable field renderer
+    const renderField = (id: string, label: string, name: keyof FormData, type = 'text', disabled = false) => (
+        <div className="flex w-full flex-col gap-1">
+            <Label htmlFor={id} className="text-xs font-semibold">
+                {label}
+            </Label>
+            <Input
+                disabled={disabled || !isEditing}
+                id={id}
+                name={name}
+                type={type}
+                value={type === 'date' ? formatDateString(formData[name] as any) : (formData[name] as string)}
+                onChange={handleInputChange}
+                className=""
+            />
+        </div>
+    );
+
+    // Reusable field pair renderer
+    const renderFieldPair = (field1: any, field2: any) => (
+        <div className="flex w-full items-center justify-between gap-10">
+            {field1}
+            {field2}
+        </div>
+    );
+
     const handleBankDetailSuccess = (newBankDetail?: any) => {
         toast.success('Thêm thông tin ngân hàng thành công');
-
-        // Optimistically update the bank details immediately
         if (newBankDetail) {
             setBankDetails((prev) => [...prev, newBankDetail]);
         }
-
         setIsEditing(false);
         setIsAddDialogOpen(false);
         onSuccess();
@@ -76,7 +99,6 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const handleBankActive = async (bankdetailid: number) => {
         const result = await putBankActive(employee.employeeid || 0, { bankdetailid: bankdetailid, active: true });
         if (result.ok) {
-            // Optimistically update the bank details
             setBankDetails((prev) =>
                 prev.map((bank) => ({
                     ...bank,
@@ -89,12 +111,13 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         }
     };
 
-    const handleRoleChange = (value: string) => {
-        setFormData({ ...formData, role: value });
-    };
-
-    const handleEmployeeTypeChange = (value: string) => {
-        setFormData({ ...formData, employee_type: value });
+    const handleRoleChange = (role: string) => {
+        const employeeTypeMap: Record<string, string> = {
+            employee: 'Part-time',
+            wh_manager: 'Full-time',
+            hr_manager: 'Full-time',
+        };
+        setFormData({ ...formData, role, employee_type: employeeTypeMap[role] || '' });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -110,7 +133,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         }
     };
 
-    const handleCancel = () => {
+    const resetForm = () => {
         setFormData({
             fullname: employee.fullname || '',
             gender: employee.gender || '',
@@ -118,56 +141,42 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
             email: employee.email || '',
             phonenumber: employee.phonenumber || '',
             address: employee.address || '',
-            employee_type: employee.employee_type || '',
             salary: employee.salary || 0,
             cccd: employee.cccd || '',
             expiry_cccd: employee.expiry_cccd || new Date(employee.expiry_cccd || ''),
             taxcode: employee.taxcode || '',
             role: employee.role || '',
+            employee_type: employee.employee_type || '',
             avatar: null,
         });
-        // Clean up avatar and preview
         if (avatarPreview) {
             URL.revokeObjectURL(avatarPreview);
+            setAvatarPreview(null);
         }
-        setFormData((prev) => ({
-            ...prev,
-            avatar: null,
-        }));
-        setAvatarPreview(null);
+    };
+
+    const handleCancel = () => {
+        resetForm();
         setIsEditing(false);
     };
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const result = await putEmployee(employee.employeeid, {
-                fullname: formData.fullname,
-                gender: formData.gender,
+            // Prepare data with date formatting
+            const saveData = {
+                ...formData,
                 dob: formatDateString(formData.dob),
-                email: formData.email,
-                phone: formData.phonenumber,
-                address: formData.address,
-                position: formData.employee_type,
-                salary: formData.salary,
-                cccd: formData.cccd,
                 expiry_cccd: formatDateString(formData.expiry_cccd),
-                taxcode: formData.taxcode,
-                role: formData.role,
                 avatar: formData.avatar || undefined,
-            });
+            };
+
+            const result = await putEmployee(employee.employeeid, saveData);
 
             if (result.ok) {
                 toast.success('Cập nhật thông tin nhân viên thành công');
                 setIsEditing(false);
-                if (avatarPreview) {
-                    URL.revokeObjectURL(avatarPreview);
-                }
-                setFormData((prev) => ({
-                    ...prev,
-                    avatar: null,
-                }));
-                setAvatarPreview(null);
+                resetForm();
                 Object.assign(employee, { ...formData, avatarurl: result.data.avatarurl });
                 onSuccess();
             } else {
@@ -183,7 +192,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
 
     return (
         <div className="flex h-full flex-col gap-5">
-            {/* Header (Hình đại diện + thông tin chung) */}
+            {/* Header */}
             <div className="flex w-full items-center gap-5">
                 <div className="border-primary relative aspect-square h-full w-40 rounded-lg border-2 bg-green-50">
                     <Image
@@ -195,11 +204,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                     />
                     <div
                         className={`border-primary hover:bg-primary-100 absolute right-0 bottom-0 flex h-7 w-7 translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full border-2 bg-white ${isEditing ? 'cursor-pointer opacity-100' : 'opacity-0'}`}
-                        onClick={() => {
-                            if (editAvatarRef.current) {
-                                editAvatarRef.current.click();
-                            }
-                        }}
+                        onClick={() => editAvatarRef.current?.click()}
                     >
                         <Icon icon="material-symbols:edit-outline" className={`text-primary size-5`} />
                         <input
@@ -213,29 +218,21 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                     </div>
                 </div>
                 <div className="flex w-full flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                        <Icon icon="lucide:user-round-pen" className="text-primary size-5" />
-                        {formData.fullname}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Icon
-                            icon={`${randomGender % 2 === 0 ? 'tdesign:gender-male' : 'tdesign:gender-female'}`}
-                            className="text-primary size-5"
-                        />
-                        {formData.gender}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Icon icon="material-symbols:work-outline" className="text-primary size-5" />
-                        {formData.employee_type}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Icon icon="mdi:phone" className="text-primary size-5" />
-                        {formData.phonenumber}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Icon icon="material-symbols:mail" className="text-primary size-5" />
-                        {formData.email}
-                    </div>
+                    {[
+                        { icon: 'lucide:user-round-pen', value: formData.fullname },
+                        {
+                            icon: randomGender % 2 === 0 ? 'tdesign:gender-male' : 'tdesign:gender-female',
+                            value: formData.gender,
+                        },
+                        { icon: 'material-symbols:work-outline', value: formData.employee_type },
+                        { icon: 'mdi:phone', value: formData.phonenumber },
+                        { icon: 'material-symbols:mail', value: formData.email },
+                    ].map((item, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                            <Icon icon={item.icon} className="text-primary size-5" />
+                            {item.value}
+                        </div>
+                    ))}
                 </div>
                 <div className="flex h-full flex-col justify-end">
                     {isEditing ? (
@@ -254,6 +251,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                     )}
                 </div>
             </div>
+
             {/* Tab Header */}
             <div className="relative flex w-full items-center">
                 <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-gray-500"></div>
@@ -267,113 +265,24 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                     </div>
                 ))}
             </div>
+
             {/* Tab Content */}
             {selectedTab === 'Thông tin cơ bản' && (
                 <div className="flex h-full w-full flex-col gap-10">
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-id" className="text-xs font-semibold">
-                                Mã nhân viên
-                            </Label>
-                            <Input
-                                disabled={true}
-                                id="employee-id"
-                                type="text"
-                                value={employee.employeeid || ''}
-                                readOnly
-                                className=""
-                            />
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-name" className="text-xs font-semibold">
-                                Họ tên nhân viên
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-name"
-                                name="fullname"
-                                type="text"
-                                value={formData.fullname}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-dob" className="text-xs font-semibold">
-                                Ngày sinh
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-dob"
-                                name="dob"
-                                type="date"
-                                value={formatDateString(formData.dob)}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-gender" className="text-xs font-semibold">
-                                Giới tính
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-gender"
-                                name="gender"
-                                type="text"
-                                value={formData.gender}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-phonenumber" className="text-xs font-semibold">
-                                Số điện thoại
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-phonenumber"
-                                name="phonenumber"
-                                type="text"
-                                value={formData.phonenumber}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-email" className="text-xs font-semibold">
-                                Email
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-address" className="text-xs font-semibold">
-                                Địa chỉ
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-address"
-                                name="address"
-                                type="text"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
+                    {renderFieldPair(
+                        renderField('employee-id', 'Mã nhân viên', 'fullname', 'text', true),
+                        renderField('employee-name', 'Họ tên nhân viên', 'fullname'),
+                    )}
+                    {renderFieldPair(
+                        renderField('employee-dob', 'Ngày sinh', 'dob', 'date'),
+                        renderField('employee-gender', 'Giới tính', 'gender'),
+                    )}
+                    {renderFieldPair(
+                        renderField('employee-phonenumber', 'Số điện thoại', 'phonenumber'),
+                        renderField('employee-email', 'Email', 'email', 'email'),
+                    )}
+                    {renderFieldPair(
+                        renderField('employee-address', 'Địa chỉ', 'address'),
                         <div className="flex w-full flex-col gap-1">
                             <Label htmlFor="employee-startday" className="text-xs font-semibold">
                                 Ngày bắt đầu làm việc
@@ -386,65 +295,27 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                 readOnly
                                 className=""
                             />
-                        </div>
-                    </div>
+                        </div>,
+                    )}
                 </div>
             )}
+
             {selectedTab === 'Thông tin ngân hàng' && (
                 <div className="flex h-full w-full flex-col gap-5">
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-cccd" className="text-xs font-semibold">
-                                Số CCCD
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-cccd"
-                                name="cccd"
-                                type="text"
-                                value={formData.cccd}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-cccdexpireddate" className="text-xs font-semibold">
-                                Ngày hết hạn CCCD
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-cccdexpireddate"
-                                name="expiry_cccd"
-                                type="date"
-                                value={formatDateString(formData.expiry_cccd)}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-taxcode" className="text-xs font-semibold">
-                                Mã số thuế
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-taxcode"
-                                name="taxcode"
-                                type="text"
-                                value={formData.taxcode}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                        <div className="w-full"></div>
-                    </div>
+                    {renderFieldPair(
+                        renderField('employee-cccd', 'Số CCCD', 'cccd'),
+                        renderField('employee-cccdexpireddate', 'Ngày hết hạn CCCD', 'expiry_cccd', 'date'),
+                    )}
+                    {renderFieldPair(
+                        renderField('employee-taxcode', 'Mã số thuế', 'taxcode'),
+                        <div className="w-full"></div>,
+                    )}
+
                     <div className="flex h-full w-full flex-col gap-2">
                         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                             <div className="flex w-full justify-end">
                                 <Button
                                     variant="outline"
-                                    className=""
                                     disabled={!isEditing}
                                     onClick={() => setIsAddDialogOpen(true)}
                                 >
@@ -464,20 +335,19 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                 />
                             </DialogContent>
                         </Dialog>
+
                         <div className="flex h-full w-full flex-col">
                             <div className="flex w-full items-center">
-                                <span className="w-full border-b-2 border-gray-400 p-2 text-xs font-semibold">
-                                    Số tài khoản ngân hàng
-                                </span>
-                                <span className="w-full border-b-2 border-gray-400 p-2 text-xs font-semibold">
-                                    Tên chủ tài khoản
-                                </span>
-                                <span className="w-full border-b-2 border-gray-400 p-2 text-xs font-semibold">
-                                    Tên ngân hàng
-                                </span>
-                                <span className="flex w-full justify-center border-b-2 border-gray-400 p-2 text-center text-xs font-semibold">
-                                    Được sử dụng
-                                </span>
+                                {['Số tài khoản ngân hàng', 'Tên chủ tài khoản', 'Tên ngân hàng', 'Được sử dụng'].map(
+                                    (header, index) => (
+                                        <span
+                                            key={index}
+                                            className={`w-full border-b-2 border-gray-400 p-2 text-xs font-semibold ${index === 3 ? 'flex justify-center text-center' : ''}`}
+                                        >
+                                            {header}
+                                        </span>
+                                    ),
+                                )}
                             </div>
                             <div className="flex h-full max-h-full w-full flex-col overflow-y-auto">
                                 {bankDetails?.map((bank) => (
@@ -493,7 +363,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                         </span>
                                         <span className="flex h-full w-full items-center justify-center border-b-2 border-gray-200 p-2 text-center">
                                             <Icon
-                                                icon={bank.active ? 'nrk:check-active' : 'nrk:check-active'}
+                                                icon="nrk:check-active"
                                                 className={`text-primary size-5 ${!isEditing ? (!bank.active ? 'opacity-0' : '') : !bank.active ? 'cursor-pointer opacity-30 hover:opacity-100' : 'opacity-100'} `}
                                                 onClick={() => {
                                                     if (!isEditing || bank.active) return;
@@ -508,6 +378,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                     </div>
                 </div>
             )}
+
             {selectedTab === 'Thông tin lương, thưởng, phạt' && (
                 <div className="flex h-full w-full flex-col gap-5">
                     <div className="flex w-full items-center justify-between gap-10">
@@ -515,7 +386,6 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                             <Label htmlFor="employee-role" className="text-xs font-semibold">
                                 Vai trò
                             </Label>
-
                             <Select disabled={!isEditing} value={formData.role} onValueChange={handleRoleChange}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Chọn vai trò" />
@@ -531,127 +401,90 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                             <Label htmlFor="employee-type" className="text-xs font-semibold">
                                 Loại nhân viên
                             </Label>
-                            <Select
-                                disabled={!isEditing}
-                                value={formData.employee_type}
-                                onValueChange={handleEmployeeTypeChange}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Chọn vai trò" />
-                                </SelectTrigger>
-                                <SelectContent className="w-full">
-                                    <SelectItem value="full-time">Toàn thời gian</SelectItem>
-                                    <SelectItem value="part-time">Bán thời gian</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-salary" className="text-xs font-semibold">
-                                Lương cơ bản
-                            </Label>
-                            <Input
-                                disabled={!isEditing}
-                                id="employee-salary"
-                                name="salary"
-                                type="number"
-                                value={formData.salary}
-                                onChange={handleInputChange}
-                                className=""
-                            />
-                        </div>
-                        <div className="w-full"></div>
-                    </div>
-                    <div className="flex w-full items-center justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-monthrewardamount" className="text-xs font-semibold">
-                                Tổng tiền thưởng cho{' '}
-                                {new Date().toLocaleDateString('vi-VN', {
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                })}
-                            </Label>
                             <Input
                                 disabled={true}
-                                id="employee-monthrewardamount"
+                                id="employee-type"
+                                name="employee_type"
                                 type="text"
-                                value={`+ ${formatPrice(
-                                    employee.reward_records?.reduce(
-                                        (acc, curr) => acc + Number(curr.finalrewardamount || 0),
-                                        0,
-                                    ) || 0,
-                                )}`}
-                                onChange={() => {}}
-                                className=""
-                            />
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <Label htmlFor="employee-monthpenaltyamount" className="text-xs font-semibold">
-                                Tổng tiền phạt cho{' '}
-                                {new Date().toLocaleDateString('vi-VN', {
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                })}
-                            </Label>
-                            <Input
-                                disabled={true}
-                                id="employee-monthpenaltyamount"
-                                type="text"
-                                value={`- ${formatPrice(
-                                    employee.penalty_records?.reduce(
-                                        (acc, curr) => acc + Number(curr.finalpenaltyamount || 0),
-                                        0,
-                                    ) || 0,
-                                )}`}
-                                onChange={() => {}}
-                                className=""
+                                value={formatEmployeeType(formData.employee_type)}
                             />
                         </div>
                     </div>
+                    {renderFieldPair(
+                        renderField('employee-salary', 'Lương cơ bản', 'salary', 'number'),
+                        <div className="w-full"></div>,
+                    )}
+
+                    {/* Month summary fields */}
+                    <div className="flex w-full items-center justify-between gap-10">
+                        {[
+                            {
+                                id: 'employee-monthrewardamount',
+                                label: `Tổng tiền thưởng cho ${new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}`,
+                                value: `+ ${formatPrice(employee.reward_records?.reduce((acc, curr) => acc + Number(curr.finalrewardamount || 0), 0) || 0)}`,
+                            },
+                            {
+                                id: 'employee-monthpenaltyamount',
+                                label: `Tổng tiền phạt cho ${new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}`,
+                                value: `- ${formatPrice(employee.penalty_records?.reduce((acc, curr) => acc + Number(curr.finalpenaltyamount || 0), 0) || 0)}`,
+                            },
+                        ].map((field) => (
+                            <div key={field.id} className="flex w-full flex-col gap-1">
+                                <Label htmlFor={field.id} className="text-xs font-semibold">
+                                    {field.label}
+                                </Label>
+                                <Input disabled={true} id={field.id} type="text" value={field.value} readOnly />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Records display */}
                     <div className="flex h-full w-full justify-between gap-10">
-                        <div className="flex w-full flex-col gap-1">
-                            <span className="text-xs font-semibold">Thưởng của tháng {new Date().getMonth() + 1}</span>
-                            <div className="flex h-full w-full flex-col gap-2 rounded-lg border-2 border-gray-400 p-2">
-                                {employee.reward_records?.map((reward) => {
-                                    return (
-                                        <div key={reward.rewardrecordid} className="flex w-full items-center">
+                        {[
+                            {
+                                title: `Thưởng của tháng ${new Date().getMonth() + 1}`,
+                                records: employee.reward_records,
+                                type: 'reward',
+                            },
+                            {
+                                title: `Lỗi phạt của tháng ${new Date().getMonth() + 1}`,
+                                records: employee.penalty_records,
+                                type: 'penalty',
+                            },
+                        ].map((section) => (
+                            <div key={section.type} className="flex w-full flex-col gap-1">
+                                <span className="text-xs font-semibold">{section.title}</span>
+                                <div className="flex h-full w-full flex-col gap-2 rounded-lg border-2 border-gray-400 p-2">
+                                    {section.records?.map((record: any) => (
+                                        <div
+                                            key={record[`${section.type}recordid`]}
+                                            className="flex w-full items-center"
+                                        >
                                             <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                {formatDateString(reward.rewardapplieddate || '')}
+                                                {formatDateString(
+                                                    section.type === 'reward'
+                                                        ? record.rewardapplieddate
+                                                        : record.violationdate || '',
+                                                )}
                                             </span>
                                             <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                {reward.reward_rules?.rewardname || ''}
+                                                {section.type === 'reward'
+                                                    ? record.reward_rules?.rewardname
+                                                    : record.penalty_rules?.penaltyname || ''}
                                             </span>
                                             <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                + {formatPrice(reward.finalrewardamount || 0)}
+                                                {section.type === 'reward' ? '+' : '-'}{' '}
+                                                {formatPrice(
+                                                    section.type === 'reward'
+                                                        ? record.finalrewardamount
+                                                        : record.finalpenaltyamount || 0,
+                                                )}
                                             </span>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex w-full flex-col gap-1">
-                            <span className="text-xs font-semibold">
-                                Lỗi phạt của tháng {new Date().getMonth() + 1}
-                            </span>
-                            <div className="flex h-full w-full flex-col gap-2 rounded-lg border-2 border-gray-400 p-2">
-                                {employee.penalty_records?.map((penalty) => {
-                                    return (
-                                        <div key={penalty.penaltyrecordid} className="flex w-full items-center">
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                {formatDateString(penalty.violationdate || '')}
-                                            </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                {penalty.penalty_rules?.penaltyname || ''}
-                                            </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
-                                                - {formatPrice(penalty.finalpenaltyamount || 0)}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             )}

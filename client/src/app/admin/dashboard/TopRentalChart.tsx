@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export interface TopCourtChartProps {
+export interface TopRentalChartProps {
     className?: string;
     chartData: any[];
     chartConfig: ChartConfig;
@@ -14,7 +14,7 @@ export interface TopCourtChartProps {
     chartHeight?: string;
 }
 
-const TopCourtChart: React.FC<TopCourtChartProps> = ({
+const TopRentalChart: React.FC<TopRentalChartProps> = ({
     className,
     chartData,
     chartConfig,
@@ -28,32 +28,34 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
         >
             <div className="flex flex-col w-full h-full gap-2">
                 <span className="text-lg text-center w-full">
-                    Top 10 sân được yêu thích (đặt nhiều)
+                    Top 10 sản phẩm được thuê
                 </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="min-w-full h-full">
                         <BarChart
                             accessibilityLayer
                             data={chartData}
-                            layout="vertical"
+                            layout="horizontal"
                             margin={{
                                 right: 20,
+                                bottom: 10,
                             }}
                         >
                             <CartesianGrid
                                 strokeDasharray={"3 3"}
                                 stroke="var(--color-gray-300)"
-                                horizontal={false}
+                                vertical={false}
                             />
                             <XAxis
-                                type="number"
-                                dataKey="bookingCount"
+                                type="category"
+                                dataKey="rentalName"
                                 tickLine={false}
                                 axisLine={false}
+                                tickMargin={10}
                             />
                             <YAxis
-                                type="category"
-                                dataKey="courtName"
+                                type="number"
+                                dataKey="rentalCount"
                                 tickMargin={10}
                                 tickLine={false}
                                 axisLine={false}
@@ -64,7 +66,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                                 />}
                             />
                             <Bar
-                                dataKey="bookingCount"
+                                dataKey="rentalCount"
                                 radius={5}
                             />
                         </BarChart>
@@ -75,4 +77,4 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
     );
 }
 
-export default TopCourtChart;
+export default TopRentalChart;

@@ -62,7 +62,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                     ))}
                 </div>
                 <span className="text-lg text-center w-full">
-                    Doanh thu của các khu vực sân qua từng tháng
+                    Doanh thu của các khu vực sân (Zone) qua từng tháng
                 </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="min-w-full h-full">
@@ -72,7 +72,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             margin={{
                                 right: 30,
                                 left: 20,
-                                bottom: 30,
+                                bottom: 10,
                             }}
                         >
                             <CartesianGrid

@@ -8,7 +8,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export interface NumberOfBookingPerTimeChartProps {
+export interface NumberOfProductAndRentalChartProps {
     className?: string;
     chartData: any[];
     chartConfig: ChartConfig;
@@ -16,7 +16,7 @@ export interface NumberOfBookingPerTimeChartProps {
     chartHeight?: string;
 }
 
-const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = ({
+const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps> = ({
     className,
     chartData,
     chartConfig,
@@ -30,7 +30,7 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
         >
             <div className="flex flex-col w-full h-full gap-2">
                 <span className="text-lg text-center w-full">
-                    Số lượt đặt sân theo từng khung giờ qua các tháng
+                    Tổng số sản phẩm được bán và tổng số lượt cho thuê từng tháng
                 </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="min-w-full h-full">
@@ -58,13 +58,6 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
                                 type="number"
                                 tickMargin={10}
                                 tickLine={false}
-                                label={{
-                                    value: "Số lượt đặt sân",
-                                    angle: -90,
-                                    position: "insideLeft",
-                                    style: { textAnchor: "middle" },
-                                    offset: 10,
-                                }}
                             />
                             <ChartTooltip
                                 content={<ChartTooltipContent
@@ -102,4 +95,4 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
     );
 };
 
-export default NumberOfBookingPerTimeChart;
+export default NumberOfProductAndRentalChart;

@@ -76,43 +76,20 @@ export const postEmployee = async (employeeData: {
     }
 };
 
-export const putEmployee = async (
-    employeeId: number,
-    employeeData: {
-        fullname?: string;
-        gender?: string;
-        email?: string;
-        dob?: string;
-        phone?: string;
-        address?: string;
-        avatar?: File;
-        fingerprint?: string;
-        position?: string;
-        role?: string;
-        cccd?: string;
-        expiry_cccd?: string;
-        taxcode?: string;
-        salary?: number;
-    },
-) => {
+export const putEmployee = async (employeeId: number, employeeData: Record<string, any>) => {
     try {
         const formData = new FormData();
         formData.append('employeeId', employeeId.toString());
-        formData.append('fullname', employeeData.fullname || '');
-        formData.append('gender', employeeData.gender || '');
-        formData.append('dob', employeeData.dob || '');
-        formData.append('email', employeeData.email || '');
-        formData.append('phone', employeeData.phone || '');
-        formData.append('address', employeeData.address || '');
-        formData.append('position', employeeData.position || '');
-        formData.append('role', employeeData.role || '');
-        formData.append('cccd', employeeData.cccd || '');
-        formData.append('expiry_cccd', employeeData.expiry_cccd || '');
-        formData.append('taxcode', employeeData.taxcode || '');
-        formData.append('salary', employeeData.salary?.toString() || '');
+
+        Object.entries(employeeData).forEach(([key, value]) => {
+            if (key === 'avatar' || value === undefined) return;
+            formData.append(key, value.toString());
+        });
+        // Handle avatar separately
         if (employeeData.avatar) {
             formData.append('avatar', employeeData.avatar);
         }
+
         const response = await fetch('/api/employees/put-employee', {
             method: 'PUT',
             body: formData,
@@ -123,6 +100,7 @@ export const putEmployee = async (
         if (!response.ok) {
             return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
         }
+
         return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
