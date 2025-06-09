@@ -1,4 +1,4 @@
-import { Bar, BarChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts"
 import {
     ChartConfig,
     ChartContainer,
@@ -6,34 +6,20 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export interface SingleBarChartProps {
+export interface TopCourtChartProps {
     className?: string;
     chartData: any[];
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
-    chartTitle?: string;
-    layout: "horizontal" | "vertical";
-    mainDataKey: string;
-    xAxisDataKey: string;
-    xAxisDataType: "number" | "category";
-    yAxisDataKey: string;
-    yAxisDataType: "number" | "category";
 }
 
-const SingleBarChart: React.FC<SingleBarChartProps> = ({
+const TopCourtChart: React.FC<TopCourtChartProps> = ({
     className,
     chartData,
     chartConfig,
     chartWidth = "100%",
     chartHeight = "400px",
-    layout = "horizontal",
-    chartTitle,
-    mainDataKey,
-    xAxisDataKey,
-    xAxisDataType,
-    yAxisDataKey,
-    yAxisDataType,
 }) => {
     return (
         <div
@@ -41,46 +27,45 @@ const SingleBarChart: React.FC<SingleBarChartProps> = ({
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex flex-col w-full h-full gap-2">
-                {chartTitle && (
-                    <span className="text-lg text-center w-full">
-                        {chartTitle}
-                    </span>
-                )}
+                <span className="text-lg text-center w-full">
+                    Top 10 sân được yêu thích (đặt nhiều)
+                </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="min-w-full h-full">
                         <BarChart
                             accessibilityLayer
                             data={chartData}
-                            layout={layout}
-                            width={undefined}
-                            height={undefined}
+                            layout="vertical"
                             margin={{
-                                left: -10,
+                                right: 20,
                             }}
                         >
+                            <CartesianGrid
+                                strokeDasharray={"3 3"}
+                                stroke="var(--color-gray-300)"
+                                horizontal={false}
+                            />
                             <XAxis
-                                type={xAxisDataType}
-                                dataKey={xAxisDataKey}
+                                type="number"
+                                dataKey="bookingCount"
                                 tickLine={false}
                                 axisLine={false}
                             />
                             <YAxis
-                                type={yAxisDataType}
-                                dataKey={yAxisDataKey}
+                                type="category"
+                                dataKey="courtName"
                                 tickMargin={10}
                                 tickLine={false}
                                 axisLine={false}
                             />
                             <ChartTooltip
-                                cursor={false}
                                 content={<ChartTooltipContent
-
+                                    hideIndicator
                                 />}
                             />
                             <Bar
-                                dataKey={mainDataKey}
-                                fill={`var(--color-${mainDataKey})`}
-                                radius={4}
+                                dataKey="bookingCount"
+                                radius={5}
                             />
                         </BarChart>
                     </ChartContainer>
@@ -90,4 +75,4 @@ const SingleBarChart: React.FC<SingleBarChartProps> = ({
     );
 }
 
-export default SingleBarChart;
+export default TopCourtChart;
