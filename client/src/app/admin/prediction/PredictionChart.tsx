@@ -1,32 +1,50 @@
 import React from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+    PieChart,
+    Pie,
+    Cell,
+    Tooltip,
+    ResponsiveContainer,
+    Legend,
+} from "recharts";
 
 interface PredictionChartProps {
     data: { id: string; name: string; quantity: number }[];
     sortOrder: "asc" | "desc";
     onSortOrderChange: (order: "asc" | "desc") => void;
+    title?: string;
 }
 
-const COLORS = ["#34D399", "#60A5FA", "#FBBF24", "#F87171", "#A78BFA", "#F472B6", "#10B981"];
+const COLORS = [
+    "#34D399", "#60A5FA", "#FBBF24", "#F87171",
+    "#A78BFA", "#F472B6", "#10B981", "#FDBA74",
+];
 
-const PredictionChart: React.FC<PredictionChartProps> = ({ data, sortOrder, onSortOrderChange }) => {
+const PredictionChart: React.FC<PredictionChartProps> = ({
+    data,
+    sortOrder,
+    onSortOrderChange,
+    title = "Tỉ lệ phần trăm sản phẩm bán ra",
+}) => {
     const totalQuantity = data.reduce((acc, item) => acc + item.quantity, 0);
+
     const chartData = data.map((item) => ({
         ...item,
         percent: totalQuantity === 0 ? 0 : (item.quantity / totalQuantity) * 100,
     }));
 
-    const renderCustomizedLabel = (props: any) => {
-        const { name, percent } = props;
-        return `${name}: ${percent.toFixed(2)}%`;
+    const renderCustomizedLabel = ({ name, percent }: any) => {
+        if (percent < 0.5) return ""; // tránh hiển thị label quá nhỏ
+        return `${name}: ${percent.toFixed(1)}%`;
     };
 
     return (
         <div className="border rounded p-4 shadow bg-white">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Tỉ lệ phần trăm sản phẩm được bán ra</h2>
-                <div className="flex items-center gap-2">
-                    {/* <label className="text-sm">Sắp xếp:</label>
+                <h2 className="text-lg font-semibold">{title}</h2>
+                {/* Nếu muốn bật lại chức năng sắp xếp */}
+                {/* <div className="flex items-center gap-2">
+                    <label className="text-sm">Sắp xếp:</label>
                     <select
                         value={sortOrder}
                         onChange={(e) => onSortOrderChange(e.target.value as "asc" | "desc")}
@@ -34,8 +52,8 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, sortOrder, onSo
                     >
                         <option value="asc">Tăng dần</option>
                         <option value="desc">Giảm dần</option>
-                    </select> */}
-                </div>
+                    </select>
+                </div> */}
             </div>
 
             <ResponsiveContainer width="100%" height={300}>
@@ -47,14 +65,13 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, sortOrder, onSo
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        fill="#34D399"
-                        label={renderCustomizedLabel} // label của Pie được chỉnh lại ở đây
+                        label={renderCustomizedLabel}
                     >
                         {chartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
+                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
                     <Legend />
                 </PieChart>
             </ResponsiveContainer>
