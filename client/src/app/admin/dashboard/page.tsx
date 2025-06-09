@@ -8,6 +8,15 @@ import SingleBarChart from "./SingleBarChart";
 import SingleLineChart from "./SingleLineChart";
 import CustomPieChart from "./CustomPieChart";
 import MultipleBarChart from "./MultipleBarChart";
+import TopCourtChart from "./TopCourtChart";
+import ZoneRevenueChart from "./ZoneRevenueChart";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const topCourtChartConfig: ChartConfig = {
     bookingCount: {
@@ -26,19 +35,19 @@ const numberOfOrdersChartConfig: ChartConfig = {
 const revenuePerZoneChartConfig: ChartConfig = {
     zoneA: {
         label: "Khu vực A",
-        color: "var(--color-primary-200)",
+        color: "var(--color-chart-31)",
     },
     zoneB: {
         label: "Khu vực B",
-        color: "var(--color-blue-200)",
+        color: "var(--color-chart-32)",
     },
     zoneC: {
         label: "Khu vực C",
-        color: "var(--color-red-100)",
+        color: "var(--color-chart-35)",
     },
     zoneD: {
         label: "Khu vực D",
-        color: "var(--color-yellow-100)",
+        color: "var(--color-chart-36)",
     },
 }
 
@@ -71,12 +80,16 @@ const DashboardPage = () => {
     const newCustomerTabs = ["số lượng", "tỉ lệ %"];
     const [activeTab, setActiveTab] = useState<string>(newCustomerTabs[0]);
     const topCourtData = [
-        {courtName: "Sân 1", bookingCount: 150, fill: "var(--color-primary-200)"},
-        {courtName: "Sân 2", bookingCount: 120, fill: "var(--color-blue-200)"},
-        {courtName: "Sân 3", bookingCount: 130, fill: "var(--color-red-100)"},
-        { courtName: "Sân 4", bookingCount: 170, fill: "var(--color-yellow-100)" },
-        { courtName: "Sân 5", bookingCount: 110, fill: "var(--color-blue-500)" },
-        { courtName: "Sân 6", bookingCount: 140, fill: "var(--color-gray-400)" },
+        { courtName: "Sân 1", bookingCount: 150, fill: "var(--color-chart-11)" },
+        { courtName: "Sân 2", bookingCount: 120, fill: "var(--color-chart-12)" },
+        { courtName: "Sân 3", bookingCount: 100, fill: "var(--color-chart-13)" },
+        { courtName: "Sân 4", bookingCount: 90, fill: "var(--color-chart-14)" },
+        { courtName: "Sân 5", bookingCount: 80, fill: "var(--color-chart-15)" },
+        { courtName: "Sân 6", bookingCount: 70, fill: "var(--color-chart-16)" },
+        { courtName: "Sân 7", bookingCount: 60, fill: "var(--color-chart-17)" },
+        { courtName: "Sân 8", bookingCount: 50, fill: "var(--color-chart-18)" },
+        { courtName: "Sân 9", bookingCount: 40, fill: "var(--color-chart-19)" },
+        { courtName: "Sân 10", bookingCount: 30, fill: "var(--color-chart-20)" },
     ]
 
     const numberOfOrdersData = [
@@ -95,10 +108,18 @@ const DashboardPage = () => {
     ]
 
     const revenuePerZoneData = [
-        { zone: "zoneA", revenue: 5000000, fill: "var(--color-primary-200)" },
-        { zone: "zoneB", revenue: 7000000, fill: "var(--color-blue-200)" },
-        { zone: "zoneC", revenue: 6000000, fill: "var(--color-red-100)" },
-        { zone: "zoneD", revenue: 8000000, fill: "var(--color-yellow-100)" },
+        { month: 1, zoneA: 5000000, zoneB: 7000000, zoneC: 6000000, zoneD: 8000000 },
+        { month: 2, zoneA: 6000000, zoneB: 8000000, zoneC: 7000000, zoneD: 9000000 },
+        { month: 3, zoneA: 5500000, zoneB: 7500000, zoneC: 6500000, zoneD: 8500000 },
+        { month: 4, zoneA: 6500000, zoneB: 8500000, zoneC: 7500000, zoneD: 9500000 },
+        { month: 5, zoneA: 7000000, zoneB: 9000000, zoneC: 8000000, zoneD: 10000000 },
+        { month: 6, zoneA: 8000000, zoneB: 10000000, zoneC: 9000000, zoneD: 11000000 },
+        { month: 7, zoneA: 9000000, zoneB: 11000000, zoneC: 10000000, zoneD: 12000000 },
+        { month: 8, zoneA: 10000000, zoneB: 12000000, zoneC: 11000000, zoneD: 13000000 },
+        { month: 9, zoneA: 11000000, zoneB: 13000000, zoneC: 12000000, zoneD: 14000000 },
+        { month: 10, zoneA: 12000000, zoneB: 14000000, zoneC: 13000000, zoneD: 15000000 },
+        { month: 11, zoneA: 13000000, zoneB: 15000000, zoneC: 14000000, zoneD: 16000000 },
+        { month: 12, zoneA: 14000000, zoneB: 16000000, zoneC: 15000000, zoneD: 17000000 },
     ]
 
     const revenueOfProductsandRentalsData = [
@@ -188,11 +209,9 @@ const DashboardPage = () => {
                                     </span>
                                 </>
                             ) : (
-                                <>
-                                    <span className="text-4xl">
-                                        {`${50} %`}
-                                    </span>
-                                </>
+                                <span className="text-4xl">
+                                    {`${50} %`}
+                                </span>
                             )}
                         </div>
 
@@ -220,29 +239,19 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-2 w-full h-80">
-                <SingleBarChart
+            <div className="flex items-center gap-2 w-full h-fit">
+                <TopCourtChart
                     chartData={topCourtData}
                     chartConfig={topCourtChartConfig}
-                    chartTitle="Xếp hạng sân được đặt nhiều nhất"
-                    layout="vertical"
                     chartWidth="100%"
                     chartHeight="100%"
-                    xAxisDataType="number"
-                    xAxisDataKey="bookingCount"
-                    yAxisDataType="category"
-                    yAxisDataKey="courtName"
-                    mainDataKey="bookingCount"
                     className=""
                 />
-                <CustomPieChart
+                <ZoneRevenueChart
                     chartData={revenuePerZoneData}
                     chartConfig={revenuePerZoneChartConfig}
-                    chartTitle="Doanh thu theo khu vực sân (Zone)"
-                    chartWidth="40%"
+                    chartWidth="100%"
                     chartHeight="100%"
-                    mainDataKey="revenue"
-                    nameKey="zone"
                     className=""
                 />
             </div>
