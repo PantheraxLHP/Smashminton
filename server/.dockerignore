@@ -1,0 +1,61 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build outputs
+dist
+*.tsbuildinfo
+
+# Environment files
+.env*
+!.env.example
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+docs
+
+# Test files
+test
+coverage
+*.test.ts
+*.spec.ts
+
+# Development files
+dev.ts
+*.log
+
+# Database files
+database/*.db
+database/*.sqlite
+
+# Redis dump
+dump.rdb
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Large training data
+*.traineddata
+
+# Temporary files
+tmp
+temp
+*.tmp 
