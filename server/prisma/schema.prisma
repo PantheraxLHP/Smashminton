@@ -111,7 +111,7 @@ model customers {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model employees {
   employeeid           Int                @id
-  fingerprintid         Int?
+  fingerprintid        Int?
   last_week_shift_type String?
   employee_type        String?
   role                 String?
@@ -205,8 +205,9 @@ model products {
 model product_batch {
   batchid        Int              @id @default(autoincrement())
   batchname      String?
-  expirydate     DateTime?        @default(now()) @db.Timestamptz(6)
+  expirydate     DateTime?        
   stockquantity  Int?
+  status         String?
   createdat      DateTime?        @default(now()) @db.Timestamptz(6)
   updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
   purchase_order purchase_order[]

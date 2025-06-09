@@ -4,7 +4,7 @@ import { ServiceResponse } from '@/lib/serviceResponse';
 export const getCourts = async (filter: Filters) => {
     try {
         const queryParams = new URLSearchParams({
-            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            zoneid: filter.zone ? String(filter.zone) : '1',
             date: filter.date || '',
             duration: filter.duration ? String(filter.duration) : '0',
             starttime: filter.startTime || '',
@@ -30,7 +30,7 @@ export const getCourts = async (filter: Filters) => {
 export const getDisableStartTimes = async (filter: Filters) => {
     try {
         const queryParams = new URLSearchParams({
-            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            zoneid: filter.zone ? String(filter.zone) : '1',
             date: filter.date || '',
             duration: filter.duration ? String(filter.duration) : '0',
         });
@@ -57,7 +57,7 @@ export const getDisableStartTimes = async (filter: Filters) => {
 export const getFixedCourts = async (filter: Filters) => {
     try {
         const queryParams = new URLSearchParams({
-            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            zoneid: filter.zone ? String(filter.zone) : '1',
             date: filter.date || '',
             duration: filter.duration ? String(filter.duration) : '0',
             starttime: filter.startTime || '',
@@ -83,7 +83,7 @@ export const getFixedCourts = async (filter: Filters) => {
 export const getFixedCourtsDisableStartTimes = async (filter: Filters) => {
     try {
         const queryParams = new URLSearchParams({
-            zoneid: filter.zone ? String(filter.zone.charCodeAt(0) - 64) : '1',
+            zoneid: filter.zone ? String(filter.zone) : '1',
             date: filter.date || '',
             duration: filter.duration ? String(filter.duration) : '0',
         });

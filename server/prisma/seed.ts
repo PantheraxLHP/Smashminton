@@ -1606,32 +1606,26 @@ async function main() {
             {
                 batchname: 'Lô Quấn cán cầu lông Yonex AC147EX',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Túi đựng giày cầu lông',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Vớ cầu lông Yonex',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Ống cầu lông Lining AYQN024',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Ống cầu lông Yonex AS40',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Cước Yonex pro',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
             },
             {
                 batchname: 'Lô Nước uống tăng lực Monster bạc',
@@ -1651,7 +1645,7 @@ async function main() {
             {
                 batchname: 'Lô Nước uống revive - đợt 1',
                 stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
+                expirydate: new Date('2025-11-30'),
             },
             {
                 batchname: 'Lô Nước uống pocari',
@@ -1671,27 +1665,22 @@ async function main() {
             {
                 batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S41',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S42',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Trắng - S41',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Đen - S42',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ - S43',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S42',
@@ -1701,52 +1690,42 @@ async function main() {
             {
                 batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S43',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Arcsaber 11 Play - 4U (80-84g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Arcsaber 88 Play 2024 - 4U (80-84g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Nanoflare StarBucks Xanh - 3U (85-89g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 3U (85-89g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 4U (80-84g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 5U (75-79g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 3U (85-89g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
                 stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
             },
             {
                 batchname: 'Lô Nước uống revive - đợt 2',
