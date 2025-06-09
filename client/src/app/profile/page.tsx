@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
 import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
-import { updatePassword } from '@/services/accounts.service';
+import { updatePassword, updateStudentCard } from '@/services/accounts.service';
 import { toast } from 'sonner';
 
 interface Booking {
@@ -62,16 +62,18 @@ const pastBookings: Booking[] = [
 
 const UserProfilePage = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
-    const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
     const { user, setUser } = useAuth();
+    const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(
+        user?.studentCard?.studentcardid ? true : false,
+    );
+    const userProfile = user;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [frontImage, setFrontImage] = useState<File | null>(null);
     const [backImage, setBackImage] = useState<File | null>(null);
     const [frontImagePreview, setFrontImagePreview] = useState<string | null>(null);
     const [backImagePreview, setBackImagePreview] = useState<string | null>(null);
-    const userProfile = user;
 
     const handleImageUpload = (file: File, type: 'front' | 'back') => {
         if (type === 'front') {
@@ -96,31 +98,23 @@ const UserProfilePage = () => {
         setIsSubmitting(true);
         try {
             const formData = new FormData();
-            formData.append('frontImage', frontImage);
-            formData.append('backImage', backImage);
-            formData.append('accountId', String(userProfile?.accountid || ''));
+            formData.append('files', frontImage);
+            formData.append('files', backImage);
 
-            // Replace this URL with your actual API endpoint
-            const response = await fetch('/api/student-verification', {
-                method: 'POST',
-                body: formData,
-            });
+            const response = await updateStudentCard(userProfile?.accountid || 0, formData);
 
             if (response.ok) {
-                setIsStudentStatusUpdated(true);
-                toast.success('Thẻ sinh viên đã được gửi để xác minh');
-                // Reset form
+                toast.success('Tình trạng học sinh/sinh viên đã được cập nhật');
                 setFrontImage(null);
                 setBackImage(null);
                 setFrontImagePreview(null);
                 setBackImagePreview(null);
             } else {
-                const errorData = await response.json();
-                toast.error(errorData.message || 'Có lỗi xảy ra khi tải lên');
+                toast.error(response.message || 'Có lỗi xảy ra khi cập nhật');
             }
         } catch (error) {
             console.error('Error uploading student card:', error);
-            toast.error('Có lỗi xảy ra khi tải lên');
+            toast.error('Có lỗi xảy ra khi cập nhật');
         } finally {
             setIsSubmitting(false);
         }
@@ -332,6 +326,8 @@ const UserProfilePage = () => {
                                             <Image
                                                 src={frontImagePreview}
                                                 alt="Front preview"
+                                                width={400}
+                                                height={128}
                                                 className="h-32 w-full rounded border object-cover"
                                             />
                                         </div>
@@ -357,6 +353,8 @@ const UserProfilePage = () => {
                                             <Image
                                                 src={backImagePreview}
                                                 alt="Back preview"
+                                                width={400}
+                                                height={128}
                                                 className="h-32 w-full rounded border object-cover"
                                             />
                                         </div>
