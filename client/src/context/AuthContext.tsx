@@ -1,18 +1,17 @@
 'use client';
 
 import { getUser } from '@/services/accounts.service';
-import { Accounts } from '@/types/types';
+import { Accounts, StudentCard } from '@/types/types';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 interface UserJWT {
     sub: number;
     role?: string;
-    isStudent?: boolean;
 }
 
 export interface User extends Accounts {
     role?: string;
-    isStudent?: boolean;
+    studentCard?: StudentCard | null;
 }
 
 type AuthContextType = {
@@ -55,7 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             const userData: User = {
                                 ...profileResponse.data,
                                 role: userJWT.role,
-                                isStudent: userJWT.isStudent,
                             };
                             setUser(userData);
                         }

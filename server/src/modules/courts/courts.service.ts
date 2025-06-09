@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCourtDto } from './dto/create-court.dto';
 import { UpdateCourtDto } from './dto/update-court.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -8,11 +8,37 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
 import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 @Injectable()
 export class CourtsService {
-    constructor(private prisma: PrismaService) { }
-    create(createCourtDto: CreateCourtDto) {
-        return 'This action adds a new court';
+    constructor(private prisma: PrismaService, private cloudinaryService: CloudinaryService) { }
+
+    async createCourt(createCourtDto: CreateCourtDto, file: Express.Multer.File) {
+        let imageUrl = '';
+
+        if (file) {
+            // If files are provided, upload them to Cloudinary
+            const uploadResults = await this.cloudinaryService.uploadCourtImg(file); // Changed to handle multiple files
+            imageUrl = uploadResults.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Failed to upload files');
+            }
+        }
+
+        createCourtDto.courtimgurl = imageUrl;
+
+        const newCourt = await this.prisma.courts.create({
+            data: createCourtDto,
+        });
+
+        if (!newCourt) {
+            throw new BadRequestException('Tạo sân thất bại');
+        }
+
+        return {
+            message: 'Tạo sân thành công',
+            data: newCourt,
+        };
     }
 
     findAll() {

@@ -30,3 +30,36 @@ export const getZones = async () => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
     }
 };
+
+export const postZones = async (zoneData: {
+    zonename?: string;
+    image?: string;
+    description?: string;
+    type?: string; 
+}) => {
+    try {
+        const mappedData = {
+            zonename: zoneData.zonename,
+            zonetype: zoneData.type,
+            zoneimgurl: zoneData.image,
+            zonedescription: zoneData.description,
+        };
+
+        const response = await fetch('/api/zones/post-zone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mappedData),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};
+

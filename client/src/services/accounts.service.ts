@@ -50,7 +50,7 @@ export const updateProfile = async (accountId: number, formData: FormData) => {
 };
 
 export const updatePassword = async (
-    accountId: number | undefined       ,
+    accountId: number | undefined,
     changedPasswordData: {
         newPassword?: string;
         confirmPassword?: string;
@@ -66,6 +66,29 @@ export const updatePassword = async (
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể cập nhật thông tin');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật thông tin');
+    }
+};
+
+export const updateStudentCard = async (accountId: number, formData: FormData) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('accountId', accountId.toString());
+
+        const response = await fetch(`/api/accounts/update-student-card?${queryParams.toString()}`, {
+            method: 'PUT',
+            body: formData,
             credentials: 'include',
         });
 

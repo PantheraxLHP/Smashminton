@@ -13,7 +13,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ZonesController {
     constructor(private readonly zonesService: ZonesService) { }
 
-    @Post()
+    @Post('new-zone')
+    @ApiOperation({ summary: 'Create a new zone with an avatar image' })
     @UseInterceptors(
         FileInterceptor('zoneimgurl', {
             limits: {
