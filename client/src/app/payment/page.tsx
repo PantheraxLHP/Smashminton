@@ -183,6 +183,11 @@ export default function PaymentPage() {
                                     - 10% giá sân
                                 </div>
                             </div>
+                            <div className="flex items-center gap-32 pr-16">
+                                <div className="flex items-center gap-2">
+                                    <span className='text-orange-500'>Giảm giá  - { formatPrice(totalCourtPrice - totalWithDiscount)}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 text-base font-semibold">

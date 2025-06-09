@@ -5,7 +5,8 @@ import { FaRegEdit } from 'react-icons/fa';
 import { ZonePrices } from '@/types/types';
 import { getZonePrices } from '@/services/zoneprice.service';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
-import { z } from 'zod';
+import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+
 
 interface ZonePriceProps extends ZonePrices {
     zonename: string;
@@ -16,6 +17,12 @@ export default function CourtPriceManager() {
     const [zonePricesState, setZonePricesState] = useState<ZonePriceProps[]>([]);
     const [editingItem, setEditingItem] = useState<ZonePriceProps | null>(null);  // Dòng đang sửa
     const [editedPrice, setEditedPrice] = useState<string>(''); // Giá trị nhập vào khi chỉnh sửa
+    const [filteredData, setFilteredData] = useState<ZonePriceProps[]>([]);
+
+
+    const [filters, setFilters] = useState<Record<string, any>>({
+        zonename: '',
+    });
 
     useEffect(() => {
         const fetchZonePrices = async () => {
@@ -32,7 +39,36 @@ export default function CourtPriceManager() {
             console.log(response);
         };
         fetchZonePrices();
+        setFilters((prev) => ({
+            ...prev,
+        }));
     }, []);
+
+    useEffect(() => {
+        const result = zonePricesState.filter((item) => {
+            const matchesName =
+                !filters.zonename ||
+                (Array.isArray(filters.zonename)
+                    ? filters.zonename.includes(item.zonename)
+                    : item.zonename.toLowerCase().includes(filters.zonename.toLowerCase()));
+            return matchesName;
+        });
+        setFilteredData(result);
+    }, [filters, zonePricesState]);
+
+    const getUniqueOptions = (data: ZonePriceProps[], key: keyof ZonePriceProps) => {
+        return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
+    };
+
+    const zoneOptions: FilterOption[] = getUniqueOptions(zonePricesState, 'zonename').map((option) => ({
+        optionlabel: option,
+        optionvalue: option,
+    }));
+
+    const filtersConfig: FilterConfig[] = [
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+        { filterid: 'zonename', filterlabel: 'Chọn khu vực', filtertype: 'checkbox', filteroptions: zoneOptions },
+    ];
 
     const zoneColumns: Column<ZonePriceProps>[] = [
         {
@@ -69,7 +105,7 @@ export default function CourtPriceManager() {
                                             z.zonepriceid === item.zonepriceid
                                                 ? { ...z, price: Number(editedPrice) } // Chỉ sửa giá của dòng hiện tại
                                                 : z
-                                                
+
                                         );
                                         return updatedPrices;
                                     });
@@ -94,7 +130,7 @@ export default function CourtPriceManager() {
                                     setEditingItem(item); // Chọn dòng cần sửa
                                     setEditedPrice(item.price?.toString() ?? ''); // Lưu giá hiện tại vào ô input
                                 }}
-                                className="p-1 text-primary-500 hover:text-primary-600"
+                                className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
                             >
                                 <FaRegEdit size={14} />
                             </button>
@@ -106,18 +142,23 @@ export default function CourtPriceManager() {
     ];
 
     return (
-        <div className="p-4 sm:p-6 space-y-4 mt-5">
-            <DataTable
-                columns={zoneColumns}
-                data={zonePricesState}
-                renderImage={undefined}
-                filterConfig={[]}
-                filters={{}}
-                setFilters={() => { }}
-                showOptions={false}
-                showMoreOption={false}
-                showHeader={true}
-            />
+        <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
+            <div className="w-full shrink-0 lg:w-[280px]">
+                <Filter filters={filtersConfig} values={filters} setFilterValues={setFilters} />
+            </div>
+            <div className="flex flex-1 flex-col">
+                <DataTable
+                    columns={zoneColumns}
+                    data={filteredData}
+                    renderImage={undefined}
+                    filterConfig={[]}
+                    filters={{}}
+                    setFilters={() => { }}
+                    showOptions={false}
+                    showMoreOption={false}
+                    showHeader={true}
+                />
+            </div>
         </div>
     );
 }

@@ -6,6 +6,7 @@ import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import AddZoneModal from './AddZone';
 import AddCourtModal from './AddCourt';
 import { Switch } from '@/components/ui/switch';
+import { FaRegEdit } from 'react-icons/fa';
 
 
 export interface Zone {
@@ -44,6 +45,8 @@ function normalizeTimeString(time: string) {
 
 export default function ZoneCourtManager() {
     const [courtState, setCourtState] = useState<Court[]>(rawCourt);
+    const [editingItem, setEditingItem] = useState<Court | null>(null);
+    const [editedRatingGrade, setEditedRatingGrade] = useState<string>('');
     const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
     const [isAddCourtModalOpen, setIsAddCourtModalOpen] = useState(false);
     const [filters, setFilters] = useState<Record<string, any>>({
@@ -143,8 +146,63 @@ export default function ZoneCourtManager() {
                 );
             },
         },
-        { header: 'Điểm số đánh giá', accessor: 'avgrating' },
-        { header: 'Thời gian đánh giá', accessor: (item) => normalizeTimeString(item.timecalavg) },
+        {
+            header: 'Điểm số đánh giá',
+            accessor: (item: Court) => (
+                <div className="flex items-center gap-2 sm:max-w-[50px] whitespace-nowrap">
+                    {editingItem === item ? ( // Kiểm tra xem dòng này có đang được chỉnh sửa không
+                        <>
+                            <input
+                                type="text"
+                                value={editedRatingGrade}
+                                onChange={(e) => setEditedRatingGrade(e.target.value)}
+                                className="border border-gray-300 px-2 py-1 w-28"
+                                autoFocus
+                            />
+                            <button
+                                onClick={() => {
+                                    const now = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+
+                                    setCourtState((prevState) => {
+                                        const updatedRatingGrade = prevState.map((z) =>
+                                            z.courtname === item.courtname
+                                                ? {
+                                                    ...z,
+                                                    avgrating: Number(editedRatingGrade), // Cập nhật điểm đánh giá
+                                                    timecalavg: now,                      // Cập nhật thời điểm thống kê
+                                                }
+                                                : z
+                                        );
+                                        return updatedRatingGrade;
+                                    });
+                                    setEditingItem(null);
+                                }}
+                                className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
+                            >
+                                Xong
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <span>
+                                {item.avgrating}
+                            </span>
+
+                            <button
+                                onClick={() => {
+                                    setEditingItem(item); // Chọn dòng cần sửa
+                                    setEditedRatingGrade(item.avgrating?.toString() ?? ''); // Lưu giá hiện tại vào ô input
+                                }}
+                                className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
+                            >
+                                <FaRegEdit size={14} />
+                            </button>
+                        </>
+                    )}
+                </div>
+            ),
+        },
+        { header: 'Thời điểm thống kê', accessor: (item) => normalizeTimeString(item.timecalavg) },
     ];
 
     return (
@@ -172,14 +230,6 @@ export default function ZoneCourtManager() {
                             className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
                         >
                             Thêm sân
-                        </button>
-                    </div>
-                    <div className="mb-2 hidden justify-end lg:flex">
-                        <button
-                            onClick={() => ''}
-                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
-                        >
-                            Cập nhật điểm
                         </button>
                     </div>
                 </div>
