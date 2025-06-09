@@ -4,11 +4,12 @@ import { formatNumber } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { ChartConfig } from "@/components/ui/chart";
-import SingleBarChart from "./SingleBarChart";
-import MultipleBarChart from "./MultipleBarChart";
 import TopCourtChart from "./TopCourtChart";
 import ZoneRevenueChart from "./ZoneRevenueChart";
 import NumberOfBookingPerTimeChart from "./NumberOfBookingPerTimeChart";
+import TopRentalChart from "./TopRentalChart";
+import TopProductChart from "./TopProductChart";
+import NumberOfProductAndRentalChart from "./NumberOfProductAndRentalChart";
 
 const topCourtChartConfig: ChartConfig = {
     bookingCount: {
@@ -55,28 +56,28 @@ const revenuePerZoneChartConfig: ChartConfig = {
     },
 }
 
-const revenueOfProductsandRentalsChartConfig: ChartConfig = {
-    productRevenue: {
-        label: "Doanh thu sản phẩm",
-        color: "var(--color-green-200)",
+const NumberOfProductAndRentalChartConfig: ChartConfig = {
+    saleCount: {
+        label: "Tổng số sản phẩm được bán",
+        color: "var(--color-chart-31)",
     },
-    rentalRevenue: {
-        label: "Doanh thu cho thuê",
-        color: "var(--color-blue-200)",
+    rentalCount: {
+        label: "Tổng số lượt cho thuê của mọi sản phẩm",
+        color: "var(--color-chart-35)",
     },
 }
 
 const topProductsChartConfig: ChartConfig = {
-    salesCount: {
+    saleCount: {
         label: "Số lượng bán",
-        color: "var(--color-secondary)",
+        color: "var(--color-primary)",
     },
 }
 
 const topRentalsChartConfig: ChartConfig = {
     rentalCount: {
-        label: "Số lượng cho thuê",
-        color: "var(--color-secondary)",
+        label: "Số lượt cho thuê",
+        color: "var(--color-primary)",
     },
 }
 
@@ -126,33 +127,45 @@ const DashboardPage = () => {
         { month: 12, zoneA: 16, zoneB: 18, zoneC: 17, zoneD: 19 },
     ]
 
-    const revenueOfProductsandRentalsData = [
-        { month: "T1", productRevenue: 3000000, rentalRevenue: 5000000 },
-        { month: "T2", productRevenue: 4000000, rentalRevenue: 6000000 },
-        { month: "T3", productRevenue: 3500000, rentalRevenue: 5500000 },
-        { month: "T4", productRevenue: 4500000, rentalRevenue: 6500000 },
-        { month: "T5", productRevenue: 5000000, rentalRevenue: 7000000 },
-        { month: "T6", productRevenue: 6000000, rentalRevenue: 8000000 },
-        { month: "T7", productRevenue: 7000000, rentalRevenue: 9000000 },
-        { month: "T8", productRevenue: 8000000, rentalRevenue: 10000000 },
-        { month: "T9", productRevenue: 9000000, rentalRevenue: 11000000 },
-        { month: "T10", productRevenue: 10000000, rentalRevenue: 12000000 },
-        { month: "T11", productRevenue: 11000000, rentalRevenue: 13000000 },
-        { month: "T12", productRevenue: 12000000, rentalRevenue: 14000000 },
+    const numberOfProductAndRentalData = [
+        { month: 1, saleCount: 500, rentalCount: 300 },
+        { month: 2, saleCount: 1500, rentalCount: 1300 },
+        { month: 3, saleCount: 600, rentalCount: 400 },
+        { month: 4, saleCount: 700, rentalCount: 500 },
+        { month: 5, saleCount: 1300, rentalCount: 1100 },
+        { month: 6, saleCount: 800, rentalCount: 600 },
+        { month: 7, saleCount: 1000, rentalCount: 800 },
+        { month: 8, saleCount: 1600, rentalCount: 1400 },
+        { month: 9, saleCount: 900, rentalCount: 700 },
+        { month: 10, saleCount: 1200, rentalCount: 1000 },
+        { month: 11, saleCount: 1100, rentalCount: 900 },
+        { month: 12, saleCount: 1400, rentalCount: 1200 },
     ]
 
     const topProductsData = [
-        { productName: "Sản phẩm A", salesCount: 500, fill: "var(--color-green-200)" },
-        { productName: "Sản phẩm B", salesCount: 300, fill: "var(--color-blue-200)" },
-        { productName: "Sản phẩm C", salesCount: 400, fill: "var(--color-red-100)" },
-        { productName: "Sản phẩm D", salesCount: 600, fill: "var(--color-yellow-100)" },
+        { productName: "Sản phẩm A", saleCount: 1100, fill: "var(--color-chart-11)" },
+        { productName: "Sản phẩm B", saleCount: 1050, fill: "var(--color-chart-12)" },
+        { productName: "Sản phẩm C", saleCount: 800, fill: "var(--color-chart-13)" },
+        { productName: "Sản phẩm D", saleCount: 600, fill: "var(--color-chart-14)" },
+        { productName: "Sản phẩm E", saleCount: 550, fill: "var(--color-chart-15)" },
+        { productName: "Sản phẩm F", saleCount: 540, fill: "var(--color-chart-16)" },
+        { productName: "Sản phẩm G", saleCount: 540, fill: "var(--color-chart-17)" },
+        { productName: "Sản phẩm H", saleCount: 490, fill: "var(--color-chart-18)" },
+        { productName: "Sản phẩm I", saleCount: 420, fill: "var(--color-chart-19)" },
+        { productName: "Sản phẩm J", saleCount: 350, fill: "var(--color-chart-20)" },
     ]
 
     const topRentalsData = [
-        { rentalName: "Dịch vụ A", rentalCount: 200, fill: "var(--color-green-200)" },
-        { rentalName: "Dịch vụ B", rentalCount: 150, fill: "var(--color-blue-200)" },
-        { rentalName: "Dịch vụ C", rentalCount: 180, fill: "var(--color-red-100)" },
-        { rentalName: "Dịch vụ D", rentalCount: 220, fill: "var(--color-yellow-100)" },
+        { rentalName: "Dịch vụ A", rentalCount: 900, fill: "var(--color-chart-11)" },
+        { rentalName: "Dịch vụ B", rentalCount: 800, fill: "var(--color-chart-12)" },
+        { rentalName: "Dịch vụ C", rentalCount: 700, fill: "var(--color-chart-13)" },
+        { rentalName: "Dịch vụ D", rentalCount: 700, fill: "var(--color-chart-14)" },
+        { rentalName: "Dịch vụ E", rentalCount: 650, fill: "var(--color-chart-15)" },
+        { rentalName: "Dịch vụ F", rentalCount: 500, fill: "var(--color-chart-16)" },
+        { rentalName: "Dịch vụ G", rentalCount: 450, fill: "var(--color-chart-17)" },
+        { rentalName: "Dịch vụ H", rentalCount: 200, fill: "var(--color-chart-18)" },
+        { rentalName: "Dịch vụ I", rentalCount: 150, fill: "var(--color-chart-19)" },
+        { rentalName: "Dịch vụ J", rentalCount: 100, fill: "var(--color-chart-20)" },
     ]
 
     return (
@@ -243,7 +256,7 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-2 w-full h-fit">
+            <div className="flex items-center gap-2 w-full h-100">
                 <TopCourtChart
                     chartData={topCourtData}
                     chartConfig={topCourtChartConfig}
@@ -259,7 +272,7 @@ const DashboardPage = () => {
                     className=""
                 />
             </div>
-            <div className="flex items-center gap-2 w-full h-fit">
+            <div className="flex items-center gap-2 w-full h-100">
                 <NumberOfBookingPerTimeChart
                     chartData={numberOfBookingPerTimeData}
                     chartConfig={numberOfBookingPerTimeChartConfig}
@@ -267,48 +280,27 @@ const DashboardPage = () => {
                     chartHeight="100%"
                     className=""
                 />
-                <MultipleBarChart
-                    chartData={revenueOfProductsandRentalsData}
-                    chartConfig={revenueOfProductsandRentalsChartConfig}
-                    chartTitle="Doanh thu sản phẩm và dịch vụ cho thuê theo tháng"
-                    layout="horizontal"
+                <NumberOfProductAndRentalChart
+                    chartData={numberOfProductAndRentalData}
+                    chartConfig={NumberOfProductAndRentalChartConfig}
                     chartWidth="100%"
                     chartHeight="100%"
-                    xAxisDataType="category"
-                    xAxisDataKey="month"
-                    yAxisDataType="number"
-                    yAxisDataKey="rentalRevenue"
-                    mainDataKey={["productRevenue", "rentalRevenue"]}
                     className=""
                 />
             </div>
-            <div className="flex items-center gap-2 w-full h-80">
-                <SingleBarChart
+            <div className="flex items-center gap-2 w-full h-100">
+                <TopProductChart
                     chartData={topProductsData}
                     chartConfig={topProductsChartConfig}
-                    chartTitle="Top sản phẩm bán chạy nhất"
-                    layout="horizontal"
                     chartWidth="100%"
                     chartHeight="100%"
-                    xAxisDataType="category"
-                    xAxisDataKey="productName"
-                    yAxisDataType="number"
-                    yAxisDataKey="salesCount"
-                    mainDataKey="salesCount"
                     className=""
                 />
-                <SingleBarChart
+                <TopRentalChart
                     chartData={topRentalsData}
                     chartConfig={topRentalsChartConfig}
-                    chartTitle="Top dịch vụ cho thuê nhiều nhất"
-                    layout="horizontal"
                     chartWidth="100%"
                     chartHeight="100%"
-                    xAxisDataType="category"
-                    xAxisDataKey="rentalName"
-                    yAxisDataType="number"
-                    yAxisDataKey="rentalCount"
-                    mainDataKey="rentalCount"
                     className=""
                 />
             </div>
