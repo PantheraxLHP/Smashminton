@@ -8,6 +8,7 @@ import { ProductsService } from '../products/products.service';
 import { Create } from 'sharp';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ProductBatchService } from '../product_batch/product_batch.service';
 
 @Injectable()
 export class OrdersService {
@@ -15,6 +16,7 @@ export class OrdersService {
         private cacheService: CacheService,
         private productService: ProductsService,
         private prisma: PrismaService,
+        private productBatchService: ProductBatchService,
     ) { }
 
     async getOrderFromCache(username: string): Promise<CacheOrder> {
@@ -219,6 +221,11 @@ export class OrdersService {
 
         if (!product_orders) {
             throw new BadRequestException('Failed to create product orders');
+        }
+        
+        // Sau khi đã tạo order và productOrders
+        for (const product of productOrders) {
+            await this.productBatchService.decreaseStockQuantity(product.productid, product.quantity);
         }
 
         return order;
