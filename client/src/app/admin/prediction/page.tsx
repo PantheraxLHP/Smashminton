@@ -3,21 +3,29 @@
 import React, { useState, useEffect } from "react";
 import PredictionChart from "./PredictionChart";
 import PredictionTable from "./PredictionTable";
+import DoubleBarChart from "./DoubleBarChart";
 
 const dummyData = [
-    { year: 2024, month: 1, producttypeid: "PT01", producttypename: "Dụng cụ", salesquantity: 75 },
-    { year: 2024, month: 2, producttypeid: "PT02", producttypename: "Đồ uống", salesquantity: 57 },
-    { year: 2024, month: 3, producttypeid: "PT02", producttypename: "Đồ uống", salesquantity: 44 },
-    { year: 2024, month: 4, producttypeid: "PT03", producttypename: "Snack", salesquantity: 19 },
-    { year: 2025, month: 1, producttypeid: "PT01", producttypename: "Dụng cụ", salesquantity: 8 },
-    { year: 2025, month: 2, producttypeid: "PT04", producttypename: "Đồ ăn", salesquantity: 5 },
-    { year: 2024, month: 2, producttypeid: "PT04", producttypename: "Đồ ăn", salesquantity: 5 },
+    { year: 2024, month: 1, producttypeid: "PT01", producttypename: "Phụ kiện cầu lông", salesquantity: 75, purchasequantity: 50 },
+    { year: 2024, month: 1, producttypeid: "PT05", producttypename: "Thuê vợt", salesquantity: 75, purchasequantity: 100 },
+    { year: 2024, month: 1, producttypeid: "PT06", producttypename: "Thuê giày", salesquantity: 64, purchasequantity: 100 },
+    { year: 2024, month: 2, producttypeid: "PT02", producttypename: "Đồ ăn - Thức uống", salesquantity: 57, purchasequantity: 40 },
+    { year: 2024, month: 3, producttypeid: "PT02", producttypename: "Đồ ăn - Thức uống", salesquantity: 44, purchasequantity: 30 },
+    { year: 2024, month: 4, producttypeid: "PT03", producttypename: "Đồ ăn - Thức uống", salesquantity: 19, purchasequantity: 25 },
+    { year: 2025, month: 1, producttypeid: "PT01", producttypename: "Phụ kiện cầu lông", salesquantity: 8, purchasequantity: 20 },
+    { year: 2025, month: 2, producttypeid: "PT04", producttypename: "Đồ ăn - Thức uống", salesquantity: 5, purchasequantity: 10 },
+    { year: 2025, month: 5, producttypeid: "PT05", producttypename: "Thuê vợt", salesquantity: 8, purchasequantity: 6 },
+    { year: 2024, month: 6, producttypeid: "PT06", producttypename: "Thuê giày", salesquantity: 57, purchasequantity: 45 },
 ];
 
 const PredictionPage = () => {
-    const [mappedData, setMappedData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [mappedSales, setMappedSales] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [mappedPurchase, setMappedPurchase] = useState<{ id: string; name: string; quantity: number }[]>([]);
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [showTable, setShowTable] = useState(false);
+    const [doubleBarData, setDoubleBarData] = useState<
+        { name: string; sales: number; purchase: number }[]
+    >([]);
 
     const [timeType, setTimeType] = useState<"Tháng" | "Quý">("Tháng");
     const [selectedTime, setSelectedTime] = useState("Tháng 1");
@@ -29,32 +37,63 @@ const PredictionPage = () => {
         if (timeType === "Tháng") {
             const month = parseInt(selectedTime.split(" ")[1], 10);
             filtered = filtered.filter((item) => item.month === month);
-            const mapped = filtered.map((item) => ({
+
+            const sales = filtered.map((item) => ({
                 id: item.producttypeid,
                 name: item.producttypename,
                 quantity: item.salesquantity,
             }));
-            setMappedData(sortData(mapped, sortOrder));
+            const purchase = filtered.map((item) => ({
+                id: item.producttypeid,
+                name: item.producttypename,
+                quantity: item.purchasequantity,
+            }));
+
+            setMappedSales(sortData(sales, sortOrder));
+            setMappedPurchase(sortData(purchase, sortOrder));
         } else {
             const quarter = parseInt(selectedTime.split(" ")[1], 10);
             const months = { 1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12] }[quarter] || [];
             filtered = filtered.filter((item) => months.includes(item.month));
 
-            // Gộp quantity cho các id trùng
-            const merged = new Map<string, { id: string; name: string; quantity: number }>();
-            filtered.forEach((item) => {
-                if (merged.has(item.producttypeid)) {
-                    merged.get(item.producttypeid)!.quantity += item.salesquantity;
-                } else {
-                    merged.set(item.producttypeid, {
-                        id: item.producttypeid,
-                        name: item.producttypename,
-                        quantity: item.salesquantity,
-                    });
-                }
-            });
-            setMappedData(sortData(Array.from(merged.values()), sortOrder));
+            const mergeQuantities = (key: "salesquantity" | "purchasequantity") => {
+                const map = new Map<string, { id: string; name: string; quantity: number }>();
+                filtered.forEach((item) => {
+                    if (map.has(item.producttypeid)) {
+                        map.get(item.producttypeid)!.quantity += item[key];
+                    } else {
+                        map.set(item.producttypeid, {
+                            id: item.producttypeid,
+                            name: item.producttypename,
+                            quantity: item[key],
+                        });
+                    }
+                });
+                return sortData(Array.from(map.values()), sortOrder);
+            };
+
+            setMappedSales(mergeQuantities("salesquantity"));
+            setMappedPurchase(mergeQuantities("purchasequantity"));
         }
+
+        const mergedComparison = new Map<string, { name: string; sales: number; purchase: number }>();
+
+        filtered.forEach((item) => {
+            const key = item.producttypeid;
+            if (!mergedComparison.has(key)) {
+                mergedComparison.set(key, {
+                    name: item.producttypename,
+                    sales: item.salesquantity,
+                    purchase: item.purchasequantity,
+                });
+            } else {
+                const existing = mergedComparison.get(key)!;
+                existing.sales += item.salesquantity;
+                existing.purchase += item.purchasequantity;
+            }
+        });
+        setDoubleBarData(Array.from(mergedComparison.values()));
+
     }, [timeType, selectedTime, selectedYear, sortOrder]);
 
     const sortData = (data: { id: string; name: string; quantity: number }[], order: "asc" | "desc") => {
@@ -71,8 +110,7 @@ const PredictionPage = () => {
             <div className="flex-1 p-6 space-y-6">
                 <h1 className="text-xl font-semibold text-primary-600">Dự đoán các loại sản phẩm bán chạy</h1>
 
-                <div className="flex justify-end gap-4 items-end">
-                    {/* Chọn loại thời gian */}
+                <div className="flex flex-wrap justify-end gap-4 items-end">
                     <div className="flex flex-col">
                         <label className="text-sm font-medium mb-2">Chọn loại thời gian:</label>
                         <select
@@ -85,7 +123,6 @@ const PredictionPage = () => {
                         </select>
                     </div>
 
-                    {/* Chọn thời gian */}
                     <div className="flex flex-col">
                         <label className="text-sm font-medium mb-2">Chọn {timeType.toLowerCase()}:</label>
                         <select
@@ -103,7 +140,6 @@ const PredictionPage = () => {
                         </select>
                     </div>
 
-                    {/* Chọn năm */}
                     <div className="flex flex-col">
                         <label className="text-sm font-medium mb-2">Chọn năm:</label>
                         <select
@@ -126,11 +162,30 @@ const PredictionPage = () => {
                     </div>
                 </div>
 
-                {/* Biểu đồ */}
-                <PredictionChart data={mappedData} sortOrder={sortOrder} onSortOrderChange={setSortOrder} />
+                {/* Biểu đồ song song */}
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1">
+                        <PredictionChart
+                            data={mappedSales}
+                            title="Tỉ lệ sản phẩm bán ra"
+                            sortOrder={sortOrder}
+                            onSortOrderChange={setSortOrder}
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <PredictionChart
+                            data={mappedPurchase}
+                            title="Tỉ lệ sản phẩm mua vào"
+                            sortOrder={sortOrder}
+                            onSortOrderChange={setSortOrder}
+                        />
+                    </div>
+                </div>
 
-                {/* Bảng */}
-                {showTable && <PredictionTable data={mappedData} />}
+                {doubleBarData.length > 0 && <DoubleBarChart data={doubleBarData} />}
+
+                {/* Bảng dự đoán */}
+                {showTable && <PredictionTable data={mappedSales} />}
             </div>
         </div>
     );
