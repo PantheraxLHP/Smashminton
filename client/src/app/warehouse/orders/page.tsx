@@ -28,7 +28,7 @@ const rawOrderPurchase: PurchaseOrder[] = [
         employeeid: 'NV001',
         price: 220000,
         quantity: 5,
-        status: 'Đang giao hàng',
+        status: 'Chờ giao hàng',
     },
     {
         orderid: 2,
@@ -39,7 +39,7 @@ const rawOrderPurchase: PurchaseOrder[] = [
         employeeid: 'NV001',
         price: 240000,
         quantity: 5,
-        status: 'Đang giao hàng',
+        status: 'Chờ giao hàng',
     },
     {
         orderid: 3,
@@ -66,6 +66,8 @@ export default function PurchaseOrderPage() {
         setSelectedOrder(order);
         setVerifyModalOpen(true);
     };
+
+    let nextOrderId = Math.max(...rawOrderPurchase.map(o => o.orderid)) + 1;
 
     const handleVerifySubmit = (data: PurchaseOrder) => {
         const today = new Date().toISOString().split('T')[0];
@@ -98,9 +100,6 @@ export default function PurchaseOrderPage() {
 
             if (data.quantity < order.quantity) {
                 const remainingQuantity = order.quantity - data.quantity;
-                console.log('Remaining Quantity:', remainingQuantity);
-                console.log('Order Quantity:', order.quantity);
-                console.log('Data Quantity:', data.quantity);
 
                 // Đơn hàng đã giao
                 const deliveredOrder: PurchaseOrder = {
@@ -110,11 +109,12 @@ export default function PurchaseOrderPage() {
                     deliverydate: today,
                 };
 
-                // Đơn hàng còn lại
+                // Tạo orderid mới cho đơn pendingOrder
                 const pendingOrder: PurchaseOrder = {
                     ...order,
+                    orderid: nextOrderId++, // tăng id mới để phân biệt
                     quantity: remainingQuantity,
-                    status: 'Đang giao hàng',
+                    status: 'Chờ giao hàng',
                     deliverydate: undefined,
                 };
 
@@ -124,20 +124,28 @@ export default function PurchaseOrderPage() {
                     pendingOrder,
                     ...prev.slice(orderIndex + 1),
                 ];
-            }            
+            }
             return prev;
         });
     };
-    
-       
+
 
     const handleCancelOrder = (orderId: number) => {
         setOrdersState((prev) =>
-            prev.map((order) =>
-                order.orderid === orderId ? { ...order, status: 'Đã huỷ' } : order
-            )
+            prev.map((order) => {
+                if (order.orderid === orderId) {
+                    if (order.status === 'Chờ giao hàng') {
+                        return { ...order, status: 'Đã huỷ' };
+                    } else {
+                        alert('Chỉ có thể hủy đơn còn thiếu.');
+                        return order;
+                    }
+                }
+                return order;
+            })
         );
     };
+    
 
     const columns: Column<PurchaseOrder>[] = [
         { header: 'Mã đơn hàng', accessor: 'orderid' },
@@ -155,13 +163,13 @@ export default function PurchaseOrderPage() {
             header: 'Trạng thái',
             accessor: (item) => {
                 let colorClass = 'text-green-600';
-                if (item.status === 'Đang giao hàng') colorClass = 'text-yellow-500';
+                if (item.status === 'Chờ giao hàng') colorClass = 'text-yellow-500';
                 if (item.status === 'Đã huỷ') colorClass = 'text-red-500';
 
                 return (
                     <span className={`${colorClass} font-semibold`}>
                         {item.status}
-                        {item.status === 'Đang giao hàng' && '...'}
+                        {item.status === 'Chờ giao hàng' && '...'}
                     </span>
                 );
             },
@@ -188,7 +196,7 @@ export default function PurchaseOrderPage() {
         columns.push({
             header: '',
             accessor: (item) =>
-                item.status === 'Đang giao hàng' ? (
+                item.status === 'Chờ giao hàng' ? (
                     <button
                         className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer"
                         onClick={() => handleCancelOrder(item.orderid)}

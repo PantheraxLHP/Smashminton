@@ -157,16 +157,25 @@ export class ProductTypesService {
         where: {
           productid: product.productid,
           product_batch: {
-            expirydate: {
-              gte: now,
-            },
+            OR: [
+              // Nếu có expiry date thì phải >= now
+              {
+                expirydate: {
+                  gte: now,
+                },
+              },
+              // Nếu expiry date là null thì vẫn lấy
+              {
+                expirydate: null,
+              },
+            ],
           },
         },
         include: {
           product_batch: true,
         },
       });
-
+      console.log('purchaseOrders', purchaseOrders);
       const quantity = purchaseOrders.reduce((sum, po) => {
         return sum + (po.product_batch?.stockquantity || 0);
       }, 0);
