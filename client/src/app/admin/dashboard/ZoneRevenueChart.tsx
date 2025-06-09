@@ -72,7 +72,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             margin={{
                                 right: 30,
                                 left: 20,
-                                bottom: 30,
+                                bottom: 10,
                             }}
                         >
                             <CartesianGrid
