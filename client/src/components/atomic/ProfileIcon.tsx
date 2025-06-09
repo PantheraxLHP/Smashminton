@@ -52,9 +52,6 @@ const ProfileIcon = () => {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile')}>
                     Thông tin cá nhân
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/profile?tab=changepassword')}>
-                    Thay đổi mật khẩu
-                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={handleSignoutButtonClick}>
                     Đăng xuất
                 </DropdownMenuItem>
