@@ -40,6 +40,24 @@ export const formatTime = (seconds: number) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+export const formatTimeFull = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+export const formatTimeFullText = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    const hoursText = hours > 0 ? `${hours} giờ ` : '';
+    const minutesText = minutes > 0 ? `${minutes} phút ` : '';
+    const secondsText = remainingSeconds > 0 ? `${remainingSeconds} giây` : '';
+    return `${hoursText}${minutesText}${secondsText}`.trim() || '0 giây';
+}
+
+
 export const formatDateTime = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('vi-VN', {
