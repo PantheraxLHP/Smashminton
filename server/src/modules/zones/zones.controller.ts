@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Upl
 import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/decorators/public.decorator';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -15,7 +15,7 @@ export class ZonesController {
 
     @Post()
     @UseInterceptors(
-        FileInterceptor('avatarurl', {
+        FileInterceptor('zoneimgurl', {
             limits: {
                 fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
             },
@@ -27,8 +27,27 @@ export class ZonesController {
             },
         }),
     )
-    create(@Body() createZoneDto: CreateZoneDto,
-        @UploadedFile() file: Express.Multer.File) {
+    @ApiOperation({
+        summary: 'Create new zone',
+        description: 'Tạo zone mới với ảnh upload'
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'Zone data with image',
+        type: CreateZoneDto,
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Zone created successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Bad request - Invalid file or data'
+    })
+    create(
+        @Body() createZoneDto: CreateZoneDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
         return this.zonesService.create(createZoneDto, file);
     }
 
