@@ -5,31 +5,35 @@ import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { ChartConfig } from "@/components/ui/chart";
 import SingleBarChart from "./SingleBarChart";
-import SingleLineChart from "./SingleLineChart";
-import CustomPieChart from "./CustomPieChart";
 import MultipleBarChart from "./MultipleBarChart";
 import TopCourtChart from "./TopCourtChart";
 import ZoneRevenueChart from "./ZoneRevenueChart";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import NumberOfBookingPerTimeChart from "./NumberOfBookingPerTimeChart";
 
 const topCourtChartConfig: ChartConfig = {
     bookingCount: {
-        label: "Số lần đặt",
-        color: "var(--color-primary)",
-    },
+        label: "Số lượng đặt",
+        color: "var(--color-chart-11)",
+    }
 };
 
-const numberOfOrdersChartConfig: ChartConfig = {
-    orderCount: {
-        label: "Số lượng đơn hàng",
-        color: "var(--color-primary)",
-    }
+const numberOfBookingPerTimeChartConfig: ChartConfig = {
+    time1: {
+        label: "06:00 - 09:00",
+        color: "var(--color-chart-31)",
+    },
+    time2: {
+        label: "09:00 - 12:00",
+        color: "var(--color-chart-32)",
+    },
+    time3: {
+        label: "12:00 - 18:00",
+        color: "var(--color-chart-35)",
+    },
+    time4: {
+        label: "18:00 - 22:00",
+        color: "var(--color-chart-36)",
+    },
 }
 
 const revenuePerZoneChartConfig: ChartConfig = {
@@ -92,34 +96,34 @@ const DashboardPage = () => {
         { courtName: "Sân 10", bookingCount: 30, fill: "var(--color-chart-20)" },
     ]
 
-    const numberOfOrdersData = [
-        { month: "T1", orderCount: 200 },
-        { month: "T2", orderCount: 180 },
-        { month: "T3", orderCount: 220 },
-        { month: "T4", orderCount: 250 },
-        { month: "T5", orderCount: 300 },
-        { month: "T6", orderCount: 280 },
-        { month: "T7", orderCount: 320 },
-        { month: "T8", orderCount: 350 },
-        { month: "T9", orderCount: 400 },
-        { month: "T10", orderCount: 450 },
-        { month: "T11", orderCount: 500 },
-        { month: "T12", orderCount: 550 },
+    const numberOfBookingPerTimeData = [
+        { month: 1, time1: 300, time2: 600, time3: 500, time4: 700 },
+        { month: 2, time1: 400, time2: 700, time3: 600, time4: 800 },
+        { month: 3, time1: 350, time2: 650, time3: 550, time4: 750 },
+        { month: 4, time1: 450, time2: 750, time3: 650, time4: 850 },
+        { month: 5, time1: 500, time2: 800, time3: 700, time4: 900 },
+        { month: 6, time1: 600, time2: 900, time3: 800, time4: 1000 },
+        { month: 7, time1: 700, time2: 1000, time3: 900, time4: 1100 },
+        { month: 8, time1: 800, time2: 1100, time3: 1000, time4: 1200 },
+        { month: 9, time1: 900, time2: 1200, time3: 1100, time4: 1300 },
+        { month: 10, time1: 1000, time2: 1300, time3: 1200, time4: 1400 },
+        { month: 11, time1: 1100, time2: 1400, time3: 1300, time4: 1500 },
+        { month: 12, time1: 1200, time2: 1500, time3: 1400, time4: 1600 },
     ]
 
     const revenuePerZoneData = [
-        { month: 1, zoneA: 5000000, zoneB: 7000000, zoneC: 6000000, zoneD: 8000000 },
-        { month: 2, zoneA: 6000000, zoneB: 8000000, zoneC: 7000000, zoneD: 9000000 },
-        { month: 3, zoneA: 5500000, zoneB: 7500000, zoneC: 6500000, zoneD: 8500000 },
-        { month: 4, zoneA: 6500000, zoneB: 8500000, zoneC: 7500000, zoneD: 9500000 },
-        { month: 5, zoneA: 7000000, zoneB: 9000000, zoneC: 8000000, zoneD: 10000000 },
-        { month: 6, zoneA: 8000000, zoneB: 10000000, zoneC: 9000000, zoneD: 11000000 },
-        { month: 7, zoneA: 9000000, zoneB: 11000000, zoneC: 10000000, zoneD: 12000000 },
-        { month: 8, zoneA: 10000000, zoneB: 12000000, zoneC: 11000000, zoneD: 13000000 },
-        { month: 9, zoneA: 11000000, zoneB: 13000000, zoneC: 12000000, zoneD: 14000000 },
-        { month: 10, zoneA: 12000000, zoneB: 14000000, zoneC: 13000000, zoneD: 15000000 },
-        { month: 11, zoneA: 13000000, zoneB: 15000000, zoneC: 14000000, zoneD: 16000000 },
-        { month: 12, zoneA: 14000000, zoneB: 16000000, zoneC: 15000000, zoneD: 17000000 },
+        { month: 1, zoneA: 5, zoneB: 7, zoneC: 6, zoneD: 8 },
+        { month: 2, zoneA: 6, zoneB: 8, zoneC: 7, zoneD: 9 },
+        { month: 3, zoneA: 7, zoneB: 9, zoneC: 8, zoneD: 10 },
+        { month: 4, zoneA: 8, zoneB: 10, zoneC: 9, zoneD: 11 },
+        { month: 5, zoneA: 9, zoneB: 11, zoneC: 10, zoneD: 12 },
+        { month: 6, zoneA: 10, zoneB: 12, zoneC: 11, zoneD: 13 },
+        { month: 7, zoneA: 11, zoneB: 13, zoneC: 12, zoneD: 14 },
+        { month: 8, zoneA: 12, zoneB: 14, zoneC: 13, zoneD: 15 },
+        { month: 9, zoneA: 13, zoneB: 15, zoneC: 14, zoneD: 16 },
+        { month: 10, zoneA: 14, zoneB: 16, zoneC: 15, zoneD: 17 },
+        { month: 11, zoneA: 15, zoneB: 17, zoneC: 16, zoneD: 18 },
+        { month: 12, zoneA: 16, zoneB: 18, zoneC: 17, zoneD: 19 },
     ]
 
     const revenueOfProductsandRentalsData = [
@@ -255,19 +259,12 @@ const DashboardPage = () => {
                     className=""
                 />
             </div>
-            <div className="flex items-center gap-2 w-full h-80">
-                <SingleLineChart
-                    chartData={numberOfOrdersData}
-                    chartConfig={numberOfOrdersChartConfig}
-                    chartTitle="Số lượng đơn hàng theo tháng"
-                    layout="horizontal"
+            <div className="flex items-center gap-2 w-full h-fit">
+                <NumberOfBookingPerTimeChart
+                    chartData={numberOfBookingPerTimeData}
+                    chartConfig={numberOfBookingPerTimeChartConfig}
                     chartWidth="100%"
                     chartHeight="100%"
-                    xAxisDataType="category"
-                    xAxisDataKey="month"
-                    yAxisDataType="number"
-                    yAxisDataKey="orderCount"
-                    mainDataKey="orderCount"
                     className=""
                 />
                 <MultipleBarChart

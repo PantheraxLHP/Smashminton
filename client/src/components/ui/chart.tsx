@@ -222,7 +222,7 @@ function ChartTooltipContent({
                   )}
                   <div
                     className={cn(
-                      "flex flex-1 justify-between leading-none",
+                      "flex flex-1 justify-between leading-none gap-2",
                       nestLabel ? "items-end" : "items-center"
                     )}
                   >
@@ -290,7 +290,7 @@ function ChartLegendContent({
               <itemConfig.icon />
             ) : (
               <div
-                className="h-2 w-2 shrink-0 rounded-[2px]"
+                className="h-4 w-4 shrink-0 rounded-[2px]"
                 style={{
                   backgroundColor: item.color,
                 }}
