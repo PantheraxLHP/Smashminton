@@ -8,7 +8,7 @@ const BookingDetailFilter = () => {
     const [selectedZone, setSelectedZone] = useState<string>(zones[0]);
 
     return (
-        <div className="w-full max-w-xs rounded-lg border p-4 shadow-md flex flex-col gap-5">
+        <div className="w-full max-w-xs rounded-lg border p-4 shadow-md flex flex-col gap-5 h-full">
             <div className="flex flex-col gap-2">
                 <span className="font-semibold text-lg">Chọn ngày</span>
                 <div className="">

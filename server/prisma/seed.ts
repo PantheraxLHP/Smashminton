@@ -1164,6 +1164,15 @@ async function main() {
         })
     ).map((employee) => employee.employeeid);
 
+    await prisma.student_card.create({
+        data: {
+            studentcardid: 16,
+            schoolname: "University of Science",
+            studentid: "21127081",
+            studyperiod: "12/25"
+        }
+    });
+
     const shiftdates = await prisma.shift_date.findMany({
         select: {
             shiftid: true,
