@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -12,6 +12,7 @@ import {
     ApiConsumes,
     ApiBody,
     ApiParam,
+    ApiResponse,
 } from '@nestjs/swagger';
 import { CustomerService } from '../customers/customers.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
@@ -133,5 +134,50 @@ export class AccountsController {
             throw new NotFoundException('Account not found');
         }
         return this.accountsService.remove(+id);
+    }
+
+    @Put(':id/student-card')
+    @UseInterceptors(FilesInterceptor('files', 2)) // Max 2 files
+    @ApiOperation({
+        summary: 'Update student card with OCR',
+        description: 'Upload 2 student card images to update the student card information.',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiParam({
+        name: 'id',
+        description: 'Account ID',
+        type: Number,
+        example: 1
+    })
+    @ApiBody({
+        description: 'Upload 2 student card images',
+        schema: {
+            type: 'object',
+            properties: {
+                files: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        format: 'binary',
+                    },
+                    maxItems: 2,
+                    description: 'Tối đa 2 ảnh student card',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Update student card successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Account not found'
+    })
+    async updateStudentCard(
+        @Param('id', ParseIntPipe) id: number,
+        @UploadedFiles() files?: Express.Multer.File[]
+    ) {
+        return this.accountsService.updateStudentCard(id, files || []);
     }
 }

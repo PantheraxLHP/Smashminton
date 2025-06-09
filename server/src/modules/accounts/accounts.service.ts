@@ -123,8 +123,14 @@ export class AccountsService {
         return this.prisma.accounts.findMany();
     }
 
-    findOne(id: number) {
-        return this.prisma.accounts.findUnique({ where: { accountid: id } });
+    async findOne(id: number) {
+        const account = await this.prisma.accounts.findUnique({ where: { accountid: id } });
+        if (!account) return null;
+        if (account.accounttype === 'Customer') {
+            const studentCard = await this.prisma.student_card.findUnique({ where: { studentcardid: id } });
+            return { ...account, studentCard };
+        }
+        return account;
     }
 
     findByUsername(username: string) {
@@ -201,5 +207,79 @@ export class AccountsService {
         });
 
         return updatedAccount;
+    }
+
+    async updateStudentCard(accountId: number, files: Express.Multer.File[]): Promise<any> {
+        // Kiểm tra account tồn tại
+        const existingAccount = await this.prisma.accounts.findUnique({
+            where: { accountid: accountId }
+        });
+
+        if (!existingAccount) {
+            throw new BadRequestException('Account not found');
+        }
+
+        // Nếu không có files, trả về thông tin hiện tại
+        if (!files || files.length === 0) {
+            return this.findOne(accountId);
+        }
+
+        // Thực hiện OCR
+        const ocrResults = await Promise.all(
+            files.map(async (file) => {
+                return await this.tesseractOcrService.parseImage(file.buffer);
+            }),
+        );
+
+        // Kiểm tra các JSON trong ocrResults
+        const validResults = ocrResults.filter((ocrData) => {
+            // Kiểm tra nếu tất cả 3 trường đều không rỗng
+            return ocrData.university !== '' && ocrData.id !== '' && ocrData.expiryYear !== '';
+        });
+
+        if (validResults.length === 0) {
+            // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
+            const results = await Promise.all(
+                files.map((file) => this.cloudinaryService.uploadFiles(file)),
+            );
+
+            // Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
+            const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
+                const typedResult = result as { secure_url: string };
+                acc[`img${index + 1}`] = typedResult.secure_url;
+                return acc;
+            }, {} as Record<string, string>);
+
+            // Lưu danh sách URL vào Cache (update cache)
+            if (!existingAccount.username) {
+                throw new BadRequestException('Username is required');
+            }
+            await this.cacheService.setStudentCard(existingAccount.username, JSON.stringify(urlsObject));
+
+            // Trả về kết quả từ findOne với thông tin URLs
+            const accountInfo = await this.findOne(accountId);
+            return accountInfo;
+        }
+
+        // Xóa student card cũ nếu có
+        await this.prisma.student_card.deleteMany({
+            where: { studentcardid: accountId }
+        });
+
+        // Lưu thông tin OCR hợp lệ vào database
+        const studentCards = await Promise.all(
+            validResults.map(async (ocrData) => {
+                return await this.studentCardService.createStudentCard({
+                    studentcardid: accountId,
+                    schoolname: ocrData.university,
+                    studentid: ocrData.id,
+                    studyperiod: ocrData.expiryYear,
+                });
+            }),
+        );
+
+        // Trả về kết quả từ findOne (sẽ bao gồm student card mới)
+        const updatedAccountInfo = await this.findOne(accountId);
+        return updatedAccountInfo;
     }
 }
