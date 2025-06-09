@@ -20,10 +20,10 @@ export interface FoodItem extends BaseItem {
 const rawData: FoodItem[] = [
     { name: 'Set cá viên chiên', category: 'Đồ ăn', price: 50000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png' },
     { name: 'Set cá viên chiên cay', category: 'Đồ ăn', price: 70000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png' },
-    { name: 'Snack O’Star', category: 'Snack', price: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png' },
+    { name: 'Snack O’Star', category: 'Đồ ăn', price: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png' },
     { name: 'Revive', category: 'Nước uống', price: 15000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png' },
-    { name: 'Pocari (Hết hạn)', category: 'Nước uống', price: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png' },
-    { name: 'Pocari (Sắp hết hạn)', category: 'Nước uống', price: 15000, lot: '2', expiry: '2025-05-28', stock: 30, image: '/default.png' },
+    { name: 'Pocari', category: 'Nước uống', price: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png' },
+    { name: 'Pocari', category: 'Nước uống', price: 15000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png' },
 ];
 
 const processDataWithStatus = (data: FoodItem[]) => {

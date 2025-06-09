@@ -18,3 +18,4 @@ export async function GET() {
         return ApiResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
     }
 }
+

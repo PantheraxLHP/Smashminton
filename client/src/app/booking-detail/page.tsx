@@ -5,7 +5,7 @@ import BookingDetailCourtList from "./BookingDetailCourtList";
 const BookingDetailPage = () => {
 
     return (
-        <div className="flex flex-col sm:flex-row items-center sm:items-start p-4 gap-4">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start p-4 gap-4 w-full">
             <BookingDetailFilter />
             <BookingDetailCourtList />
         </div>
