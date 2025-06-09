@@ -341,7 +341,7 @@ async function main() {
             await prisma.employees.create({
                 data: {
                     employeeid: employeeIds[i],
-                    employee_type: 'Bán thời gian',
+                    employee_type: 'Part-time',
                     cccd: `079212345678`,
                     expiry_cccd: new Date('2045-01-01'),
                     role: 'employee',
@@ -1199,11 +1199,11 @@ async function main() {
 
         let status: string;
         if (index < groupSize) {
-            status = 'Confirmed';
+            status = 'confirmed';
         } else if (index < groupSize * 2) {
-            status = 'Pending';
+            status = 'pending';
         } else {
-            status = 'Refused';
+            status = 'refused';
         }
 
         await prisma.shift_assignment.create({

@@ -46,38 +46,12 @@ export class ShiftDateService {
   getShiftDateByDayFromDayToByEmployee(dayfrom: string, dayto: string, employeeid: number) {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
     const dayToDate = new Date(dayto + 'T23:59:59');
-    return this.prisma.shift_date.findMany({
+    return this.prisma.shift_assignment.findMany({
       where: {
+        employeeid: employeeid,
         shiftdate: {
           gte: dayFromDate,
           lte: dayToDate,
-        },
-        shift_assignment: {
-          some: {
-            employees: {
-              employeeid: employeeid,
-            },
-          },
-        },
-      },
-      select: {
-        shiftid: true,
-        shiftdate: true,
-        shift_assignment: {
-          select: {
-            employees: {
-              select: {
-                employeeid: true,
-                employee_type: true,
-                accounts: {
-                  select: {
-                    fullname: true,
-                    avatarurl: true,
-                  },
-                },
-              },
-            },
-          },
         },
       },
     });
@@ -117,7 +91,7 @@ export class ShiftDateService {
 
     // Tìm tất cả các employee không có trong danh sách trên
     const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts);
-    
+
     return employeesNotInShifts;
   }
   create(createShiftDateDto: CreateShiftDateDto) {
