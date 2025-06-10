@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { ShiftDateService } from './shift_date.service';
 import { CreateShiftDateDto } from './dto/create-shift_date.dto';
 import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
-import { ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 
 @Controller('shift-date')
 export class ShiftDateController {
@@ -110,23 +111,20 @@ export class ShiftDateController {
     return this.shiftDateService.getEmployeesNotInShift(date, starttime, endtime, employee_type, +page, +pageSize);
   }
 
-  @Post()
-  create(@Body() createShiftDateDto: CreateShiftDateDto) {
-    return this.shiftDateService.create(createShiftDateDto);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shiftDateService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShiftDateDto: UpdateShiftDateDto) {
-    return this.shiftDateService.update(+id, updateShiftDateDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shiftDateService.remove(+id);
+  @Patch('update-shift-assignment')
+  @ApiOperation({ summary: 'Update shift assignment status' })
+  @ApiBody({ type: UpdateShiftAssignmentDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Update shift assignment status successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data',
+  })
+  async updateShiftAssignment(
+    @Body() updateShiftAssignmentDto: UpdateShiftAssignmentDto
+  ) {
+    return this.shiftDateService.updateShiftEnrollment(updateShiftAssignmentDto);
   }
 }

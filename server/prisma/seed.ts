@@ -647,24 +647,24 @@ async function main() {
 
     for (const shift of shifts) {
         for (let i = 0; i < 7; i++) {
-          // Lấy ngày hiện tại
-          const day = new Date(nextWeekStart);
-          day.setDate(nextWeekStart.getDate() + i);
-      
-          for (const hour of shiftTimes) {
-            // Tạo thời gian bắt đầu ca
-            const shiftDate = new Date(day);
-            shiftDate.setHours(hour, 0, 0, 0);
-      
-            await prisma.shift_date.create({
-              data: {
-                shiftid: shift.shiftid,
-                shiftdate: shiftDate,
-              },
-            });
-          }
+            // Lấy ngày hiện tại
+            const day = new Date(nextWeekStart);
+            day.setDate(nextWeekStart.getDate() + i);
+
+            for (const hour of shiftTimes) {
+                // Tạo thời gian bắt đầu ca
+                const shiftDate = new Date(day);
+                shiftDate.setHours(hour, 0, 0, 0);
+
+                await prisma.shift_date.create({
+                    data: {
+                        shiftid: shift.shiftid,
+                        shiftdate: shiftDate,
+                    },
+                });
+            }
         }
-      }
+    }
 
     await prisma.zones.createMany({
         data: [
@@ -1221,10 +1221,8 @@ async function main() {
         const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
 
         let status: string;
-        if (index < groupSize) {
-            status = 'confirmed';
-        } else if (index < groupSize * 2) {
-            status = 'pending';
+        if (index < Math.ceil(totalEmployees / 2)) {
+            status = 'approved';
         } else {
             status = 'refused';
         }
