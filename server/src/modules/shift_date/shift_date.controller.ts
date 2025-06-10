@@ -64,16 +64,28 @@ export class ShiftDateController {
 
   @Get('employees-not-in-shift')
   @ApiQuery({
-    name: 'dayfrom',
+    name: 'date',
     required: true,
-    description: 'Start date in format YYYY-MM-DD',
+    description: 'Date in format YYYY-MM-DD',
     example: '2025-05-25',
   })
   @ApiQuery({
-    name: 'dayto',
+    name: 'starttime',
     required: true,
-    description: 'End date in format YYYY-MM-DD',
-    example: '2025-05-30',
+    description: 'Start time in format HH:MM',
+    example: '06:00',
+  })
+  @ApiQuery({
+    name: 'endtime',
+    required: true,
+    description: 'End time in format HH:MM',
+    example: '10:00',
+  })
+  @ApiQuery({
+    name: 'employee_type',
+    required: false,
+    description: 'Type of employee to filter',
+    example: 'Full-time',
   })
   @ApiQuery({
     name: 'page',
@@ -85,15 +97,17 @@ export class ShiftDateController {
     name: 'pageSize',
     required: false,
     description: 'Number of items per page',
-    example: 10,
+    example: 6,
   })
   getEmployeesNotInShift(
-    @Query('dayfrom') dayfrom: string,
-    @Query('dayto') dayto: string,
+    @Query('date') date: string,
+    @Query('starttime') starttime: string,
+    @Query('endtime') endtime: string,
+    @Query('employee_type') employee_type: string,
     @Query('page') page: number,
     @Query('pageSize') pageSize: number,
   ) {
-    return this.shiftDateService.getEmployeesNotInShift(dayfrom, dayto, +page, +pageSize);
+    return this.shiftDateService.getEmployeesNotInShift(date, starttime, endtime, employee_type, +page, +pageSize);
   }
 
   @Post()

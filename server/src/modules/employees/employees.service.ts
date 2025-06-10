@@ -192,7 +192,7 @@ export class EmployeesService {
     return employeeRole.role || '';
   }
 
-  async getEmployeeIdNotInArrayId(employeeIdsInShifts: number[], page: number, limit: number): Promise<PaginatedResult<any>> {
+  async getEmployeeIdNotInArrayId(employeeIdsInShifts: number[], employee_type: string, page: number, limit: number): Promise<PaginatedResult<any>> {
     const skip = (page - 1) * limit;
     const take = limit;
     const employees = await this.prisma.employees.findMany({
@@ -200,6 +200,13 @@ export class EmployeesService {
         employeeid: {
           notIn: employeeIdsInShifts,
         },
+        employee_type: employee_type,
+        role: {
+          not: 'admin',
+        },
+        accounts: {
+          status: 'Active',
+        }
       },
       select: {
         employeeid: true,
@@ -222,6 +229,13 @@ export class EmployeesService {
         employeeid: {
           notIn: employeeIdsInShifts,
         },
+        employee_type: employee_type,
+        role: {
+          not: 'admin',
+        },
+        accounts: {
+          status: 'Active',
+        }
       },
     });
     const totalPages = Math.ceil(total / limit);

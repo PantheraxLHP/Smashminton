@@ -64,9 +64,9 @@ export class ShiftDateService {
     });
   }
 
-  async getEmployeesNotInShift(dayfrom: string, dayto: string, page: number = 1, pageSize: number = 6) {
-    const dayFromDate = new Date(dayfrom + 'T00:00:00');
-    const dayToDate = new Date(dayto + 'T23:59:59');
+  async getEmployeesNotInShift(date: string, starttime: string, endtime: string,employee_type: string, page: number = 1, pageSize: number = 6) {
+    const dayFromDate = new Date(date + 'T' + starttime);
+    const dayToDate = new Date(date + 'T' + endtime);
     // Lấy danh sách employeeid đã có trong shift_assignment
     const employeesInShifts = await this.prisma.shift_date.findMany({
       where: {
@@ -95,7 +95,7 @@ export class ShiftDateService {
       .map((employee) => employee.employeeid);
 
     // Tìm tất cả các employee không có trong danh sách trên
-    const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts, page, pageSize);
+    const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts, employee_type, page, pageSize);
 
     return employeesNotInShifts;
   }
