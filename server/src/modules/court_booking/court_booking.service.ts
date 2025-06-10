@@ -430,16 +430,4 @@ export class CourtBookingService {
   findAll() {
     return this.prisma.court_booking.findMany();
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} courtBooking`;
-  }
-
-  update(id: number, updateCourtBookingDto: UpdateCourtBookingDto) {
-    return `This action updates a #${id} courtBooking`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} courtBooking`;
-  }
 }

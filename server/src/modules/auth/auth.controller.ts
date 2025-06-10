@@ -43,7 +43,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly accountsService: AccountsService,
-    ) {}
+    ) { }
 
     @Post('signin')
     @UseGuards(LocalAuthGuard)
@@ -104,22 +104,22 @@ export class AuthController {
     @Public()
     @ApiOperation({ summary: 'User Sign Up', description: 'Register a new user.' })
     @UseInterceptors(
-      FilesInterceptor('studentCard', 2, {
-        limits: {
-          fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
-        },
-        fileFilter: (req, file, cb) => {
-          if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-            return cb(new Error('Only image files are allowed!'), false);
-          }
-          cb(null, true);
-        },
-      }),
+        FilesInterceptor('studentCard', 2, {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
     )
     @ApiConsumes('multipart/form-data') // Định nghĩa loại dữ liệu là multipart/form-data
     @ApiBody({
-      description: 'Signup with profile pictures',
-      type: SignupAuthDto,
+        description: 'Signup with profile pictures',
+        type: SignupAuthDto,
     })
     async signUp(
         @Body() signupAuthDto: SignupAuthDto,
@@ -127,8 +127,8 @@ export class AuthController {
     ) {
         return this.accountsService.createCustomer(
             {
-            ...signupAuthDto,
-            studentCard: files.map((file) => file.filename), // Lưu tên file vào DTO hoặc cơ sở dữ liệu
+                ...signupAuthDto,
+                studentCard: files.map((file) => file.filename), // Lưu tên file vào DTO hoặc cơ sở dữ liệu
             },
             files, // Pass the files array as the second argument
         );
@@ -139,15 +139,5 @@ export class AuthController {
     @Roles('hr_manager')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
-    }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.authService.findOne(+id);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.authService.remove(+id);
     }
 }
