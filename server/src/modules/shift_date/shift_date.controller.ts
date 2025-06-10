@@ -28,7 +28,7 @@ export class ShiftDateController {
     return this.shiftDateService.getShiftDateByDayFromDayTo(dayfrom, dayto);
   }
 
-  @Get(':employeeid')
+  @Get('shift-assignment/:employeeid')
   @ApiParam({
     name: 'employeeid',
     required: true,
@@ -68,11 +68,25 @@ export class ShiftDateController {
     description: 'End date in format YYYY-MM-DD',
     example: '2025-05-30',
   })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Number of items per page',
+    example: 10,
+  })
   getEmployeesNotInShift(
     @Query('dayfrom') dayfrom: string,
     @Query('dayto') dayto: string,
+    @Query('page') page: number,
+    @Query('pageSize') pageSize: number,
   ) {
-    return this.shiftDateService.getEmployeesNotInShift(dayfrom, dayto);
+    return this.shiftDateService.getEmployeesNotInShift(dayfrom, dayto, +page, +pageSize);
   }
 
   @Post()
