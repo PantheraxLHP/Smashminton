@@ -10,7 +10,7 @@ export class ShiftDateService {
     private prisma: PrismaService,
     private employeesService: EmployeesService,
   ) { }
-  getShiftDateByDayFromDayTo(dayfrom: string, dayto: string) {
+  getShiftDateByDayFromDayTo(dayfrom: string, dayto: string, employee_type: string) {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
     const dayToDate = new Date(dayto + 'T23:59:59');
     return this.prisma.shift_date.findMany({
@@ -19,6 +19,13 @@ export class ShiftDateService {
           gte: dayFromDate,
           lte: dayToDate,
         },
+        shift_assignment: {
+          some: {
+            employees: {
+              employee_type: employee_type
+            }
+          }
+        }
       },
       select: {
         shiftid: true,
@@ -86,7 +93,6 @@ export class ShiftDateService {
       .flatMap((shift) => shift.shift_assignment)
       .flatMap((assignment) => assignment.employees)
       .map((employee) => employee.employeeid);
-    console.log('employeeIdsInShifts', employeeIdsInShifts);
 
     // Tìm tất cả các employee không có trong danh sách trên
     const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts, page, pageSize);

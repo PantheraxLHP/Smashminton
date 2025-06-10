@@ -21,11 +21,18 @@ export class ShiftDateController {
     description: 'End date in format YYYY-MM-DD',
     example: '2025-05-30',
   })
+  @ApiQuery({
+    name: 'employee_type',
+    required: false,
+    type: String,
+    example: 'Full-time'
+  })
   getShiftDateByDayFromDayToForHrManager(
     @Query('dayfrom') dayfrom: string,
     @Query('dayto') dayto: string,
+    @Query('employee_type') employee_type: string,
   ) {
-    return this.shiftDateService.getShiftDateByDayFromDayTo(dayfrom, dayto);
+    return this.shiftDateService.getShiftDateByDayFromDayTo(dayfrom, dayto, employee_type);
   }
 
   @Get('shift-assignment/:employeeid')
