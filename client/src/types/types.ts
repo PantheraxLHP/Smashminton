@@ -138,7 +138,6 @@ export interface Orders {
     orderid: number;
     ordertype?: string;
     orderdate?: Date;
-    returndate?: Date;
     totalprice?: number;
     status?: string;
     employeeid?: number;
@@ -298,6 +297,7 @@ export interface Suppliers {
     address?: string;
     createdat?: Date;
     updatedat?: Date;
+    supply_products?: SupplyProducts[];
     purchase_order?: PurchaseOrder[];
 }
 
