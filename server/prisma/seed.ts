@@ -417,33 +417,33 @@ async function main() {
     await prisma.shift.createMany({
         data: [
             {
-                shiftstarthour: '06:00:00',
-                shiftendhour: '14:00:00',
+                shiftstarthour: '06:00',
+                shiftendhour: '14:00',
                 shifttype: 'Full-time',
             },
             {
-                shiftstarthour: '14:00:00',
-                shiftendhour: '22:00:00',
+                shiftstarthour: '14:00',
+                shiftendhour: '22:00',
                 shifttype: 'Full-time',
             },
             {
-                shiftstarthour: '06:00:00',
-                shiftendhour: '10:00:00',
+                shiftstarthour: '06:00',
+                shiftendhour: '10:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '10:00:00',
-                shiftendhour: '14:00:00',
+                shiftstarthour: '10:00',
+                shiftendhour: '14:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '14:00:00',
-                shiftendhour: '18:00:00',
+                shiftstarthour: '14:00',
+                shiftendhour: '18:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '18:00:00',
-                shiftendhour: '22:00:00',
+                shiftstarthour: '18:00',
+                shiftendhour: '22:00',
                 shifttype: 'Part-time',
             },
         ],
@@ -1205,10 +1205,10 @@ async function main() {
     await prisma.student_card.create({
         data: {
             studentcardid: 16,
-            schoolname: "University of Science",
-            studentid: "21127081",
-            studyperiod: "12/25"
-        }
+            schoolname: 'University of Science',
+            studentid: '21127081',
+            studyperiod: '12/25',
+        },
     });
 
     const shiftdates = await prisma.shift_date.findMany({
@@ -2526,7 +2526,7 @@ async function main() {
             ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
             orderdate: orderDate,
             totalprice: 100000 + i * 10000,
-            status: i % 3 === 0 ? 'Hoàn thành' : (i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra'),
+            status: i % 3 === 0 ? 'Hoàn thành' : i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
             customerid: 15, // hoặc chọn customerid phù hợp
         });
 
@@ -2540,7 +2540,7 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: startTime,
             totalprice: 200000 + i * 5000,
-            bookingstatus: i % 3 === 0 ? 'confirmed' : (i % 3 === 1 ? 'pending' : 'completed'),
+            bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
             createdat: startTime,
             updatedat: endTime,
             employeeid: 2 + (i % 5),

@@ -53,7 +53,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
             <div
                 className={`text-center text-sm font-semibold text-white ${colorIndex[shiftDataSingle.shiftid - 1]} h-fit rounded-t-lg p-1`}
             >
-                {`${getShift(shiftDataSingle)?.shift?.shiftstarthour} - ${getShift(shiftDataSingle)?.shift?.shiftendhour}`}
+                {`${getShift(shiftDataSingle as ShiftDate)?.shiftstarthour} - ${getShift(shiftDataSingle as ShiftDate)?.shiftendhour}`}
             </div>
             {/*Phần nội dụng bên trong của ShiftCard*/}
             <div
