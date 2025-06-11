@@ -25,7 +25,6 @@ export interface Court {
     timecalavg: string;
     zonename: string; 
 }
-  
 
 const rawZone: Zone[] = [
     { zonename: 'Zone A', type: 'Cool', image: '/default.png', description: 'Khu vực mát mẻ' },
