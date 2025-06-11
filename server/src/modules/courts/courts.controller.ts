@@ -41,7 +41,33 @@ export class CourtsController {
         return this.courtsService.createCourt(createCourtDto, file);
     }
 
-
+    @Patch(':id')
+    @ApiOperation({ summary: 'update court' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'udpate court body',
+        type: CreateCourtDto,
+    })
+    @UseInterceptors(
+        FileInterceptor('courtimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    updateCourt(
+        @Param('id') id: number,
+        @Body() updateCourtDto: UpdateCourtDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.courtsService.updateCourt(+id, updateCourtDto, file);
+    }
 
 
 

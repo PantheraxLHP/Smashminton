@@ -46,6 +46,35 @@ export class CourtsService {
         };
     }
 
+    async updateCourt(id: number, updateCourtDto: UpdateCourtDto, file: Express.Multer.File) {
+        let imageUrl = updateCourtDto.courtimgurl;
+
+        if (file) {
+            const uploadResult = await this.cloudinaryService.uploadCourtImg(file);
+            imageUrl = uploadResult.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Upload ảnh thất bại');
+            }
+        }
+
+        const zoneIdAsNumber = updateCourtDto.zoneid ? +updateCourtDto.zoneid : undefined;
+
+        const updated = await this.prisma.courts.update({
+            where: { courtid: id },
+            data: {
+                ...updateCourtDto,
+                zoneid: zoneIdAsNumber,
+                courtimgurl: imageUrl,
+                timecalculateavg: updateCourtDto.timecalculateavg || new Date(),
+            },
+        });
+
+        return {
+            message: 'Cập nhật sân thành công',
+            data: updated,
+        };
+    }
+
     findAll() {
         return `This action returns all courts`;
     }
