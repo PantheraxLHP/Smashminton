@@ -28,6 +28,13 @@ export class ZonesController {
             },
         }),
     )
+
+    @Get('all-zones-with-courts')
+    @ApiOperation({ description: 'Get all zones with their associated courts' })
+    getZonesWithCourts() {
+        return this.zonesService.getZonesWithCourts();
+    }
+
     @ApiOperation({
         summary: 'Create new zone',
         description: 'Tạo zone mới với ảnh upload'

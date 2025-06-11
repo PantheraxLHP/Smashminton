@@ -92,6 +92,7 @@ model courts {
   courtid          Int             @id @default(autoincrement())
   courtname        String?
   courtimgurl      String?
+  status           String?
   avgrating        Decimal?        @db.Decimal
   timecalculateavg DateTime?       @db.Timestamptz(6)
   zoneid           Int?
