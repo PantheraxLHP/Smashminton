@@ -2491,6 +2491,192 @@ async function main() {
             },
         ],
     });
+
+    // === SEED 10 ORDERS, 10 BOOKINGS, 10 RECEIPTS ===
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const orderData: any[] = [];
+    const bookingData: any[] = [];
+    const receiptData: any[] = [];
+    let ordersList: any[] = [];
+    let bookingsList: any[] = [];
+
+    for (let i = 0; i < 10; i++) {
+        // Order: mỗi cái cách nhau 2 tiếng
+        const orderDate = new Date(today);
+        orderDate.setHours(6 + i * 2);
+
+        orderData.push({
+            ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+            orderdate: orderDate,
+            totalprice: 100000 + i * 10000,
+            status: i % 3 === 0 ? 'Hoàn thành' : (i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra'),
+            customerid: 15, // hoặc chọn customerid phù hợp
+        });
+
+        // Booking: mỗi cái cách nhau 2 tiếng, kéo dài 1 tiếng
+        const startTime = new Date(today);
+        startTime.setHours(6 + i * 2);
+        const endTime = new Date(startTime);
+        endTime.setHours(startTime.getHours() + 1);
+
+        bookingData.push({
+            guestphone: '0987654321',
+            bookingdate: startTime,
+            totalprice: 200000 + i * 5000,
+            bookingstatus: i % 3 === 0 ? 'confirmed' : (i % 3 === 1 ? 'pending' : 'completed'),
+            createdat: startTime,
+            updatedat: endTime,
+            employeeid: 2 + (i % 5),
+            customerid: 16,
+            voucherid: null,
+        });
+    }
+
+    // Insert orders
+    const createdOrders = await prisma.orders.createMany({ data: orderData, skipDuplicates: true });
+    // Insert bookings
+    const createdBookings = await prisma.bookings.createMany({ data: bookingData, skipDuplicates: true });
+
+    // Lấy lại orderid và bookingid vừa tạo
+    ordersList = await prisma.orders.findMany({ orderBy: { orderid: 'desc' }, take: 10 });
+    bookingsList = await prisma.bookings.findMany({ orderBy: { bookingid: 'desc' }, take: 10 });
+
+    // Thêm court_booking cho mỗi booking
+    for (let i = 0; i < bookingsList.length; i++) {
+        await prisma.court_booking.create({
+            data: {
+                date: bookingsList[i].bookingdate,
+                starttime: bookingsList[i].bookingdate,
+                endtime: new Date(new Date(bookingsList[i].bookingdate).getTime() + 60 * 60 * 1000), // +1h
+                duration: 1,
+                bookingid: bookingsList[i].bookingid,
+                courtid: (i % 8) + 1, // giả sử có 8 sân
+            },
+        });
+    }
+
+    // Thêm order_product cho mỗi order
+    for (let i = 0; i < ordersList.length; i++) {
+        // Sản phẩm chính
+        await prisma.order_product.create({
+            data: {
+                orderid: ordersList[i].orderid,
+                productid: (i % 5) + 1, // giả sử có 5 sản phẩm
+                quantity: 2,
+                returndate: null,
+            },
+        });
+        // Lấy date từ court_booking của booking tương ứng
+        const relatedCourtBooking = await prisma.court_booking.findFirst({
+            where: { bookingid: bookingsList[i].bookingid },
+            select: { date: true },
+        });
+        const rentalDate = relatedCourtBooking?.date || new Date();
+        // Thêm các sản phẩm vợt cầu lông (id 14-18) với returndate là date của court_booking
+        for (let pid = 14; pid <= 18; pid++) {
+            await prisma.order_product.create({
+                data: {
+                    orderid: ordersList[i].orderid,
+                    productid: pid,
+                    quantity: 1,
+                    returndate: rentalDate,
+                },
+            });
+        }
+    }
+
+    // Tạo receipts cho từng order và booking
+    for (let i = 0; i < 10; i++) {
+        receiptData.push({
+            paymentmethod: 'momo',
+            totalamount: 100000 + i * 10000,
+            createdat: new Date(ordersList[i].orderdate.getTime() + 5 * 60 * 1000),
+            orderid: ordersList[i].orderid,
+            bookingid: bookingsList[i].bookingid,
+        });
+    }
+
+    // Insert receipts
+    await prisma.receipts.createMany({ data: receiptData, skipDuplicates: true });
+
+    // === SEED 3 trạng thái booking/court_booking/receipt: completed, ongoing, upcoming ===
+    const nowTest = new Date();
+    // Completed
+    const completedStart = new Date(nowTest.getTime() - 3 * 60 * 60 * 1000);
+    const completedEnd = new Date(nowTest.getTime() - 2 * 60 * 60 * 1000);
+    // Ongoing
+    const ongoingStart = new Date(nowTest.getTime() - 30 * 60 * 1000);
+    const ongoingEnd = new Date(nowTest.getTime() + 30 * 60 * 1000);
+    // Upcoming
+    const upcomingStart = new Date(nowTest.getTime() + 2 * 60 * 60 * 1000);
+    const upcomingEnd = new Date(nowTest.getTime() + 3 * 60 * 60 * 1000);
+
+    // Tạo 3 booking
+    const testBookings: any[] = [];
+    for (let i = 0; i < 3; i++) {
+        const data = {
+            guestphone: '090000000' + (i + 1),
+            bookingdate: [completedStart, ongoingStart, upcomingStart][i],
+            totalprice: 100000 * (i + 1),
+            bookingstatus: 'confirmed',
+            employeeid: 2,
+            customerid: 16,
+            voucherid: null,
+        };
+        const booking = await prisma.bookings.create({ data });
+        testBookings.push(booking);
+    }
+    // Tạo 3 order tương ứng
+    const testOrders: any[] = [];
+    for (let i = 0; i < 3; i++) {
+        const data = {
+            ordertype: 'Bán hàng',
+            orderdate: [completedStart, ongoingStart, upcomingStart][i],
+            totalprice: 100000 * (i + 1),
+            status: 'Hoàn thành',
+            customerid: 15,
+        };
+        const order = await prisma.orders.create({ data });
+        testOrders.push(order);
+    }
+    // Tạo court_booking cho từng booking
+    for (let i = 0; i < 3; i++) {
+        await prisma.court_booking.create({
+            data: {
+                date: [completedStart, ongoingStart, upcomingStart][i],
+                starttime: [completedStart, ongoingStart, upcomingStart][i],
+                endtime: [completedEnd, ongoingEnd, upcomingEnd][i],
+                duration: 1,
+                bookingid: testBookings[i].bookingid,
+                courtid: 10 + i, // dùng courtid khác để không trùng
+            },
+        });
+    }
+    // Tạo order_product cho từng order
+    for (let i = 0; i < 3; i++) {
+        await prisma.order_product.create({
+            data: {
+                orderid: testOrders[i].orderid,
+                productid: 14 + i, // vợt cầu lông
+                quantity: 1,
+                returndate: [completedStart, ongoingStart, upcomingStart][i],
+            },
+        });
+    }
+    // Tạo receipts liên kết đúng bookingid và orderid
+    for (let i = 0; i < 3; i++) {
+        await prisma.receipts.create({
+            data: {
+                paymentmethod: 'momo',
+                totalamount: 100000 * (i + 1),
+                createdat: new Date([completedEnd, ongoingEnd, upcomingEnd][i].getTime() + 5 * 60 * 1000),
+                orderid: testOrders[i].orderid,
+                bookingid: testBookings[i].bookingid,
+            },
+        });
+    }
 }
 
 main()
