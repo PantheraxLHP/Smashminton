@@ -3,6 +3,7 @@ import { CreateShiftDateDto } from './dto/create-shift_date.dto';
 import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
+import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 
 @Injectable()
 export class ShiftDateService {
@@ -64,9 +65,9 @@ export class ShiftDateService {
     });
   }
 
-  async getEmployeesNotInShift(dayfrom: string, dayto: string, page: number = 1, pageSize: number = 6) {
-    const dayFromDate = new Date(dayfrom + 'T00:00:00');
-    const dayToDate = new Date(dayto + 'T23:59:59');
+  async getEmployeesNotInShift(date: string, starttime: string, endtime: string, employee_type: string, page: number = 1, pageSize: number = 6) {
+    const dayFromDate = new Date(date + 'T' + starttime);
+    const dayToDate = new Date(date + 'T' + endtime);
     // Lấy danh sách employeeid đã có trong shift_assignment
     const employeesInShifts = await this.prisma.shift_date.findMany({
       where: {
@@ -95,27 +96,26 @@ export class ShiftDateService {
       .map((employee) => employee.employeeid);
 
     // Tìm tất cả các employee không có trong danh sách trên
-    const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts, page, pageSize);
+    const employeesNotInShifts = await this.employeesService.getEmployeeIdNotInArrayId(employeeIdsInShifts, employee_type, page, pageSize);
 
     return employeesNotInShifts;
   }
-  create(createShiftDateDto: CreateShiftDateDto) {
-    return 'This action adds a new shiftDate';
-  }
 
-  findAll() {
-    return `This action returns all shiftDate`;
-  }
+  async updateShiftEnrollment(updateShiftAssignmentDto: UpdateShiftAssignmentDto) {
+    const { employeeid, shiftid, shiftdate, assignmentstatus } = updateShiftAssignmentDto;
 
-  findOne(id: number) {
-    return `This action returns a #${id} shiftDate`;
-  }
-
-  update(id: number, updateShiftDateDto: UpdateShiftDateDto) {
-    return `This action updates a #${id} shiftDate`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} shiftDate`;
+    // Cập nhật assignmentstatus cho shift_assignment theo khóa chính (employeeid, shiftid, shiftdate)
+    return this.prisma.shift_assignment.update({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate),
+        },
+      },
+      data: {
+        assignmentstatus,
+      },
+    });
   }
 }

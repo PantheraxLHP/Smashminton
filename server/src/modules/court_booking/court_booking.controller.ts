@@ -107,19 +107,4 @@ export class CourtBookingController {
     findAll() {
         return this.courtBookingService.findAll();
     }
-
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.courtBookingService.findOne(+id);
-    }
-
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updateCourtBookingDto: UpdateCourtBookingDto) {
-        return this.courtBookingService.update(+id, updateCourtBookingDto);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.courtBookingService.remove(+id);
-    }
 }

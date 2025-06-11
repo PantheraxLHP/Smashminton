@@ -6,11 +6,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class ProductTypesService {
   constructor(private prisma: PrismaService) { }
-
-  create(createProductTypeDto: CreateProductTypeDto) {
-    return 'This action adds a new productType';
-  }
-
   findAllProductFilters() {
     return this.prisma.product_types.findMany({
       include: {
@@ -203,13 +198,5 @@ export class ProductTypesService {
         totalPages: totalPages
       },
     }
-  }
-
-  update(id: number, updateProductTypeDto: UpdateProductTypeDto) {
-    return `This action updates a #${id} productType`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} productType`;
   }
 }

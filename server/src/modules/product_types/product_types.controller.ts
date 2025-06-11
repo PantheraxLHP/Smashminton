@@ -16,11 +16,6 @@ import {
 export class ProductTypesController {
   constructor(private readonly productTypesService: ProductTypesService) { }
 
-  @Post()
-  create(@Body() createProductTypeDto: CreateProductTypeDto) {
-    return this.productTypesService.create(createProductTypeDto);
-  }
-
   @Get('all-product-filters')
   findAllProductFilters() {
     return this.productTypesService.findAllProductFilters();
@@ -56,16 +51,5 @@ export class ProductTypesController {
       ? productFilterValueQuery.split(',').map((v) => +v)
       : undefined;
     return this.productTypesService.findAllProductsFromProductType(+id, filterValues, pageNumber, pageSizeNumber);
-  }
-
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductTypeDto: UpdateProductTypeDto) {
-    return this.productTypesService.update(+id, updateProductTypeDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productTypesService.remove(+id);
   }
 }

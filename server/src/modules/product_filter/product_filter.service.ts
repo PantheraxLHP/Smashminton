@@ -5,30 +5,13 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ProductFilterService {
-  constructor (private prisma: PrismaService) {
-    }
-  
-  create(createProductFilterDto: CreateProductFilterDto) {
-    return 'This action adds a new productFilter';
+  constructor(private prisma: PrismaService) {
   }
-
   findAll() {
     return this.prisma.product_filter.findMany({
       include: {
         product_filter_values: true,
       },
     });
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} productFilter`;
-  }
-
-  update(id: number, updateProductFilterDto: UpdateProductFilterDto) {
-    return `This action updates a #${id} productFilter`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} productFilter`;
   }
 }

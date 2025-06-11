@@ -325,12 +325,12 @@ async function main() {
     });
 
     for (let i = 0; i < employeeIds.length; i++) {
-        if (i <= 3) {
+        if (i <= 50) {
             await prisma.employees.create({
                 data: {
                     employeeid: employeeIds[i],
                     employee_type: 'Full-time',
-                    role: defaultRoles[i],
+                    role: defaultRoles[i] ?? 'employee',
                     cccd: `079212345678`,
                     expiry_cccd: new Date('2045-01-01'),
                     salary: 5000000,
@@ -629,17 +629,40 @@ async function main() {
     const shiftDate = new Date(nextWeekStart);
     shiftDate.setHours(0, 0, 0, 0);
 
+    // for (const shift of shifts) {
+    //     for (let i = 0; i < 7; i++) {
+    //         shiftDate.setDate(nextWeekStart.getDate() + i);
+    //         await prisma.shift_date.createMany({
+    //             data: [
+    //                 {
+    //                     shiftid: shift.shiftid,
+    //                     shiftdate: shiftDate,
+    //                 },
+    //             ],
+    //         });
+    //     }
+    // }
+
+    const shiftTimes = [6, 10, 14, 18];
+
     for (const shift of shifts) {
         for (let i = 0; i < 7; i++) {
-            shiftDate.setDate(nextWeekStart.getDate() + i);
-            await prisma.shift_date.createMany({
-                data: [
-                    {
+            // Lấy ngày hiện tại
+            const day = new Date(nextWeekStart);
+            day.setDate(nextWeekStart.getDate() + i);
+
+            for (const hour of shiftTimes) {
+                // Tạo thời gian bắt đầu ca
+                const shiftDate = new Date(day);
+                shiftDate.setHours(hour, 0, 0, 0);
+
+                await prisma.shift_date.create({
+                    data: {
                         shiftid: shift.shiftid,
                         shiftdate: shiftDate,
                     },
-                ],
-            });
+                });
+            }
         }
     }
 
@@ -1198,10 +1221,8 @@ async function main() {
         const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
 
         let status: string;
-        if (index < groupSize) {
-            status = 'confirmed';
-        } else if (index < groupSize * 2) {
-            status = 'pending';
+        if (index < Math.ceil(totalEmployees / 2)) {
+            status = 'approved';
         } else {
             status = 'refused';
         }

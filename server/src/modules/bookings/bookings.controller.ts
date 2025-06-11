@@ -72,26 +72,4 @@ export class BookingsController {
   deleteCourtBookingFromCache(@Body() DeleteCourtBookingDto: deleteCourtBookingDto) {
     return this.bookingsService.removeCourtBookingFromCache(DeleteCourtBookingDto);
   }
-
-
-
-  @Get()
-  findAll() {
-    return this.bookingsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookingsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
-    return this.bookingsService.update(+id, updateBookingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookingsService.remove(+id);
-  }
 }
