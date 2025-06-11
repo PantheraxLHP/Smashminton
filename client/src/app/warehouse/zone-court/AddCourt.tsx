@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { Court } from "./page";
+import { getZones } from "@/services/zones.service";
 
 interface CourtModalProps {
     open: boolean;
@@ -30,12 +31,12 @@ export default function AddCourtModal({
     }
 
     const [formData, setFormData] = useState<Court>({
-        zoneid: 0,
         courtname: "",
         image: "",
         status: "Đang hoạt động",
         avgrating: 0,
         timecalavg: "2025-06-04",
+        zonename: "",
     });
 
     useEffect(() => {
@@ -44,12 +45,12 @@ export default function AddCourtModal({
             return;
         } else {
             setFormData({
-                zoneid: 0,
                 courtname: "",
                 image: "",
                 status: "Đang hoạt động",
                 avgrating: 0,
                 timecalavg: "2025-06-04",
+                zonename: "",
             });
         }
     }, [open]);
@@ -164,7 +165,7 @@ export default function AddCourtModal({
                             <div className="relative">
                                 <select
                                     name="zoneid"
-                                    value={formData.zoneid}
+                                    value={formData.zonename}
                                     onChange={(e) =>
                                         setFormData((prev) => ({
                                             ...prev,

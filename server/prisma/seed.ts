@@ -417,33 +417,33 @@ async function main() {
     await prisma.shift.createMany({
         data: [
             {
-                shiftstarthour: '06:00:00',
-                shiftendhour: '14:00:00',
+                shiftstarthour: '06:00',
+                shiftendhour: '14:00',
                 shifttype: 'Full-time',
             },
             {
-                shiftstarthour: '14:00:00',
-                shiftendhour: '22:00:00',
+                shiftstarthour: '14:00',
+                shiftendhour: '22:00',
                 shifttype: 'Full-time',
             },
             {
-                shiftstarthour: '06:00:00',
-                shiftendhour: '10:00:00',
+                shiftstarthour: '06:00',
+                shiftendhour: '10:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '10:00:00',
-                shiftendhour: '14:00:00',
+                shiftstarthour: '10:00',
+                shiftendhour: '14:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '14:00:00',
-                shiftendhour: '18:00:00',
+                shiftstarthour: '14:00',
+                shiftendhour: '18:00',
                 shifttype: 'Part-time',
             },
             {
-                shiftstarthour: '18:00:00',
-                shiftendhour: '22:00:00',
+                shiftstarthour: '18:00',
+                shiftendhour: '22:00',
                 shifttype: 'Part-time',
             },
         ],
@@ -1202,13 +1202,24 @@ async function main() {
         })
     ).map((employee) => employee.employeeid);
 
+    const fulltimeEmployeeIds = (
+        await prisma.employees.findMany({
+            select: {
+                employeeid: true,
+            },
+            where: {
+                employee_type: 'Full-time',
+            },
+        })
+    ).map((employee) => employee.employeeid);
+
     await prisma.student_card.create({
         data: {
             studentcardid: 16,
-            schoolname: "University of Science",
-            studentid: "21127081",
-            studyperiod: "12/25"
-        }
+            schoolname: 'University of Science',
+            studentid: '21127081',
+            studyperiod: '12/25',
+        },
     });
 
     const shiftdates = await prisma.shift_date.findMany({
@@ -1229,14 +1240,50 @@ async function main() {
         });
     });
 
-    const totalEmployees = parttimeEmployeeIds.length;
-    const groupSize = Math.ceil(totalEmployees / 3);
-
-    parttimeEmployeeIds.forEach(async (employeeId, index) => {
+    fulltimeEmployeeIds.forEach(async (employeeId) => {
         const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
+        await prisma.shift_enrollment.create({
+            data: {
+                employeeid: employeeId,
+                shiftid: randomShiftDate.shiftid,
+                shiftdate: randomShiftDate.shiftdate,
+            },
+        });
+    });
+
+    const totalEmployeesParttime = parttimeEmployeeIds.length;
+    const totalEmployeesFulltime = fulltimeEmployeeIds.length;
+    const groupSize = Math.ceil(totalEmployeesParttime / 3);
+
+    fulltimeEmployeeIds.forEach(async (employeeId, index) => {
+        // Chỉ lấy shiftid 3,4,5,6
+        const filteredShiftDates = shiftdates.filter(sd => [1,2].includes(sd.shiftid));
+        const randomShiftDate = filteredShiftDates[Math.floor(Math.random() * filteredShiftDates.length)];
 
         let status: string;
-        if (index < Math.ceil(totalEmployees / 2)) {
+        if (index < Math.ceil(totalEmployeesParttime / 2)) {
+            status = 'approved';
+        } else {
+            status = 'refused';
+        }
+
+        await prisma.shift_assignment.create({
+            data: {
+                employeeid: employeeId,
+                shiftid: randomShiftDate.shiftid,
+                shiftdate: randomShiftDate.shiftdate,
+                assignmentstatus: status,
+            },
+        });
+    });
+
+    parttimeEmployeeIds.forEach(async (employeeId, index) => {
+        // Chỉ lấy shiftid 3,4,5,6
+        const filteredShiftDates = shiftdates.filter(sd => [3, 4, 5, 6].includes(sd.shiftid));
+        const randomShiftDate = filteredShiftDates[Math.floor(Math.random() * filteredShiftDates.length)];
+
+        let status: string;
+        if (index < Math.ceil(totalEmployeesParttime / 2)) {
             status = 'approved';
         } else {
             status = 'refused';
@@ -2526,7 +2573,7 @@ async function main() {
             ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
             orderdate: orderDate,
             totalprice: 100000 + i * 10000,
-            status: i % 3 === 0 ? 'Hoàn thành' : (i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra'),
+            status: i % 3 === 0 ? 'Hoàn thành' : i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
             customerid: 15, // hoặc chọn customerid phù hợp
         });
 
@@ -2540,7 +2587,7 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: startTime,
             totalprice: 200000 + i * 5000,
-            bookingstatus: i % 3 === 0 ? 'confirmed' : (i % 3 === 1 ? 'pending' : 'completed'),
+            bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
             createdat: startTime,
             updatedat: endTime,
             employeeid: 2 + (i % 5),

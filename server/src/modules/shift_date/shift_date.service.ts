@@ -36,7 +36,7 @@ export class ShiftDateService {
 			select: {
 				shiftid: true,
 				shiftdate: true,
-				shift:{
+				shift: {
 					select: {
 						shiftstarthour: true,
 						shiftendhour: true,
@@ -59,20 +59,7 @@ export class ShiftDateService {
 					},
 				},
 			},
-		}).then(results =>
-			// Lọc employees theo employee_type ở phía code
-			results.map(shift => ({
-				...shift,
-				shift_assignment: shift.shift_assignment.map(assignment => ({
-					...assignment,
-					employees: assignment.employees
-						? Array.isArray(assignment.employees)
-							? assignment.employees.filter(e => e.employee_type === employee_type)
-							: [assignment.employees].filter(e => e && e.employee_type === employee_type)
-						: []
-				}))
-			}))
-		);
+		})
 	}
 
 	getShiftDateByDayFromDayToByEmployee(dayfrom: string, dayto: string, employeeid: number) {
