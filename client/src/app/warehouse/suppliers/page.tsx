@@ -20,7 +20,6 @@ export default function SupplierManagementPage() {
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         phone: '',
-        email: '',
     });
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -50,7 +49,6 @@ export default function SupplierManagementPage() {
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên', },
         { filterid: 'phone', filtertype: 'search', filterlabel: 'Tìm theo số điện thoại',},
-        { filterid: 'email', filtertype: 'search', filterlabel: 'Tìm theo email', },
     ];
 
     const columns: Column<Supplier>[] = [
@@ -65,9 +63,7 @@ export default function SupplierManagementPage() {
             !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
         const matchesPhone =
             !filters.phone || item.phone.includes(filters.phone);
-        const matchesEmail =
-            !filters.email || item.email.toLowerCase().includes(filters.email.toLowerCase());
-        return matchesName && matchesPhone && matchesEmail;
+        return matchesName && matchesPhone;
     });
 
     const handleEdit = (index: number) => {

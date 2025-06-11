@@ -1,52 +1,76 @@
 'use client';
 
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import React, { useRef, useEffect, useState } from 'react';
+import { FoodItem } from './page';
+import { FaPen } from "react-icons/fa";
 
-export interface FoodFormData {
-    name: string;
-    price: string;
-    category: string;
-    stock: string;
-    lot: string;
-    expiry: string;
-}
+const predefinedCategories = ["Đồ ăn", "Đồ uống", "Snack"];
 
 interface FoodModalProps {
     open: boolean;
     onClose: () => void;
-    onSubmit?: (data: FoodFormData) => void;
-    editData?: FoodFormData | null;
+    onSubmit?: (data: FoodItem) => void;
+    editData?: FoodItem | null;
 }
 
 export default function FoodModal({ open, onClose, onSubmit, editData }: FoodModalProps) {
+    const [foodAvatar, setFoodAvatar] = useState<File | null>(null);
+    const [foodPreview, setFoodPreview] = useState<string>("");
+    const [categoryOpen, setCategoryOpen] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
-    const [formData, setFormData] = useState<FoodFormData>({
+    const [formData, setFormData] = useState<FoodItem>({
         name: '',
-        price: '',
+        sellingprice: 0,
+        costprice: 0,
         category: '',
-        stock: '',
+        stock: 0,
         lot: '',
         expiry: '',
+        discount: 0,
+        image: '/default.png',
     });
 
     useEffect(() => {
         if (editData) {
             setFormData(editData);
+            setFoodPreview(editData.image);
         } else {
             setFormData({
                 name: '',
-                price: '',
+                sellingprice: 0,
+                costprice: 0,
                 category: '',
-                stock: '',
+                stock: 0,
                 lot: '',
                 expiry: '',
+                discount: 0,
+                image: '/default.png',
             });
         }
     }, [editData, open]);
 
+    const popoverRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(target) &&
+                popoverRef.current &&
+                !popoverRef.current.contains(target)
+            ) {
                 onClose();
             }
         }
@@ -72,6 +96,14 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
         onClose();
     }
 
+    const handleFoodImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFoodAvatar(file);
+            setFoodPreview(URL.createObjectURL(file));
+        }
+    };
+
     if (!open) return null;
 
     return (
@@ -85,47 +117,126 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 >
                     <h2 className="text-lg font-semibold mb-6">Thêm đồ ăn / Thức uống</h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label className="block text-sm mb-1">Tên đồ ăn, thức uống</label>
-                            <input
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
+                    <div className="flex flex-col sm:flex-row gap-6 mb-6">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="relative w-24 h-24">
+                                {foodPreview ? (
+                                    <img
+                                        src={foodPreview}
+                                        alt="food Preview"
+                                        className="w-24 h-24 rounded-full object-cover border"
+                                    />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-full bg-gray-200 border flex items-center justify-center text-gray-500 text-xl">
+                                        📷
+                                    </div>
+                                )}
+                                <label htmlFor="food-upload-file">
+                                    <div className="absolute bottom-0 right-0 p-1 bg-gray-200 rounded-full border hover:bg-gray-300 cursor-pointer">
+                                        <FaPen size={14} />
+                                    </div>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFoodImageChange}
+                                    className="hidden"
+                                    id="food-upload-file"
+                                />
+                            </div>
+                            <p className="text-sm text-gray-500">Ảnh food</p>
                         </div>
-                        <div>
-                            <label className="block text-sm mb-1">Giá</label>
-                            <input
-                                name="price"
-                                value={formData.price}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Loại</label>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            >
-                                <option value="">Chọn loại</option>
-                                <option value="Đồ ăn">Đồ ăn</option>
-                                <option value="Nước uống">Nước uống</option>
-                                {/* <option value="Phụ kiện khác">Phụ kiện khác</option> */}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Tồn kho</label>
-                            <input
-                                name="stock"
-                                value={formData.stock}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
+                        <div className="flex-1 grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm mb-1">Tên đồ ăn, thức uống</label>
+                                <input
+                                    name="name"
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm mb-1">Giá bán</label>
+                                <input
+                                    name="sellingprice"
+                                    type="number"
+                                    value={formData.sellingprice}
+                                    onChange={handleChange}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm mb-1">Giá nhập</label>
+                                <input
+                                    name="costprice"
+                                    type="number"
+                                    value={formData.costprice}
+                                    onChange={handleChange}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm mb-1">Loại</label>
+                                <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
+                                        >
+                                            {formData.category || "Chọn hoặc nhập loại"}
+                                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0" ref={popoverRef}>
+                                        <Command
+                                            shouldFilter={false}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    setCategoryOpen(false); // đóng popover
+                                                }
+                                            }}
+                                        >
+                                            <CommandInput
+                                                placeholder="Nhập loại mới hoặc chọn..."
+                                                value={formData.category}
+                                                onValueChange={(input) =>
+                                                    setFormData((prev) => ({ ...prev, category: input }))
+                                                }
+                                            />
+                                            <CommandEmpty>
+                                                <div className="p-2 text-sm text-muted-foreground">
+                                                    Không tìm thấy. Nhấn Enter để dùng loại mới: <strong>{formData.category}</strong>
+                                                </div>
+                                            </CommandEmpty>
+                                            <CommandGroup heading="Loại có sẵn">
+                                                {predefinedCategories.map((item) => (
+                                                    <CommandItem
+                                                        key={item}
+                                                        value={item}
+                                                        onSelect={() => {
+                                                            setFormData((prev) => ({ ...prev, category: item }));
+                                                            setCategoryOpen(false); // đóng popover khi chọn
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                formData.category === item ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {item}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         </div>
                     </div>
 

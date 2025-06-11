@@ -3,22 +3,37 @@ import { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const response = await fetch(`${process.env.SERVER}/api/v1/zones`, {
-            headers: {
-                'Content-Type': 'application/json',
-                credentials: 'include',
-            },
+        const formData = await request.formData();
+
+        const zonename = formData.get('zonename')?.toString() || '';
+        const zonetype = formData.get('zonetype')?.toString() || '';
+        const zonedescription = formData.get('zonedescription')?.toString() || '';
+        const imageFile = formData.get('image') as File | null;
+
+        const backendForm = new FormData();
+        backendForm.append('zonename', zonename);
+        backendForm.append('zonetype', zonetype);
+        backendForm.append('zonedescription', zonedescription);
+        if (imageFile) {
+            backendForm.append('zoneimgurl', imageFile);
+        }
+
+        const backendUrl = `${process.env.SERVER}/api/v1/zones/new-zone`;
+
+        const response = await fetch(backendUrl, {
             method: 'POST',
-            body: JSON.stringify(body),
+            body: backendForm,
+            credentials: 'include',
         });
 
         if (!response.ok) {
-            return ApiResponse.error(`HTTP error! Status: ${response.status}`);
+            const text = await response.text();
+            return ApiResponse.error(`Backend error ${response.status}: ${text}`);
         }
+
         const result = await response.json();
         return ApiResponse.success(result);
-    } catch (error) {
-        return ApiResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    } catch (err) {
+        return ApiResponse.error(err instanceof Error ? err.message : 'Lỗi route POST Zone');
     }
 }

@@ -4,26 +4,38 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
-import FoodModal, { FoodFormData } from './AddFood';
+import FoodModal from './AddFood';
+import { getProductFilters, getProducts } from '@/services/products.service';
+import { ProductTypes, Products } from '@/types/types';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { BaseItem } from '@/components/warehouse/OrderForm';
 
-export interface FoodItem extends BaseItem {
+export interface FoodItem{
+    name: string;
+    sellingprice: number;
+    costprice: number;
     category: string;
     lot: string;
     expiry: string;
     stock: number;
     image: string;
     status?: string;
+    discount?: number;
 }
 
+// interface Food extends Products {
+//     lot: number;
+//     expiry: string;
+//     stock: number;
+//     discount: number;
+// }
+
 const rawData: FoodItem[] = [
-    { name: 'Set cá viên chiên', category: 'Đồ ăn', price: 50000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png' },
-    { name: 'Set cá viên chiên cay', category: 'Đồ ăn', price: 70000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png' },
-    { name: 'Snack O’Star', category: 'Đồ ăn', price: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png' },
-    { name: 'Revive', category: 'Nước uống', price: 15000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png' },
-    { name: 'Pocari', category: 'Nước uống', price: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png' },
-    { name: 'Pocari', category: 'Nước uống', price: 15000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png' },
+    { name: 'Set cá viên chiên', category: 'Đồ ăn', sellingprice: 50000, costprice: 40000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png', discount: 0 },
+    { name: 'Set cá viên chiên cay', category: 'Đồ ăn', sellingprice: 70000, costprice: 60000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png', discount: 0 },
+    { name: 'Snack O’Star', category: 'Đồ ăn', sellingprice: 25000, costprice: 20000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png', discount: 0 },
+    { name: 'Revive', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png', discount: 0 },
+    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png', discount: 0 },
+    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png', discount: 0.1 },
 ];
 
 const processDataWithStatus = (data: FoodItem[]) => {
@@ -51,7 +63,7 @@ export default function FoodAndBeveragePage() {
     const [data, setData] = useState<FoodItem[]>([]);
     const [filteredData, setFilteredData] = useState<FoodItem[]>([]);
     const [openModal, setOpenModal] = useState(false);
-    const [editData, setEditData] = useState<FoodFormData | null>(null);
+    const [editData, setEditData] = useState<FoodItem | null>(null);
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<FoodItem | null>(null);
 
@@ -67,7 +79,7 @@ export default function FoodAndBeveragePage() {
         const processed = processDataWithStatus(rawData);
         setData(processed);
 
-        const prices = processed.map((d) => d.price);
+        const prices = processed.map((d) => d.sellingprice);
         setFilters((prev) => ({
             ...prev,
             price: [Math.min(...prices), Math.max(...prices)],
@@ -82,8 +94,8 @@ export default function FoodAndBeveragePage() {
             const matchesPrice =
                 Array.isArray(filters.price) &&
                 filters.price.length === 2 &&
-                item.price >= filters.price[0] &&
-                item.price <= filters.price[1];
+                item.sellingprice >= filters.price[0] &&
+                item.sellingprice <= filters.price[1];
             const matchesLot = filters.lot.length === 0 || filters.lot.includes(item.lot);
 
             return matchesName && matchesCategory && matchesPrice && matchesLot;
@@ -111,7 +123,8 @@ export default function FoodAndBeveragePage() {
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        { header: 'Giá / đơn vị tính', accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND` },
+        { header: 'Giá bán / sản phẩm', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND` },
+        { header: 'Giá nhập / sản phẩm', accessor: (item) => `${item.costprice.toLocaleString('vi-VN')} VND` },
         { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
         { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
@@ -126,6 +139,7 @@ export default function FoodAndBeveragePage() {
                         ? 'text-red-600'
                         : 'text-green-600',
         },
+        {header: 'Giảm giá', accessor: (item) => item.discount ? `${(item.discount * 100).toFixed(0)}%` : 'Không có', align: 'center' },
     ];
 
     const handleEdit = (index: number) => {
@@ -133,10 +147,13 @@ export default function FoodAndBeveragePage() {
         setEditData({
             name: item.name,
             category: item.category,
-            price: String(item.price),
+            sellingprice: item.sellingprice,
+            costprice: item.costprice,
             lot: item.lot,
             expiry: item.expiry,
-            stock: String(item.stock),
+            stock: item.stock,
+            image: item.image,
+            discount: item.discount || 0,
         });
         setOpenModal(true);
     };
@@ -154,13 +171,14 @@ export default function FoodAndBeveragePage() {
         setOpenOrderForm(true);
     };
 
-    const handleSubmit = (formData: FoodFormData) => {
+    const handleSubmit = (formData: FoodItem) => {
         const newFood: FoodItem = {
             name: formData.name,
             category: formData.category,
             lot: formData.lot,
             expiry: formData.expiry,
-            price: Number(formData.price),
+            sellingprice: Number(formData.sellingprice),
+            costprice: Number(formData.costprice),
             stock: Number(formData.stock),
             image: '/default.png',
         };
@@ -207,7 +225,7 @@ export default function FoodAndBeveragePage() {
                         }}
                         className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                     >
-                        Thêm
+                        Thêm sản phẩm
                     </button>
                 </div>
 

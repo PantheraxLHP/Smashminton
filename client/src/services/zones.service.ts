@@ -31,26 +31,14 @@ export const getZones = async () => {
     }
 };
 
-export const postZones = async (zoneData: {
-    zonename?: string;
-    image?: string;
-    description?: string;
-    type?: string; 
-}) => {
+export const postZones = async (formData: FormData) => {
     try {
-        const mappedData = {
-            zonename: zoneData.zonename,
-            zonetype: zoneData.type,
-            zoneimgurl: zoneData.image,
-            zonedescription: zoneData.description,
-        };
-
         const response = await fetch('/api/zones/post-zone', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mappedData),
+            body: formData,
             credentials: 'include',
         });
+
         const result = await response.json();
 
         if (!response.ok) {
@@ -59,7 +47,9 @@ export const postZones = async (zoneData: {
 
         return ServiceResponse.success(result.data);
     } catch (error) {
-        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu'
+        );
     }
 };
 

@@ -4,23 +4,23 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
-import AccessoryModal, { AccessoryFormData } from './AddAccessories';
+import AccessoryModal from './AddAccessories';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { BaseItem } from '@/components/warehouse/OrderForm';
 
-interface Accessory extends BaseItem {
+export interface Accessory{
+    name: string;
+    sellingprice: number;
+    costprice: number;
     category: string;
-    brand: string;
-    distributor: string;
     stock: number;
     image: string;
 }
 const rawData: Accessory[] = [
-    { name: 'Grip Yonex', category: 'Grip', price: 50000, stock: 100, brand: 'Yonex', image: '/default.png', distributor: ''},
-    { name: 'Grip Lining', category: 'Grip', price: 40000, stock: 80, brand: 'Lining', image: '/default.png', distributor: ''},
-    { name: 'Balo Yonex', category: 'Bag', price: 800000, stock: 20, brand: 'Yonex', image: '/default.png', distributor: ''},
-    { name: 'Túi đựng vợt', category: 'Bag', price: 600000, stock: 15, brand: 'Lining', image: '/default.png', distributor: ''},
-    { name: 'Bình nước', category: 'Other', price: 100000, stock: 50, brand: 'Other', image: '/default.png', distributor: ''},
+    { name: 'Grip Yonex', category: 'Grip', sellingprice: 50000, costprice: 40000, stock: 100, image: '/default.png'},
+    { name: 'Grip Lining', category: 'Grip', sellingprice: 40000, costprice: 30000, stock: 80, image: '/default.png'},
+    { name: 'Balo Yonex', category: 'Bag', sellingprice: 800000, costprice: 650000, stock: 20, image: '/default.png'},
+    { name: 'Túi đựng vợt', category: 'Bag', sellingprice: 600000, costprice: 500000, stock: 15, image: '/default.png'},
+    { name: 'Bình nước', category: 'Other', sellingprice: 100000, costprice: 90000, stock: 50, image: '/default.png'},
 ];
 
 const getUniqueOptions = (data: Accessory[], key: keyof Accessory) => {
@@ -31,7 +31,7 @@ export default function AccessoryPage() {
     const [data, setData] = useState<Accessory[]>([]);
     const [filteredData, setFilteredData] = useState<Accessory[]>([]);
     const [openModal, setOpenModal] = useState(false);
-    const [editData, setEditData] = useState<AccessoryFormData | null>(null);
+    const [editData, setEditData] = useState<Accessory | null>(null);
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<Accessory | null>(null);
 
@@ -44,7 +44,7 @@ export default function AccessoryPage() {
 
     useEffect(() => {
         setData(rawData);
-        const prices = rawData.map((d) => d.price);
+        const prices = rawData.map((d) => d.sellingprice);
         setFilters((prev) => ({
             ...prev,
             price: [Math.min(...prices), Math.max(...prices)],
@@ -55,13 +55,12 @@ export default function AccessoryPage() {
         const result = data.filter((item) => {
             const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
-            const matchesBrand = filters.brand.length === 0 || filters.brand.includes(item.brand);
             const matchesPrice =
                 Array.isArray(filters.price) &&
                 filters.price.length === 2 &&
-                item.price >= filters.price[0] &&
-                item.price <= filters.price[1];
-            return matchesName && matchesCategory && matchesBrand && matchesPrice;
+                item.sellingprice >= filters.price[0] &&
+                item.sellingprice <= filters.price[1];
+            return matchesName && matchesCategory && matchesPrice;
         });
         setFilteredData(result);
     }, [filters, data]);
@@ -71,24 +70,18 @@ export default function AccessoryPage() {
         optionvalue: option,
     }));
 
-    const brandOptions: FilterOption[] = getUniqueOptions(data, 'brand').map((option) => ({
-        optionlabel: option,
-        optionvalue: option,
-    }));
-
     const filtersConfig: FilterConfig[] = [
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
         { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
-        { filterid: 'brand', filterlabel: 'THƯƠNG HIỆU', filtertype: 'checkbox', filteroptions: brandOptions },
         { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1000000 },
     ];
 
     const columns: Column<Accessory>[] = [
         { header: 'Tên phụ kiện', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        { header: 'Thương hiệu', accessor: 'brand' },
-        { header: 'Giá', accessor: (item) => `${item.price.toLocaleString('vi-VN')} VND`, align: 'center' },
+        { header: 'Giá bán', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND`, align: 'center' },
+        { header: 'Giá nhập', accessor: (item) => `${item.costprice.toLocaleString('vi-VN')} VND`, align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
     ];
 
@@ -97,10 +90,10 @@ export default function AccessoryPage() {
         setEditData({
             name: item.name,
             category: item.category,
-            brand: item.brand,
-            price: String(item.price),
-            stock: String(item.stock),
-            distributor: item.distributor,
+            sellingprice: item.sellingprice,
+            stock: item.stock,
+            costprice: item.costprice,
+            image: item.image,
         });
         setOpenModal(true);
     };
@@ -118,15 +111,14 @@ export default function AccessoryPage() {
         setOpenOrderForm(true);
     };
 
-    const handleSubmit = (formData: AccessoryFormData) => {
+    const handleSubmit = (formData: Accessory) => {
         const newAccessory: Accessory = {
             name: formData.name,
             category: formData.category,
-            brand: formData.brand,
-            price: Number(formData.price),
+            sellingprice: Number(formData.sellingprice),
             stock: Number(formData.stock),
             image: '/default.png',
-            distributor: formData.distributor || '',
+            costprice: formData.costprice
         };
 
         if (editData) {
@@ -165,7 +157,7 @@ export default function AccessoryPage() {
                         }}
                         className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                     >
-                        Thêm
+                        Thêm phụ kiện
                     </button>
                 </div>
 
