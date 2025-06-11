@@ -53,3 +53,23 @@ export const postZones = async (formData: FormData) => {
     }
 };
 
+export const getZoneCourt = async () => {
+    try {
+        const res = await fetch('/api/zones/get-zone-court');
+        const result = await res.json();
+
+        if (!res.ok) {
+            return ServiceResponse.error(result.message);
+        }
+
+        const featuredZones = result.data.zones.map((zone: Zones) => ({
+            ...zone,
+            feature: featureTranslations[zone.zonetype || ''] || 'Không có thông tin',
+        }));
+        // Return a ServiceResponse object with the 'zones' as featuredZones in the 'data' property
+        return ServiceResponse.success({ zones: featuredZones });
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+    }
+};
+
