@@ -1,15 +1,15 @@
 'use client';
 
-import { useParams, notFound, useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
-import { startOfWeek, endOfWeek, getWeek } from 'date-fns';
-import { DateRange } from 'react-day-picker';
-import ShiftFilter from '@/components/shiftAssignment/ShiftFilter';
 import AssignmentCalendar from '@/components/shiftAssignment/AssignmentCalendar';
 import PersonalShift from '@/components/shiftAssignment/PersonalShift';
+import ShiftFilter from '@/components/shiftAssignment/ShiftFilter';
 import { useAuth } from '@/context/AuthContext';
-import { ShiftAssignment, ShiftEnrollment, ShiftDate } from '@/types/types';
 import { getShiftDate } from '@/services/shiftdate.service';
+import { ShiftAssignment, ShiftDate, ShiftEnrollment } from '@/types/types';
+import { endOfWeek, getWeek, startOfWeek } from 'date-fns';
+import { notFound, useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { DateRange } from 'react-day-picker';
 
 const VALID_TYPES = ['enrollments', 'assignments'];
 
@@ -29,27 +29,45 @@ const ShiftAssignmentPage = () => {
     const [weekNumber, setWeekNumber] = useState<number>(getWeek(today, { weekStartsOn: 1 }));
     const [year, setYear] = useState<number>(today.getFullYear());
     const [selectedRadio, setSelectedRadio] = useState<string>('fulltime');
-    const { user, setUser } = useAuth();
-    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]>([]);
-    const [personalShift, setPersonalShift] = useState<ShiftAssignment[] | ShiftEnrollment[]>([]);
+    const { user } = useAuth();
+    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
+    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
 
-    const getRoleToEmployeeType = (role: string): string => {
-        const roleToEmployeeTypeMap: Record<string, string> = {
-            employee: 'Part-time',
-            wh_manager: 'Full-time',
-            hr_manager: 'Full-time',
-        };
-        return roleToEmployeeTypeMap[role] || '';
+    const formatEmployeeType = (selectedRadio: string | undefined) => {
+        if (selectedRadio === 'fulltime') {
+            return 'Full-time';
+        } else if (selectedRadio === 'parttime') {
+            return 'Part-time';
+        }
     };
+
+    useEffect(() => {
+        if (type === 'enrollments' && (user?.role === 'wh_manager' || user?.role === 'hr_manager')) {
+            router.push('/assignments');
+            return;
+        }
+
+        if (type === 'enrollments' && user?.role === 'employee') {
+            setSelectedRadio('assignable');
+        } else if (type === 'assignments' && user?.role === 'hr_manager') {
+            setSelectedRadio('fulltime');
+        }
+    }, [type, user, router]);
 
     useEffect(() => {
         const fetchShiftDate = async () => {
             if (selectedWeek.from && selectedWeek.to && user?.role) {
                 try {
-                    const employeeType = getRoleToEmployeeType(user.role);
-                    const response = await getShiftDate(selectedWeek.from, selectedWeek.to, employeeType);
+                    const response = await getShiftDate(
+                        selectedWeek.from,
+                        selectedWeek.to,
+                        formatEmployeeType(selectedRadio) || '',
+                    );
+
                     if (response.ok) {
-                        setShiftData(response.data as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
+                        setShiftData(response.data);
+                        setPersonalShift(response.data.enrollments || response.data.assignments || []);
+                        console.log(response.data);
                     } else {
                         console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                     }
@@ -58,69 +76,9 @@ const ShiftAssignmentPage = () => {
                 }
             }
         };
+
         fetchShiftDate();
-    }, [selectedWeek, user]);
-
-    const fetchData = useCallback(
-        (userRole: string, pageType: string, radioValue: string) => {
-            if (pageType === 'enrollments') {
-                if (userRole === 'employee') {
-                    setPersonalShift(shiftData as ShiftAssignment[] | ShiftEnrollment[]);
-
-                    if (radioValue === 'assignable') {
-                        setShiftData(shiftData as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
-                    } else if (radioValue === 'assigned') {
-                        setShiftData(shiftData as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
-                    }
-                }
-            } else if (pageType === 'assignments') {
-                if (userRole === 'hr_manager') {
-                    setShiftData(shiftData as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
-                } else if (userRole === 'wh_manager') {
-                    setPersonalShift(shiftData as ShiftAssignment[] | ShiftEnrollment[]);
-                    setShiftData(shiftData as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
-                } else if (userRole === 'employee') {
-                    setPersonalShift(shiftData as ShiftAssignment[] | ShiftEnrollment[]);
-                    setShiftData(shiftData as ShiftDate[] | ShiftAssignment[] | ShiftEnrollment[]);
-                }
-            }
-        },
-        [shiftData],
-    );
-
-    useEffect(() => {
-        if (!user) {
-            const localUser = {
-                accountid: 9999,
-                sub: 9999,
-                username: 'testing',
-                accounttype: 'testing',
-                role: 'hr_manager',
-            };
-            setUser(localUser);
-            // ! router.push("/signin");
-            return;
-        }
-
-        if (type === 'enrollments' && (user.role === 'wh_manager' || user.role === 'hr_manager')) {
-            router.push('/assignments');
-            return;
-        }
-
-        if (type === 'enrollments' && user.role === 'employee') {
-            setSelectedRadio('assignable');
-        } else if (type === 'assignments' && user.role === 'hr_manager') {
-            setSelectedRadio('fulltime');
-        }
-
-        fetchData(user.role as string, type as string, selectedRadio);
-    }, [user, type, router]);
-
-    useEffect(() => {
-        if (user) {
-            fetchData(user.role as string, type as string, selectedRadio);
-        }
-    }, [selectedRadio, user, type]);
+    }, [selectedWeek, user, selectedRadio]);
 
     return (
         <div className="flex h-[95vh] w-full flex-col items-center justify-center gap-5 p-4 sm:flex-row sm:items-start">
@@ -150,7 +108,7 @@ const ShiftAssignmentPage = () => {
                 selectedRadio={selectedRadio}
                 role={user?.role}
                 type={type as 'enrollments' | 'assignments'}
-                shiftData={shiftData}
+                shiftData={shiftData || []}
             />
         </div>
     );

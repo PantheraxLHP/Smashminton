@@ -53,51 +53,51 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
             <div
                 className={`text-center text-sm font-semibold text-white ${colorIndex[shiftDataSingle.shiftid - 1]} h-fit rounded-t-lg p-1`}
             >
-                {`${getShift(shiftDataSingle)?.shiftstarthour} - ${getShift(shiftDataSingle)?.shiftendhour}`}
+                {`${getShift(shiftDataSingle)?.shift?.shiftstarthour} - ${getShift(shiftDataSingle)?.shift?.shiftendhour}`}
             </div>
             {/*Phần nội dụng bên trong của ShiftCard*/}
             <div
                 className={`z-2 flex h-full flex-col gap-2 rounded-b-lg border-r-2 border-b-2 border-l-2 bg-white p-2 hover:${borderColorIndex[shiftDataSingle.shiftid - 1]}`}
             >
                 {type === 'assignments' &&
-                    role === 'hr_manager' &&
-                    (((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) > 0 ? (
-                        <>
-                            <div className="flex items-center gap-2">
-                                <Icon icon="lucide:user-round-check" className="text-2xl" />
-                                <span className="">
-                                    <span className="font-bold">{confirmCount}</span>/
-                                    {(shiftDataSingle as ShiftDate).shift_assignment?.length || 0} Xác nhận
-                                </span>
-                            </div>
-                            <div className="flex items-center -space-x-5">
-                                {(shiftDataSingle as ShiftDate).shift_assignment
-                                    ?.slice(0, 5)
-                                    .map((assignment: ShiftAssignment, index: number) => (
-                                        <div
-                                            key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${assignment.shiftdate.getTime()}-${index}`}
-                                            className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
-                                        >
-                                            <Image
-                                                src={`${assignment.employees?.accounts?.avatarurl || '/logo.png'}`}
-                                                alt={`Nhân viên ${assignment.employeeid}`}
-                                                width={40}
-                                                height={40}
-                                                className="rounded-full object-cover"
-                                            />
-                                        </div>
-                                    ))}
-
-                                {((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) > 5 && (
-                                    <div className="border-primary bg-primary-50 text-primary relative flex aspect-square h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold">
-                                        +{((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) - 5}
+                role === 'hr_manager' &&
+                ((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) > 0 ? (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Icon icon="lucide:user-round-check" className="text-2xl" />
+                            <span className="">
+                                <span className="font-bold">{confirmCount}</span>/
+                                {(shiftDataSingle as ShiftDate).shift_assignment?.length || 0} Xác nhận
+                            </span>
+                        </div>
+                        <div className="flex items-center -space-x-5">
+                            {(shiftDataSingle as ShiftDate).shift_assignment
+                                ?.slice(0, 5)
+                                .map((assignment: ShiftAssignment, index: number) => (
+                                    <div
+                                        key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate).getTime()}-${index}`}
+                                        className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
+                                    >
+                                        <Image
+                                            src={`${assignment.employees?.accounts?.avatarurl || '/logo.png'}`}
+                                            alt={`Nhân viên ${assignment.employeeid}`}
+                                            width={40}
+                                            height={40}
+                                            className="rounded-full object-cover"
+                                        />
                                     </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
-                    ))}
+                                ))}
+
+                            {((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) > 5 && (
+                                <div className="border-primary bg-primary-50 text-primary relative flex aspect-square h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold">
+                                    +{((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) - 5}
+                                </div>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
+                )}
                 {type === 'assignments' && (role === 'employee' || role === 'wh_manager') && (
                     <div className="flex flex-col gap-2">
                         <Button

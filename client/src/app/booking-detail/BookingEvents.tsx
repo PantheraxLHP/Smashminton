@@ -77,7 +77,7 @@ const BookingEvents: React.FC<BookingEventsProps> = ({
                     </div>
                     {/*Check length của sản phẩm vs dịch vụ ở đây để tạo Accordion*/}
                     <Accordion type="multiple" className="w-full">
-                        {/*Check length của sản phẩm để tạo AccordionItem*/}
+                        {/*Check length của sản phẩm để tạo     AccordionItem*/}
                         <AccordionItem value="accordion-item-1" className="">
                             <AccordionTrigger className="text-lg !py-1 cursor-pointer">
                                 <div className="flex items-center gap-2">
