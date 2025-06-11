@@ -620,7 +620,7 @@ async function main() {
         ],
     });
 
-    const currentDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; 
+    const currentDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - currentDay);
 
@@ -771,74 +771,113 @@ async function main() {
             {
                 courtname: 'Court A1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_1_gmluce.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A4',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_4_x3ymi1.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A5',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A6',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A7',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_7_ptadlq.jpg',
-
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court A8',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg',
-
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
             {
                 courtname: 'Court B1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_1_bebuc2.jpg',
-
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 2,
             },
             {
                 courtname: 'Court B2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_2_nmoioi.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 2,
             },
             {
                 courtname: 'Court B3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_3_pgmtsr.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 2,
             },
             {
                 courtname: 'Court C1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C1_h8yho8.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
             {
                 courtname: 'Court C2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C2_nd5cgp.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
             {
                 courtname: 'Court C3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669812/C3_w4danq.jpg',
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
         ],
