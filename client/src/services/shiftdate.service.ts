@@ -1,10 +1,11 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
+import { formatDateString } from '@/lib/utils';
 
 export const getShiftDate = async (dayfrom: Date, dayto: Date, employee_type: string) => {
     try {
         const queryParams = new URLSearchParams({
-            dayfrom: dayfrom.toString(),
-            dayto: dayto.toString(),
+            dayfrom: formatDateString(dayfrom),
+            dayto: formatDateString(dayto),
             employee_type: employee_type,
         });
 

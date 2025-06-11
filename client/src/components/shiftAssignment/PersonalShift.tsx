@@ -29,7 +29,7 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({
     personalShift,
 }) => {
     const confirmCount = (personalShift as ShiftAssignment[]).filter((assignment: ShiftAssignment) => {
-        return assignment.status === "confirmed";
+        return assignment.assignmentstatus === "Confirmed";
     }).length || 0;
 
     const shiftDataGroupedByDate = personalShift.reduce((acc: { [key: string]: ShiftEnrollment[] | ShiftAssignment[] }, shift) => {
