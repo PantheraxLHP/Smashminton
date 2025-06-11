@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -71,5 +71,19 @@ export class BookingsController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   deleteCourtBookingFromCache(@Body() DeleteCourtBookingDto: deleteCourtBookingDto) {
     return this.bookingsService.removeCourtBookingFromCache(DeleteCourtBookingDto);
+  }
+
+  @Get('detail')
+  @ApiOperation({ summary: 'Get booking detail for all courts in a zone on a specific date' })
+  @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày cần xem chi tiết (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
+  @ApiResponse({ status: 200, description: 'Booking detail by court' })
+  @ApiResponse({ status: 400, description: 'Missing date or zoneid' })
+  async getBookingDetail(
+    @Query('date') date: string,
+    @Query('zoneid') zoneid: number,
+  ) {
+    if (!date || !zoneid) throw new BadRequestException('Missing date or zoneid');
+    return this.bookingsService.getBookingDetail(date, zoneid);
   }
 }
