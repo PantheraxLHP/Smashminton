@@ -14,6 +14,31 @@ export class ZonesService {
 
   }
 
+  async getZonesWithCourts() {
+    const zones = await this.prisma.zones.findMany({
+      include: {
+        courts: true,
+      },
+      orderBy: {
+        zoneid: 'asc',
+      },
+    });
+
+    return zones.map(zone => ({
+      zoneid: zone.zoneid,
+      zonename: zone.zonename,
+      zonetype: zone.zonetype,
+      zoneimgurl: zone.zoneimgurl,
+      zonedescription: zone.zonedescription,
+      courts: zone.courts.map(court => ({
+        courtid: court.courtid,
+        courtname: court.courtname,
+        courtimgurl: court.courtimgurl,
+      })),
+    }));
+  }
+
+
   async create(createZoneDto: CreateZoneDto, file: Express.Multer.File) {
     let url_zone: string = '';
     if (file) {
