@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { postZones } from "@/services/zones.service";
 import { toast } from 'sonner';
+import { FaPen } from "react-icons/fa";
 import { Zone } from './page';
 
 interface ZoneModalProps {
@@ -14,28 +15,27 @@ interface ZoneModalProps {
 
 export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: ZoneModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-    const [zoneImages, setZoneImages] = useState<File[]>([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
     const [zonename, setZonename] = useState("");
     const [zonetype, setZonetype] = useState("");
     const [zonedescription, setZonedescription] = useState("");
-    const [zoneimgurl, setZoneimgurl] = useState("");
 
-    // Reset form when modal opens
+    const [zoneAvatar, setZoneAvatar] = useState<File | null>(null);
+    const [zonePreview, setZonePreview] = useState<string>("");
+
     useEffect(() => {
         if (open) {
             setZonename("");
             setZonetype("");
             setZonedescription("");
-            setZoneimgurl("");
-            setZoneImages([]);
+            setZoneAvatar(null);
+            setZonePreview("");
             setMessage("");
         }
     }, [open]);
 
-    // Handle outside click to close modal
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -51,21 +51,10 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
     }, [open, onClose]);
 
     const handleZoneImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
-            setZoneImages((prev) => [...prev, ...newFiles]);
-            setZoneimgurl(URL.createObjectURL(newFiles[0]));
-        }
-    };
-
-    const handleRemoveZoneImage = (index: number) => {
-        const updated = zoneImages.filter((_, i) => i !== index);
-        setZoneImages(updated);
-        if (index === 0 && updated.length > 0) {
-            setZoneimgurl(URL.createObjectURL(updated[0]));
-        } else if (updated.length === 0) {
-            setZoneimgurl("");
+        const file = e.target.files?.[0];
+        if (file) {
+            setZoneAvatar(file);
+            setZonePreview(URL.createObjectURL(file));
         }
     };
 
@@ -78,19 +67,26 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
         setLoading(true);
         setMessage("");
 
-        const newZone: Zone = {
-            zonename,
-            type: zonetype,
-            description: zonedescription,
-            image: zoneimgurl,
-        };
+        const formData = new FormData();
+        formData.append("zonename", zonename);
+        formData.append("zonetype", zonetype);
+        formData.append("zonedescription", zonedescription); 
+        if (zoneAvatar) {
+            formData.append("image", zoneAvatar);
+        }
+
 
         try {
-            const response = await postZones(newZone);
+            const response = await postZones(formData);
             if (response.ok) {
                 toast.success("Thêm zone thành công");
                 onSuccess();
-                onSubmit(newZone);
+                onSubmit({
+                    zonename,
+                    type: zonetype,
+                    description: zonedescription,
+                    image: response.data?.imageUrl || "",
+                });
             } else {
                 toast.error(response.message || "Thêm zone thất bại");
             }
@@ -100,7 +96,6 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             setLoading(false);
         }
     };
-    
 
     if (!open) return null;
 
@@ -110,88 +105,74 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             <div className="fixed inset-0 flex justify-center items-center z-50">
                 <div
                     ref={modalRef}
-                    className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg relative"
+                    className="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg relative"
                 >
                     <h2 className="text-lg font-semibold mb-4">Thêm Zone</h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-black">Ảnh Zone</label>
-                            <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row gap-6 mb-6">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="relative w-24 h-24">
+                                {zonePreview ? (
+                                    <img
+                                        src={zonePreview}
+                                        alt="Zone Preview"
+                                        className="w-24 h-24 rounded-full object-cover border"
+                                    />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-full bg-gray-200 border flex items-center justify-center text-gray-500 text-xl">
+                                        📷
+                                    </div>
+                                )}
+                                <label htmlFor="zone-upload-file">
+                                    <div className="absolute bottom-0 right-0 p-1 bg-gray-200 rounded-full border hover:bg-gray-300 cursor-pointer">
+                                        <FaPen size={14} />
+                                    </div>
+                                </label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={handleZoneImageChange}
                                     className="hidden"
                                     id="zone-upload-file"
-                                    multiple
                                 />
-                                <label
-                                    htmlFor="zone-upload-file"
-                                    className="cursor-pointer rounded-md border border-gray-300 bg-gray-300 px-4 py-2 hover:bg-gray-100 hover:text-black"
-                                >
-                                    📂 Chọn ảnh
-                                </label>
-
-                                {zoneImages.length > 0 && (
-                                    <div className="flex flex-wrap gap-4">
-                                        {zoneImages.map((file, index) => (
-                                            <div key={index} className="flex flex-col items-center">
-                                                <img
-                                                    src={URL.createObjectURL(file)}
-                                                    alt={`Zone Image ${index + 1}`}
-                                                    width={100}
-                                                    height={100}
-                                                    className="rounded-md border border-gray-300 object-contain"
-                                                />
-                                                <button
-                                                    onClick={() => handleRemoveZoneImage(index)}
-                                                    className="mt-1 rounded-md px-2 text-red-500 transition hover:bg-red-500 hover:text-white"
-                                                >
-                                                    x
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
+                            <p className="text-sm text-gray-500">Ảnh Zone</p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm mb-1">Tên Zone</label>
-                            <input
-                                name="zonename"
-                                type="text"
-                                value={zonename}
-                                onChange={(e) => setZonename(e.target.value)}
-                                className="w-full border rounded px-3 py-2"
-                            />
-                        </div>
+                        <div className="flex-1 grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium">Tên Zone</label>
+                                <input
+                                    type="text"
+                                    value={zonename}
+                                    onChange={(e) => setZonename(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-sm mb-1">Loại Zone</label>
-                            <select
-                                name="zonetype"
-                                value={zonetype}
-                                onChange={(e) => setZonetype(e.target.value)}
-                                className="w-full border rounded px-3 py-2"
-                            >
-                                <option value="">Chọn loại Zone</option>
-                                <option value="Normal">Normal</option>
-                                <option value="AirConditioner">Air Conditioner</option>
-                                <option value="Private">Private</option>
-                            </select>
-                        </div>
+                            <div>
+                                <label className="block text-sm font-medium">Loại Zone</label>
+                                <select
+                                    value={zonetype}
+                                    onChange={(e) => setZonetype(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                >
+                                    <option value="">Chọn loại Zone</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="AirConditioner">Air Conditioner</option>
+                                    <option value="Private">Private</option>
+                                </select>
+                            </div>
 
-                        <div>
-                            <label className="block text-sm mb-1">Mô tả</label>
-                            <input
-                                name="zonedescription"
-                                type="text"
-                                value={zonedescription}
-                                onChange={(e) => setZonedescription(e.target.value)}
-                                className="w-full border rounded px-3 py-2"
-                            />
+                            <div>
+                                <label className="block text-sm font-medium">Mô tả</label>
+                                <input
+                                    type="text"
+                                    value={zonedescription}
+                                    onChange={(e) => setZonedescription(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
                         </div>
                     </div>
 
