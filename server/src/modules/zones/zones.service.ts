@@ -34,6 +34,8 @@ export class ZonesService {
         courtid: court.courtid,
         courtname: court.courtname,
         courtimgurl: court.courtimgurl,
+        courtavgrating: court.avgrating,
+        courttimecalculateavg: court.timecalculateavg,
       })),
     }));
   }

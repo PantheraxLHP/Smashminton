@@ -36,6 +36,12 @@ export class ShiftDateService {
 			select: {
 				shiftid: true,
 				shiftdate: true,
+				shift:{
+					select: {
+						shiftstarthour: true,
+						shiftendhour: true,
+					},
+				},
 				shift_assignment: {
 					select: {
 						employees: {

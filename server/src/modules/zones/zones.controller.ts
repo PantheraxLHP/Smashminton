@@ -12,6 +12,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('zones')
 export class ZonesController {
     constructor(private readonly zonesService: ZonesService) { }
+    
+    @Get('all-zones-with-courts')
+    @ApiOperation({ description: 'Get all zones with their associated courts' })
+    getZonesWithCourts() {
+        return this.zonesService.getZonesWithCourts();
+    }
 
     @Post('new-zone')
     @ApiOperation({ summary: 'Create a new zone with an avatar image' })
@@ -29,11 +35,6 @@ export class ZonesController {
         }),
     )
 
-    @Get('all-zones-with-courts')
-    @ApiOperation({ description: 'Get all zones with their associated courts' })
-    getZonesWithCourts() {
-        return this.zonesService.getZonesWithCourts();
-    }
 
     @ApiOperation({
         summary: 'Create new zone',
