@@ -33,6 +33,7 @@ export class ZonesService {
       courts: zone.courts.map(court => ({
         courtid: court.courtid,
         courtname: court.courtname,
+        courtstatus: court.statuscourt,
         courtimgurl: court.courtimgurl,
         courtavgrating: court.avgrating,
         courttimecalculateavg: court.timecalculateavg,

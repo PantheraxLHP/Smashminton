@@ -9,6 +9,11 @@ export class CreateCourtDto {
 
   @IsOptional()
   @IsString()
+  @ApiProperty({ example: 'Active' })
+  statuscourt?: string;
+
+  @IsOptional()
+  @IsString()
   @ApiProperty({
     type: 'string',
     format: 'binary',

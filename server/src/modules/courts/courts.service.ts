@@ -28,7 +28,12 @@ export class CourtsService {
         createCourtDto.courtimgurl = imageUrl;
 
         const newCourt = await this.prisma.courts.create({
-            data: createCourtDto,
+            data: {
+                ...createCourtDto,
+                statuscourt: 'Active',
+                avgrating: 5.0,
+                timecalculateavg: new Date(),
+            },
         });
 
         if (!newCourt) {
