@@ -620,49 +620,25 @@ async function main() {
         ],
     });
 
-    const nextWeekStart = new Date();
-    const currentDay = new Date().getDay();
-    const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
-    nextWeekStart.setDate(nextWeekStart.getDate() + dayToMonday);
+    const currentDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; 
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - currentDay);
 
     const shifts = await prisma.shift.findMany({});
-    const shiftDate = new Date(nextWeekStart);
+    const shiftDate = new Date(startOfWeek);
     shiftDate.setHours(0, 0, 0, 0);
 
-    // for (const shift of shifts) {
-    //     for (let i = 0; i < 7; i++) {
-    //         shiftDate.setDate(nextWeekStart.getDate() + i);
-    //         await prisma.shift_date.createMany({
-    //             data: [
-    //                 {
-    //                     shiftid: shift.shiftid,
-    //                     shiftdate: shiftDate,
-    //                 },
-    //             ],
-    //         });
-    //     }
-    // }
-
-    const shiftTimes = [6, 10, 14, 18];
-
     for (const shift of shifts) {
-        for (let i = 0; i < 7; i++) {
-            // Lấy ngày hiện tại
-            const day = new Date(nextWeekStart);
-            day.setDate(nextWeekStart.getDate() + i);
-
-            for (const hour of shiftTimes) {
-                // Tạo thời gian bắt đầu ca
-                const shiftDate = new Date(day);
-                shiftDate.setHours(hour, 0, 0, 0);
-
-                await prisma.shift_date.create({
-                    data: {
+        for (let i = 0; i < 14; i++) {
+            shiftDate.setDate(startOfWeek.getDate() + i);
+            await prisma.shift_date.createMany({
+                data: [
+                    {
                         shiftid: shift.shiftid,
                         shiftdate: shiftDate,
                     },
-                });
-            }
+                ],
+            });
         }
     }
 
