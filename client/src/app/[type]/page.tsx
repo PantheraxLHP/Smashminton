@@ -34,6 +34,7 @@ const ShiftAssignmentPage = () => {
     const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
     const [fullTimeOption, setFullTimeOption] = useState<string>('same');
     const [partTimeOption, setPartTimeOption] = useState<string>('0');
+    const [refreshData, setRefreshData] = useState(() => () => {});
 
     const formatEmployeeType = (selectedRadio: string | undefined) => {
         if (selectedRadio === 'fulltime') {
@@ -79,6 +80,7 @@ const ShiftAssignmentPage = () => {
         };
 
         fetchShiftDate();
+        setRefreshData(() => fetchShiftDate);
     }, [selectedWeek, user, selectedRadio]);
 
     return (
@@ -114,6 +116,7 @@ const ShiftAssignmentPage = () => {
                 role={user?.role}
                 type={type as 'enrollments' | 'assignments'}
                 shiftData={shiftData || []}
+                onDataChanged={refreshData}
             />
         </div>
     );

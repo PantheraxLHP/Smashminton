@@ -11,6 +11,7 @@ import { formatDateString } from '@/lib/utils';
 
 interface ShiftCardDetailProps {
     shiftDataSingle: ShiftDate;
+    onDataChanged?: () => void;
 }
 
 const getDateString = (date: Date | string) => {
@@ -132,32 +133,25 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
 
 type DragItem = DragEmployeeItem | DragAssignmentItem;
 
-const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) => {
+const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDataChanged }) => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(5);
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
-    const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>(shiftDataSingle.shift_assignment || []);
     const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
     const [isDraggingEmployee, setIsDraggingEmployee] = useState(false);
 
-    // Fetch both assignments and available employees
-    const fetchAllData = async () => {
-        // Update available employees
+    // Fetch only available employees
+    const fetchAvailableEmployees = async () => {
         const response = await searchEmployees(shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize);
         if (response.ok) {
             setAvailableEmployees(response.data.data);
             setTotalPages(response.data.pagination.totalPages);
         }
-        // Update assignments from latest shiftDataSingle
-        // If you have an API to get assignments, use it here. Otherwise, use the prop.
-        if (shiftDataSingle.shift_assignment) {
-            setShiftAssignments(shiftDataSingle.shift_assignment);
-        }
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAvailableEmployees();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize]);
 
@@ -171,7 +165,8 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                     employeeid: item.employee.employeeid,
                 });
                 if (response.ok) {
-                    await fetchAllData();
+                    if (onDataChanged) onDataChanged();
+                    fetchAvailableEmployees();
                 }
             }
             // Trả về object cho biết đã drop vào assignment area
@@ -189,7 +184,8 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
             employeeid: employeeId,
         });
         if (response.ok) {
-            await fetchAllData();
+            if (onDataChanged) onDataChanged();
+            fetchAvailableEmployees();
         }
     };
 
@@ -221,8 +217,10 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                         }}
                         className={`rounded-md border-2 transition-colors ${isOver ? 'bg-primary-100/20 border-primary border-dashed' : 'border-transparent'} h-full`}
                     >
-                        {shiftAssignments.filter(
-                            (shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined,
+                        {(
+                            shiftDataSingle.shift_assignment?.filter(
+                                (shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined,
+                            ) ?? []
                         ).length > 0 ? (
                             <div
                                 className="flex flex-col overflow-y-auto"
@@ -230,16 +228,18 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                                     maxHeight: `${maxAssignmentHeight}px`,
                                 }}
                             >
-                                {shiftAssignments
-                                    .filter((shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined)
-                                    .map((shiftAssignment) => (
-                                        <DraggableAssignment
-                                            key={`assignment-${shiftAssignment.employees?.employeeid}`}
-                                            assignment={shiftAssignment}
-                                            setIsDraggingEmployee={setIsDraggingEmployee}
-                                            removeAssignment={removeAssignment}
-                                        />
-                                    ))}
+                                {(
+                                    shiftDataSingle.shift_assignment?.filter(
+                                        (shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined,
+                                    ) ?? []
+                                ).map((shiftAssignment) => (
+                                    <DraggableAssignment
+                                        key={`assignment-${shiftAssignment.employees?.employeeid}`}
+                                        assignment={shiftAssignment}
+                                        setIsDraggingEmployee={setIsDraggingEmployee}
+                                        removeAssignment={removeAssignment}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
