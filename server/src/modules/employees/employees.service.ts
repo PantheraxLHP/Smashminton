@@ -218,8 +218,8 @@ export class EmployeesService {
           },
         },
       },
-      // skip: skip,
-      // take: take,
+      skip: skip,
+      take: take,
       orderBy: {
         employeeid: 'asc'
       }

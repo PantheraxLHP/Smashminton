@@ -170,7 +170,6 @@ export class ProductTypesService {
           product_batch: true,
         },
       });
-      console.log('purchaseOrders', purchaseOrders);
       const quantity = purchaseOrders.reduce((sum, po) => {
         return sum + (po.product_batch?.stockquantity || 0);
       }, 0);
