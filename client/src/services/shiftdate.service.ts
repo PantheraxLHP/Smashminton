@@ -55,7 +55,6 @@ export const searchEmployees = async (shiftdate: Date, shiftid: number, page: nu
 
 export const addAssignment = async (assignmentData: { shiftdate: string; shiftid: number; employeeid: number }) => {
     try {
-        console.log(assignmentData);
         const response = await fetch(`/api/shiftdate/post-assignment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -76,6 +75,7 @@ export const addAssignment = async (assignmentData: { shiftdate: string; shiftid
 
 export const deleteAssignment = async (assignmentData: { shiftdate: string; shiftid: number; employeeid: number }) => {
     try {
+        console.log('delete assignment', assignmentData);
         const response = await fetch(`/api/shiftdate/delete-assignment`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },

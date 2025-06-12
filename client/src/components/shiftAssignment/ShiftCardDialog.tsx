@@ -16,10 +16,11 @@ import { Icon } from '@iconify/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
- interface ShiftCardDialogProps {
+interface ShiftCardDialogProps {
     shiftDataSingle: ShiftDate;
     role?: string;
     type: 'enrollments' | 'assignments';
+    onDataChanged?: () => void;
 }
 
 const shiftCardColPos = ['2', '3', '4', '5', '6', '7', '8'];
@@ -36,7 +37,7 @@ const getRowPos = (shiftDataSingle: ShiftDate) => {
     return shiftCardRowPos[shiftDataSingle.shiftid - 1];
 };
 
-const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({ shiftDataSingle, role, type }) => {
+const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({ shiftDataSingle, role, type, onDataChanged }) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -61,7 +62,7 @@ const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({ shiftDataSingle, role
                 </DialogHeader>
                 {/*Nội dụng của Dialog*/}
                 <DndProvider backend={HTML5Backend}>
-                    <ShiftCardDetail shiftDataSingle={shiftDataSingle} />
+                    <ShiftCardDetail shiftDataSingle={shiftDataSingle} onDataChanged={onDataChanged} />
                 </DndProvider>
                 {/*Phần footer chứa nút quay về để đóng Dialog*/}
                 <DialogFooter>

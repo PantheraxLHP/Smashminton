@@ -1,7 +1,7 @@
-import CalendarHeader from "@/components/shiftAssignment/CalendarHeader";
-import CalendarTimeline from "@/components/shiftAssignment/CalendarTimeline";
-import { DateRange } from "react-day-picker";
-import { ShiftAssignment, ShiftEnrollment, ShiftDate } from "@/types/types";
+import CalendarHeader from '@/components/shiftAssignment/CalendarHeader';
+import CalendarTimeline from '@/components/shiftAssignment/CalendarTimeline';
+import { DateRange } from 'react-day-picker';
+import { ShiftAssignment, ShiftEnrollment, ShiftDate } from '@/types/types';
 
 interface AssignmentCalendarProps {
     selectedWeek: DateRange;
@@ -9,8 +9,9 @@ interface AssignmentCalendarProps {
     year: number;
     selectedRadio: string;
     role?: string;
-    type: "enrollments" | "assignments";
-    shiftData: ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]; 
+    type: 'enrollments' | 'assignments';
+    shiftData: ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[];
+    onDataChanged?: () => void;
 }
 
 const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
@@ -20,25 +21,23 @@ const AssignmentCalendar: React.FC<AssignmentCalendarProps> = ({
     selectedRadio,
     role,
     type,
-    shiftData
+    shiftData,
+    onDataChanged,
 }) => {
     return (
         <div className="h-full w-full overflow-x-auto">
             {/* Hiển thị thứ và ngày của tuần đã chọn */}
-            <CalendarHeader
-                selectedWeek={selectedWeek}
-                weekNumber={weekNumber}
-                year={year}
-            />
+            <CalendarHeader selectedWeek={selectedWeek} weekNumber={weekNumber} year={year} />
             {/* Hiển thị timeline và nội dung của tuần đó */}
-            <CalendarTimeline 
+            <CalendarTimeline
                 selectedRadio={selectedRadio}
                 role={role}
                 type={type}
                 shiftData={shiftData}
+                onDataChanged={onDataChanged}
             />
         </div>
     );
-}
+};
 
 export default AssignmentCalendar;

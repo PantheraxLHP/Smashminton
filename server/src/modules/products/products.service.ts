@@ -21,9 +21,28 @@ export class ProductsService {
         return this.prisma.products.create({ data: createProductDto });
     }
 
-    findOne(id: number) {
-        return this.prisma.products.findUnique({ where: { productid: id } });
+    async findAllBasicProducts() {
+        const products = await this.prisma.products.findMany({
+            select: {
+                productid: true,
+                productname: true,
+                status: true,
+                sellingprice: true,
+                rentalprice: true,
+                costprice: true,
+                productimgurl: true
+            },
+            orderBy: {
+                productid: 'asc',
+            },
+        });
+
+        return products;
     }
+
+    // findOne(id: number) {
+    //     return this.prisma.products.findUnique({ where: { productid: id } });
+    // }
 
     findOneForCache(id: number) {
         return this.prisma.products.findUnique({
