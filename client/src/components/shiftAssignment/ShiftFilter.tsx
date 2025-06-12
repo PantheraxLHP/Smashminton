@@ -9,16 +9,28 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Icon } from "@iconify/react";
 import AssignmentRuleList from "./AssignmentRuleList";
+import { useState } from "react";
 
 interface ShiftFilterProps extends WeekPickerProps {
     selectedRadio: string;
     onRadioChange: (value: string) => void;
     role?: string;
     type: "enrollments" | "assignments";
+    fullTimeOption?: string;
+    setFullTimeOption?: (value: string) => void;
+    partTimeOption?: string;
+    setPartTimeOption?: (value: string) => void;
 }
 
 const ShiftFilter: React.FC<ShiftFilterProps> = ({
@@ -32,6 +44,10 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
     onRadioChange,
     role,
     type,
+    fullTimeOption,
+    setFullTimeOption,
+    partTimeOption,
+    setPartTimeOption,
 }) => {
     return (
         <div className="p-4 border rounded-lg flex flex-col gap-4 w-fit">
@@ -119,13 +135,41 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                         <DialogTrigger asChild>
                             <Button variant="outline" className="text-md">Phân công tự động</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[50vh]">
+                        <DialogContent className="sm:max-w-[80vh]">
                             <DialogHeader>
                                 <DialogTitle>Phân công tự động</DialogTitle>
                                 <DialogDescription>
-                                    Bạn muốn thực hiện phân công tự động cho nhân viên trong tuần tiếp theo ?
+                                    Thực hiện phân công tự động cho nhân viên trong tuần tiếp theo
                                 </DialogDescription>
                             </DialogHeader>
+                            <div className="flex items-center gap-5 justify-between w-full">
+                                <div className="flex flex-col gap-1 w-full">
+                                    <span className="text-sm font-semibold">Chế độ phân công cho nhân viên toàn thời gian</span>
+                                    <Select value={fullTimeOption} onValueChange={setFullTimeOption}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Chọn chế độ phân công" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            <SelectItem value="same">Như tuần trước</SelectItem>
+                                            <SelectItem value="rotate">Xoay tua buổi</SelectItem>
+                                            <SelectItem value="random">Ngẫu nhiên</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex flex-col gap-1 w-full">
+                                    <span className="text-sm font-semibold">Ưu tiên phân công cho nhân viên bán thời gian theo</span>
+                                    <Select value={partTimeOption} onValueChange={setPartTimeOption}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Chọn loại ưu tiên" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            <SelectItem value="0">Không ưu tiên</SelectItem>
+                                            <SelectItem value="1">Số ca được phân công ít nhất</SelectItem>
+                                            <SelectItem value="2">Điểm ưu tiên của nhân viên cao nhất</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
                             <DialogFooter>
                                 <DialogTrigger asChild>
                                     <Button variant="secondary">Thoát</Button>
@@ -148,7 +192,12 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                     Bạn có thể tùy chỉnh quy tắc phân công ca làm việc tự động cho nhân viên bán thời gian tại đây
                                 </DialogDescription>
                             </DialogHeader>
-                            <AssignmentRuleList />
+                            <AssignmentRuleList 
+                                fullTimeOption={fullTimeOption}
+                                setFullTimeOption={setFullTimeOption}
+                                partTimeOption={partTimeOption}
+                                setPartTimeOption={setPartTimeOption}
+                            />
                             <DialogFooter>
                                 <DialogTrigger asChild>
                                     <Button variant="secondary">
