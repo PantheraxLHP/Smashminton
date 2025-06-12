@@ -6,7 +6,6 @@ export async function PUT(request: NextRequest) {
         const employeeId = request.nextUrl.searchParams.get('employeeId');
         const body = await request.json();
 
-        console.log('sdfsad', employeeId, JSON.stringify(body));
         const response = await fetch(`${process.env.SERVER}/api/v1/bank-detail/${employeeId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
