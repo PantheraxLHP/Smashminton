@@ -106,7 +106,7 @@ export class ShiftDateService {
         },
       },
     });
-
+    console.log('employeesInShifts', employeesInShifts);
     // Trích xuất danh sách employeeid từ kết quả
     const employeeIdsInShifts = employeesInShifts
       .flatMap((shift) => shift.shift_assignment)
