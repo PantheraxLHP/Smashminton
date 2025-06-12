@@ -626,8 +626,8 @@ async function main() {
 
     const shifts = await prisma.shift.findMany({});
     const shiftDate = new Date(startOfWeek);
-    shiftDate.setHours(0, 0, 0, 0);
-
+    shiftDate.setUTCHours(0, 0, 0, 0);
+    
     for (const shift of shifts) {
         for (let i = 0; i < 14; i++) {
             shiftDate.setDate(startOfWeek.getDate() + i);
@@ -1257,7 +1257,7 @@ async function main() {
 
     fulltimeEmployeeIds.forEach(async (employeeId, index) => {
         // Chỉ lấy shiftid 3,4,5,6
-        const filteredShiftDates = shiftdates.filter(sd => [1,2].includes(sd.shiftid));
+        const filteredShiftDates = shiftdates.filter(sd => [1, 2].includes(sd.shiftid));
         const randomShiftDate = filteredShiftDates[Math.floor(Math.random() * filteredShiftDates.length)];
 
         let status: string;
