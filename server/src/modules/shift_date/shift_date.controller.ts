@@ -123,8 +123,10 @@ export class ShiftDateController {
   }
 
   @Delete('assignment/remove')
+  @ApiBody({ type: CreateShiftAssignmentDto })
   async removeEmployeeFromShiftAssignment(@Body() body: CreateShiftAssignmentDto) {
     const { shiftid, shiftdate, employeeid } = body;
     return this.shiftDateService.removeEmployeeFromShiftAssignment(shiftid, shiftdate, employeeid);
   }
+
 }
