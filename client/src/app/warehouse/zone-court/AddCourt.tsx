@@ -2,33 +2,30 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { Court } from "./page";
+import { FaPen } from "react-icons/fa";
 import { getZones } from "@/services/zones.service";
+import { postCourts } from "@/services/courts.service";
+import { Zone } from "./page";
+import { toast } from "sonner";
 
 interface CourtModalProps {
     open: boolean;
     onClose: () => void;
     onSubmit?: (data: Court) => void;
+    onSuccess?: () => void;
 }
 
 export default function AddCourtModal({
     open,
     onClose,
     onSubmit,
+    onSuccess,
 }: CourtModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-    const [zoneImages, setZoneImages] = useState<File[]>([]);
-
-    function handleZoneImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const files = e.target.files;
-        if (files) {
-            const newFiles = Array.from(files);
-            setZoneImages((prev) => [...prev, ...newFiles]);
-        }
-    }
-
-    function handleRemoveZoneImage(index: number) {
-        setZoneImages((prev) => prev.filter((_, i) => i !== index));
-    }
+    const [courtAvatar, setCourtAvatar] = useState<File | null>(null);
+    const [courtPreview, setCourtPreview] = useState<string>("");
+    const [zones, setZones] = useState<Zone[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState<Court>({
         courtname: "",
@@ -36,25 +33,23 @@ export default function AddCourtModal({
         status: "Đang hoạt động",
         avgrating: 0,
         timecalavg: "2025-06-04",
-        zonename: "",
+        zoneid: 0,
     });
 
     useEffect(() => {
-        if (!open) {
-            setZoneImages([]);
-            return;
-        } else {
-            setFormData({
-                courtname: "",
-                image: "",
-                status: "Đang hoạt động",
-                avgrating: 0,
-                timecalavg: "2025-06-04",
-                zonename: "",
-            });
-        }
+        const fetchZones = async () => {
+            if (open) {
+                const response = await getZones();
+                if (Array.isArray(response.data?.zones)) {
+                    setZones(response.data.zones);
+                } else {
+                    console.error("Dữ liệu zones không hợp lệ:", response.data);
+                    setZones([]);
+                }
+            }
+        };
+        fetchZones();
     }, [open]);
-    
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -79,16 +74,57 @@ export default function AddCourtModal({
         setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
-    function handleSubmit() {
-        if (onSubmit) {
-            onSubmit({
-                ...formData,
-                image: zoneImages[0] ? URL.createObjectURL(zoneImages[0]) : "/default.png",
-            });
+    const handleCourtImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCourtAvatar(file);
+            setCourtPreview(URL.createObjectURL(file));
         }
-        onClose();
+    };
+
+    async function handleSubmit() {
+        if (!formData.courtname || !formData.zoneid) {
+            toast.error("Vui lòng nhập tên sân và chọn Zone.");
+            return;
+        }
+
+        setLoading(true);
+        const submitData = new FormData();
+        submitData.append("courtname", formData.courtname);
+        submitData.append("zoneid", String(formData.zoneid));
+        submitData.append("statuscourt", "Active");
+        submitData.append("avgrating", "5");
+        const today = new Date().toISOString().split("T")[0];
+        submitData.append("timecalculateavg", today);
+
+
+        if (courtAvatar) {
+            submitData.append("image", courtAvatar);
+        }
+
+        try {
+            const response = await postCourts(submitData);
+            if (response.ok) {
+                toast.success("Thêm sân thành công!");
+                onSubmit?.({
+                    ...formData,
+                    image: response.data?.imageUrl || "",
+                    zonename: zones.find(z => z.zoneid === formData.zoneid)?.zonename ?? '',
+                });
+                onClose();
+                onSuccess?.(); 
+            } else {
+                toast.error(response.message || "Thêm sân thất bại.");
+            }
+        } catch (error) {
+            toast.error("Đã xảy ra lỗi khi thêm sân.");
+            console.error(error);
+        }
+        finally {
+            setLoading(false);
+        }
     }
-    
+
 
     if (!open) return null;
 
@@ -105,81 +141,69 @@ export default function AddCourtModal({
                         Thêm Sân
                     </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-black">
-                                Ảnh sân
-                            </label>
-                            <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row gap-6 mb-6">
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="relative w-24 h-24">
+                                {courtPreview ? (
+                                    <img
+                                        src={courtPreview}
+                                        alt="Zone Preview"
+                                        className="w-24 h-24 rounded-full object-cover border"
+                                    />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-full bg-gray-200 border flex items-center justify-center text-gray-500 text-xl">
+                                        📷
+                                    </div>
+                                )}
+                                <label htmlFor="zone-upload-file">
+                                    <div className="absolute bottom-0 right-0 p-1 bg-gray-200 rounded-full border hover:bg-gray-300 cursor-pointer">
+                                        <FaPen size={14} />
+                                    </div>
+                                </label>
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={handleZoneImageChange}
+                                    onChange={handleCourtImageChange}
                                     className="hidden"
                                     id="zone-upload-file"
-                                    multiple
                                 />
-                                <label
-                                    htmlFor="zone-upload-file"
-                                    className="cursor-pointer rounded-md border border-gray-300 bg-gray-300 px-4 py-2 hover:bg-gray-100 hover:text-black"
-                                >
-                                    📂 Chọn ảnh
-                                </label>
-
-                                {zoneImages.length > 0 && (
-                                    <div className="flex flex-wrap gap-4">
-                                        {zoneImages.map((file, index) => (
-                                            <div key={index} className="flex flex-col items-center">
-                                                <img
-                                                    src={URL.createObjectURL(file)}
-                                                    alt={`Zone Image ${index + 1}`}
-                                                    width={100}
-                                                    height={100}
-                                                    className="rounded-md border border-gray-300 object-contain"
-                                                />
-                                                <button
-                                                    onClick={() => handleRemoveZoneImage(index)}
-                                                    className="mt-1 rounded-md px-2 text-red-500 transition hover:bg-red-500 hover:text-white"
-                                                >
-                                                    x
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
+                            <p className="text-sm text-gray-500">Ảnh sân</p>
                         </div>
+                        <div className="flex-1 grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm mb-1">Tên sân</label>
+                                <input
+                                    name="courtname"
+                                    type="text"
+                                    value={formData.courtname || ""}
+                                    onChange={handleChange}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm mb-1">Zone chứa sân</label>
+                                <div className="relative">
+                                    <select
+                                        name="zoneid"
+                                        value={formData.zoneid}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                zoneid: Number(e.target.value),
+                                            }))
+                                        }
+                                        className={`w-full border rounded px-3 py-2`}
+                                    >
+                                        <option value="">Chọn Zone</option>
+                                        {zones.map((zone) => (
+                                            <option key={zone.zoneid} value={zone.zoneid}>
+                                                {zone.zonename}
+                                            </option>
+                                        ))}
 
-                        <div>
-                            <label className="block text-sm mb-1">Tên sân</label>
-                            <input
-                                name="courtname"
-                                type="text"
-                                value={formData.courtname || ""}
-                                onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm mb-1">Zone chứa sân</label>
-                            <div className="relative">
-                                <select
-                                    name="zoneid"
-                                    value={formData.zonename}
-                                    onChange={(e) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            zoneid: Number(e.target.value),
-                                        }))
-                                    }
-                                    className={`w-full border rounded px-3 py-2`}
-                                >
-                                    <option value="">Chọn Zone</option>
-                                    <option value="1">Zone A</option>
-                                    <option value="2">Zone B</option>
-                                    <option value="3">Zone C</option>
-                                </select>
-
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -193,9 +217,10 @@ export default function AddCourtModal({
                         </button>
                         <button
                             onClick={handleSubmit}
+                            disabled={loading}
                             className="border border-primary-600 text-primary-600 px-4 py-2 rounded hover:bg-primary-100"
                         >
-                            Tạo
+                            {loading ? "Đang tạo..." : "Tạo"}
                         </button>
                     </div>
                 </div>

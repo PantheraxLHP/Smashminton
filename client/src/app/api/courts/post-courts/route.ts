@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         backendForm.append('courtname', courtname);
         backendForm.append('zoneid', zoneid);
         if (imageFile) {
-            backendForm.append('zoneimgurl', imageFile);
+            backendForm.append('courtimgurl', imageFile);
         }
 
         const backendUrl = `${process.env.SERVER}/api/v1/courts/new-court`;
