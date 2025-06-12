@@ -69,7 +69,6 @@ const ShiftAssignmentPage = () => {
                     if (response.ok) {
                         setShiftData(response.data);
                         setPersonalShift(response.data.enrollments || response.data.assignments || []);
-                        console.log(response.data);
                     } else {
                         console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                     }
