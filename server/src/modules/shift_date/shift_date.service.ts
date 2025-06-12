@@ -4,7 +4,6 @@ import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
-import { convertVNToUTC } from 'src/utilities/date.utilities';
 
 @Injectable()
 export class ShiftDateService {
@@ -82,16 +81,16 @@ export class ShiftDateService {
     const shift = await this.prisma.shift.findUnique({
       where: { shiftid },
       select: {
-		shifttype: true 
-		},
+        shifttype: true
+      },
     });
-	const employee_type = shift?.shifttype ?? 'Full-time';
-	const shiftdate_utc = convertVNToUTC(shiftdate);
+    const employee_type = shift?.shifttype ?? 'Full-time';
+    const shiftdate_utc = new Date(shiftdate);
 
     // Lấy danh sách employeeid đã có trong shift_assignment
     const employeesInShifts = await this.prisma.shift_date.findMany({
       where: {
-		shiftid: shiftid,
+        shiftid: shiftid,
         shiftdate: shiftdate_utc,
       },
       select: {
@@ -175,5 +174,55 @@ export class ShiftDateService {
         },
       },
     });
+  }
+
+  async searchEmployees(query: string, employee_type?: string, page: number = 1, pageSize: number = 6) {
+    const where: any = {};
+
+    // Lọc theo loại nhân viên nếu có
+    if (employee_type) {
+      where.employee_type = employee_type;
+    }
+
+    // Xử lý query
+    query = query.trim();
+    let idPart: number | undefined;
+    let namePart: string | undefined;
+
+    // Trường hợp: "2", "2-", "2-Hoang", "2 Hoang"
+    const match = query.match(/^(\d+)[-\s]?(.*)$/);
+    if (match) {
+      idPart = parseInt(match[1], 10);
+      namePart = match[2]?.trim();
+      if (namePart) {
+        // Tìm theo id và tên
+        where.AND = [
+          { employeeid: idPart },
+          { accounts: { fullname: { contains: namePart, mode: 'insensitive' } } }
+        ];
+      } else {
+        // Chỉ id
+        where.employeeid = idPart;
+      }
+    } else if (query.startsWith('-')) {
+      // Trường hợp: "-Hoang"
+      namePart = query.slice(1).trim();
+      where.accounts = { fullname: { contains: namePart, mode: 'insensitive' } };
+    } else {
+      // Trường hợp: "Hoang", "Hoang Duc"
+      namePart = query;
+      where.accounts = { fullname: { contains: namePart, mode: 'insensitive' } };
+    }
+
+    // Phân trang
+    const skip = (page - 1) * pageSize;
+    const employees = await this.prisma.employees.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: { employeeid: 'asc' }
+    });
+
+    return employees;
   }
 }
