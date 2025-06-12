@@ -12,6 +12,38 @@ export class SuppliersService {
     return 'This action adds a new supplier';
   }
 
+  async createSupplierWithProducts(dto: CreateSupplierDto) {
+    // Tạo supplier trước
+    const newSupplier = await this.prisma.suppliers.create({
+      data: {
+        suppliername: dto.suppliername,
+        contactname: dto.contactname,
+        phonenumber: dto.phonenumber,
+        email: dto.email,
+        address: dto.address,
+      },
+    });
+
+    // Tạo supply_products liên kết
+    if (dto.productids && dto.productids.length > 0) {
+      const data = dto.productids.map(productid => ({
+        supplierid: newSupplier.supplierid,
+        productid,
+      }));
+
+      await this.prisma.supply_products.createMany({
+        data,
+        skipDuplicates: true,
+      });
+    }
+
+    return {
+      message: 'Tạo nhà cung cấp và danh sách sản phẩm thành công',
+      supplier: newSupplier,
+    };
+  }
+
+
   async findAll() {
     const suppliers = await this.prisma.suppliers.findMany({
       include: {
