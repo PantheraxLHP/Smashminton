@@ -1191,6 +1191,42 @@ async function main() {
         ],
     });
 
+    await prisma.supply_products.createMany({
+        data: [
+            { supplierid: 1, productid: 1 },
+            { supplierid: 2, productid: 2 },
+            { supplierid: 3, productid: 3 },
+            { supplierid: 4, productid: 4 },
+            { supplierid: 5, productid: 5 },
+            { supplierid: 1, productid: 6 },
+            { supplierid: 2, productid: 7 },
+            { supplierid: 3, productid: 8 },
+            { supplierid: 4, productid: 9 },
+            { supplierid: 5, productid: 10 },
+            { supplierid: 1, productid: 11 },
+            { supplierid: 2, productid: 12 },
+            { supplierid: 3, productid: 13 },
+            { supplierid: 4, productid: 14 },
+            { supplierid: 5, productid: 15 },
+            { supplierid: 1, productid: 16 },
+            { supplierid: 2, productid: 17 },
+            { supplierid: 3, productid: 18 },
+            { supplierid: 4, productid: 19 },
+            { supplierid: 5, productid: 20 },
+            { supplierid: 1, productid: 21 },
+            { supplierid: 2, productid: 22 },
+            { supplierid: 3, productid: 23 },
+            { supplierid: 4, productid: 24 },
+            { supplierid: 5, productid: 25 },
+            { supplierid: 1, productid: 26 },
+            { supplierid: 2, productid: 27 },
+            { supplierid: 3, productid: 28 },
+            { supplierid: 4, productid: 29 }
+        ],
+    });
+
+    
+
     const parttimeEmployeeIds = (
         await prisma.employees.findMany({
             select: {
