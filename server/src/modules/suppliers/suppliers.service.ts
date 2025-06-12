@@ -79,11 +79,40 @@ export class SuppliersService {
     return `This action returns a #${id} supplier`;
   }
 
-  update(id: number, updateSupplierDto: UpdateSupplierDto) {
-    return `This action updates a #${id} supplier`;
+  async update(id: number, updateSupplierDto: UpdateSupplierDto) {
+    const updated = await this.prisma.suppliers.update({
+      where: { supplierid: id },
+      data: {
+        ...updateSupplierDto,
+        updatedat: new Date(),
+      },
+    });
+
+    return {
+      message: 'Cập nhật nhà cung cấp thành công',
+      data: updated,
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} supplier`;
+  async remove(id: number) {
+    // Xoá liên kết supply_products trước (vì có foreign key constraint)
+    await this.prisma.supply_products.deleteMany({
+      where: {
+        supplierid: id,
+      },
+    });
+
+    // Xoá supplier
+    const deleted = await this.prisma.suppliers.delete({
+      where: {
+        supplierid: id,
+      },
+    });
+
+    return {
+      message: 'Xoá nhà cung cấp thành công',
+      data: deleted,
+    };
   }
+
 }

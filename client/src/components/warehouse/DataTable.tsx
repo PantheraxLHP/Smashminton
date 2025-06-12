@@ -6,7 +6,8 @@ import MoreActionsMenu from './MoreActionsMenu';
 
 export interface Column<T> {
     header: string;
-    accessor: keyof T | ((item: T) => React.ReactNode);
+    accessor?: keyof T | ((item: T) => React.ReactNode);
+    cell?: (item: T) => React.ReactNode;
     align?: 'left' | 'center' | 'right';
     className?: (item: T) => string; // ✅ added
 }
@@ -205,17 +206,21 @@ export default function DataTable<T extends Record<string, any>>({
                                 {columns.map((col, i) => {
                                     let value: React.ReactNode;
 
-                                    if (typeof col.accessor === 'function') {
+                                    if (col.cell) {
+                                        value = col.cell(item);
+                                    } else if (typeof col.accessor === 'function') {
                                         try {
                                             value = col.accessor(item);
                                         } catch (err) {
                                             console.error('Error evaluating accessor:', err);
                                             value = '—';
                                         }
-                                    } else {
+                                    } else if (typeof col.accessor === 'string') {
                                         const raw = item[col.accessor];
                                         value = raw !== undefined && raw !== null ? String(raw) : '—';
-                                    }
+                                    } else {
+                                        value = '—';
+                                    }                                    
 
                                     const cellClass = col.className?.(item) || '';
 
