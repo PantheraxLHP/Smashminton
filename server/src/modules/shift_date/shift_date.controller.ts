@@ -65,28 +65,16 @@ export class ShiftDateController {
 
   @Get('employees-not-in-shift')
   @ApiQuery({
-    name: 'date',
+    name: 'shiftdate',
     required: true,
     description: 'Date in format YYYY-MM-DD',
-    example: '2025-05-25',
+    example: '2025-06-25',
   })
   @ApiQuery({
-    name: 'starttime',
+    name: 'shiftid',
     required: true,
-    description: 'Start time in format HH:MM',
-    example: '06:00',
-  })
-  @ApiQuery({
-    name: 'endtime',
-    required: true,
-    description: 'End time in format HH:MM',
-    example: '10:00',
-  })
-  @ApiQuery({
-    name: 'employee_type',
-    required: false,
-    description: 'Type of employee to filter',
-    example: 'Full-time',
+    description: 'Shift ID to filter employees not in this shift',
+    example: 3,
   })
   @ApiQuery({
     name: 'page',
@@ -101,14 +89,12 @@ export class ShiftDateController {
     example: 6,
   })
   getEmployeesNotInShift(
-    @Query('date') date: string,
-    @Query('starttime') starttime: string,
-    @Query('endtime') endtime: string,
-    @Query('employee_type') employee_type: string,
+    @Query('shiftdate') shiftdate: string,
+    @Query('shiftid') shiftid: number,
     @Query('page') page: number,
     @Query('pageSize') pageSize: number,
   ) {
-    return this.shiftDateService.getEmployeesNotInShift(date, starttime, endtime, employee_type, +page, +pageSize);
+    return this.shiftDateService.getEmployeesNotInShift(shiftdate,  +shiftid, +page, +pageSize);
   }
 
   @Patch('update-shift-assignment')
