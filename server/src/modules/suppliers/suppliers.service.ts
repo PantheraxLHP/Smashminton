@@ -79,8 +79,19 @@ export class SuppliersService {
     return `This action returns a #${id} supplier`;
   }
 
-  update(id: number, updateSupplierDto: UpdateSupplierDto) {
-    return `This action updates a #${id} supplier`;
+  async update(id: number, updateSupplierDto: UpdateSupplierDto) {
+    const updated = await this.prisma.suppliers.update({
+      where: { supplierid: id },
+      data: {
+        ...updateSupplierDto,
+        updatedat: new Date(),
+      },
+    });
+
+    return {
+      message: 'Cập nhật nhà cung cấp thành công',
+      data: updated,
+    };
   }
 
   remove(id: number) {

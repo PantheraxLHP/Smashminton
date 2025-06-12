@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 
 @Controller('suppliers')
 export class SuppliersController {
@@ -25,7 +25,13 @@ export class SuppliersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSupplierDto: UpdateSupplierDto) {
+  @ApiOperation({ summary: 'Update supplier' })
+  // @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Update supplier data',
+    type: UpdateSupplierDto,
+  })
+  update(@Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto) {
     return this.suppliersService.update(+id, updateSupplierDto);
   }
 
