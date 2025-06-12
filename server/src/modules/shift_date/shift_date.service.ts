@@ -135,4 +135,47 @@ export class ShiftDateService {
       },
     });
   }
+
+  async addEmployeeToShiftAssignment(shiftid: number, shiftdate: string, employeeid: number) {
+    const shiftdate_utc = convertVNToUTC(shiftdate);
+    // Kiểm tra xem đã có bản ghi nào với employeeid, shiftid, shiftdate chưa
+    const existingAssignment = await this.prisma.shift_assignment.findUnique({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate_utc),
+        },
+      },
+    });
+
+    if (existingAssignment) {
+      // Nếu đã có, trả về thông báo hoặc xử lý theo yêu cầu
+      return { message: 'Employee is already assigned to this shift.' };
+    }
+
+    // Nếu chưa có, thêm mới bản ghi
+    return this.prisma.shift_assignment.create({
+      data: {
+        employeeid,
+        shiftid,
+        shiftdate: new Date(shiftdate_utc),
+        assignmentstatus: 'approved',
+      },
+    });
+  }
+
+  removeEmployeeFromShiftAssignment(shiftid: number, shiftdate: string, employeeid: number) {
+    const shiftdate_utc = convertVNToUTC(shiftdate);
+    // Xóa bản ghi shift_assignment theo khóa chính (employeeid, shiftid, shiftdate)
+    return this.prisma.shift_assignment.delete({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate_utc),
+        },
+      },
+    });
+  }
 }

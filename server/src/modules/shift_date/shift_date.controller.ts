@@ -4,6 +4,7 @@ import { CreateShiftDateDto } from './dto/create-shift_date.dto';
 import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
+import { CreateShiftAssignmentDto } from './dto/create-shift_assignment.dto';
 
 @Controller('shift-date')
 export class ShiftDateController {
@@ -94,7 +95,7 @@ export class ShiftDateController {
     @Query('page') page: number,
     @Query('pageSize') pageSize: number,
   ) {
-    return this.shiftDateService.getEmployeesNotInShift(shiftdate,  +shiftid, +page, +pageSize);
+    return this.shiftDateService.getEmployeesNotInShift(shiftdate, +shiftid, +page, +pageSize);
   }
 
   @Patch('update-shift-assignment')
@@ -112,5 +113,18 @@ export class ShiftDateController {
     @Body() updateShiftAssignmentDto: UpdateShiftAssignmentDto
   ) {
     return this.shiftDateService.updateShiftEnrollment(updateShiftAssignmentDto);
+  }
+
+  @Post('assignment/add')
+  @ApiBody({ type: CreateShiftAssignmentDto })
+  async addEmployeeToShiftAssignment(@Body() body: CreateShiftAssignmentDto) {
+    const { shiftid, shiftdate, employeeid } = body;
+    return this.shiftDateService.addEmployeeToShiftAssignment(shiftid, shiftdate, employeeid);
+  }
+
+  @Delete('assignment/remove')
+  async removeEmployeeFromShiftAssignment(@Body() body: CreateShiftAssignmentDto) {
+    const { shiftid, shiftdate, employeeid } = body;
+    return this.shiftDateService.removeEmployeeFromShiftAssignment(shiftid, shiftdate, employeeid);
   }
 }
