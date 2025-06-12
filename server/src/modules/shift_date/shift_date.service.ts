@@ -202,8 +202,11 @@ export class ShiftDateService {
           { accounts: { fullname: { contains: namePart, mode: 'insensitive' } } }
         ];
       } else {
-        // Chỉ id
-        where.employeeid = idPart;
+        // Nếu chỉ là số: tìm theo employeeid hoặc fullname chứa số đó
+        where.OR = [
+          { employeeid: idPart },
+          { accounts: { fullname: { contains: String(idPart), mode: 'insensitive' } } }
+        ];
       }
     } else if (query.startsWith('-')) {
       // Trường hợp: "-Hoang"
@@ -225,5 +228,116 @@ export class ShiftDateService {
     });
 
     return employees;
+  }
+  async searchEmployeesNotInShift(
+    shiftdate: string,
+    shiftid: number,
+    query: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<any> {
+    // Lấy loại nhân viên từ shift
+    const shift = await this.prisma.shift.findUnique({
+      where: { shiftid },
+      select: { shifttype: true },
+    });
+    const employee_type = shift?.shifttype ?? 'Full-time';
+    const shiftdate_utc = new Date(shiftdate);
+
+    // Lấy danh sách employeeid đã có trong shift_assignment
+    const employeesInShifts = await this.prisma.shift_date.findMany({
+      where: {
+        shiftid: shiftid,
+        shiftdate: shiftdate_utc,
+      },
+      select: {
+        shift_assignment: {
+          select: {
+            employees: {
+              select: { employeeid: true },
+            },
+          },
+        },
+      },
+    });
+
+    // Trích xuất danh sách employeeid từ kết quả
+    const employeeIdsInShifts = employeesInShifts
+      .flatMap((shift) => shift.shift_assignment)
+      .flatMap((assignment) => assignment.employees)
+      .map((employee) => employee.employeeid);
+
+    // Tạo điều kiện tìm kiếm
+    const where: any = {
+      employeeid: { notIn: employeeIdsInShifts },
+      employee_type: employee_type,
+      role: { not: 'admin' },
+      accounts: { status: 'Active' }
+    };
+
+    // Xử lý query: cho phép tìm theo "employeeid-fullname", "employeeid", "fullname"
+    let idPart: number | undefined;
+    let namePart: string | undefined;
+    if (query && query.trim()) {
+      const match = query.trim().match(/^(\d+)[-\s]?(.*)$/);
+      if (match) {
+        idPart = parseInt(match[1], 10);
+        namePart = match[2]?.trim();
+        if (namePart) {
+          // Tìm theo cả id và tên
+          where.AND = [
+            { employeeid: idPart },
+            { accounts: { fullname: { contains: namePart, mode: 'insensitive' } } }
+          ];
+        } else {
+          // Nếu chỉ là số: tìm theo employeeid hoặc fullname chứa số đó
+          where.OR = [
+            { employeeid: idPart },
+            { accounts: { fullname: { contains: String(idPart), mode: 'insensitive' } } }
+          ];
+        }
+      } else {
+        // Chỉ tên
+        where.accounts = {
+          ...where.accounts,
+          fullname: { contains: query.trim(), mode: 'insensitive' }
+        };
+      }
+    }
+
+    // Phân trang
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    // Đếm tổng số kết quả
+    const total = await this.prisma.employees.count({ where });
+
+    // Lấy kết quả phân trang
+    const employees = await this.prisma.employees.findMany({
+      where,
+      select: {
+        employeeid: true,
+        employee_type: true,
+        accounts: {
+          select: {
+            fullname: true,
+            avatarurl: true,
+          },
+        },
+      },
+      orderBy: { employeeid: 'asc' },
+      skip,
+      take,
+    });
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      data: employees,
+      pagination: {
+        page,
+        totalPages,
+      }
+    };
   }
 }

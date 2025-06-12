@@ -128,5 +128,90 @@ export class ShiftDateController {
     const { shiftid, shiftdate, employeeid } = body;
     return this.shiftDateService.removeEmployeeFromShiftAssignment(shiftid, shiftdate, employeeid);
   }
-
+  @Get('search-employees-not-in-shift')
+  @ApiQuery({
+    name: 'shiftdate',
+    required: true,
+    description: 'Ngày ca làm việc (YYYY-MM-DD)',
+    example: '2025-06-25',
+  })
+  @ApiQuery({
+    name: 'shiftid',
+    required: true,
+    description: 'ID ca làm việc',
+    example: 3,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Tìm kiếm theo tên (fullname)',
+    example: 'Hoang',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Số trang (bắt đầu từ 1)',
+    example: 1,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Số lượng mỗi trang',
+    example: 10,
+    type: Number,
+  })
+  @ApiOperation({ summary: 'Search employees not in shift (with pagination)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Danh sách nhân viên chưa có trong ca, có thể lọc theo tên, có phân trang',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              employeeid: { type: 'number', example: 4 },
+              employee_type: { type: 'string', example: 'Full-time' },
+              accounts: {
+                type: 'object',
+                properties: {
+                  fullname: { type: 'string', example: 'Nguyễn Văn D' },
+                  avatarurl: { type: 'string', example: 'avatar4.jpg' }
+                }
+              }
+            }
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            page: { type: 'number', example: 1 },
+            pageSize: { type: 'number', example: 10 },
+            total: { type: 'number', example: 25 },
+            totalPages: { type: 'number', example: 3 },
+            hasNextPage: { type: 'boolean', example: true },
+            hasPreviousPage: { type: 'boolean', example: false }
+          }
+        }
+      }
+    }
+  })
+  async searchEmployeesNotInShift(
+    @Query('shiftdate') shiftdate: string,
+    @Query('shiftid') shiftid: number,
+    @Query('q') q?: string,
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ) {
+    return this.shiftDateService.searchEmployeesNotInShift(
+      shiftdate,
+      +shiftid,
+      q || '',
+      +page,
+      +pageSize
+    );
+  }
 }
