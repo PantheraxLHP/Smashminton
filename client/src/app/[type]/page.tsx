@@ -32,6 +32,8 @@ const ShiftAssignmentPage = () => {
     const { user } = useAuth();
     const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
     const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
+    const [fullTimeOption, setFullTimeOption] = useState<string>('same');
+    const [partTimeOption, setPartTimeOption] = useState<string>('0');
 
     const formatEmployeeType = (selectedRadio: string | undefined) => {
         if (selectedRadio === 'fulltime') {
@@ -94,6 +96,10 @@ const ShiftAssignmentPage = () => {
                     onRadioChange={setSelectedRadio}
                     role={user?.role}
                     type={type as 'enrollments' | 'assignments'}
+                    fullTimeOption={fullTimeOption}
+                    setFullTimeOption={setFullTimeOption}
+                    partTimeOption={partTimeOption}
+                    setPartTimeOption={setPartTimeOption}
                 />
                 <PersonalShift
                     role={user?.role}

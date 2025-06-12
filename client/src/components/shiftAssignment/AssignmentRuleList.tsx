@@ -19,8 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { useState, Fragment } from "react";
 import AssignmentRuleDetail from "./AssignmentRuleDetail";
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface CustomRuleList {
     ruleid: number;
@@ -30,8 +28,19 @@ interface CustomRuleList {
     lastmodified: Date;
 }
 
-const AssignmentRuleList = () => {
-    const [selectedRadio, setSelectedRadio] = useState("assignedShiftInWeek");
+interface AssignmentRuleListProps {
+    fullTimeOption?: string;
+    setFullTimeOption?: (value: string) => void;
+    partTimeOption?: string;
+    setPartTimeOption?: (value: string) => void;
+}
+
+const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
+    fullTimeOption,
+    setFullTimeOption,
+    partTimeOption,
+    setPartTimeOption,
+}) => {
     const [ruleList, setRuleList] = useState<CustomRuleList[]>([
         {
             ruleid: 1,
@@ -143,7 +152,7 @@ const AssignmentRuleList = () => {
                 </div>
             </div>
             <div className="flex w-full gap-4">
-                <div className="flex flex-col max-w-full overflow-x-auto">
+                <div className="flex flex-col w-full max-w-full overflow-x-auto">
                     <div className="grid grid-cols-[repeat(5,minmax(100px,200px))]">
                         <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Tên quy tắc</div>
                         <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Đối tượng áp dụng</div>
@@ -213,18 +222,35 @@ const AssignmentRuleList = () => {
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-col gap-2 border-2 rounded-lg p-4">
-                    <span className="text-xs font-semibold">Ưu tiên phân công nhân viên theo:</span>
-                    <RadioGroup value={selectedRadio} onValueChange={setSelectedRadio} >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem className="cursor-pointer" value="assignedShiftInWeek" id="assignedShiftInWeek" />
-                            <Label className="cursor-pointer" htmlFor="assignedShiftInWeek">Số ca làm trong tuần (tăng dần)</Label>
+                <div className="flex flex-col gap-2 border-2 rounded-lg p-4 w-80">
+                    <div className="flex flex-col items-center gap-5 justify-between w-full">
+                        <div className="flex flex-col gap-1 w-full">
+                            <span className="text-sm font-semibold">Chế độ phân công cho nhân viên toàn thời gian</span>
+                            <Select value={fullTimeOption} onValueChange={setFullTimeOption}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn chế độ phân công" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                    <SelectItem value="same">Như tuần trước</SelectItem>
+                                    <SelectItem value="rotate">Xoay tua buổi</SelectItem>
+                                    <SelectItem value="random">Ngẫu nhiên</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem className="cursor-pointer" value="employeePriority" id="employeePriority" />
-                            <Label className="cursor-pointer" htmlFor="employeePriority">Điểm ưu tiên (giảm dần)</Label>
+                        <div className="flex flex-col gap-1 w-full">
+                            <span className="text-sm font-semibold">Ưu tiên phân công cho nhân viên bán thời gian theo</span>
+                            <Select value={partTimeOption} onValueChange={setPartTimeOption}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn loại ưu tiên" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                    <SelectItem value="0">Không ưu tiên</SelectItem>
+                                    <SelectItem value="1">Số ca được phân công ít nhất</SelectItem>
+                                    <SelectItem value="2">Điểm ưu tiên của nhân viên cao nhất</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </RadioGroup>
+                    </div>
                 </div>
             </div>
         </div>

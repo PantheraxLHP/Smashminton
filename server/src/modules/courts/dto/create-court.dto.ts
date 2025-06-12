@@ -4,13 +4,21 @@ import { IsOptional, IsString, IsDecimal } from 'class-validator';
 export class CreateCourtDto {
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: 'Court B4' })
+  @ApiProperty({ example: 'Court B4', required: false})
   courtname?: string;
 
   @IsOptional()
   @IsString()
   @ApiProperty({ example: 'Active' })
   statuscourt?: string;
+
+  @IsOptional()
+  @ApiProperty({ type: Number, example: 5.0, })
+  avgrating?: number;
+
+  @IsOptional()
+  @ApiProperty({ type: String, example: '2025-05-15T09:00:00Z' })
+  timecalculateavg?: Date;
 
   @IsOptional()
   @IsString()
