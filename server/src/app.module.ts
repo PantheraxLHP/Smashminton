@@ -27,6 +27,7 @@ import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
 import { BankDetailModule } from './modules/bank_detail/bank_detail.module';
 import { RewardRecordsModule } from './modules/reward_records/reward_records.module';
 import { ProductBatchModule } from './modules/product_batch/product_batch.module';
+import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.module';
 
 @Module({
     imports: [
@@ -57,6 +58,7 @@ import { ProductBatchModule } from './modules/product_batch/product_batch.module
         BankDetailModule,
         RewardRecordsModule,
         ProductBatchModule,
+        AutoAssignmentModule,
     ],
     controllers: [AppController],
     providers: [AppService],
