@@ -3,16 +3,24 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
-import AddSupplierModal, { SupplierFormData } from './AddSuppliers';
+import AddSupplierModal from './AddSuppliers';
 import { getSuppliers } from '@/services/suppliers.service';
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
 
-interface Supplier {
+type ProductOption = {
+    productid: number;
+    productname: string;
+};
+
+export interface Supplier {
     name: string;
     phone: string;
     email: string;
     address: string;
-    logo: string;
+    products: {
+        productid: number;
+        productname: string;
+    }[];
 }
 
 export default function SupplierManagementPage() {
@@ -20,35 +28,38 @@ export default function SupplierManagementPage() {
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         phone: '',
+        productname: '',
     });
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
-    const [editData, setEditData] = useState<SupplierFormData | null>(null);
+    const [editData, setEditData] = useState<Supplier | null>(null);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
+    const [productsList, setProductsList] = useState<ProductOption[]>([]);
 
     useEffect(() => {
         const fetchSuppliers = async () => {
             const response = await getSuppliers();
             if (response.ok) {
-                const mapped = response.data.map((item: any) => ({
-                    name: item.suppliername || '',
-                    phone: item.phonenumber || '',
-                    email: item.email || '',
-                    address: item.address || '',
-                    logo: '/default.png',
+                setProductsList(response.data);
+                const mapped: Supplier[] = response.data.map((supplier: any) => ({
+                    name: supplier.suppliername || '',
+                    phone: supplier.phonenumber || '',
+                    email: supplier.email || '',
+                    address: supplier.address || '',
+                    products: (supplier.products || []).map((p: any) => ({
+                        productid: p.productid,
+                        productname: p.productname,
+                    }))
                 }));
                 setSuppliers(mapped);
             }
-            console.log(response);
         };
         fetchSuppliers();
     }, []);
-      
 
     const filtersConfig: FilterConfig[] = [
-        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên', },
-        { filterid: 'phone', filtertype: 'search', filterlabel: 'Tìm theo số điện thoại',},
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên nhà cung cấp' },
+        { filterid: 'productname', filtertype: 'search', filterlabel: 'Tìm theo tên sản phẩm' }
     ];
 
     const columns: Column<Supplier>[] = [
@@ -56,24 +67,31 @@ export default function SupplierManagementPage() {
         { header: 'Số điện thoại', accessor: 'phone' },
         { header: 'Email', accessor: 'email' },
         { header: 'Địa chỉ', accessor: 'address' },
+        {
+            header: 'Sản phẩm cung cấp',
+            cell: (item) => (
+                <div className="flex flex-wrap gap-1">
+                    {item.products.map((p) => (
+                        <span key={p.productid} className="inline-block rounded bg-gray-200 px-2 py-1 text-xs">
+                            {p.productname}
+                        </span>
+                    ))}
+                </div>
+            ),
+        },
     ];
 
     const filteredData = suppliers.filter((item) => {
-        const matchesName =
-            !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesPhone =
-            !filters.phone || item.phone.includes(filters.phone);
-        return matchesName && matchesPhone;
+        const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+        const matchesProductName = !filters.productname || item.products.some((p) =>
+            p.productname.toLowerCase().includes(filters.productname.toLowerCase())
+        );
+        return matchesName && matchesProductName;
     });
 
     const handleEdit = (index: number) => {
         const supplier = filteredData[index];
-        setEditData({
-            name: supplier.name,
-            phone: supplier.phone,
-            email: supplier.email,
-            address: supplier.address,
-        });
+        setEditData({ ...supplier });
         setEditIndex(index);
         setOpenModal(true);
     };
@@ -82,7 +100,9 @@ export default function SupplierManagementPage() {
         const supplier = filteredData[index];
         const confirmed = window.confirm(`Xác nhận xóa nhà cung cấp: ${supplier.name}?`);
         if (confirmed) {
-            const realIndex = suppliers.findIndex((d) => d.name === supplier.name);
+            const realIndex = suppliers.findIndex(
+                (s) => s.name === supplier.name && s.phone === supplier.phone
+            );
             if (realIndex !== -1) {
                 const newData = [...suppliers];
                 newData.splice(realIndex, 1);
@@ -91,28 +111,23 @@ export default function SupplierManagementPage() {
         }
     };
 
-    const handleSubmit = (formData: SupplierFormData) => {
-        const newSupplier: Supplier = {
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address,
-            logo: '/default.png',
-        };
-
+    const handleSubmit = (formData: Supplier) => {
         if (editIndex !== null) {
-            const realIndex = suppliers.findIndex((d) => d.name === filteredData[editIndex].name);
+            const realIndex = suppliers.findIndex(
+                (s) => s.name === filteredData[editIndex].name && s.phone === filteredData[editIndex].phone
+            );
             if (realIndex !== -1) {
                 const updated = [...suppliers];
-                updated[realIndex] = newSupplier;
+                updated[realIndex] = { ...formData };
                 setSuppliers(updated);
             }
         } else {
-            setSuppliers([...suppliers, newSupplier]);
+            setSuppliers([...suppliers, { ...formData }]);
         }
 
         setOpenModal(false);
         setEditIndex(null);
+        setEditData(null);
     };
 
     return (
@@ -126,9 +141,9 @@ export default function SupplierManagementPage() {
                 }}
                 onSubmit={handleSubmit}
                 editData={editData}
+                //productsList={productsList}
             />
 
-            {/* Filter Component */}
             <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
                 <Filter
                     filters={filtersConfig}
@@ -137,7 +152,6 @@ export default function SupplierManagementPage() {
                 />
             </div>
 
-            {/* Main Content */}
             <div className="flex flex-1 flex-col">
                 <div className="mb-2 hidden justify-end lg:flex">
                     <button
@@ -153,13 +167,6 @@ export default function SupplierManagementPage() {
                     data={filteredData}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    renderImage={(item) => (
-                        item.logo ? (
-                            <Image src={item.logo} alt={item.name} width={40} height={40} />
-                        ) : (
-                            <Image src="/default.png" alt="default" width={40} height={40} />
-                        )
-                    )}
                     showOptions={false}
                     showMoreOption={true}
                     showHeader
