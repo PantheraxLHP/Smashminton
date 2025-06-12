@@ -103,7 +103,7 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
             const dropResult = monitor.getDropResult<{ targetType?: string }>();
             if (!dropResult || dropResult.targetType !== 'ASSIGNMENT_AREA') {
                 // Nếu không drop vào assignment area, thì xóa assignment
-                removeAssignment(assignment.employeeid);
+                removeAssignment(assignment.employees?.employeeid || 0);
             }
         },
         collect: (monitor) => ({
@@ -138,21 +138,27 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
     const [pageSize, setPageSize] = useState(5);
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
     const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>(shiftDataSingle.shift_assignment || []);
-
     const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
-
     const [isDraggingEmployee, setIsDraggingEmployee] = useState(false);
 
-    useEffect(() => {
-        const fetchAvailableEmployees = async () => {
-            const response = await searchEmployees(shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize);
-            if (response.ok) {
-                setAvailableEmployees(response.data.data);
-                setTotalPages(response.data.pagination.totalPages);
-            }
-        };
+    // Fetch both assignments and available employees
+    const fetchAllData = async () => {
+        // Update available employees
+        const response = await searchEmployees(shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize);
+        if (response.ok) {
+            setAvailableEmployees(response.data.data);
+            setTotalPages(response.data.pagination.totalPages);
+        }
+        // Update assignments from latest shiftDataSingle
+        // If you have an API to get assignments, use it here. Otherwise, use the prop.
+        if (shiftDataSingle.shift_assignment) {
+            setShiftAssignments(shiftDataSingle.shift_assignment);
+        }
+    };
 
-        fetchAvailableEmployees();
+    useEffect(() => {
+        fetchAllData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize]);
 
     const [{ isOver }, dropRef] = useDrop({
@@ -165,9 +171,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                     employeeid: item.employee.employeeid,
                 });
                 if (response.ok) {
-                    setShiftAssignments((prev) => [...prev, response.data]);
-                    // Xóa khỏi availableEmployees
-                    setAvailableEmployees((prev) => prev.filter((e) => e.employeeid !== item.employee.employeeid));
+                    await fetchAllData();
                 }
             }
             // Trả về object cho biết đã drop vào assignment area
@@ -185,8 +189,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
             employeeid: employeeId,
         });
         if (response.ok) {
-            setShiftAssignments((prev) => prev.filter((sa) => sa.employeeid !== employeeId));
-            setAvailableEmployees((prev) => [...prev, response.data]);
+            await fetchAllData();
         }
     };
 
