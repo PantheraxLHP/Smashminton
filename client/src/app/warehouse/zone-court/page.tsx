@@ -8,8 +8,10 @@ import AddCourtModal from './AddCourt';
 import { Switch } from '@/components/ui/switch';
 import { FaRegEdit } from 'react-icons/fa';
 import { getZoneCourt } from '@/services/zones.service';
+import { patchCourts } from '@/services/courts.service';
 
 export interface Zone {
+    zoneid?: number;
     zonename: string;
     type: string;
     image: string;
@@ -17,12 +19,14 @@ export interface Zone {
 }
 
 export interface Court {
+    courtid?: number;
     courtname: string;
     image: string;
     status: string;
     avgrating: number;
     timecalavg: string;
-    zonename: string;
+    zoneid: number;
+    zonename?: string;
 }
 
 function normalizeTimeString(time: string) {
@@ -43,54 +47,61 @@ export default function ZoneCourtManager() {
         zonename: [],
     });
 
-    useEffect(() => {
-        async function fetchData() {
-            const res = await getZoneCourt();
+    async function fetchZoneCourtData() {
+        const res = await getZoneCourt();
 
-            if (res.ok && Array.isArray(res.data?.zones)) {
-                const zoneList = res.data.zones;
+        if (res.ok && Array.isArray(res.data?.zones)) {
+            const zoneList = res.data.zones;
 
-                const transformedZones: Zone[] = zoneList.map((z: any) => ({
+            const transformedZones: Zone[] = zoneList.map((z: any) => ({
+                zonename: z.zonename,
+                type: z.zonetype,
+                image: z.zoneimgurl || '/default.png',
+                description: z.zonedescription,
+            }));
+
+            const transformedCourts: Court[] = zoneList.flatMap((z: any) =>
+                (z.courts || []).map((c: any) => ({
+                    courtid: c.courtid,
+                    courtname: c.courtname,
+                    image: c.courtimgurl || '/default.png',
+                    status: c.courtstatus === 'Active' ? 'Đang hoạt động' : 'Bảo trì',
+                    avgrating: parseFloat(c.courtavgrating),
+                    timecalavg: c.courttimecalculateavg?.split('T')[0] ?? '',
                     zonename: z.zonename,
-                    type: z.zonetype,
-                    image: z.zoneimgurl || '/default.png',
-                    description: z.zonedescription,
-                }));
+                    zoneid: z.zoneid,
+                }))
+            );
 
-                const transformedCourts: Court[] = zoneList.flatMap((z: any) =>
-                    (z.courts || []).map((c: any) => ({
-                        courtname: c.courtname,
-                        image: c.courtimgurl || '/default.png',
-                        status: c.courtstatus === 'Active' ? 'Đang hoạt động' : 'Bảo trì',
-                        avgrating: parseFloat(c.courtavgrating),
-                        timecalavg: c.courttimecalculateavg?.split('T')[0] ?? '',
-                        zonename: z.zonename,
-                    }))
-                );
-
-                setZoneState(transformedZones);
-                setCourtState(transformedCourts);
-                setAllCourts(transformedCourts);
-                setFilters({
-                    zonename: transformedZones.map(z => z.zonename),
-                });
-            } else {
-                console.error('API trả về dữ liệu không hợp lệ:', res);
-            }
+            setZoneState(transformedZones);
+            setCourtState(transformedCourts);
+            setAllCourts(transformedCourts);
+            setFilters({
+                zonename: transformedZones.map(z => z.zonename),
+            });
+        } else {
+            console.error('API trả về dữ liệu không hợp lệ:', res);
         }
+    }
 
-        fetchData();
+    // Gọi lần đầu khi load
+    useEffect(() => {
+        fetchZoneCourtData();
     }, []);
+    
     
 
     useEffect(() => {
         if (!filters.zonename || filters.zonename.length === 0) {
             setCourtState(allCourts);
         } else {
-            const filteredCourts = allCourts.filter((c) => filters.zonename.includes(c.zonename));
+            const filteredCourts = allCourts.filter((c) =>
+                filters.zonename.includes(c.zonename)
+            );
             setCourtState(filteredCourts);
         }
     }, [filters.zonename, allCourts]);
+    
 
     const zoneOptions: FilterOption[] = zoneState.map((zone) => ({
         optionlabel: zone.zonename,
@@ -120,18 +131,36 @@ export default function ZoneCourtManager() {
     }
 
     function handleSubmitCourt(newCourt: Court) {
-        const updatedCourts = [...allCourts, newCourt];
-        setAllCourts(updatedCourts);
-        setCourtState(updatedCourts.filter(c => filters.zonename.includes(c.zonename)));
-        setIsAddCourtModalOpen(false);
-    }
+        const courtWithImage = {
+            ...newCourt,
+            image: newCourt.image?.trim() ? newCourt.image : '/default.png',
+        };
 
+        const updatedCourts = [...allCourts, courtWithImage];
+        setAllCourts(updatedCourts);
+
+        if (!filters.zonename || filters.zonename.length === 0) {
+            setCourtState(updatedCourts);
+        } else {
+            const filtered = updatedCourts.filter(c =>
+                filters.zonename.includes(c.zonename ?? '')
+            );
+            setCourtState(filtered);
+        }
+
+        setIsAddCourtModalOpen(false);
+    }    
+    
     const CourtColumns: Column<Court>[] = [
         {
             header: 'Sân',
             accessor: (item) => (
                 <div className="flex items-center gap-2">
-                    <img src={item.image} alt="" className="w-6 h-6 rounded object-cover" />
+                    <img
+                        src={item.image?.trim() ? item.image : "/default.png"}
+                        alt=""
+                        className="w-6 h-6 rounded object-cover"
+                    />
                     {item.courtname}
                 </div>
             ),
@@ -141,18 +170,31 @@ export default function ZoneCourtManager() {
             accessor: (item) => {
                 const isActive = item.status === 'Đang hoạt động';
 
-                function handleSwitchChange(checked: boolean) {
-                    const newStatus = checked ? 'Đang hoạt động' : 'Bảo trì';
+                async function handleSwitchChange(checked: boolean) {
+                    const newStatus = checked ? 'Active' : 'Inactive';
+
+                    // Gọi API cập nhật
+                    await patchCourts(item.courtid!, {
+                        courtname: item.courtname,
+                        statuscourt: newStatus,
+                        avgrating: item.avgrating,
+                        timecalculateavg: new Date(item.timecalavg).toISOString(),
+                        zoneid: item.zoneid,
+                        courtimgurl: item.image,
+                      });
+
+                    // Cập nhật UI
                     const updatedCourts = courtState.map((c) =>
-                        c.courtname === item.courtname ? { ...c, status: newStatus } : c
+                        c.courtname === item.courtname ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
                     );
                     setCourtState(updatedCourts);
                     setAllCourts(prev =>
                         prev.map((c) =>
-                            c.courtname === item.courtname ? { ...c, status: newStatus } : c
+                            c.courtname === item.courtname ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
                         )
                     );
                 }
+                
 
                 const colorClass = isActive ? 'text-primary-600' : 'text-orange-500';
 
@@ -183,14 +225,25 @@ export default function ZoneCourtManager() {
                                 autoFocus
                             />
                             <button
-                                onClick={() => {
-                                    const now = new Date().toISOString().split('T')[0];
+                                onClick={async () => {
+                                    const now = new Date().toISOString();
+                                    const newRating = Number(editedRatingGrade);
+
+                                    await patchCourts(item.courtid!, {
+                                        courtname: item.courtname,
+                                        statuscourt: item.status === 'Đang hoạt động' ? 'Active' : 'Inactive',
+                                        avgrating: newRating,
+                                        timecalculateavg: now,
+                                        zoneid: item.zoneid,
+                                        courtimgurl: item.image,
+                                    });
+
                                     const updated = courtState.map((z) =>
                                         z.courtname === item.courtname
                                             ? {
                                                 ...z,
-                                                avgrating: Number(editedRatingGrade),
-                                                timecalavg: now,
+                                                avgrating: newRating,
+                                                timecalavg: now.split('T')[0],
                                             }
                                             : z
                                     );
@@ -200,14 +253,14 @@ export default function ZoneCourtManager() {
                                             z.courtname === item.courtname
                                                 ? {
                                                     ...z,
-                                                    avgrating: Number(editedRatingGrade),
-                                                    timecalavg: now,
+                                                    avgrating: newRating,
+                                                    timecalavg: now.split('T')[0],
                                                 }
                                                 : z
                                         )
                                     );
                                     setEditingItem(null);
-                                }}
+                                }}                                
                                 className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
                             >
                                 Xong
@@ -284,12 +337,16 @@ export default function ZoneCourtManager() {
                 onClose={() => setIsAddZoneModalOpen(false)}
                 open={isAddZoneModalOpen}
                 onSubmit={handleSubmit}
-                onSuccess={() => setIsAddCourtModalOpen(false)}
+                onSuccess={() => {
+                    fetchZoneCourtData();
+                    setIsAddZoneModalOpen(false);
+                }}
             />
             <AddCourtModal
                 onClose={() => setIsAddCourtModalOpen(false)}
                 open={isAddCourtModalOpen}
                 onSubmit={handleSubmitCourt}
+                onSuccess={fetchZoneCourtData} 
             />
         </div>
     );

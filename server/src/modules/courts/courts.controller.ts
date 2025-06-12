@@ -38,6 +38,7 @@ export class CourtsController {
         @Body() createCourtDto: CreateCourtDto,
         @UploadedFile() file: Express.Multer.File
     ) {
+        createCourtDto.zoneid = parseInt(createCourtDto.zoneid as any, 10);
         return this.courtsService.createCourt(createCourtDto, file);
     }
 
