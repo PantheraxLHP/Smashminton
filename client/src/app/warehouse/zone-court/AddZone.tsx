@@ -94,6 +94,7 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             toast.error("Có lỗi xảy ra");
         } finally {
             setLoading(false);
+            onClose();
         }
     };
 
