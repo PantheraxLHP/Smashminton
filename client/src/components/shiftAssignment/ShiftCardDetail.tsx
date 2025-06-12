@@ -6,7 +6,8 @@ import { useDrag, useDrop } from 'react-dnd';
 import Image from 'next/image';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { useEffect, useState } from 'react';
-import { searchEmployees } from '@/services/shiftdate.service';
+import { addAssignment, deleteAssignment, searchEmployees } from '@/services/shiftdate.service';
+import { formatDateString } from '@/lib/utils';
 
 interface ShiftCardDetailProps {
     shiftDataSingle: ShiftDate;
@@ -137,7 +138,6 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
     const [pageSize, setPageSize] = useState(5);
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
     const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>(shiftDataSingle.shift_assignment || []);
-    console.log(shiftAssignments);
 
     const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
 
@@ -157,20 +157,18 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
 
     const [{ isOver }, dropRef] = useDrop({
         accept: [EMPLOYEE_TYPE, ASSIGNMENT_TYPE],
-        drop: (item: DragItem, monitor) => {
+        drop: async (item: DragItem, monitor) => {
             if (item.type === EMPLOYEE_TYPE && item.employee.employeeid !== undefined) {
-                // Thêm vào shiftAssignments
-                setShiftAssignments((prev) => [
-                    ...prev,
-                    {
-                        employeeid: item.employee.employeeid,
-                        shiftid: shiftDataSingle.shiftid,
-                        shiftdate: shiftDataSingle.shiftdate,
-                        employees: item.employee,
-                    },
-                ]);
-                // Xóa khỏi availableEmployees
-                setAvailableEmployees((prev) => prev.filter((e) => e.employeeid !== item.employee.employeeid));
+                const response = await addAssignment({
+                    shiftdate: formatDateString(shiftDataSingle.shiftdate),
+                    shiftid: shiftDataSingle.shiftid,
+                    employeeid: item.employee.employeeid,
+                });
+                if (response.ok) {
+                    setShiftAssignments((prev) => [...prev, response.data]);
+                    // Xóa khỏi availableEmployees
+                    setAvailableEmployees((prev) => prev.filter((e) => e.employeeid !== item.employee.employeeid));
+                }
             }
             // Trả về object cho biết đã drop vào assignment area
             return { targetType: 'ASSIGNMENT_AREA' };
@@ -180,13 +178,15 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
         }),
     });
 
-    const removeAssignment = (employeeId: number) => {
-        const employee = shiftAssignments.find((sa) => sa.employeeid === employeeId)?.employees;
-
-        if (employee) {
+    const removeAssignment = async (employeeId: number) => {
+        const response = await deleteAssignment({
+            shiftdate: formatDateString(shiftDataSingle.shiftdate),
+            shiftid: shiftDataSingle.shiftid,
+            employeeid: employeeId,
+        });
+        if (response.ok) {
             setShiftAssignments((prev) => prev.filter((sa) => sa.employeeid !== employeeId));
-
-            setAvailableEmployees((prev) => [...prev, employee]);
+            setAvailableEmployees((prev) => [...prev, response.data]);
         }
     };
 

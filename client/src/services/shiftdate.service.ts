@@ -1,5 +1,6 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 import { formatDateString } from '@/lib/utils';
+import { ShiftAssignment } from '@/types/types';
 
 export const getShiftDate = async (dayfrom: Date, dayto: Date, employee_type: string) => {
     try {
@@ -49,5 +50,46 @@ export const searchEmployees = async (shiftdate: Date, shiftid: number, page: nu
         return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tìm kiếm nhân viên');
+    }
+};
+
+export const addAssignment = async (assignmentData: { shiftdate: string; shiftid: number; employeeid: number }) => {
+    try {
+        console.log(assignmentData);
+        const response = await fetch(`/api/shiftdate/post-assignment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(assignmentData),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thêm phân công');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thêm phân công');
+    }
+};
+
+export const deleteAssignment = async (assignmentData: { shiftdate: string; shiftid: number; employeeid: number }) => {
+    try {
+        const response = await fetch(`/api/shiftdate/delete-assignment`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(assignmentData),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể xóa phân công');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể xóa phân công');
     }
 };
