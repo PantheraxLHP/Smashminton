@@ -626,8 +626,8 @@ async function main() {
 
     const shifts = await prisma.shift.findMany({});
     const shiftDate = new Date(startOfWeek);
-    shiftDate.setHours(0, 0, 0, 0);
-
+    shiftDate.setUTCHours(0, 0, 0, 0);
+    
     for (const shift of shifts) {
         for (let i = 0; i < 14; i++) {
             shiftDate.setDate(startOfWeek.getDate() + i);

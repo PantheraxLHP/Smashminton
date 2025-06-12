@@ -99,6 +99,7 @@ export class CourtsService {
         const filteredCourtByDayFromTo = await this.prisma.courts.findMany({
             where: {
                 zoneid: parsedZoneId,
+                statuscourt: 'Active',
             },
             select: {
                 courtid: true,
@@ -148,6 +149,7 @@ export class CourtsService {
         const zonePricesByAllCourts = await this.prisma.courts.findMany({
             where: {
                 zoneid: parsedZoneId,
+                statuscourt: 'Active',
             },
             select: {
                 zoneid: true,
@@ -274,6 +276,7 @@ export class CourtsService {
             where: {
                 zoneid: parsedZoneId,
                 courtid: courtid,
+                statuscourt: 'Active',
             },
             select: {
                 zoneid: true,
