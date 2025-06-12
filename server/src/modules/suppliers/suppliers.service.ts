@@ -94,7 +94,25 @@ export class SuppliersService {
     };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} supplier`;
+  async remove(id: number) {
+    // Xoá liên kết supply_products trước (vì có foreign key constraint)
+    await this.prisma.supply_products.deleteMany({
+      where: {
+        supplierid: id,
+      },
+    });
+
+    // Xoá supplier
+    const deleted = await this.prisma.suppliers.delete({
+      where: {
+        supplierid: id,
+      },
+    });
+
+    return {
+      message: 'Xoá nhà cung cấp thành công',
+      data: deleted,
+    };
   }
+
 }

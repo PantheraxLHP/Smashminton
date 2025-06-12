@@ -36,6 +36,7 @@ export class SuppliersController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Xoá supplier theo ID' })
   remove(@Param('id') id: string) {
     return this.suppliersService.remove(+id);
   }
