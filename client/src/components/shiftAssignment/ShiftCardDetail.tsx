@@ -137,15 +137,11 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
     const [pageSize, setPageSize] = useState(5);
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
     const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>(shiftDataSingle.shift_assignment || []);
+    console.log(shiftAssignments);
 
     const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
 
     const [isDraggingEmployee, setIsDraggingEmployee] = useState(false);
-
-    // Always update assignments when shiftDataSingle changes
-    useEffect(() => {
-        setShiftAssignments(shiftDataSingle.shift_assignment || []);
-    }, [shiftDataSingle]);
 
     useEffect(() => {
         const fetchAvailableEmployees = async () => {
@@ -222,8 +218,9 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                         }}
                         className={`rounded-md border-2 transition-colors ${isOver ? 'bg-primary-100/20 border-primary border-dashed' : 'border-transparent'} h-full`}
                     >
-                        {shiftAssignments.filter((shiftAssignment) => shiftAssignment.employeeid !== undefined).length >
-                        0 ? (
+                        {shiftAssignments.filter(
+                            (shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined,
+                        ).length > 0 ? (
                             <div
                                 className="flex flex-col overflow-y-auto"
                                 style={{
@@ -231,10 +228,10 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                                 }}
                             >
                                 {shiftAssignments
-                                    .filter((shiftAssignment) => shiftAssignment.employeeid !== undefined)
+                                    .filter((shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined)
                                     .map((shiftAssignment) => (
                                         <DraggableAssignment
-                                            key={`assignment-${shiftAssignment.employeeid}`}
+                                            key={`assignment-${shiftAssignment.employees?.employeeid}`}
                                             assignment={shiftAssignment}
                                             setIsDraggingEmployee={setIsDraggingEmployee}
                                             removeAssignment={removeAssignment}
