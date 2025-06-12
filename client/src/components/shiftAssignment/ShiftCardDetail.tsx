@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { useDrag, useDrop } from 'react-dnd';
 import Image from 'next/image';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { searchEmployees } from '@/services/shiftdate.service';
 
 interface ShiftCardDetailProps {
     shiftDataSingle: ShiftDate;
@@ -123,7 +124,7 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
                 height={40}
                 className="rounded-full"
             />
-            <span>{assignment.employees?.accounts?.fullname}</span>
+            <span>{assignment.employees?.accounts?.fullname || ''}</span>
         </div>
     );
 };
@@ -135,91 +136,33 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
     const [totalPages, setTotalPages] = useState(10);
     const [pageSize, setPageSize] = useState(5);
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
-    const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>([
-        {
-            employeeid: 1,
-            shiftid: 1,
-            shiftdate: new Date(),
-            employees: {
-                employeeid: 1,
-                employee_type: 'fulltime',
-                accounts: {
-                    accountid: 1,
-                    fullname: 'Nguyễn Văn A',
-                    avatarurl: undefined,
-                },
-            },
-        },
-        {
-            employeeid: 2,
-            shiftid: 1,
-            shiftdate: new Date(),
-            employees: {
-                employeeid: 2,
-                employee_type: 'parttime',
-                accounts: {
-                    accountid: 2,
-                    fullname: 'Nguyễn Văn B',
-                    avatarurl: undefined,
-                },
-            },
-        },
-    ]);
+    const [shiftAssignments, setShiftAssignments] = useState<ShiftAssignment[]>(shiftDataSingle.shift_assignment || []);
 
-    const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([
-        {
-            employeeid: 3,
-            employee_type: 'parttime',
-            accounts: {
-                accountid: 3,
-                fullname: 'Nguyễn Văn C',
-                avatarurl: undefined,
-            },
-        },
-        {
-            employeeid: 4,
-            employee_type: 'fulltime',
-            accounts: {
-                accountid: 4,
-                fullname: 'Nguyễn Văn D',
-                avatarurl: undefined,
-            },
-        },
-        {
-            employeeid: 5,
-            employee_type: 'fulltime',
-            accounts: {
-                accountid: 5,
-                fullname: 'Nguyễn Văn E',
-                avatarurl: undefined,
-            },
-        },
-        {
-            employeeid: 6,
-            employee_type: 'fulltime',
-            accounts: {
-                accountid: 6,
-                fullname: 'Nguyễn Văn F',
-                avatarurl: undefined,
-            },
-        },
-        {
-            employeeid: 7,
-            employee_type: 'fulltime',
-            accounts: {
-                accountid: 7,
-                fullname: 'Nguyễn Văn G',
-                avatarurl: undefined,
-            },
-        },
-    ]);
+    const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
 
     const [isDraggingEmployee, setIsDraggingEmployee] = useState(false);
+
+    // Always update assignments when shiftDataSingle changes
+    useEffect(() => {
+        setShiftAssignments(shiftDataSingle.shift_assignment || []);
+    }, [shiftDataSingle]);
+
+    useEffect(() => {
+        const fetchAvailableEmployees = async () => {
+            const response = await searchEmployees(shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize);
+            if (response.ok) {
+                setAvailableEmployees(response.data.data);
+                setTotalPages(response.data.pagination.totalPages);
+            }
+        };
+
+        fetchAvailableEmployees();
+    }, [shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize]);
 
     const [{ isOver }, dropRef] = useDrop({
         accept: [EMPLOYEE_TYPE, ASSIGNMENT_TYPE],
         drop: (item: DragItem, monitor) => {
-            if (item.type === EMPLOYEE_TYPE) {
+            if (item.type === EMPLOYEE_TYPE && item.employee.employeeid !== undefined) {
                 // Thêm vào shiftAssignments
                 setShiftAssignments((prev) => [
                     ...prev,
@@ -279,21 +222,24 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle }) =>
                         }}
                         className={`rounded-md border-2 transition-colors ${isOver ? 'bg-primary-100/20 border-primary border-dashed' : 'border-transparent'} h-full`}
                     >
-                        {shiftAssignments.length > 0 ? (
+                        {shiftAssignments.filter((shiftAssignment) => shiftAssignment.employeeid !== undefined).length >
+                        0 ? (
                             <div
                                 className="flex flex-col overflow-y-auto"
                                 style={{
                                     maxHeight: `${maxAssignmentHeight}px`,
                                 }}
                             >
-                                {shiftAssignments.map((shiftAssignment) => (
-                                    <DraggableAssignment
-                                        key={`assignment-${shiftAssignment.employeeid}`}
-                                        assignment={shiftAssignment}
-                                        setIsDraggingEmployee={setIsDraggingEmployee}
-                                        removeAssignment={removeAssignment}
-                                    />
-                                ))}
+                                {shiftAssignments
+                                    .filter((shiftAssignment) => shiftAssignment.employeeid !== undefined)
+                                    .map((shiftAssignment) => (
+                                        <DraggableAssignment
+                                            key={`assignment-${shiftAssignment.employeeid}`}
+                                            assignment={shiftAssignment}
+                                            setIsDraggingEmployee={setIsDraggingEmployee}
+                                            removeAssignment={removeAssignment}
+                                        />
+                                    ))}
                             </div>
                         ) : (
                             <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
