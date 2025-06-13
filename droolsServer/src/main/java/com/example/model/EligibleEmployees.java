@@ -4,16 +4,20 @@ import java.util.List;
 import com.example.util.Sort;
 import com.example.util.Sort.SortType;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class EligibleEmployees {
     private List<Employee> employees;
 
     public EligibleEmployees() {
-        this.employees = new ArrayList<Employee>();
+        this.employees = Collections.synchronizedList(new ArrayList<Employee>());
     }
 
     public EligibleEmployees(List<Employee> employees) {
-        this.employees.addAll(employees);
+        this.employees = Collections.synchronizedList(new ArrayList<Employee>());
+        synchronized (this.employees) {
+            this.employees.addAll(employees);
+        }
     }
 
     public List<Employee> getEmployees() {
@@ -21,19 +25,21 @@ public class EligibleEmployees {
     }
 
     public void setEmployees(List<Employee> employees) {
-        this.employees.clear();
-        this.employees.addAll(employees);
+        synchronized (this.employees) {
+            this.employees.clear();
+            this.employees.addAll(employees);
+        }
     }
 
-    public void addEmployee(Employee employee) {
+    public synchronized void addEmployee(Employee employee) {
         this.employees.add(employee);
     }
 
-    public void removeEmployee(Employee employee) {
+    public synchronized void removeEmployee(Employee employee) {
         this.employees.remove(employee);
     }
 
-    public void clearEmployees() {
+    public synchronized void clearEmployees() {
         this.employees.clear();
     }
 

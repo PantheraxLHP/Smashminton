@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.dto.AutoAssignmentRequest;
 import com.example.dto.AutoAssignmentResponse;
 import com.example.model.*;
+import com.example.repository.*;
 import com.example.util.Sort;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -14,7 +15,6 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 @Service
 @Transactional
@@ -30,6 +30,8 @@ public class AutoAssignmentService {
 
     @Autowired
     private ShiftAssignmentRepository shiftAssignmentRepository;
+    @Autowired
+    private PenaltyRecordRepository penaltyRecordRepository;
 
     @Autowired
     private DroolsService droolsService;
@@ -44,8 +46,10 @@ public class AutoAssignmentService {
             LocalDateTime nextWeekEnd = nextWeekStart.plusDays(6).withHour(23).withMinute(59).withSecond(59)
                     .withNano(999999999);
             LocalDateTime nextWeekStartDateTime = nextWeekStart;
-            LocalDateTime nextWeekEndDateTime = nextWeekEnd; // Load part-time employees and initialize their
-                                                             // assignedShiftInDay for next week
+            LocalDateTime nextWeekEndDateTime = nextWeekEnd;
+
+            // Load part-time employees and initialize their assignedShiftInDay for next
+            // week
             List<Employee> employees = loadAndInitializePartTimeEmployees(nextWeekStartDateTime, nextWeekEndDateTime);
             if (employees.isEmpty()) {
                 return new AutoAssignmentResponse(false, "No part-time employees found in database");
@@ -58,6 +62,9 @@ public class AutoAssignmentService {
             if (shiftDates.isEmpty()) {
                 return new AutoAssignmentResponse(false, "No shifts found for next week with shiftId > 2");
             }
+
+            // Initialize assigned employee counts for each shift
+            initializeShiftAssignedEmployees(shiftDates);
             // Load shift enrollments for next week from database
             List<ShiftEnrollment> shiftEnrollments = shiftEnrollmentRepository.findByShiftDateBetween(
                     nextWeekStartDateTime, nextWeekEndDateTime);
@@ -76,16 +83,12 @@ public class AutoAssignmentService {
             // Save assignments to database
             if (!assignments.isEmpty()) {
                 shiftAssignmentRepository.saveAll(assignments);
-            }
-
-            // Build response
+            } // Build response
             response.setSuccess(true);
             response.setAssignments(assignments);
-            response.setEmployeesProcessed(employees.size());
-            response.setShiftsProcessed(shiftDates.size());
             response.setSortOptionUsed(request.getSortOption());
             response.setMessage(String.format(
-                    "Successfully created %d assignments for next week (%s to %s) using part-time employees and shifts with ID > 2",
+                    "Successfully created %d assignments for next week (%s to %s)",
                     assignments.size(), nextWeekStart.toLocalDate(), nextWeekEnd.toLocalDate()));
 
             return response;
@@ -98,6 +101,11 @@ public class AutoAssignmentService {
 
     private List<Employee> loadAndInitializePartTimeEmployees(LocalDateTime startDate, LocalDateTime endDate) {
         List<Employee> employees = employeeRepository.findPartTimeEmployees();
+
+        // Get current month and year for penalty calculation
+        LocalDate now = LocalDate.now();
+        int currentYear = now.getYear();
+        int currentMonth = now.getMonthValue();
 
         // Initialize assignedShiftInDay for next week for each employee
         for (Employee employee : employees) {
@@ -126,34 +134,55 @@ public class AutoAssignmentService {
             int totalWeekAssignments = shiftAssignmentRepository
                     .countByEmployeeAndShiftDateBetween(employee.getEmployeeId(), startDate, endDate);
             employee.setAssingedShiftInWeek(totalWeekAssignments);
+
+            // Calculate and set priority score based on penalty records for current month
+            try {
+                long lateCount = penaltyRecordRepository.countByEmployeeIdAndPenaltyTypeAndCurrentMonth(
+                        employee.getEmployeeId(), "late", currentYear, currentMonth);
+                long absenceCount = penaltyRecordRepository.countByEmployeeIdAndPenaltyTypeAndCurrentMonth(
+                        employee.getEmployeeId(), "absence", currentYear, currentMonth);
+
+                // Calculate priority score: 100 - (lateCount + absenceCount * 3)
+                // Absences are weighted more heavily than late arrivals
+                int penaltyDeduction = (int) (lateCount + absenceCount * 3);
+                int priorityScore = Math.max(0, 100 - penaltyDeduction); // Ensure non-negative
+                employee.setPriorityScore(priorityScore);
+
+            } catch (Exception e) {
+                // If penalty calculation fails, set default priority score
+                employee.setPriorityScore(100);
+                System.err.println("Failed to calculate penalty score for employee " +
+                        employee.getEmployeeId() + ": " + e.getMessage());
+            }
         }
 
         return employees;
+    }
+
+    private void initializeShiftAssignedEmployees(List<Shift_Date> shiftDates) {
+        for (Shift_Date shiftDate : shiftDates) {
+            // Count current assignments for this specific shift and date
+            int currentAssignments = shiftAssignmentRepository.countByShiftIdAndShiftDate(
+                    shiftDate.getShiftId(), shiftDate.getShiftDate());
+
+            // Set the assigned employees count - Drools will use this information
+            shiftDate.setAssignedEmployees(currentAssignments);
+        }
     }
 
     private Sort createSortFromOption(int sortOption) {
         Sort sort = new Sort();
 
         switch (sortOption) {
-            case 1: // Priority Ascending
-                sort.setSortEnabled(true);
-                sort.setSortBy(Sort.SortBy.PRIORITY);
-                sort.setSortType(Sort.SortType.ASCENDING);
-                break;
-            case 2: // Priority Descending
+            case 1: // Priority Descending
                 sort.setSortEnabled(true);
                 sort.setSortBy(Sort.SortBy.PRIORITY);
                 sort.setSortType(Sort.SortType.DESCENDING);
                 break;
-            case 3: // Assigned Shifts Ascending
+            case 2: // Assigned Shifts Ascending
                 sort.setSortEnabled(true);
                 sort.setSortBy(Sort.SortBy.ASSIGNEDSHIFTINWEEK);
                 sort.setSortType(Sort.SortType.ASCENDING);
-                break;
-            case 4: // Assigned Shifts Descending
-                sort.setSortEnabled(true);
-                sort.setSortBy(Sort.SortBy.ASSIGNEDSHIFTINWEEK);
-                sort.setSortType(Sort.SortType.DESCENDING);
                 break;
             default: // No sort
                 sort.setSortEnabled(false);
@@ -203,18 +232,28 @@ public class AutoAssignmentService {
             // Execute assignment logic similar to DroolsEvaluator
             executeEnrollmentBasedAssignment(kieSession, employees, shiftDates,
                     shiftEnrollments, eligibleEmployees, assignableShifts,
-                    shiftAssignments, autoAssignmentContext);
-
-            // Execute remaining shift assignment
+                    shiftAssignments, autoAssignmentContext); // Execute remaining shift assignment
             executeRemainingShiftAssignment(kieSession, employees, shiftDates,
                     eligibleEmployees, assignableShifts, shiftAssignments, autoAssignmentContext);
 
-            assignments.addAll(shiftAssignments.getAssignments());
+            // Safely copy assignments to avoid concurrent modification
+            synchronized (shiftAssignments) {
+                assignments.addAll(new ArrayList<>(shiftAssignments.getAssignments()));
+            }
 
         } finally {
-            // Clear all facts from KieSession
-            for (FactHandle factHandle : kieSession.getFactHandles()) {
-                kieSession.delete(factHandle);
+            // Clear all facts from KieSession safely
+            try {
+                // Get all fact handles first, then delete them
+                List<FactHandle> factHandles = new ArrayList<>(kieSession.getFactHandles());
+                for (FactHandle factHandle : factHandles) {
+                    if (factHandle != null) {
+                        kieSession.delete(factHandle);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Error clearing KieSession facts: " + e.getMessage());
+                // Continue execution even if cleanup fails
             }
         }
 
@@ -239,7 +278,6 @@ public class AutoAssignmentService {
 
             // Update assignable shifts
             updateAssignableShifts(kieSession, shiftDates, assignableShifts, shiftEnrollments);
-
             if (assignableShifts.getSize() <= 0 || shiftEnrollments.getSize() <= 0) {
                 System.out.println("Breaking from enrollment loop - assignable: " + assignableShifts.getSize()
                         + ", enrollments: " + shiftEnrollments.getSize());
@@ -247,9 +285,13 @@ public class AutoAssignmentService {
             }
 
             // Set current shift context
-            autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
-            FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
-            kieSession.update(contextHandle, autoAssignmentContext);
+            if (assignableShifts.getSize() > 0) {
+                synchronized (assignableShifts) {
+                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
+                }
+                FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
+                kieSession.update(contextHandle, autoAssignmentContext);
+            }
 
             // Execute EnrollmentEmployeeRule
             kieSession.getAgenda().getAgendaGroup("EnrollmentEmployeeRule").setFocus();
@@ -270,18 +312,23 @@ public class AutoAssignmentService {
             }
 
             kieSession.getAgenda().getAgendaGroup("EmployeeSortingRule").setFocus();
-            kieSession.fireAllRules();
-
-            // Make assignment
+            kieSession.fireAllRules(); // Make assignment
             if (eligibleEmployees.getSize() > 0) {
                 Shift_Date chosenShift = autoAssignmentContext.getCurrentShift();
-                Employee chosenEmployee = eligibleEmployees.getEmployees().get(0);
+                Employee chosenEmployee = null;
+                synchronized (eligibleEmployees) {
+                    if (eligibleEmployees.getEmployees().size() > 0) {
+                        chosenEmployee = eligibleEmployees.getEmployees().get(0);
+                    }
+                }
 
-                ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee);
-                shiftAssignments.addAssignment(assignment);
+                if (chosenEmployee != null) {
+                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee);
+                    shiftAssignments.addAssignment(assignment);
 
-                // Remove processed enrollment
-                removeProcessedEnrollment(kieSession, shiftEnrollments, chosenEmployee, chosenShift);
+                    // Remove processed enrollment
+                    removeProcessedEnrollment(kieSession, shiftEnrollments, chosenEmployee, chosenShift);
+                }
             }
         }
     }
@@ -316,13 +363,6 @@ public class AutoAssignmentService {
             }
             lastAssignmentCount = shiftAssignments.getSize();
 
-            // Safety check: If we've reached exactly 56 assignments, break
-            if (shiftAssignments.getSize() >= 56) {
-                System.out.println("**SUCCESS**: Reached optimal assignment count (56). Current assignments: "
-                        + shiftAssignments.getSize());
-                break;
-            }
-
             // Execute ShiftRule
             kieSession.getAgenda().getAgendaGroup("ShiftRule").setFocus();
             kieSession.fireAllRules();
@@ -333,12 +373,14 @@ public class AutoAssignmentService {
             if (assignableShifts.getSize() <= 0) {
                 System.out.println("Breaking from remaining assignment - no assignable shifts");
                 break;
+            } // Set current shift context
+            if (assignableShifts.getSize() > 0) {
+                synchronized (assignableShifts) {
+                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
+                }
+                FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
+                kieSession.update(contextHandle, autoAssignmentContext);
             }
-
-            // Set current shift context
-            autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
-            FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
-            kieSession.update(contextHandle, autoAssignmentContext);
 
             // Execute EmployeeRule
             kieSession.getAgenda().getAgendaGroup("EmployeeRule").setFocus();
@@ -364,13 +406,22 @@ public class AutoAssignmentService {
             if (eligibleEmployees.getSize() <= 0) {
                 System.out.println("Breaking from remaining assignment - no eligible employees after sorting");
                 break;
-            }
+            } // Make assignment
+            if (eligibleEmployees.getSize() > 0) {
+                Employee chosenEmployee = null;
+                synchronized (eligibleEmployees) {
+                    if (eligibleEmployees.getEmployees().size() > 0) {
+                        chosenEmployee = eligibleEmployees.getEmployees().get(0);
+                    }
+                }
 
-            // Make assignment
-            ShiftAssignment assignment = assignEmployeeToShift(kieSession,
-                    autoAssignmentContext.getCurrentShift(),
-                    eligibleEmployees.getEmployees().get(0));
-            shiftAssignments.addAssignment(assignment);
+                if (chosenEmployee != null) {
+                    ShiftAssignment assignment = assignEmployeeToShift(kieSession,
+                            autoAssignmentContext.getCurrentShift(),
+                            chosenEmployee);
+                    shiftAssignments.addAssignment(assignment);
+                }
+            }
 
         } while (true);
     }
@@ -395,14 +446,16 @@ public class AutoAssignmentService {
         return assignment;
     }
 
-    private void updateAssignableShifts(KieSession kieSession, List<Shift_Date> shiftDates,
+    private synchronized void updateAssignableShifts(KieSession kieSession, List<Shift_Date> shiftDates,
             AssignableShifts assignableShifts, ShiftEnrollments shiftEnrollments) {
         assignableShifts.clearShifts();
-        Iterator<Shift_Date> iterator = shiftDates.iterator();
 
-        while (iterator.hasNext()) {
-            Shift_Date shift = iterator.next();
+        // Create a copy to avoid ConcurrentModificationException
+        List<Shift_Date> shiftsToRemove = new ArrayList<>();
 
+        // Use a defensive copy and synchronize access
+        List<Shift_Date> shiftDatesCopy = new ArrayList<>(shiftDates);
+        for (Shift_Date shift : shiftDatesCopy) {
             if (shift.isAssignable() && !shift.isDeletable()) {
                 assignableShifts.addShift(shift);
             }
@@ -410,20 +463,30 @@ public class AutoAssignmentService {
             if (shift.isDeletable()) {
                 shiftEnrollments.removeEnrollments(shift, kieSession);
                 FactHandle handle = kieSession.getFactHandle(shift);
-                kieSession.delete(handle);
-                iterator.remove();
+                if (handle != null) {
+                    kieSession.delete(handle);
+                }
+                shiftsToRemove.add(shift);
             }
+        }
+
+        // Remove deletable shifts from original list after iteration
+        synchronized (shiftDates) {
+            shiftDates.removeAll(shiftsToRemove);
         }
     }
 
-    private void updateAssignableShiftsForRemainingAssignment(KieSession kieSession, List<Shift_Date> shiftDates,
+    private synchronized void updateAssignableShiftsForRemainingAssignment(KieSession kieSession,
+            List<Shift_Date> shiftDates,
             AssignableShifts assignableShifts) {
         assignableShifts.clearShifts();
-        Iterator<Shift_Date> iterator = shiftDates.iterator();
 
-        while (iterator.hasNext()) {
-            Shift_Date shift = iterator.next();
+        // Create a copy to avoid ConcurrentModificationException
+        List<Shift_Date> shiftsToRemove = new ArrayList<>();
 
+        // Use a defensive copy and synchronize access
+        List<Shift_Date> shiftDatesCopy = new ArrayList<>(shiftDates);
+        for (Shift_Date shift : shiftDatesCopy) {
             if (shift.isAssignable() && !shift.isDeletable()) {
                 assignableShifts.addShift(shift);
             }
@@ -433,19 +496,26 @@ public class AutoAssignmentService {
                 if (handle != null) {
                     kieSession.delete(handle);
                 }
-                iterator.remove();
+                shiftsToRemove.add(shift);
             }
+        }
+
+        // Remove deletable shifts from original list after iteration
+        synchronized (shiftDates) {
+            shiftDates.removeAll(shiftsToRemove);
         }
     }
 
-    private void updateEligibleEmployees(KieSession kieSession, List<Employee> employees,
+    private synchronized void updateEligibleEmployees(KieSession kieSession, List<Employee> employees,
             EligibleEmployees eligibleEmployees, ShiftEnrollments shiftEnrollments) {
         eligibleEmployees.clearEmployees();
-        Iterator<Employee> iterator = employees.iterator();
 
-        while (iterator.hasNext()) {
-            Employee emp = iterator.next();
+        // Create a copy to avoid ConcurrentModificationException
+        List<Employee> employeesToRemove = new ArrayList<>();
 
+        // Use a defensive copy and synchronize access
+        List<Employee> employeesCopy = new ArrayList<>(employees);
+        for (Employee emp : employeesCopy) {
             if (emp.isEligible() && !emp.isDeletable()) {
                 eligibleEmployees.addEmployee(emp);
             }
@@ -453,36 +523,56 @@ public class AutoAssignmentService {
             if (emp.isDeletable()) {
                 shiftEnrollments.removeEnrollments(emp, kieSession);
                 FactHandle handle = kieSession.getFactHandle(emp);
-                kieSession.delete(handle);
-                iterator.remove();
+                if (handle != null) {
+                    kieSession.delete(handle);
+                }
+                employeesToRemove.add(emp);
             }
+        }
+
+        // Remove deletable employees from original list after iteration
+        synchronized (employees) {
+            employees.removeAll(employeesToRemove);
         }
     }
 
-    private void updateEligibleEmployeesForRemainingAssignment(KieSession kieSession, List<Employee> employees,
+    private synchronized void updateEligibleEmployeesForRemainingAssignment(KieSession kieSession,
+            List<Employee> employees,
             EligibleEmployees eligibleEmployees) {
         eligibleEmployees.clearEmployees();
-        Iterator<Employee> iterator = employees.iterator();
 
-        while (iterator.hasNext()) {
-            Employee emp = iterator.next();
+        // Create a copy to avoid ConcurrentModificationException
+        List<Employee> employeesToRemove = new ArrayList<>();
 
+        // Use a defensive copy and synchronize access
+        List<Employee> employeesCopy = new ArrayList<>(employees);
+        for (Employee emp : employeesCopy) {
             if (emp.isEligible() && !emp.isDeletable()) {
                 eligibleEmployees.addEmployee(emp);
             }
 
             if (emp.isDeletable()) {
                 FactHandle handle = kieSession.getFactHandle(emp);
-                kieSession.delete(handle);
-                iterator.remove();
+                if (handle != null) {
+                    kieSession.delete(handle);
+                }
+                employeesToRemove.add(emp);
             }
+        }
+
+        // Remove deletable employees from original list after iteration
+        synchronized (employees) {
+            employees.removeAll(employeesToRemove);
         }
     }
 
-    private void removeProcessedEnrollment(KieSession kieSession, ShiftEnrollments shiftEnrollments,
+    private synchronized void removeProcessedEnrollment(KieSession kieSession, ShiftEnrollments shiftEnrollments,
             Employee employee, Shift_Date shift) {
         ShiftEnrollment toRemove = null;
-        for (ShiftEnrollment enrollment : shiftEnrollments.getEnrollments()) {
+
+        // Use defensive copy to avoid concurrent modification
+        List<ShiftEnrollment> enrollmentsCopy = new ArrayList<>(shiftEnrollments.getEnrollments());
+        for (ShiftEnrollment enrollment : enrollmentsCopy) {
             if (enrollment.getEmployee().equals(employee) && enrollment.getShift().equals(shift)) {
                 toRemove = enrollment;
                 break;
@@ -491,7 +581,9 @@ public class AutoAssignmentService {
 
         if (toRemove != null) {
             FactHandle handle = kieSession.getFactHandle(toRemove);
-            kieSession.delete(handle);
+            if (handle != null) {
+                kieSession.delete(handle);
+            }
             shiftEnrollments.removeEnrollment(toRemove);
         }
     }
