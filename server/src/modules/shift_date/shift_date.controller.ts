@@ -204,6 +204,12 @@ export class ShiftDateController {
     example: 'enrolled',
     enum: ['enrolled', 'unenrolled'],
   })
+  @ApiQuery({
+    name: 'employeeid',
+    required: true,
+    description: 'Employee ID to filter shifts for a specific employee',
+    example: 55,
+  })
   @ApiOperation({ summary: 'Get part-time shifts with enrollment status, optionally filter by status' })
   @ApiResponse({
     status: 200,
@@ -213,8 +219,9 @@ export class ShiftDateController {
     @Query('dayfrom') dayfrom: string,
     @Query('dayto') dayto: string,
     @Query('filter') filter: string,
+    @Query('employeeid') employeeid: number,
   ) {
-    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, filter || '');
+    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, +employeeid, filter || '');
   }
 
   @Post('enrollment')
