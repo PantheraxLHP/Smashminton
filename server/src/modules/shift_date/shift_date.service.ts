@@ -74,9 +74,30 @@ export class ShiftDateService {
           lte: dayToDate,
         },
       },
-    });
+      select: {
+        shiftid: true,
+        shiftdate: true,
+        assignmentstatus: true,
+        shift_date: { // Lấy thông tin shift liên quan
+          select: {
+            shift: {
+              select: {
+                shiftstarthour: true,
+                shiftendhour: true,
+              }
+            }
+          }
+        }
+      }
+    }).then(results =>
+    results.map(item => ({
+      shiftid: item.shiftid,
+      shiftdate: item.shiftdate,
+      assignmentstatus: item.assignmentstatus,
+      shift: item.shift_date.shift,
+    }))
+  );
   }
-
   async getEmployeesNotInShift(shiftdate: string, shiftid: number, page: number = 1, pageSize: number = 6) {
     // Lấy shift để lấy starttime và endtime
     const shift = await this.prisma.shift.findUnique({
