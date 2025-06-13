@@ -27,7 +27,9 @@ const shiftCardColPos = ['2', '3', '4', '5', '6', '7', '8'];
 const shiftCardRowPos = ['1', '2', '1', '2', '3', '4'];
 
 const getColPos = (shiftDataSingle: ShiftDate) => {
-    const date = new Date(shiftDataSingle.shiftdate);
+    // Convert string date to Date object if needed
+    const date =
+        shiftDataSingle.shiftdate instanceof Date ? shiftDataSingle.shiftdate : new Date(shiftDataSingle.shiftdate);
     const tmp = date.getDay();
     const index = tmp === 0 ? 6 : tmp - 1;
     return shiftCardColPos[index];
@@ -56,7 +58,13 @@ const ShiftCardDialog: React.FC<ShiftCardDialogProps> = ({ shiftDataSingle, role
                 <DialogHeader className="!h-1">
                     <DialogTitle className="!h-fit">
                         <VisuallyHidden>
-                            {`Chi tiết phân công cho ca làm việc ${shiftDataSingle.shiftid}, ngày ${new Date(shiftDataSingle.shiftdate).getDate()} tháng ${new Date(shiftDataSingle.shiftdate).getMonth() + 1} năm ${new Date(shiftDataSingle.shiftdate).getFullYear()} của nhân viên ${shiftDataSingle.shiftid < 3 ? 'bán thời gian' : 'toàn thời gian'}`}
+                            {(() => {
+                                const shiftDate =
+                                    shiftDataSingle.shiftdate instanceof Date
+                                        ? shiftDataSingle.shiftdate
+                                        : new Date(shiftDataSingle.shiftdate);
+                                return `Chi tiết phân công cho ca làm việc ${shiftDataSingle.shiftid}, ngày ${shiftDate.getDate()} tháng ${shiftDate.getMonth() + 1} năm ${shiftDate.getFullYear()} của nhân viên ${shiftDataSingle.shiftid < 3 ? 'bán thời gian' : 'toàn thời gian'}`;
+                            })()}
                         </VisuallyHidden>
                     </DialogTitle>
                 </DialogHeader>

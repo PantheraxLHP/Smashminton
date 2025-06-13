@@ -2,6 +2,8 @@ import { ShiftDate, ShiftAssignment, ShiftEnrollment } from '@/types/types';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
+import { updateShiftAssignment } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
 const colorIndex = ['bg-yellow-500', 'bg-[#008CFF]', 'bg-yellow-500', 'bg-primary', 'bg-[#008CFF]', 'bg-[#746C82]'];
 
@@ -29,17 +31,41 @@ const getShift = (shiftDataSingle: ShiftDate | ShiftAssignment | ShiftEnrollment
     }
     return undefined;
 };
+
+const handleUpdateShiftAssignment = async (
+    assignmentstatus: 'approved' | 'refused',
+    shiftDataSingle: ShiftAssignment | ShiftEnrollment,
+    onDataChanged?: () => void,
+) => {
+    const response = await updateShiftAssignment({
+        shiftdate:
+            shiftDataSingle.shiftdate instanceof Date
+                ? shiftDataSingle.shiftdate.toISOString()
+                : shiftDataSingle.shiftdate,
+        shiftid: shiftDataSingle.shiftid,
+        employeeid: shiftDataSingle.employeeid,
+        assignmentstatus: assignmentstatus,
+    });
+
+    if (response.ok) {
+        toast.success('Cập nhật phân công thành công');
+        onDataChanged?.();
+    } else {
+        toast.error(response.message);
+    }
+};
 interface ShiftCardProps {
     shiftDataSingle: ShiftDate | ShiftAssignment | ShiftEnrollment;
     role?: string;
     type: 'enrollments' | 'assignments';
     selectedRadio?: string;
+    onDataChanged?: () => void;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, selectedRadio }) => {
+const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, selectedRadio, onDataChanged }) => {
     const confirmCount =
         (shiftDataSingle as ShiftDate).shift_assignment?.filter((assignment: ShiftAssignment) => {
-            return assignment.assignmentstatus === 'confirmed';
+            return assignment.assignmentstatus === 'approved';
         }).length || 0;
 
     return (
@@ -75,7 +101,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                 ?.slice(0, 5)
                                 .map((assignment: ShiftAssignment, index: number) => (
                                     <div
-                                        key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate).getTime()}-${index}`}
+                                        key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate instanceof Date ? (shiftDataSingle as ShiftDate).shiftdate : new Date((shiftDataSingle as ShiftDate).shiftdate)).getTime()}-${index}`}
                                         className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
                                     >
                                         <Image
@@ -96,19 +122,30 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                         </div>
                     </>
                 ) : (
-                    <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
+                    role === 'hr_manager' && (
+                        <div className="flex h-full justify-center p-2 text-sm text-red-500">Chưa có phân công</div>
+                    )
                 )}
-                {type === 'assignments' && (role === 'employee' || role === 'wh_manager') && (
+                {type === 'assignments' && role !== 'hr_manager' && (
                     <div className="flex flex-col gap-2">
                         <Button
                             variant={
-                                (shiftDataSingle as ShiftAssignment).assignmentstatus === 'confirmed'
+                                (shiftDataSingle as ShiftAssignment).assignmentstatus === 'approved'
                                     ? 'default'
                                     : 'outline'
                             }
+                            onClick={() => {
+                                handleUpdateShiftAssignment(
+                                    (shiftDataSingle as ShiftAssignment).assignmentstatus === 'approved'
+                                        ? 'refused'
+                                        : 'approved',
+                                    shiftDataSingle as ShiftAssignment,
+                                    onDataChanged,
+                                );
+                            }}
                         >
                             <Icon icon="lucide:user-round-check" />
-                            {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'confirmed'
+                            {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'approved'
                                 ? 'Đã xác nhận'
                                 : 'Xác nhận'}
                         </Button>
@@ -119,6 +156,15 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                         ? 'destructive'
                                         : 'outline_destructive'
                                 }
+                                onClick={() => {
+                                    handleUpdateShiftAssignment(
+                                        (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                                            ? 'approved'
+                                            : 'refused',
+                                        shiftDataSingle as ShiftAssignment,
+                                        onDataChanged,
+                                    );
+                                }}
                             >
                                 <Icon icon="lucide:user-round-x" />
                                 {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
@@ -135,7 +181,18 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                     </Button>
                 )}
                 {type === 'enrollments' && role === 'employee' && selectedRadio === 'assigned' && (
-                    <Button variant="destructive">
+                    <Button
+                        variant="destructive"
+                        onClick={() => {
+                            handleUpdateShiftAssignment(
+                                (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                                    ? 'approved'
+                                    : 'refused',
+                                shiftDataSingle as ShiftEnrollment,
+                                onDataChanged,
+                            );
+                        }}
+                    >
                         <Icon icon="material-symbols:cancel-outline-rounded" />
                         Hủy đăng ký
                     </Button>
