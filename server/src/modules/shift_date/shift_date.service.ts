@@ -360,6 +360,7 @@ export class ShiftDateService {
   async getPartTimeShiftEnrollmentStatusByEmployee(
     dayfrom: string,
     dayto: string,
+    employeeid: number,
     filter: string,
   ) {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
@@ -385,6 +386,7 @@ export class ShiftDateService {
           },
         },
         shift_enrollment: {
+          where: { employeeid }, // <-- Only get enrollment of this employee
           select: {
             shiftid: true,
             shiftdate: true,
@@ -405,7 +407,8 @@ export class ShiftDateService {
         }
       },
     });
-    // Lọc theo filter nếu có
+
+    // Filter by enrollment status if needed
     let filteredShifts = shifts;
     if (filter === 'enrolled') {
       filteredShifts = shifts.filter(shift => shift.shift_enrollment && shift.shift_enrollment.length > 0);
