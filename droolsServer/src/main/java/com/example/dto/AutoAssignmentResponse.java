@@ -14,12 +14,6 @@ public class AutoAssignmentResponse {
     @Schema(description = "Total number of assignments made", example = "5")
     private int totalAssignments;
 
-    @Schema(description = "Number of employees processed", example = "10")
-    private int employeesProcessed;
-
-    @Schema(description = "Number of shifts processed", example = "3")
-    private int shiftsProcessed;
-
     @Schema(description = "Assignment success status")
     private boolean success;
 
@@ -56,22 +50,6 @@ public class AutoAssignmentResponse {
 
     public void setTotalAssignments(int totalAssignments) {
         this.totalAssignments = totalAssignments;
-    }
-
-    public int getEmployeesProcessed() {
-        return employeesProcessed;
-    }
-
-    public void setEmployeesProcessed(int employeesProcessed) {
-        this.employeesProcessed = employeesProcessed;
-    }
-
-    public int getShiftsProcessed() {
-        return shiftsProcessed;
-    }
-
-    public void setShiftsProcessed(int shiftsProcessed) {
-        this.shiftsProcessed = shiftsProcessed;
     }
 
     public boolean isSuccess() {
