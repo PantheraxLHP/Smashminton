@@ -2,16 +2,20 @@ package com.example.model;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class AssignableShifts {
     private List<Shift_Date> shifts;
 
     public AssignableShifts() {
-        this.shifts = new ArrayList<Shift_Date>();
+        this.shifts = Collections.synchronizedList(new ArrayList<Shift_Date>());
     }
 
     public AssignableShifts(List<Shift_Date> shift_dates) {
-        this.shifts.addAll(shift_dates);
+        this.shifts = Collections.synchronizedList(new ArrayList<Shift_Date>());
+        synchronized (this.shifts) {
+            this.shifts.addAll(shift_dates);
+        }
     }
 
     public List<Shift_Date> getShifts() {
@@ -19,19 +23,21 @@ public class AssignableShifts {
     }
 
     public void setShifts(List<Shift_Date> shifts) {
-        this.shifts.clear();
-        this.shifts.addAll(shifts);
+        synchronized (this.shifts) {
+            this.shifts.clear();
+            this.shifts.addAll(shifts);
+        }
     }
 
-    public void addShift(Shift_Date shift) {
+    public synchronized void addShift(Shift_Date shift) {
         this.shifts.add(shift);
     }
 
-    public void removeShift(Shift_Date shift) {
+    public synchronized void removeShift(Shift_Date shift) {
         this.shifts.remove(shift);
     }
 
-    public void clearShifts() {
+    public synchronized void clearShifts() {
         this.shifts.clear();
     }
 

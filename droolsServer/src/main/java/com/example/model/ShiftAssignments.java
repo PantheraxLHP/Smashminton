@@ -2,16 +2,20 @@ package com.example.model;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ShiftAssignments {
     private List<ShiftAssignment> assignments;
 
     public ShiftAssignments() {
-        this.assignments = new ArrayList<ShiftAssignment>();
+        this.assignments = Collections.synchronizedList(new ArrayList<ShiftAssignment>());
     }
 
     public ShiftAssignments(List<ShiftAssignment> assignments) {
-        this.assignments.addAll(assignments);
+        this.assignments = Collections.synchronizedList(new ArrayList<ShiftAssignment>());
+        synchronized (this.assignments) {
+            this.assignments.addAll(assignments);
+        }
     }
 
     public List<ShiftAssignment> getAssignments() {
@@ -19,19 +23,21 @@ public class ShiftAssignments {
     }
 
     public void setAssignments(List<ShiftAssignment> assignments) {
-        this.assignments.clear();
-        this.assignments.addAll(assignments);
+        synchronized (this.assignments) {
+            this.assignments.clear();
+            this.assignments.addAll(assignments);
+        }
     }
 
-    public void addAssignment(ShiftAssignment assignment) {
+    public synchronized void addAssignment(ShiftAssignment assignment) {
         this.assignments.add(assignment);
     }
 
-    public void removeAssignment(ShiftAssignment assignment) {
+    public synchronized void removeAssignment(ShiftAssignment assignment) {
         this.assignments.remove(assignment);
     }
 
-    public void clearAssignments() {
+    public synchronized void clearAssignments() {
         this.assignments.clear();
     }
 

@@ -4,6 +4,7 @@ import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
+import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 
 @Injectable()
 export class ShiftDateService {
@@ -364,8 +365,6 @@ export class ShiftDateService {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
     const dayToDate = new Date(dayto + 'T23:59:59');
     const partTimeShiftIds = [3, 4, 5, 6];
-    console.log('dayFromDate', dayFromDate);
-    console.log('dayToDate', dayToDate);
     const shifts = await this.prisma.shift_date.findMany({
       where: {
         shiftdate: {
@@ -385,7 +384,7 @@ export class ShiftDateService {
             shiftendhour: true,
           },
         },
-        shift_enrollment:{
+        shift_enrollment: {
           select: {
             shiftid: true,
             shiftdate: true,
@@ -415,5 +414,45 @@ export class ShiftDateService {
     }
 
     return filteredShifts;
+  }
+
+  async createShiftEnrollment(createShiftEnrollmentDto: CreateShiftEnrollmentDto) {
+    const { employeeid, shiftid, shiftdate } = createShiftEnrollmentDto;
+    // Check if already enrolled
+    const existing = await this.prisma.shift_enrollment.findUnique({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate),
+        },
+      },
+    });
+
+    if (existing) {
+      return { message: 'Employee has already enrolled this shift.' };
+    }
+
+    // Create new enrollment
+    return this.prisma.shift_enrollment.create({
+      data: {
+        employeeid,
+        shiftid,
+        shiftdate: new Date(shiftdate),
+      },
+    });
+  }
+
+  async deleteShiftEnrollment(createShiftEnrollmentDto: CreateShiftEnrollmentDto) {
+    const { employeeid, shiftid, shiftdate } = createShiftEnrollmentDto;
+    return this.prisma.shift_enrollment.delete({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate),
+        },
+      },
+    });
   }
 }
