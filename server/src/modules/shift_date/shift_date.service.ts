@@ -4,6 +4,7 @@ import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
+import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 
 @Injectable()
 export class ShiftDateService {
@@ -385,7 +386,7 @@ export class ShiftDateService {
             shiftendhour: true,
           },
         },
-        shift_enrollment:{
+        shift_enrollment: {
           select: {
             shiftid: true,
             shiftdate: true,
@@ -415,5 +416,32 @@ export class ShiftDateService {
     }
 
     return filteredShifts;
+  }
+
+  async createShiftEnrollment(createShiftEnrollmentDto: CreateShiftEnrollmentDto) {
+    const { employeeid, shiftid, shiftdate } = createShiftEnrollmentDto;
+    // Check if already enrolled
+    const existing = await this.prisma.shift_enrollment.findUnique({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate),
+        },
+      },
+    });
+
+    if (existing) {
+      return { message: 'Employee has already enrolled this shift.' };
+    }
+
+    // Create new enrollment
+    return this.prisma.shift_enrollment.create({
+      data: {
+        employeeid,
+        shiftid,
+        shiftdate: new Date(shiftdate),
+      },
+    });
   }
 }

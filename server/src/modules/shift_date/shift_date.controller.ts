@@ -5,6 +5,7 @@ import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftAssignmentDto } from './dto/create-shift_assignment.dto';
+import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 
 @Controller('shift-date')
 export class ShiftDateController {
@@ -213,6 +214,15 @@ export class ShiftDateController {
     @Query('dayto') dayto: string,
     @Query('filter') filter: string,
   ) {
-    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, filter|| '');
+    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, filter || '');
+  }
+
+  @Post('enrollment')
+  @ApiBody({ type: CreateShiftEnrollmentDto })
+  @ApiOperation({ summary: 'Create a new shift enrollment' })
+  @ApiResponse({ status: 201, description: 'Shift enrollment created' })
+  @ApiResponse({ status: 400, description: 'Already enrolled or invalid data' })
+  async createShiftEnrollment(@Body() createShiftEnrollment: CreateShiftEnrollmentDto) {
+    return this.shiftDateService.createShiftEnrollment(createShiftEnrollment);
   }
 }
