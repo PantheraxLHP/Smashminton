@@ -11,6 +11,13 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 
+export interface Assignment {
+    assignmentstatus: string;
+    employeeid: number;
+    shiftdate: Date;
+    shiftid: number;
+}
+
 const VALID_TYPES = ['enrollments', 'assignments'];
 
 const ShiftAssignmentPage = () => {
@@ -30,8 +37,8 @@ const ShiftAssignmentPage = () => {
     const [year, setYear] = useState<number>(today.getFullYear());
     const [selectedRadio, setSelectedRadio] = useState<string>('fulltime');
     const { user } = useAuth();
-    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
-    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
+    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | Assignment[]>([]);
+    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | Assignment[]>([]);
     const [fullTimeOption, setFullTimeOption] = useState<string>('same');
     const [partTimeOption, setPartTimeOption] = useState<string>('0');
     const [refreshData, setRefreshData] = useState(() => () => {});
@@ -81,15 +88,10 @@ const ShiftAssignmentPage = () => {
     const fetchShiftDateEmployee = async () => {
         if (selectedWeek.from && selectedWeek.to && user?.role) {
             try {
-                const response = await getShiftDateEmployee(
-                    user?.employees?.employeeid || 0,
-                    selectedWeek.from,
-                    selectedWeek.to,
-                );
-
+                const response = await getShiftDateEmployee(user?.accountid, selectedWeek.from, selectedWeek.to);
                 if (response.ok) {
                     setShiftData(response.data);
-                    setPersonalShift(response.data.enrollments || response.data.assignments || []);
+                    setPersonalShift(response.data);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }
