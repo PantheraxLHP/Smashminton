@@ -155,6 +155,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
                                     role={role}
                                     type={type as 'enrollments' | 'assignments'}
                                     selectedRadio={selectedRadio}
+                                    onDataChanged={onDataChanged}
                                 />
                             </div>
                         </Fragment>
@@ -176,6 +177,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
                                     role={role}
                                     type={type as 'enrollments' | 'assignments'}
                                     selectedRadio={selectedRadio}
+                                    onDataChanged={onDataChanged}
                                 />
                             </div>
                         </Fragment>
@@ -196,6 +198,7 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
                                     role={role}
                                     type={type as 'enrollments' | 'assignments'}
                                     selectedRadio={selectedRadio}
+                                    onDataChanged={onDataChanged}
                                 />
                             </div>
                         </Fragment>

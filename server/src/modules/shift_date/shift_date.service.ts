@@ -75,6 +75,7 @@ export class ShiftDateService {
         },
       },
       select: {
+        employeeid: true,
         shiftid: true,
         shiftdate: true,
         assignmentstatus: true,
