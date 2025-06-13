@@ -3,9 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AutoAssignmentService {
-    constructor(private readonly prisma: PrismaService) { }
-
-    async autoAssignParttimeShifts(sortOption: number) {
+    constructor(private readonly prisma: PrismaService) { } async autoAssignParttimeShifts(sortOption: number) {
         try {
             const response = await fetch(`${process.env.DROOLS}/api/auto-assignment/`, {
                 method: 'POST',
@@ -15,13 +13,32 @@ export class AutoAssignmentService {
                 body: JSON.stringify({
                     sortOption: sortOption,
                 })
-            })
+            });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                return {
+                    message: `Failed to assign part-time shifts: ${errorText}`,
+                    status: response.status,
+                    success: false
+                };
             }
+
+            const responseData = await response.json();
+            return {
+                message: "Auto assignment for part-time shifts completed successfully.",
+                status: response.status,
+                success: true,
+                data: responseData
+            };
+
         } catch (error) {
             console.error("Error while assigning part-time shifts:", error);
+            return {
+                message: `Error while assigning part-time shifts: ${error.message}`,
+                status: 500,
+                success: false
+            };
         }
     }
 
@@ -94,11 +111,19 @@ export class AutoAssignmentService {
                     throw new Error("Invalid assignment strategy. Use 'same', 'rotate', or 'random'.");
             }
 
-            console.log("Auto fulltime shift assignment completed.");
+            return {
+                message: `Auto assignment for full-time shifts with strategy "${assignmentStrategy.toUpperCase()}" completed successfully.`,
+                status: 200,
+                success: true
+            };
+
         } catch (error) {
             console.error("Error while assigning fulltime shift:", error);
-        } finally {
-
+            return {
+                message: `Error while assigning full-time shifts: ${error.message}`,
+                status: 500,
+                success: false
+            };
         }
     }
 
@@ -142,21 +167,22 @@ export class AutoAssignmentService {
                     employeeid: assignment.employeeid,
                     shiftid: assignment.shiftid,
                     shiftdate: nextWeekShiftDate,
+                    assignmentstatus: "confirmed",
                 })
             }
 
             if (assignments.length === 0) {
                 throw new Error("No assignments for the next week, check last week shift assignment, something went wrong.");
-            } else {
-                await this.prisma.shift_assignment.createMany({
-                    data: assignments,
-                });
-                console.log("Next week assignments assigned \"SAME\" have been created successfully.");
             }
+
+            await this.prisma.shift_assignment.createMany({
+                data: assignments,
+            });
+            console.log("Next week assignments assigned \"SAME\" have been created successfully.");
 
         } catch (error) {
             console.error("Error in assignSameShift:", error);
-            return;
+            throw error; // Re-throw to be caught by the calling function
         }
     }
 
@@ -193,23 +219,22 @@ export class AutoAssignmentService {
                         employeeid: employee.employeeid,
                         shiftid: shift.shiftid,
                         shiftdate: shift.shiftdate,
+                        assignmentstatus: "confirmed",
                     });
                     assignedShifts.set(employee.employeeid, (assignedShifts.get(employee.employeeid) || 0) + 1);
                 }
+            } if (assignments.length === 0) {
+                throw new Error("No assignments for the next week, something went wrong.");
             }
 
-            if (assignments.length === 0) {
-                throw new Error("No assignments for the next week, something went wrong.");
-            } else {
-                await this.prisma.shift_assignment.createMany({
-                    data: assignments,
-                });
-                console.log("Next week assignments assigned \"RANDOM\" have been created successfully.");
-            }
+            await this.prisma.shift_assignment.createMany({
+                data: assignments,
+            });
+            console.log("Next week assignments assigned \"RANDOM\" have been created successfully.");
 
         } catch (error) {
             console.error("Error in assignRandomShift:", error);
-            return;
+            throw error; // Re-throw to be caught by the calling function
         }
     }
 
@@ -268,6 +293,7 @@ export class AutoAssignmentService {
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
+                                assignmentstatus: "confirmed",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -280,6 +306,7 @@ export class AutoAssignmentService {
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
+                                assignmentstatus: "confirmed",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -302,6 +329,7 @@ export class AutoAssignmentService {
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
+                                assignmentstatus: "confirmed",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -314,6 +342,7 @@ export class AutoAssignmentService {
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
+                                assignmentstatus: "confirmed",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -322,29 +351,27 @@ export class AutoAssignmentService {
                     }
                     count++;
                 }
-            }
-
-            if (assignments.length === 0) {
+            } if (assignments.length === 0) {
                 throw new Error("No assignments for the next week, check last week shift type, something went wrong.");
-            } else {
-                await this.prisma.shift_assignment.createMany({
-                    data: assignments,
-                });
-
-                // Cập nhật loại ca làm việc cho từng nhân viên
-                for (const [employeeId, shiftType] of preferredShiftType) {
-                    await this.prisma.employees.update({
-                        where: { employeeid: employeeId },
-                        data: { last_week_shift_type: shiftType },
-                    });
-                }
-
-                console.log("Next week assignments assigned \"ROTATE\" have been created successfully.");
             }
+
+            await this.prisma.shift_assignment.createMany({
+                data: assignments,
+            });
+
+            // Cập nhật loại ca làm việc cho từng nhân viên
+            for (const [employeeId, shiftType] of preferredShiftType) {
+                await this.prisma.employees.update({
+                    where: { employeeid: employeeId },
+                    data: { last_week_shift_type: shiftType },
+                });
+            }
+
+            console.log("Next week assignments assigned \"ROTATE\" have been created successfully.");
 
         } catch (error) {
             console.error("Error in assignRotateShift:", error);
-            return;
+            throw error; // Re-throw to be caught by the calling function
         }
     }
 }
