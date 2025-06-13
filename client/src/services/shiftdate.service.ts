@@ -114,3 +114,28 @@ export const deleteAssignment = async (assignmentData: { shiftdate: string; shif
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể xóa phân công');
     }
 };
+
+export const updateShiftAssignment = async (assignmentData: {
+    shiftdate: string;
+    shiftid: number;
+    employeeid: number;
+    assignmentstatus: 'approved' | 'refused';
+}) => {
+    try {
+        const response = await fetch(`/api/shiftdate/update-assignment`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(assignmentData),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể cập nhật phân công');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật phân công');
+    }
+};

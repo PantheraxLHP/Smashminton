@@ -5,6 +5,7 @@ import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftAssignmentDto } from './dto/create-shift_assignment.dto';
+import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 
 @Controller('shift-date')
 export class ShiftDateController {
@@ -132,72 +133,40 @@ export class ShiftDateController {
   @ApiQuery({
     name: 'shiftdate',
     required: true,
-    description: 'Ngày ca làm việc (YYYY-MM-DD)',
+    description: 'ShiftDate (YYYY-MM-DD)',
     example: '2025-06-25',
   })
   @ApiQuery({
     name: 'shiftid',
     required: true,
-    description: 'ID ca làm việc',
+    description: 'ID shift',
     example: 3,
   })
   @ApiQuery({
     name: 'q',
     required: false,
-    description: 'Tìm kiếm theo tên (fullname)',
+    description: 'Search query for employee name or ID (ID-Fullname)',
     example: 'Hoang',
   })
   @ApiQuery({
     name: 'page',
     required: false,
-    description: 'Số trang (bắt đầu từ 1)',
+    description: 'Page number (starting from 1)',
     example: 1,
     type: Number,
   })
   @ApiQuery({
     name: 'pageSize',
     required: false,
-    description: 'Số lượng mỗi trang',
+    description: 'Number of items per page',
     example: 10,
     type: Number,
   })
   @ApiOperation({ summary: 'Search employees not in shift (with pagination)' })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách nhân viên chưa có trong ca, có thể lọc theo tên, có phân trang',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              employeeid: { type: 'number', example: 4 },
-              employee_type: { type: 'string', example: 'Full-time' },
-              accounts: {
-                type: 'object',
-                properties: {
-                  fullname: { type: 'string', example: 'Nguyễn Văn D' },
-                  avatarurl: { type: 'string', example: 'avatar4.jpg' }
-                }
-              }
-            }
-          }
-        },
-        pagination: {
-          type: 'object',
-          properties: {
-            page: { type: 'number', example: 1 },
-            pageSize: { type: 'number', example: 10 },
-            total: { type: 'number', example: 25 },
-            totalPages: { type: 'number', example: 3 },
-            hasNextPage: { type: 'boolean', example: true },
-            hasPreviousPage: { type: 'boolean', example: false }
-          }
-        }
-      }
-    }
+    description: 'List of employees not in the specified shift',
+
   })
   async searchEmployeesNotInShift(
     @Query('shiftdate') shiftdate: string,
@@ -213,5 +182,56 @@ export class ShiftDateController {
       +page,
       +pageSize
     );
+  }
+
+  @Get('parttime-shift-enrollment')
+  @ApiQuery({
+    name: 'dayfrom',
+    required: true,
+    description: 'Start date (YYYY-MM-DD)',
+    example: '2025-06-10',
+  })
+  @ApiQuery({
+    name: 'dayto',
+    required: true,
+    description: 'End date (YYYY-MM-DD)',
+    example: '2025-06-20',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: true,
+    description: 'Filter by status: enrolled (registered), unenrolled (not registered), or leave empty for all',
+    example: 'enrolled',
+    enum: ['enrolled', 'unenrolled'],
+  })
+  @ApiOperation({ summary: 'Get part-time shifts with enrollment status, optionally filter by status' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of part-time shifts and enrollment status',
+  })
+  async getPartTimeShiftEnrollmentStatusByEmployee(
+    @Query('dayfrom') dayfrom: string,
+    @Query('dayto') dayto: string,
+    @Query('filter') filter: string,
+  ) {
+    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, filter || '');
+  }
+
+  @Post('enrollment')
+  @ApiBody({ type: CreateShiftEnrollmentDto })
+  @ApiOperation({ summary: 'Create a new shift enrollment' })
+  @ApiResponse({ status: 201, description: 'Shift enrollment created' })
+  @ApiResponse({ status: 400, description: 'Already enrolled or invalid data' })
+  async createShiftEnrollment(@Body() createShiftEnrollment: CreateShiftEnrollmentDto) {
+    return this.shiftDateService.createShiftEnrollment(createShiftEnrollment);
+  }
+
+  @Delete('enrollment')
+  @ApiBody({ type: CreateShiftEnrollmentDto })
+  @ApiOperation({ summary: 'Delete a shift enrollment' })
+  @ApiResponse({ status: 200, description: 'Shift enrollment deleted' })
+  @ApiResponse({ status: 404, description: 'Shift enrollment not found' })
+  async deleteShiftEnrollment(@Body() createShiftEnrollment: CreateShiftEnrollmentDto) {
+    return this.shiftDateService.deleteShiftEnrollment(createShiftEnrollment);
   }
 }

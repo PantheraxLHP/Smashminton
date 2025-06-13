@@ -44,6 +44,7 @@ public class ShiftAssignment {
         this.employeeId = employee.getEmployeeId();
         this.shiftId = shiftDate.getShiftId();
         this.shiftDate = shiftDate.getShiftDate();
+        this.assignmentStatus = "pending";
     }
 
     public int getEmployeeId() {

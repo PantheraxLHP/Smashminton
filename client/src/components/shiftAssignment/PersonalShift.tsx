@@ -1,10 +1,10 @@
-import { ShiftEnrollment, ShiftAssignment, Shift } from '@/types/types';
+import { ShiftAssignment, ShiftEnrollment } from '@/types/types';
 import { Fragment } from 'react';
 
 interface PersonalShiftProps {
     role?: string;
     type: 'enrollments' | 'assignments';
-    personalShift: ShiftEnrollment[] | ShiftAssignment[];
+    personalShift: ShiftAssignment[] | ShiftEnrollment[];
 }
 
 const colorIndex = ['bg-yellow-500', 'bg-[#008CFF]', 'bg-yellow-500', 'bg-primary', 'bg-[#008CFF]', 'bg-[#746C82]'];
@@ -18,12 +18,12 @@ const localDateStringToISODateString = (date: string) => {
 
 const PersonalShift: React.FC<PersonalShiftProps> = ({ role, type, personalShift }) => {
     const confirmCount =
-        (personalShift as ShiftAssignment[]).filter((assignment: ShiftAssignment) => {
-            return assignment.assignmentstatus === 'Confirmed';
+        personalShift.filter((assignment) => {
+            return (assignment as ShiftAssignment).assignmentstatus === 'approved';
         }).length || 0;
 
     const shiftDataGroupedByDate = personalShift.reduce(
-        (acc: { [key: string]: ShiftEnrollment[] | ShiftAssignment[] }, shift) => {
+        (acc: { [key: string]: ShiftAssignment[] | ShiftEnrollment[] }, shift) => {
             // Convert string date to Date object if needed
             const shiftDate = shift.shiftdate instanceof Date ? shift.shiftdate : new Date(shift.shiftdate);
             const date = shiftDate.toLocaleDateString('vi-VN', {
@@ -56,25 +56,31 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({ role, type, personalShift
                             việc
                         </div>
                     )}
-                    {Object.keys(shiftDataGroupedByDate).map((date) => {
-                        const ISODate = localDateStringToISODateString(date);
-                        const dateIndex = new Date(ISODate).getDay() === 0 ? 6 : new Date(ISODate).getDay() - 1;
+                    {Object.keys(shiftDataGroupedByDate)
+                        .sort((a, b) => {
+                            const dateA = new Date(localDateStringToISODateString(a));
+                            const dateB = new Date(localDateStringToISODateString(b));
+                            return dateA.getTime() - dateB.getTime();
+                        })
+                        .map((date) => {
+                            const ISODate = localDateStringToISODateString(date);
+                            const dateIndex = new Date(ISODate).getDay() === 0 ? 6 : new Date(ISODate).getDay() - 1;
 
-                        return (
-                            <div key={`shiftDate-${date}`} className="flex w-full flex-col gap-1">
-                                <span className="text-sm">{`${weekDayNames[dateIndex]} - ${date}`}</span>
-                                {shiftDataGroupedByDate[date].map((shift) => (
-                                    <Fragment key={`shift-${shift.shiftid}-emp-${shift.employeeid}`}>
-                                        <div
-                                            className={`${colorIndex[shift.shiftid - 1]} flex w-full justify-center rounded-sm p-1 text-white`}
-                                        >
-                                            {`${shift.shift_date?.shift?.shiftstarthour} - ${shift.shift_date?.shift?.shiftendhour}`}
-                                        </div>
-                                    </Fragment>
-                                ))}
-                            </div>
-                        );
-                    })}
+                            return (
+                                <div key={`shiftDate-${date}`} className="flex w-full flex-col gap-1">
+                                    <span className="text-sm">{`${weekDayNames[dateIndex]} - ${date}`}</span>
+                                    {shiftDataGroupedByDate[date].map((shift) => (
+                                        <Fragment key={`shift-${shift.shiftid}-emp-${shift.employeeid}`}>
+                                            <div
+                                                className={`${colorIndex[shift.shiftid - 1]} flex w-full justify-center rounded-sm p-1 text-white`}
+                                            >
+                                                {`${shift.shift_date?.shift?.shiftstarthour} - ${shift.shift_date?.shift?.shiftendhour}`}
+                                            </div>
+                                        </Fragment>
+                                    ))}
+                                </div>
+                            );
+                        })}
                 </div>
             )}
         </>

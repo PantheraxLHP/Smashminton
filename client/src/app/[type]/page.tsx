@@ -8,15 +8,8 @@ import { getShiftDate, getShiftDateEmployee } from '@/services/shiftdate.service
 import { ShiftAssignment, ShiftDate, ShiftEnrollment } from '@/types/types';
 import { endOfWeek, getWeek, startOfWeek } from 'date-fns';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import {  useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-
-export interface Assignment {
-    assignmentstatus: string;
-    employeeid: number;
-    shiftdate: Date;
-    shiftid: number;
-}
 
 const VALID_TYPES = ['enrollments', 'assignments'];
 
@@ -37,8 +30,8 @@ const ShiftAssignmentPage = () => {
     const [year, setYear] = useState<number>(today.getFullYear());
     const [selectedRadio, setSelectedRadio] = useState<string>('fulltime');
     const { user } = useAuth();
-    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | Assignment[]>([]);
-    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | Assignment[]>([]);
+    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
+    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
     const [fullTimeOption, setFullTimeOption] = useState<string>('same');
     const [partTimeOption, setPartTimeOption] = useState<string>('0');
     const [refreshData, setRefreshData] = useState(() => () => {});
@@ -74,7 +67,7 @@ const ShiftAssignmentPage = () => {
                 );
 
                 if (response.ok) {
-                    setShiftData(response.data);
+                    setShiftData(response.data as ShiftDate[]);
                     setPersonalShift(response.data.enrollments || response.data.assignments || []);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
@@ -90,8 +83,8 @@ const ShiftAssignmentPage = () => {
             try {
                 const response = await getShiftDateEmployee(user?.accountid, selectedWeek.from, selectedWeek.to);
                 if (response.ok) {
-                    setShiftData(response.data);
-                    setPersonalShift(response.data);
+                    setShiftData(response.data as ShiftAssignment[]);
+                    setPersonalShift(response.data as ShiftAssignment[]);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }

@@ -55,14 +55,11 @@ public class AutoAssignmentController {
         StringBuilder options = new StringBuilder();
         options.append("Available Sort Options:\n");
         options.append("0 = No Sort (default)\n");
-        options.append("1 = Priority Ascending (lowest priority first)\n");
-        options.append("2 = Priority Descending (highest priority first)\n");
-        options.append("3 = Assigned Shifts Ascending (least assigned first)\n");
-        options.append("4 = Assigned Shifts Descending (most assigned first)\n");
+        options.append("1 = Priority Descending (highest priority first)\n");
+        options.append("2 = Assigned Shifts Ascending (least assigned first)\n");
         options.append("\nExample request body:\n");
         options.append("{\n");
         options.append("  \"sortOption\": 1,\n");
-        options.append("  \"shiftId\": null\n");
         options.append("}");
 
         return ResponseEntity.ok(options.toString());
