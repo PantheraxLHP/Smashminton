@@ -75,7 +75,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                 ?.slice(0, 5)
                                 .map((assignment: ShiftAssignment, index: number) => (
                                     <div
-                                        key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate).getTime()}-${index}`}
+                                        key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate instanceof Date ? (shiftDataSingle as ShiftDate).shiftdate : new Date((shiftDataSingle as ShiftDate).shiftdate)).getTime()}-${index}`}
                                         className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
                                     >
                                         <Image

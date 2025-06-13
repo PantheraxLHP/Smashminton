@@ -15,7 +15,10 @@ const shiftCardColPos = ['2', '3', '4', '5', '6', '7', '8'];
 const shiftCardRowPos = ['1', '2', '1', '2', '3', '4'];
 
 const getColPos = (shiftDataSingle: ShiftDate | ShiftAssignment | ShiftEnrollment) => {
-    const tmp = shiftDataSingle.shiftdate.getDay();
+    // Convert string date to Date object if needed
+    const shiftDate =
+        shiftDataSingle.shiftdate instanceof Date ? shiftDataSingle.shiftdate : new Date(shiftDataSingle.shiftdate);
+    const tmp = shiftDate.getDay();
     const index = tmp === 0 ? 6 : tmp - 1;
     return shiftCardColPos[index];
 };

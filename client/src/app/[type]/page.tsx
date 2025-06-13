@@ -4,12 +4,19 @@ import AssignmentCalendar from '@/components/shiftAssignment/AssignmentCalendar'
 import PersonalShift from '@/components/shiftAssignment/PersonalShift';
 import ShiftFilter from '@/components/shiftAssignment/ShiftFilter';
 import { useAuth } from '@/context/AuthContext';
-import { getShiftDate } from '@/services/shiftdate.service';
+import { getShiftDate, getShiftDateEmployee } from '@/services/shiftdate.service';
 import { ShiftAssignment, ShiftDate, ShiftEnrollment } from '@/types/types';
 import { endOfWeek, getWeek, startOfWeek } from 'date-fns';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
+
+export interface Assignment {
+    assignmentstatus: string;
+    employeeid: number;
+    shiftdate: Date;
+    shiftid: number;
+}
 
 const VALID_TYPES = ['enrollments', 'assignments'];
 
@@ -30,8 +37,8 @@ const ShiftAssignmentPage = () => {
     const [year, setYear] = useState<number>(today.getFullYear());
     const [selectedRadio, setSelectedRadio] = useState<string>('fulltime');
     const { user } = useAuth();
-    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
-    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
+    const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | Assignment[]>([]);
+    const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | Assignment[]>([]);
     const [fullTimeOption, setFullTimeOption] = useState<string>('same');
     const [partTimeOption, setPartTimeOption] = useState<string>('0');
     const [refreshData, setRefreshData] = useState(() => () => {});
@@ -57,30 +64,51 @@ const ShiftAssignmentPage = () => {
         }
     }, [type, user, router]);
 
-    useEffect(() => {
-        const fetchShiftDate = async () => {
-            if (selectedWeek.from && selectedWeek.to && user?.role) {
-                try {
-                    const response = await getShiftDate(
-                        selectedWeek.from,
-                        selectedWeek.to,
-                        formatEmployeeType(selectedRadio) || '',
-                    );
+    const fetchShiftDate = async () => {
+        if (selectedWeek.from && selectedWeek.to && user?.role) {
+            try {
+                const response = await getShiftDate(
+                    selectedWeek.from,
+                    selectedWeek.to,
+                    formatEmployeeType(selectedRadio) || '',
+                );
 
-                    if (response.ok) {
-                        setShiftData(response.data);
-                        setPersonalShift(response.data.enrollments || response.data.assignments || []);
-                    } else {
-                        console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch shift data:', error);
+                if (response.ok) {
+                    setShiftData(response.data);
+                    setPersonalShift(response.data.enrollments || response.data.assignments || []);
+                } else {
+                    console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }
+            } catch (error) {
+                console.error('Failed to fetch shift data:', error);
             }
-        };
+        }
+    };
 
-        fetchShiftDate();
-        setRefreshData(() => fetchShiftDate);
+    const fetchShiftDateEmployee = async () => {
+        if (selectedWeek.from && selectedWeek.to && user?.role) {
+            try {
+                const response = await getShiftDateEmployee(user?.accountid, selectedWeek.from, selectedWeek.to);
+                if (response.ok) {
+                    setShiftData(response.data);
+                    setPersonalShift(response.data);
+                } else {
+                    console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Failed to fetch shift data:', error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (user?.role === 'hr_manager') {
+            fetchShiftDate();
+            setRefreshData(() => fetchShiftDate);
+        } else {
+            fetchShiftDateEmployee();
+            setRefreshData(() => fetchShiftDateEmployee);
+        }
     }, [selectedWeek, user, selectedRadio]);
 
     return (
