@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AddSupplierModal from './AddSuppliers';
-import { getSuppliers } from '@/services/suppliers.service';
+import { getSuppliers, deleteSupplier } from '@/services/suppliers.service';
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import { ProductOption } from './AddSuppliers';
+import { toast } from 'sonner';
+
 
 export interface Supplier {
     supplierid?: number;
@@ -32,28 +34,31 @@ export default function SupplierManagementPage() {
     const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
 
+    const fetchSuppliers = async () => {
+        const response = await getSuppliers();
+        if (response.ok) {
+            setProductsList(response.data);
+            const mapped: Supplier[] = response.data.map((supplier: any) => ({
+                supplierid: supplier.supplierid,
+                name: supplier.suppliername || '',
+                phone: supplier.phonenumber || '',
+                email: supplier.email || '',
+                contactname: supplier.contactname || '',
+                address: supplier.address || '',
+                products: (supplier.products || []).map((p: any) => ({
+                    productid: p.productid,
+                    productname: p.productname,
+                })),
+            }));
+            setSuppliers(mapped);
+        }
+    };
+    
+
     useEffect(() => {
-        const fetchSuppliers = async () => {
-            const response = await getSuppliers();
-            if (response.ok) {
-                setProductsList(response.data);
-                const mapped: Supplier[] = response.data.map((supplier: any) => ({
-                    supplierid: supplier.supplierid,
-                    name: supplier.suppliername || '',
-                    phone: supplier.phonenumber || '',
-                    email: supplier.email || '',
-                    contactname: supplier.contactname || '',
-                    address: supplier.address || '',
-                    products: (supplier.products || []).map((p: any) => ({
-                        productid: p.productid,
-                        productname: p.productname,
-                    })),
-                }));
-                setSuppliers(mapped);
-            }
-        };
         fetchSuppliers();
     }, []);
+    
 
     const filtersConfig: FilterConfig[] = [
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
@@ -96,40 +101,41 @@ export default function SupplierManagementPage() {
         setOpenModal(true);
     };
 
-    const handleDelete = (index: number) => {
+    const handleDelete = async (index: number) => {
         const supplier = filteredData[index];
         const confirmed = window.confirm(`Xác nhận xóa nhà cung cấp: ${supplier.name}?`);
-        if (confirmed) {
-            const realIndex = suppliers.findIndex(
-                (s) => s.supplierid === supplier.supplierid
-            );
-            if (realIndex !== -1) {
-                const newData = [...suppliers];
-                newData.splice(realIndex, 1);
-                setSuppliers(newData);
-            }
-        }
-    };
+        if (!confirmed || !supplier.supplierid) return;
 
-    const handleSubmit = (formData: Supplier) => {
-        if (editIndex !== null) {
-            const realIndex = suppliers.findIndex(
-                (s) => s.supplierid === formData.supplierid
-            );
+        const result = await deleteSupplier(supplier.supplierid);
+
+        if (result.ok) {
+            toast.success('Xoá nhà cung cấp thành công!');
+            await fetchSuppliers();
+        } else {
+            toast.error(`Lỗi khi xoá: ${result.message}`);
+        }
+    };    
+    
+
+    const handleSubmit = (formData: Supplier, isEdit: boolean) => {
+        if (isEdit && formData.supplierid !== undefined) {
+            const realIndex = suppliers.findIndex(s => s.supplierid === formData.supplierid);
             if (realIndex !== -1) {
                 const updated = [...suppliers];
                 updated[realIndex] = { ...formData };
                 setSuppliers(updated);
+                toast.success('Cập nhật nhà cung cấp thành công!');
             }
         } else {
             const { supplierid, ...newSupplierData } = formData;
             setSuppliers([...suppliers, newSupplierData as Supplier]);
+            toast.success('Thêm nhà cung cấp thành công!');
         }
 
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);
-    };
+    };    
     
 
     return (

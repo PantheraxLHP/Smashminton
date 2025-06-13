@@ -89,3 +89,29 @@ export const patchSuppliers = async (
         );
     }
 };
+
+export const deleteSupplier = async (supplierid: number) => {
+    try {
+        const response = await fetch(`/api/suppliers/delete-suppliers`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ supplierid }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('[ERROR] deleteSupplier failed:', result);
+            return ServiceResponse.error(result.message || 'Không thể xoá nhà cung cấp');
+        }
+
+        console.log('[DEBUG] deleteSupplier success:', result);
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        console.error('[ERROR] deleteSupplier exception:', error);
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể xoá nhà cung cấp');
+    }
+};

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Supplier } from './page';
 import { getAllProducts } from '@/services/products.service';
 import { postSuppliers, patchSuppliers } from '@/services/suppliers.service';
+import { toast } from 'sonner';
 
 export interface ProductOption {
     productid: number;
@@ -13,7 +14,7 @@ export interface ProductOption {
 interface AddSupplierModalProps {
     open: boolean;
     onClose: () => void;
-    onSubmit: (data: Supplier) => void;
+    onSubmit: (data: Supplier, isEdit: boolean) => void;
     editData?: Supplier | null;
 }
 
@@ -126,11 +127,10 @@ export default function AddSupplierModal({
             const result = await patchSuppliers(editData.supplierid, payload);
 
             if (result.ok) {
-                //console.log('[DEBUG] Submit formData:', formData);
-                onSubmit({ ...formData, supplierid: editData.supplierid });
+                onSubmit({ ...formData, supplierid: editData.supplierid }, true);
                 onClose();
             } else {
-                alert(result.message || 'Không thể cập nhật nhà cung cấp');
+                toast.error('Không thể cập nhật nhà cung cấp: ' + (result.message || ''));
             }
         } else {
             const payload = {
@@ -145,11 +145,10 @@ export default function AddSupplierModal({
             const result = await postSuppliers(payload);
 
             if (result.ok) {
-                onSubmit(formData);
-
+                onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
                 onClose();
             } else {
-                alert(result.message || 'Không thể tạo nhà cung cấp');
+                toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
             }
         }
         setLoading(false);
@@ -163,7 +162,7 @@ export default function AddSupplierModal({
             <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
                 <div
                     ref={modalRef}
-                    className="bg-white rounded-xl w-full max-w-xl max-h-[calc(100vh-8rem)] overflow-y-auto p-6 border border-gray-300 shadow-xl"
+                    className="bg-white rounded-xl w-full max-w-xl max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden p-6 border border-gray-300 shadow-xl"
                 >
                     <h2 className="text-lg font-semibold mb-6">
                         {editData ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp'}
@@ -246,13 +245,13 @@ export default function AddSupplierModal({
                                 {formData.products.length > 0 && (
                                     <div className="sm:col-span-2">
                                         <label className="block text-sm mb-1 mt-2">Sản phẩm đã chọn</label>
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
                                             {formData.products.map((p) => (
                                                 <span
                                                     key={p.productid}
-                                                    className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded"
+                                                    className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
                                                 >
-                                                    {p.productname}
+                                                    <span className="truncate">{p.productname}</span>
                                                     <button
                                                         onClick={() => handleRemoveProduct(p.productid)}
                                                         className="text-red-500 hover:text-red-700"
