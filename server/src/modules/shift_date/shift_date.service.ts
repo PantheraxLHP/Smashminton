@@ -89,14 +89,7 @@ export class ShiftDateService {
           }
         }
       }
-    }).then(results =>
-    results.map(item => ({
-      shiftid: item.shiftid,
-      shiftdate: item.shiftdate,
-      assignmentstatus: item.assignmentstatus,
-      shift: item.shift_date.shift,
-    }))
-  );
+    });
   }
   async getEmployeesNotInShift(shiftdate: string, shiftid: number, page: number = 1, pageSize: number = 6) {
     // Lấy shift để lấy starttime và endtime
@@ -360,5 +353,48 @@ export class ShiftDateService {
         totalPages,
       }
     };
+  }
+
+  async getPartTimeShiftEnrollmentStatusByEmployee(
+    dayfrom: string,
+    dayto: string,
+    filter: string,
+  ) {
+    const dayFromDate = new Date(dayfrom + 'T00:00:00');
+    const dayToDate = new Date(dayto + 'T23:59:59');
+    const partTimeShiftIds = [3, 4, 5, 6];
+
+    const shifts = await this.prisma.shift_date.findMany({
+      where: {
+        shiftdate: {
+          gte: dayFromDate,
+          lte: dayToDate,
+        },
+        shiftid: {
+          in: partTimeShiftIds,
+        },
+      },
+      select: {
+        shiftid: true,
+        shiftdate: true,
+        shift: {
+          select: {
+            shiftstarthour: true,
+            shiftendhour: true,
+          },
+        },
+        shift_enrollment: true,
+      },
+    });
+
+    // Lọc theo filter nếu có
+    let filteredShifts = shifts;
+    if (filter === 'enrolled') {
+      filteredShifts = shifts.filter(shift => shift.shift_enrollment && shift.shift_enrollment.length > 0);
+    } else if (filter === 'unenrolled') {
+      filteredShifts = shifts.filter(shift => !shift.shift_enrollment || shift.shift_enrollment.length === 0);
+    }
+
+    return filteredShifts;
   }
 }
