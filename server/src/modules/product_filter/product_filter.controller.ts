@@ -5,10 +5,15 @@ import { UpdateProductFilterDto } from './dto/update-product_filter.dto';
 
 @Controller('product-filter')
 export class ProductFilterController {
-  constructor(private readonly productFilterService: ProductFilterService) {}
+  constructor(private readonly productFilterService: ProductFilterService) { }
 
   @Get()
   findAll() {
     return this.productFilterService.findAll();
+  }
+  
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.productFilterService.findOne(+id);
   }
 }
