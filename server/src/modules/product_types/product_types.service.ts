@@ -187,6 +187,7 @@ export class ProductTypesService {
     const total = enrichedProducts.length;
     const totalPages = Math.ceil(total / limit);
 
+    // ⛳ CHỖ NÀY paginate nè:
     const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
 
     return {

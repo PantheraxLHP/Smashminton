@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { ZonesService } from './zones.service';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
@@ -12,11 +12,23 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('zones')
 export class ZonesController {
     constructor(private readonly zonesService: ZonesService) { }
-    
+
     @Get('all-zones-with-courts')
     @ApiOperation({ description: 'Get all zones with their associated courts' })
-    getZonesWithCourts() {
-        return this.zonesService.getZonesWithCourts();
+    getZonesWithCourts(@Query('page') page: string = '1',
+        @Query('pageSize') pageSize: string = '12') {
+
+        const pageNumber = parseInt(page) || 1;
+        const pageSizeNumber = parseInt(pageSize) || 12;
+        // Validation
+        if (pageNumber < 1) {
+            throw new Error('Page number must be greater than 0');
+        }
+        if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+            throw new Error('Page size must be between 1 and 100');
+        }
+
+        return this.zonesService.getZonesWithCourts(pageNumber, pageSizeNumber);
     }
 
     @Post('new-zone')

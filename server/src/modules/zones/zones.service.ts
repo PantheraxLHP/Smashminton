@@ -14,8 +14,11 @@ export class ZonesService {
 
   }
 
-  async getZonesWithCourts() {
-    const zones = await this.prisma.zones.findMany({
+  async getZonesWithCourts(page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+    
+    const fineZones = await this.prisma.zones.findMany({
       include: {
         courts: true,
       },
@@ -24,7 +27,7 @@ export class ZonesService {
       },
     });
 
-    return zones.map(zone => ({
+    const zones = await fineZones.map(zone => ({
       zoneid: zone.zoneid,
       zonename: zone.zonename,
       zonetype: zone.zonetype,
@@ -39,6 +42,19 @@ export class ZonesService {
         courttimecalculateavg: court.timecalculateavg,
       })),
     }));
+
+    const total = zones.length;
+    const totalPages = Math.ceil(total / limit);
+
+    const paginatedZones = zones.slice(skip, skip + limit);
+
+    return {
+      data: paginatedZones,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 
 
