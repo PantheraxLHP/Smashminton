@@ -132,72 +132,40 @@ export class ShiftDateController {
   @ApiQuery({
     name: 'shiftdate',
     required: true,
-    description: 'Ngày ca làm việc (YYYY-MM-DD)',
+    description: 'ShiftDate (YYYY-MM-DD)',
     example: '2025-06-25',
   })
   @ApiQuery({
     name: 'shiftid',
     required: true,
-    description: 'ID ca làm việc',
+    description: 'ID shift',
     example: 3,
   })
   @ApiQuery({
     name: 'q',
     required: false,
-    description: 'Tìm kiếm theo tên (fullname)',
+    description: 'Search query for employee name or ID (ID-Fullname)',
     example: 'Hoang',
   })
   @ApiQuery({
     name: 'page',
     required: false,
-    description: 'Số trang (bắt đầu từ 1)',
+    description: 'Page number (starting from 1)',
     example: 1,
     type: Number,
   })
   @ApiQuery({
     name: 'pageSize',
     required: false,
-    description: 'Số lượng mỗi trang',
+    description: 'Number of items per page',
     example: 10,
     type: Number,
   })
   @ApiOperation({ summary: 'Search employees not in shift (with pagination)' })
   @ApiResponse({
     status: 200,
-    description: 'Danh sách nhân viên chưa có trong ca, có thể lọc theo tên, có phân trang',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              employeeid: { type: 'number', example: 4 },
-              employee_type: { type: 'string', example: 'Full-time' },
-              accounts: {
-                type: 'object',
-                properties: {
-                  fullname: { type: 'string', example: 'Nguyễn Văn D' },
-                  avatarurl: { type: 'string', example: 'avatar4.jpg' }
-                }
-              }
-            }
-          }
-        },
-        pagination: {
-          type: 'object',
-          properties: {
-            page: { type: 'number', example: 1 },
-            pageSize: { type: 'number', example: 10 },
-            total: { type: 'number', example: 25 },
-            totalPages: { type: 'number', example: 3 },
-            hasNextPage: { type: 'boolean', example: true },
-            hasPreviousPage: { type: 'boolean', example: false }
-          }
-        }
-      }
-    }
+    description: 'List of employees not in the specified shift',
+
   })
   async searchEmployeesNotInShift(
     @Query('shiftdate') shiftdate: string,
@@ -213,5 +181,38 @@ export class ShiftDateController {
       +page,
       +pageSize
     );
+  }
+
+  @Get('parttime-shift-enrollment')
+  @ApiQuery({
+    name: 'dayfrom',
+    required: true,
+    description: 'Start date (YYYY-MM-DD)',
+    example: '2025-06-10',
+  })
+  @ApiQuery({
+    name: 'dayto',
+    required: true,
+    description: 'End date (YYYY-MM-DD)',
+    example: '2025-06-20',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: true,
+    description: 'Filter by status: enrolled (registered), unenrolled (not registered), or leave empty for all',
+    example: 'enrolled',
+    enum: ['enrolled', 'unenrolled'],
+  })
+  @ApiOperation({ summary: 'Get part-time shifts with enrollment status, optionally filter by status' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of part-time shifts and enrollment status',
+  })
+  async getPartTimeShiftEnrollmentStatusByEmployee(
+    @Query('dayfrom') dayfrom: string,
+    @Query('dayto') dayto: string,
+    @Query('filter') filter: string,
+  ) {
+    return this.shiftDateService.getPartTimeShiftEnrollmentStatusByEmployee(dayfrom, dayto, filter|| '');
   }
 }

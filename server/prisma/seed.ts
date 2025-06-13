@@ -627,7 +627,7 @@ async function main() {
     const shifts = await prisma.shift.findMany({});
     const shiftDate = new Date(startOfWeek);
     shiftDate.setUTCHours(0, 0, 0, 0);
-    
+
     for (const shift of shifts) {
         for (let i = 0; i < 14; i++) {
             shiftDate.setDate(startOfWeek.getDate() + i);
@@ -1225,7 +1225,7 @@ async function main() {
         ],
     });
 
-    
+
 
     const parttimeEmployeeIds = (
         await prisma.employees.findMany({
@@ -1265,19 +1265,11 @@ async function main() {
         },
     });
 
-    parttimeEmployeeIds.forEach(async (employeeId) => {
-        const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
-        await prisma.shift_enrollment.create({
-            data: {
-                employeeid: employeeId,
-                shiftid: randomShiftDate.shiftid,
-                shiftdate: randomShiftDate.shiftdate,
-            },
-        });
-    });
+    // Lọc ra các shiftdate có shiftid 3, 4, 5, 6
+    const parttimeShiftDates = shiftdates.filter(sd => [3, 4, 5, 6].includes(sd.shiftid));
 
-    fulltimeEmployeeIds.forEach(async (employeeId) => {
-        const randomShiftDate = shiftdates[Math.floor(Math.random() * shiftdates.length)];
+    parttimeEmployeeIds.forEach(async (employeeId) => {
+        const randomShiftDate = parttimeShiftDates[Math.floor(Math.random() * parttimeShiftDates.length)];
         await prisma.shift_enrollment.create({
             data: {
                 employeeid: employeeId,
