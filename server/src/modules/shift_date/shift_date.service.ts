@@ -365,8 +365,6 @@ export class ShiftDateService {
     const dayFromDate = new Date(dayfrom + 'T00:00:00');
     const dayToDate = new Date(dayto + 'T23:59:59');
     const partTimeShiftIds = [3, 4, 5, 6];
-    console.log('dayFromDate', dayFromDate);
-    console.log('dayToDate', dayToDate);
     const shifts = await this.prisma.shift_date.findMany({
       where: {
         shiftdate: {
@@ -441,6 +439,19 @@ export class ShiftDateService {
         employeeid,
         shiftid,
         shiftdate: new Date(shiftdate),
+      },
+    });
+  }
+
+  async deleteShiftEnrollment(createShiftEnrollmentDto: CreateShiftEnrollmentDto) {
+    const { employeeid, shiftid, shiftdate } = createShiftEnrollmentDto;
+    return this.prisma.shift_enrollment.delete({
+      where: {
+        employeeid_shiftid_shiftdate: {
+          employeeid,
+          shiftid,
+          shiftdate: new Date(shiftdate),
+        },
       },
     });
   }

@@ -1,19 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AddSupplierModal from './AddSuppliers';
-import { getSuppliers } from '@/services/suppliers.service';
+import { getSuppliers, deleteSupplier } from '@/services/suppliers.service';
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
+import { ProductOption } from './AddSuppliers';
+import { toast } from 'sonner';
 
-type ProductOption = {
-    productid: number;
-    productname: string;
-};
 
 export interface Supplier {
+    supplierid?: number;
     name: string;
+    contactname: string;
     phone: string;
     email: string;
     address: string;
@@ -27,7 +26,6 @@ export default function SupplierManagementPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
-        phone: '',
         productname: '',
     });
     const [openModal, setOpenModal] = useState(false);
@@ -36,34 +34,41 @@ export default function SupplierManagementPage() {
     const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
 
+    const fetchSuppliers = async () => {
+        const response = await getSuppliers();
+        if (response.ok) {
+            setProductsList(response.data);
+            const mapped: Supplier[] = response.data.map((supplier: any) => ({
+                supplierid: supplier.supplierid,
+                name: supplier.suppliername || '',
+                phone: supplier.phonenumber || '',
+                email: supplier.email || '',
+                contactname: supplier.contactname || '',
+                address: supplier.address || '',
+                products: (supplier.products || []).map((p: any) => ({
+                    productid: p.productid,
+                    productname: p.productname,
+                })),
+            }));
+            setSuppliers(mapped);
+        }
+    };
+    
+
     useEffect(() => {
-        const fetchSuppliers = async () => {
-            const response = await getSuppliers();
-            if (response.ok) {
-                setProductsList(response.data);
-                const mapped: Supplier[] = response.data.map((supplier: any) => ({
-                    name: supplier.suppliername || '',
-                    phone: supplier.phonenumber || '',
-                    email: supplier.email || '',
-                    address: supplier.address || '',
-                    products: (supplier.products || []).map((p: any) => ({
-                        productid: p.productid,
-                        productname: p.productname,
-                    }))
-                }));
-                setSuppliers(mapped);
-            }
-        };
         fetchSuppliers();
     }, []);
+    
 
     const filtersConfig: FilterConfig[] = [
+        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên nhà cung cấp' },
-        { filterid: 'productname', filtertype: 'search', filterlabel: 'Tìm theo tên sản phẩm' }
+        { filterid: 'productname', filtertype: 'search', filterlabel: 'Tìm theo tên sản phẩm' },
     ];
 
     const columns: Column<Supplier>[] = [
         { header: 'Nhà phân phối', accessor: 'name' },
+        { header: 'Người liên hệ', accessor: 'contactname' },
         { header: 'Số điện thoại', accessor: 'phone' },
         { header: 'Email', accessor: 'email' },
         { header: 'Địa chỉ', accessor: 'address' },
@@ -96,39 +101,42 @@ export default function SupplierManagementPage() {
         setOpenModal(true);
     };
 
-    const handleDelete = (index: number) => {
+    const handleDelete = async (index: number) => {
         const supplier = filteredData[index];
         const confirmed = window.confirm(`Xác nhận xóa nhà cung cấp: ${supplier.name}?`);
-        if (confirmed) {
-            const realIndex = suppliers.findIndex(
-                (s) => s.name === supplier.name && s.phone === supplier.phone
-            );
-            if (realIndex !== -1) {
-                const newData = [...suppliers];
-                newData.splice(realIndex, 1);
-                setSuppliers(newData);
-            }
-        }
-    };
+        if (!confirmed || !supplier.supplierid) return;
 
-    const handleSubmit = (formData: Supplier) => {
-        if (editIndex !== null) {
-            const realIndex = suppliers.findIndex(
-                (s) => s.name === filteredData[editIndex].name && s.phone === filteredData[editIndex].phone
-            );
+        const result = await deleteSupplier(supplier.supplierid);
+
+        if (result.ok) {
+            toast.success('Xoá nhà cung cấp thành công!');
+            await fetchSuppliers();
+        } else {
+            toast.error(`Lỗi khi xoá: ${result.message}`);
+        }
+    };    
+    
+
+    const handleSubmit = (formData: Supplier, isEdit: boolean) => {
+        if (isEdit && formData.supplierid !== undefined) {
+            const realIndex = suppliers.findIndex(s => s.supplierid === formData.supplierid);
             if (realIndex !== -1) {
                 const updated = [...suppliers];
                 updated[realIndex] = { ...formData };
                 setSuppliers(updated);
+                toast.success('Cập nhật nhà cung cấp thành công!');
             }
         } else {
-            setSuppliers([...suppliers, { ...formData }]);
+            const { supplierid, ...newSupplierData } = formData;
+            setSuppliers([...suppliers, newSupplierData as Supplier]);
+            toast.success('Thêm nhà cung cấp thành công!');
         }
 
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);
-    };
+    };    
+    
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -141,7 +149,6 @@ export default function SupplierManagementPage() {
                 }}
                 onSubmit={handleSubmit}
                 editData={editData}
-                //productsList={productsList}
             />
 
             <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
@@ -158,7 +165,7 @@ export default function SupplierManagementPage() {
                         onClick={() => setOpenModal(true)}
                         className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
                     >
-                        Thêm
+                        Thêm nhà cung cấp
                     </button>
                 </div>
 

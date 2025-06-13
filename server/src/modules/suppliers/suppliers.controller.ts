@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
@@ -15,8 +15,21 @@ export class SuppliersController {
   }
 
   @Get('all-suppliers')
-  findAll() {
-    return this.suppliersService.findAll();
+  @ApiOperation({ summary: 'Get all suppliers' })
+  findAll(@Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '12',) {
+
+    const pageNumber = parseInt(page) || 1;
+    const pageSizeNumber = parseInt(pageSize) || 12;
+    // Validation
+    if (pageNumber < 1) {
+      throw new Error('Page number must be greater than 0');
+    }
+    if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+      throw new Error('Page size must be between 1 and 100');
+    }
+
+    return this.suppliersService.findAll(pageNumber, pageSizeNumber);
   }
 
   @Get(':id')

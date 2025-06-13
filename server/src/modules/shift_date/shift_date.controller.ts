@@ -225,4 +225,13 @@ export class ShiftDateController {
   async createShiftEnrollment(@Body() createShiftEnrollment: CreateShiftEnrollmentDto) {
     return this.shiftDateService.createShiftEnrollment(createShiftEnrollment);
   }
+
+  @Delete('enrollment')
+  @ApiBody({ type: CreateShiftEnrollmentDto })
+  @ApiOperation({ summary: 'Delete a shift enrollment' })
+  @ApiResponse({ status: 200, description: 'Shift enrollment deleted' })
+  @ApiResponse({ status: 404, description: 'Shift enrollment not found' })
+  async deleteShiftEnrollment(@Body() createShiftEnrollment: CreateShiftEnrollmentDto) {
+    return this.shiftDateService.deleteShiftEnrollment(createShiftEnrollment);
+  }
 }

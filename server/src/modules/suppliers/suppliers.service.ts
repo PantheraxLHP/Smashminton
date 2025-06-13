@@ -44,8 +44,11 @@ export class SuppliersService {
   }
 
 
-  async findAll() {
-    const suppliers = await this.prisma.suppliers.findMany({
+  async findAll(page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    const findSuppliers = await this.prisma.suppliers.findMany({
       include: {
         supply_products: {
           include: {
@@ -58,7 +61,7 @@ export class SuppliersService {
       },
     });
 
-    return suppliers.map(supplier => ({
+    const suplliers = await findSuppliers.map(supplier => ({
       supplierid: supplier.supplierid,
       suppliername: supplier.suppliername,
       contactname: supplier.contactname,
@@ -73,6 +76,19 @@ export class SuppliersService {
           productname: p.productname,
         })),
     }));
+
+    const total = suplliers.length;
+    const totalPages = Math.ceil(total / limit);
+
+    const paginatedSuppliers = suplliers.slice(skip, skip + limit);
+
+    return {
+      data: paginatedSuppliers,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 
   findOne(id: number) {

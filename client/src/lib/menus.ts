@@ -12,19 +12,31 @@ export const menus = {
     employee: [
         { label: 'Đặt sân', link: '/booking' },
         { label: 'Chi tiết đặt sân', link: '/booking-detail' },
+        {
+            label: 'Lịch làm việc',
+            link: '/assignments',
+            subMenu: [
+                { label: 'Đăng ký ca làm', link: '/enrollments' },
+                { label: 'Xem phân công', link: '/assignments' },
+            ],
+        },
     ],
     hr_manager: [
-        {
-            label: 'Đăng ký ca làm',
-            link: '/assignments',
-        },
         {
             label: 'Quản lý nhân viên',
             link: '/employees',
         },
         { label: 'Danh sách ghi chú', link: '/approvals' },
+        {
+            label: 'Phân công công việc',
+            link: '/assignments',
+        },
     ],
     wh_manager: [
+        {
+            label: 'Phân công công việc',
+            link: '/assignments',
+        },
         {
             label: 'Giá thuê sân, dịch vụ',
             link: '/price-management',
