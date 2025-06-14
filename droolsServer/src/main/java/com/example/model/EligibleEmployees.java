@@ -57,9 +57,12 @@ public class EligibleEmployees {
                         comparison = Integer.compare(e1.getPriorityScore(), e2.getPriorityScore());
                         break;
                     case ASSIGNEDSHIFTINWEEK:
-                        comparison = Integer.compare(e1.getAssignedShiftInWeek(),
-                                e2.getAssignedShiftInWeek());
+                        comparison = Integer.compare(e1.getAssignedShiftInWeek(), e2.getAssignedShiftInWeek());
                         break;
+                }
+
+                if (comparison == 0) {
+                    return Integer.compare(e1.getEmployeeId(), e2.getEmployeeId());
                 }
                 return sort.getSortType() == SortType.ASCENDING ? comparison : -comparison;
             });

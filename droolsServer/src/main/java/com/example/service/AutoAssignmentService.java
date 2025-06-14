@@ -52,7 +52,7 @@ public class AutoAssignmentService {
             // week
             List<Employee> employees = loadAndInitializePartTimeEmployees(nextWeekStartDateTime, nextWeekEndDateTime);
             if (employees.isEmpty()) {
-                return new AutoAssignmentResponse(false, "No part-time employees found in database");
+                return new AutoAssignmentResponse(false, "No available part-time employees found in database");
             }
 
             // Load shift dates for next week with shiftId > 2
@@ -100,7 +100,19 @@ public class AutoAssignmentService {
     }
 
     private List<Employee> loadAndInitializePartTimeEmployees(LocalDateTime startDate, LocalDateTime endDate) {
-        List<Employee> employees = employeeRepository.findPartTimeEmployees();
+        List<Employee> employees = new ArrayList<>();
+
+        List<Integer> employeesId = employeeRepository.findAvailablePartTimeEmployeesId(startDate, endDate);
+        if (employeesId.isEmpty()) {
+            return employees;
+        }
+
+        for (Integer employeeId : employeesId) {
+            Employee employee = employeeRepository.findEmployeeById(employeeId);
+            if (employee != null) {
+                employees.add(employee);
+            }
+        }
 
         // Get current month and year for penalty calculation
         LocalDate now = LocalDate.now();
@@ -143,9 +155,8 @@ public class AutoAssignmentService {
                         employee.getEmployeeId(), "absence", currentYear, currentMonth);
 
                 // Calculate priority score: 100 - (lateCount + absenceCount * 3)
-                // Absences are weighted more heavily than late arrivals
                 int penaltyDeduction = (int) (lateCount + absenceCount * 3);
-                int priorityScore = Math.max(0, 100 - penaltyDeduction); // Ensure non-negative
+                int priorityScore = Math.max(0, 100 - penaltyDeduction);
                 employee.setPriorityScore(priorityScore);
 
             } catch (Exception e) {
@@ -224,15 +235,16 @@ public class AutoAssignmentService {
 
             kieSession.insert(autoAssignmentContext);
             kieSession.insert(eligibleEmployees);
-            kieSession.insert(assignableShifts);
-            kieSession.insert(shiftAssignments);
-            kieSession.insert(shiftEnrollments);
             kieSession.insert(sort);
 
             // Execute assignment logic similar to DroolsEvaluator
+            System.out.println("Starting enrollment based assignment process...");
             executeEnrollmentBasedAssignment(kieSession, employees, shiftDates,
                     shiftEnrollments, eligibleEmployees, assignableShifts,
-                    shiftAssignments, autoAssignmentContext); // Execute remaining shift assignment
+                    shiftAssignments, autoAssignmentContext);
+
+            System.out.println("Starting remaining shift assignment process...");
+            // Execute remaining shift assignment
             executeRemainingShiftAssignment(kieSession, employees, shiftDates,
                     eligibleEmployees, assignableShifts, shiftAssignments, autoAssignmentContext);
 
@@ -373,21 +385,33 @@ public class AutoAssignmentService {
             if (assignableShifts.getSize() <= 0) {
                 System.out.println("Breaking from remaining assignment - no assignable shifts");
                 break;
-            } // Set current shift context
-            if (assignableShifts.getSize() > 0) {
+            }
+
+            int iter = 0;
+            do {
+                // Set current shift context
                 synchronized (assignableShifts) {
-                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
+                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(iter));
                 }
                 FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
                 kieSession.update(contextHandle, autoAssignmentContext);
-            }
 
-            // Execute EmployeeRule
-            kieSession.getAgenda().getAgendaGroup("EmployeeRule").setFocus();
-            kieSession.fireAllRules();
+                // Execute EmployeeRule
+                kieSession.getAgenda().getAgendaGroup("EmployeeRule").setFocus();
+                kieSession.fireAllRules();
 
-            // Update eligible employees
-            updateEligibleEmployeesForRemainingAssignment(kieSession, employees, eligibleEmployees);
+                // Update eligible employees
+                updateEligibleEmployeesForRemainingAssignment(kieSession, employees, eligibleEmployees);
+
+                if (eligibleEmployees.getSize() > 0) {
+                    System.out.println(
+                            "Found at least one remaining assignable shift with eligible employees to be assigned"
+                                    + " at " + autoAssignmentContext.getCurrentShift());
+                    break;
+                }
+
+                iter++;
+            } while (iter < assignableShifts.getSize());
 
             if (eligibleEmployees.getSize() <= 0) {
                 System.out.println("Breaking from remaining assignment - no eligible employees");
@@ -406,8 +430,11 @@ public class AutoAssignmentService {
             if (eligibleEmployees.getSize() <= 0) {
                 System.out.println("Breaking from remaining assignment - no eligible employees after sorting");
                 break;
-            } // Make assignment
+            }
+
+            // Make assignment
             if (eligibleEmployees.getSize() > 0) {
+                Shift_Date chosenShift = autoAssignmentContext.getCurrentShift();
                 Employee chosenEmployee = null;
                 synchronized (eligibleEmployees) {
                     if (eligibleEmployees.getEmployees().size() > 0) {
@@ -416,9 +443,7 @@ public class AutoAssignmentService {
                 }
 
                 if (chosenEmployee != null) {
-                    ShiftAssignment assignment = assignEmployeeToShift(kieSession,
-                            autoAssignmentContext.getCurrentShift(),
-                            chosenEmployee);
+                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee);
                     shiftAssignments.addAssignment(assignment);
                 }
             }
