@@ -1,35 +1,54 @@
-import { Controller, Get, Post, Body,  Query, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Delete, Put, NotFoundException, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import {
-    ApiTags,
-    ApiBadRequestResponse,
-    ApiCreatedResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiNotFoundResponse,
-} from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
 import { Public } from 'src/decorators/public.decorator';
-@ApiTags('Products')
+
 @Controller('products')
+
 export class ProductsController {
     constructor(
         private readonly productsService: ProductsService,
         private readonly cacheService: CacheService,
     ) { }
 
-    @Post()
-    @ApiOperation({ summary: 'Create a product' })
-    @ApiCreatedResponse({
-        description: 'Product was created',
-        type: CreateProductDto,
+    @Post('new-product')
+    @ApiOperation({ summary: 'Create new product with productfiltervalueid' })
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    @ApiConsumes('multipart/form-data')
+    @ApiResponse({
+        status: 201,
+        description: 'Product created successfully',
     })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    async create(@Body() createProductDto: CreateProductDto) {
-        return this.productsService.create(createProductDto);
+    @ApiResponse({
+        status: 400,
+        description: 'Bad request - Invalid file or data'
+    })
+    async create(
+        @Body() createProductDto: CreateProductDto,
+        @Query('productfiltervalueid') productfiltervalueid: string,
+        @UploadedFile() file: Express.Multer.File
+    ) {        
+        const _productfiltervalueid = +productfiltervalueid; // Ép kiểu number
+        return this.productsService.create(createProductDto, file, _productfiltervalueid);
     }
+
+
     @Get('all-products')
     @ApiOperation({ summary: 'Get all products' })
     getAllBasicProducts() {

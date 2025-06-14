@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class ProductsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService, private cloudinaryService: CloudinaryService) { }
 
     // Get product price
     async getProductPrice(productid: number): Promise<number> {
@@ -17,8 +18,38 @@ export class ProductsService {
     }
 
     // CRUD operations
-    create(createProductDto: CreateProductDto) {
-        return this.prisma.products.create({ data: createProductDto });
+    async create(createProductDto: CreateProductDto, file: Express.Multer.File, productfiltervalueid: number) {
+        let imageUrl = '';
+
+        if (file) {
+            // If files are provided, upload them to Cloudinary
+            const uploadResults = await this.cloudinaryService.uploadProductImg(file); // Changed to handle multiple files
+            imageUrl = uploadResults.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Failed to upload files');
+            }
+        }
+
+        createProductDto.productimgurl = imageUrl;
+        
+        const newProduct = await this.prisma.products.create({
+            data: {
+                ...createProductDto,
+                status: 'Available',
+            },
+        });
+
+        await this.prisma.product_attributes.create({
+            data: {
+                productid: newProduct.productid,
+                productfiltervalueid: productfiltervalueid,
+            },
+        });
+
+        return {
+            message: 'Tạo sản phẩm thành công',
+            product: newProduct
+        };
     }
 
     async findAllBasicProducts() {
