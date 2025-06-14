@@ -158,4 +158,19 @@ export class PaymentsController {
 
 		return this.paymentsService.createPayOSPaymentLink(paymentData);
 	}
+
+	@Get('receipt-detail-by-employee-or-customer')
+	@ApiQuery({ name: 'employeeid', required: false, type: Number, example: 2 })
+	@ApiQuery({ name: 'customerid', required: false, type: Number, example: 16 })
+	async getReceiptDetailByEmployeeOrCustomer(
+		@Query('employeeid') employeeid?: number,
+		@Query('customerid') customerid?: number,
+	) {
+		const empId = employeeid ? Number(employeeid) : null;
+		const cusId = customerid ? Number(customerid) : null;
+		if (!empId && !cusId) {
+			return { message: 'Phải truyền vào employeeid hoặc customerid!' };
+		}
+		return this.paymentsService.getReceiptDetailByEmployeeOrCustomer(empId, cusId);
+	}
 }
