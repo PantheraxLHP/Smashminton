@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body,  Query, Param, Delete, Put, NotFoundException } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -34,5 +34,21 @@ export class ProductsController {
     @ApiOperation({ summary: 'Get all products' })
     getAllBasicProducts() {
         return this.productsService.findAllBasicProducts();
+    }
+
+    @Get('all-products-with-batches')
+    @ApiOperation({ summary: 'Get all products with batches' })
+    getProductsWithBatches(@Query('page') page: string = '1',
+        @Query('pageSize') pageSize: string = '12') {
+        const pageNumber = parseInt(page) || 1;
+        const pageSizeNumber = parseInt(pageSize) || 12;
+        // Validation
+        if (pageNumber < 1) {
+            throw new Error('Page number must be greater than 0');
+        }
+        if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+            throw new Error('Page size must be between 1 and 100');
+        }
+        return this.productsService.getProductsWithBatches(pageNumber, pageSizeNumber);
     }
 }

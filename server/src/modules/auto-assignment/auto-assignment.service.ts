@@ -3,7 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AutoAssignmentService {
-    constructor(private readonly prisma: PrismaService) { } async autoAssignParttimeShifts(sortOption: number) {
+    constructor(private readonly prisma: PrismaService) { }
+
+    async autoAssignParttimeShifts(sortOption: number) {
         try {
             const response = await fetch(`${process.env.DROOLS}/api/auto-assignment/`, {
                 method: 'POST',
@@ -67,6 +69,33 @@ export class AutoAssignmentService {
             const nextWeekEnd = new Date();
             nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
             nextWeekEnd.setHours(23, 59, 59, 999);
+
+            const nextWeekFullimeAssignments = await this.prisma.shift_assignment.findMany({
+                where: {
+                    shiftdate: {
+                        gte: nextWeekStart,
+                        lte: nextWeekEnd,
+                    },
+                    shift_date: {
+                        shift: {
+                            shifttype: "Full-time",
+                        },
+                    }
+                },
+                orderBy: [
+                    { shiftdate: "asc" },
+                    { shiftid: "asc" },
+                ],
+            });
+
+            if (nextWeekFullimeAssignments.length > 0) {
+                return {
+                    message: "There are already assignments for full-time shifts in the next week.",
+                    status: 200,
+                    success: true
+                };
+            }
+
             const nextWeekShifts = await this.prisma.shift_date.findMany({
                 where: {
                     shiftdate: {

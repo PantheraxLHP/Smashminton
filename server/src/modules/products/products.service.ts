@@ -40,6 +40,53 @@ export class ProductsService {
         return products;
     }
 
+    async getProductsWithBatches(page: number = 1, limit: number = 12) {
+        const now = new Date();
+        const skip = (page - 1) * limit;
+
+        const findProducts = await this.prisma.products.findMany({
+            include: {
+                purchase_order: {
+                    include: {
+                        product_batch: true,
+                    },
+                },
+            },
+            orderBy: {
+                productid: 'asc',
+            },
+        });
+
+        const products = await findProducts.map(product => ({
+            productid: product.productid,
+            productname: product.productname,
+            productimgurl: product.productimgurl,
+            batches: product.purchase_order
+                .map(po => po.product_batch)
+                .filter((b): b is NonNullable<typeof b> => b !== null)
+                .map(b => ({
+                    batchid: b.batchid,
+                    batchname: b.batchname,
+                    stockquantity: b.stockquantity,
+                    expirydate: b.expirydate,
+                })),
+        }));
+
+        const total = products.length;
+        const totalPages = Math.ceil(total / limit);
+
+        const paginatedProducts = products.slice(skip, skip + limit);
+
+        return {
+            data: paginatedProducts,
+            pagination: {
+                page: page,
+                totalPages: totalPages
+            },
+        }
+    }
+
+
     // findOne(id: number) {
     //     return this.prisma.products.findUnique({ where: { productid: id } });
     // }
