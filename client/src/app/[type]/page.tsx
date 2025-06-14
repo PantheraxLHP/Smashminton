@@ -4,11 +4,11 @@ import AssignmentCalendar from '@/components/shiftAssignment/AssignmentCalendar'
 import PersonalShift from '@/components/shiftAssignment/PersonalShift';
 import ShiftFilter from '@/components/shiftAssignment/ShiftFilter';
 import { useAuth } from '@/context/AuthContext';
-import { getShiftDate, getShiftDateEmployee } from '@/services/shiftdate.service';
+import { getPartTimeShiftEnrollment, getShiftDate, getShiftDateEmployee } from '@/services/shiftdate.service';
 import { ShiftAssignment, ShiftDate, ShiftEnrollment } from '@/types/types';
 import { endOfWeek, getWeek, startOfWeek } from 'date-fns';
 import { notFound, useParams, useRouter } from 'next/navigation';
-import {  useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 
 const VALID_TYPES = ['enrollments', 'assignments'];
@@ -68,7 +68,7 @@ const ShiftAssignmentPage = () => {
 
                 if (response.ok) {
                     setShiftData(response.data as ShiftDate[]);
-                    setPersonalShift(response.data.enrollments || response.data.assignments || []);
+                    setPersonalShift(response.data.assignments || []);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }
@@ -94,15 +94,50 @@ const ShiftAssignmentPage = () => {
         }
     };
 
+    const fetchPartTimeShiftEnrollment = async () => {
+        if (selectedWeek.from && selectedWeek.to && user?.role) {
+            if (selectedRadio === 'enrolled') {
+                const response = await getPartTimeShiftEnrollment(
+                    selectedWeek.from,
+                    selectedWeek.to,
+                    'enrolled',
+                    user?.accountid,
+                );
+                if (response.ok) {
+                    setShiftData(response.data as ShiftEnrollment[]);
+                    setPersonalShift(response.data as ShiftEnrollment[]);
+                } else {
+                    console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
+                }
+            } else if (selectedRadio === 'unenrolled') {
+                const response = await getPartTimeShiftEnrollment(
+                    selectedWeek.from,
+                    selectedWeek.to,
+                    'unenrolled',
+                    user?.accountid,
+                );
+                if (response.ok) {
+                    setShiftData(response.data as ShiftDate[]);
+                    setPersonalShift(response.data as ShiftEnrollment[]);
+                } else {
+                    console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
+                }
+            }
+        }
+    };
+
     useEffect(() => {
         if (user?.role === 'hr_manager') {
             fetchShiftDate();
             setRefreshData(() => fetchShiftDate);
+        } else if (type === 'enrollments') {
+            fetchPartTimeShiftEnrollment();
+            setRefreshData(() => fetchPartTimeShiftEnrollment);
         } else {
             fetchShiftDateEmployee();
             setRefreshData(() => fetchShiftDateEmployee);
         }
-    }, [selectedWeek, user, selectedRadio]);
+    }, [selectedWeek, user, selectedRadio, type]);
 
     return (
         <div className="flex h-[95vh] w-full flex-col items-center justify-center gap-5 p-4 sm:flex-row sm:items-start">

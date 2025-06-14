@@ -139,3 +139,29 @@ export const updateShiftAssignment = async (assignmentData: {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật phân công');
     }
 };
+
+export const getPartTimeShiftEnrollment = async (dayfrom: Date, dayto: Date, filter: string, employeeid: number) => {
+    try {
+        const queryParams = new URLSearchParams({
+            dayfrom: formatDateString(dayfrom),
+            dayto: formatDateString(dayto),
+            filter: filter,
+            employeeid: employeeid.toString(),
+        });
+
+        const response = await fetch(`/api/shiftdate/get-enrollment?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách đăng ký ca làm');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách đăng ký ca làm');
+    }
+};
