@@ -39,7 +39,7 @@ export class PaymentService {
         const partnerCode = this.configService.get<string>('MOMO_PARTNER_CODE', 'MOMO');
 
         const DOMAIN = this.configService.get<string>('CLIENT', '');
-                const queryParams = new URLSearchParams({
+        const queryParams = new URLSearchParams({
             userId: paymentData.userId || '',
             userName: paymentData.userName || '',
             paymentMethod: paymentData.paymentMethod || '',
@@ -51,8 +51,8 @@ export class PaymentService {
 
         const server_domain = this.configService.get<string>('SERVER', '');
         const ipnUrl =
-            'https://c904-2402-800-6371-704a-89ef-92be-7d07-74e2.ngrok-free.app/api/v1/payment/momo/ipn';  
-            `${server_domain}/api/v1/payment/momo/ipn`; // URL nhận thông báo từ MoMo
+            'https://c904-2402-800-6371-704a-89ef-92be-7d07-74e2.ngrok-free.app/api/v1/payment/momo/ipn';
+        `${server_domain}/api/v1/payment/momo/ipn`; // URL nhận thông báo từ MoMo
 
         const orderId = partnerCode + new Date().getTime();
         const requestId = orderId;
@@ -298,5 +298,100 @@ export class PaymentService {
         };
 
         return this.createReciept(createReceiptDto);
+    }
+
+    async getReceiptDetailByEmployeeOrCustomer(employeeid: number | null, customerid: number | null) {
+        const receipts = await this.prisma.receipts.findMany({
+            where: {
+                OR: [
+                    {
+                        bookings: employeeid
+                            ? { employeeid }
+                            : customerid
+                                ? { customerid }
+                                : undefined,
+                    },
+                    {
+                        orders: employeeid
+                            ? { employeeid }
+                            : customerid
+                                ? { customerid }
+                                : undefined,
+                    },
+                ],
+            },
+            select: {
+                receiptid: true,
+                paymentmethod: true,
+                totalamount: true,
+                bookings: {
+                    select: {
+                        bookingid: true,
+                        guestphone: true,
+                        court_booking: {
+                            select: {
+                                starttime: true,
+                                endtime: true,
+                                duration: true,
+                                date: true,
+                                courts: {
+                                    select: {
+                                        zones: { select: { zonename: true } },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                orders: {
+                    select: {
+                        orderid: true,
+                        order_product: {
+                            select: {
+                                productid: true,
+                                quantity: true,
+                                returndate: true,
+                                products: { select: { productname: true } },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return receipts.map((r) => {
+            const courts = (r.bookings?.court_booking || []).map((cb) => {
+                let products: any[] = [];
+                let rentals: any[] = [];
+                if (r.orders) {
+                    for (const op of r.orders.order_product) {
+                        const prod = {
+                            productid: op.productid,
+                            productname: op.products.productname,
+                            quantity: op.quantity,
+                        };
+                        if (op.returndate) rentals.push({ ...prod, rentaldate: op.returndate });
+                        else products.push(prod);
+                    }
+                }
+                return {
+                    starttime: cb.starttime,
+                    endtime: cb.endtime,
+                    duration: cb.duration,
+                    date: cb.date,
+                    zone: cb.courts?.zones?.zonename || '',
+                    guestphone: r.bookings?.guestphone,
+                    totalamount: r.totalamount,
+                    products,
+                    rentals,
+                };
+            });
+            return {
+                receiptid: r.receiptid,
+                paymentmethod: r.paymentmethod,
+                totalamount: r.totalamount,
+                courts,
+            };
+        });
     }
 }

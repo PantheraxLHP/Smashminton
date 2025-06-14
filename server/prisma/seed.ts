@@ -2592,25 +2592,15 @@ async function main() {
     let ordersList: any[] = [];
     let bookingsList: any[] = [];
 
+    // Tạo 10 booking và 10 order
     for (let i = 0; i < 10; i++) {
-        // Order: mỗi cái cách nhau 2 tiếng
-        const orderDate = new Date(today);
-        orderDate.setHours(6 + i * 2);
-
-        orderData.push({
-            ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
-            orderdate: orderDate,
-            totalprice: 100000 + i * 10000,
-            status: i % 3 === 0 ? 'Hoàn thành' : i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
-            customerid: 15, // hoặc chọn customerid phù hợp
-        });
-
-        // Booking: mỗi cái cách nhau 2 tiếng, kéo dài 1 tiếng
+        // Booking
         const startTime = new Date(today);
         startTime.setHours(6 + i * 2);
         const endTime = new Date(startTime);
         endTime.setHours(startTime.getHours() + 1);
-
+        // Nửa đầu: employeeid null, customerid = 15; nửa sau: employeeid 55-59, customerid null
+        const isFirstHalf = i < 5;
         bookingData.push({
             guestphone: '0987654321',
             bookingdate: startTime,
@@ -2618,66 +2608,86 @@ async function main() {
             bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
             createdat: startTime,
             updatedat: endTime,
-            employeeid: 2 + (i % 5),
-            customerid: 16,
+            employeeid: isFirstHalf ? null : 55 + (i - 5),
+            customerid: isFirstHalf ? 15 : null,
             voucherid: null,
         });
+        // Order
+        const orderDate = new Date(today);
+        orderDate.setHours(6 + i * 2);
+        orderData.push({
+            ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+            orderdate: orderDate,
+            totalprice: 100000 + i * 10000,
+            status: i % 3 === 0 ? 'Hoàn thành' : i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+            employeeid: isFirstHalf ? null : 55 + (i - 5),
+            customerid: isFirstHalf ? 15 : null,
+        });
     }
-
     // Insert orders
-    const createdOrders = await prisma.orders.createMany({ data: orderData, skipDuplicates: true });
+    await prisma.orders.createMany({ data: orderData, skipDuplicates: true });
     // Insert bookings
-    const createdBookings = await prisma.bookings.createMany({ data: bookingData, skipDuplicates: true });
+    await prisma.bookings.createMany({ data: bookingData, skipDuplicates: true });
 
     // Lấy lại orderid và bookingid vừa tạo
     ordersList = await prisma.orders.findMany({ orderBy: { orderid: 'desc' }, take: 10 });
     bookingsList = await prisma.bookings.findMany({ orderBy: { bookingid: 'desc' }, take: 10 });
 
-    // Thêm court_booking cho mỗi booking
+    // Thêm 2 court_booking cho mỗi booking
     for (let i = 0; i < bookingsList.length; i++) {
-        await prisma.court_booking.create({
-            data: {
-                date: bookingsList[i].bookingdate,
-                starttime: bookingsList[i].bookingdate,
-                endtime: new Date(new Date(bookingsList[i].bookingdate).getTime() + 60 * 60 * 1000), // +1h
-                duration: 1,
-                bookingid: bookingsList[i].bookingid,
-                courtid: (i % 8) + 1, // giả sử có 8 sân
-            },
-        });
-    }
-
-    // Thêm order_product cho mỗi order
-    for (let i = 0; i < ordersList.length; i++) {
-        // Sản phẩm chính
-        await prisma.order_product.create({
-            data: {
-                orderid: ordersList[i].orderid,
-                productid: (i % 5) + 1, // giả sử có 5 sản phẩm
-                quantity: 2,
-                returndate: null,
-            },
-        });
-        // Lấy date từ court_booking của booking tương ứng
-        const relatedCourtBooking = await prisma.court_booking.findFirst({
-            where: { bookingid: bookingsList[i].bookingid },
-            select: { date: true },
-        });
-        const rentalDate = relatedCourtBooking?.date || new Date();
-        // Thêm các sản phẩm vợt cầu lông (id 14-18) với returndate là date của court_booking
-        for (let pid = 14; pid <= 18; pid++) {
-            await prisma.order_product.create({
+        for (let j = 0; j < 2; j++) {
+            await prisma.court_booking.create({
                 data: {
-                    orderid: ordersList[i].orderid,
-                    productid: pid,
-                    quantity: 1,
-                    returndate: rentalDate,
+                    date: bookingsList[i].bookingdate,
+                    starttime: new Date(bookingsList[i].bookingdate.getTime() + j * 30 * 60 * 1000),
+                    endtime: new Date(bookingsList[i].bookingdate.getTime() + (j + 1) * 60 * 60 * 1000),
+                    duration: 1,
+                    bookingid: bookingsList[i].bookingid,
+                    courtid: ((i * 2 + j) % 8) + 1, // giả sử có 8 sân
                 },
             });
         }
     }
 
-    // Tạo receipts cho từng order và booking
+    // Thêm 4 order_product cho mỗi order: 2 id random 1-8, 2 id random 8-18
+    function getRandomInt(min: number, max: number) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    for (let i = 0; i < ordersList.length; i++) {
+        // Lấy bookingid tương ứng (giả sử mapping 1-1 theo index)
+        const bookingid = bookingsList[i].bookingid;
+        // Lấy court_booking đầu tiên của booking này
+        const relatedCourtBooking = await prisma.court_booking.findFirst({
+            where: { bookingid },
+            select: { date: true },
+        });
+        const rentalDate = relatedCourtBooking?.date || new Date();
+
+        // 2 sản phẩm id 1-8
+        const ids1: number[] = [];
+        while (ids1.length < 2) {
+            const id = getRandomInt(1, 8);
+            if (!ids1.includes(id)) ids1.push(id);
+        }
+        // 2 sản phẩm id 8-18
+        const ids2: number[] = [];
+        while (ids2.length < 2) {
+            const id = getRandomInt(8, 18);
+            if (!ids1.includes(id) && !ids2.includes(id)) ids2.push(id);
+        }
+        for (const pid of [...ids1, ...ids2]) {
+            await prisma.order_product.create({
+                data: {
+                    orderid: ordersList[i].orderid,
+                    productid: pid,
+                    quantity: 1 + (i % 3),
+                    returndate: (pid >= 14 && pid <= 18) ? rentalDate : null,
+                },
+            });
+        }
+    }
+
+    // Tạo receipts cho từng order và booking (1-1 mapping)
     for (let i = 0; i < 10; i++) {
         receiptData.push({
             paymentmethod: 'momo',
@@ -2687,7 +2697,6 @@ async function main() {
             bookingid: bookingsList[i].bookingid,
         });
     }
-
     // Insert receipts
     await prisma.receipts.createMany({ data: receiptData, skipDuplicates: true });
 
