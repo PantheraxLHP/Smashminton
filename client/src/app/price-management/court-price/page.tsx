@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaRegEdit } from 'react-icons/fa';
 import { ZonePrices } from '@/types/types';
-import { getZonePrices } from '@/services/zoneprice.service';
+import { getZonePrices, patchZonePrices } from '@/services/zoneprice.service';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import { toast } from 'sonner';
 
 
 interface ZonePriceProps extends ZonePrices {
@@ -24,25 +25,26 @@ export default function CourtPriceManager() {
         zonename: '',
     });
 
+    const fetchZonePrices = async () => {
+        const response = await getZonePrices();
+        if (response.ok) {
+            const newData: ZonePriceProps[] = response.data.map((item: any) => ({
+                ...item,
+                price: Number(item.price),
+                zonename: item.zonename ?? '',
+                zoneimgurl: item.zoneimgurl ?? '',
+                zonepriceid: item.zonepriceid,
+            }));
+            setZonePricesState(newData);
+        }
+        //console.log(response);
+    };
+
+
     useEffect(() => {
-        const fetchZonePrices = async () => {
-            const response = await getZonePrices();
-            if (response.ok) {
-                const newData: ZonePriceProps[] = response.data.map((item: any) => ({
-                    ...item,
-                    price: Number(item.price),
-                    zonename: item.zonename ?? '',
-                    zoneimgurl: item.zoneimgurl ?? '',
-                }));
-                setZonePricesState(newData);
-            }
-            console.log(response);
-        };
         fetchZonePrices();
-        setFilters((prev) => ({
-            ...prev,
-        }));
     }, []);
+    
 
     useEffect(() => {
         const result = zonePricesState.filter((item) => {
@@ -88,7 +90,7 @@ export default function CourtPriceManager() {
             header: 'Giá / giờ',
             accessor: (item: ZonePriceProps) => (
                 <div className="flex items-center gap-2 sm:max-w-[50px] whitespace-nowrap">
-                    {editingItem === item ? ( // Kiểm tra xem dòng này có đang được chỉnh sửa không
+                    {editingItem === item ? (
                         <>
                             <input
                                 type="text"
@@ -98,18 +100,27 @@ export default function CourtPriceManager() {
                                 autoFocus
                             />
                             <button
-                                onClick={() => {
-                                    // Tạo bản sao của mảng zonePricesState và chỉ sửa dòng đang chỉnh sửa
-                                    setZonePricesState((prevState) => {
-                                        const updatedPrices = prevState.map((z) =>
-                                            z.zonepriceid === item.zonepriceid
-                                                ? { ...z, price: Number(editedPrice) } // Chỉ sửa giá của dòng hiện tại
-                                                : z
+                                onClick={async () => {
+                                    const parsedPrice = Number(editedPrice);
+                                    if (isNaN(parsedPrice) || parsedPrice < 0) {
+                                        alert('Vui lòng nhập giá hợp lệ!');
+                                        return;
+                                    }
 
-                                        );
-                                        return updatedPrices;
-                                    });
-                                    setEditingItem(null); // Sau khi sửa xong, hủy trạng thái chỉnh sửa
+                                    if (item.zonepriceid === undefined) {
+                                        alert('Thiếu zonepriceid, không thể cập nhật.');
+                                        return;
+                                    }
+
+                                    const response = await patchZonePrices(item.zonepriceid, { price: parsedPrice });                                                                    
+
+                                    if (response.ok) {
+                                        await fetchZonePrices();
+                                        setEditingItem(null);
+                                        toast.success('Cập nhật giá thành công!');
+                                    } else {
+                                        toast.error(`Cập nhật giá thất bại: ${response.message}`);
+                                    }
                                 }}
                                 className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
                             >
@@ -127,8 +138,8 @@ export default function CourtPriceManager() {
 
                             <button
                                 onClick={() => {
-                                    setEditingItem(item); // Chọn dòng cần sửa
-                                    setEditedPrice(item.price?.toString() ?? ''); // Lưu giá hiện tại vào ô input
+                                    setEditingItem(item);
+                                    setEditedPrice(item.price?.toString() ?? '');
                                 }}
                                 className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
                             >
