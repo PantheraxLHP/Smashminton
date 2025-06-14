@@ -26,6 +26,8 @@ export class AutoAssignmentService {
                 };
             }
 
+            console.log("Part-time shifts assigned successfully");
+            
             const responseData = await response.json();
             return {
                 message: "Auto assignment for part-time shifts completed successfully.",
@@ -128,11 +130,11 @@ export class AutoAssignmentService {
                     // Phân công ca làm việc theo chiến lược "same"
                     await this.assignSameShift(nextWeekStart);
                     break;
-                case "rotate":
+                case "random":
                     // Phân công ca làm việc theo chiến lược "random"
                     await this.assignRandomShift(nextWeekShifts, fullTimeEmployees, maxEmpPerShift);
                     break;
-                case "random":
+                case "rotate":
                     // Phân công ca làm việc theo chiến lược "rotate"
                     await this.assignRotateShift(nextWeekShifts, fullTimeEmployees, maxEmpPerShift);
                     break;
@@ -241,18 +243,34 @@ export class AutoAssignmentService {
             const shuffledShifts: any[] = shuffleArray(nextWeekShifts);
             for (const shift of shuffledShifts) {
                 const sortedEmployees = sortEmployeesByAssignedShifts(fullTimeEmployees);
-                for (let i = 0; i < maxEmpPerShift; i++) {
-                    if (i >= sortedEmployees.length) break; // Tránh lỗi nếu không đủ nhân viên
-                    const employee = sortedEmployees[i];
-                    assignments.push({
-                        employeeid: employee.employeeid,
-                        shiftid: shift.shiftid,
-                        shiftdate: shift.shiftdate,
-                        assignmentstatus: "confirmed",
-                    });
-                    assignedShifts.set(employee.employeeid, (assignedShifts.get(employee.employeeid) || 0) + 1);
+                let count = 0;
+                for (const employee of sortedEmployees) {
+                    if (count >= maxEmpPerShift) {
+                        break;
+                    }
+
+                    if (
+                        !assignments.some(
+                            a => a.employeeid === employee.employeeid &&
+                                a.shiftid === shift.shiftid &&
+                                a.shiftdate.toISOString() === shift.shiftdate.toISOString()
+                        )
+                    ) {
+                        assignments.push({
+                            employeeid: employee.employeeid,
+                            shiftid: shift.shiftid,
+                            shiftdate: shift.shiftdate,
+                            assignmentstatus: "confirmed",
+                        });
+                        assignedShifts.set(employee.employeeid, (assignedShifts.get(employee.employeeid) || 0) + 1);
+                        count++;
+                    } else {
+                        continue;
+                    }
                 }
-            } if (assignments.length === 0) {
+            }
+
+            if (assignments.length === 0) {
                 throw new Error("No assignments for the next week, something went wrong.");
             }
 
