@@ -2,8 +2,9 @@ import { ShiftDate, ShiftAssignment, ShiftEnrollment } from '@/types/types';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { updateShiftAssignment } from '@/services/shiftdate.service';
+import { updateShiftAssignment, createShiftEnrollment, deleteShiftEnrollment } from '@/services/shiftdate.service';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 const colorIndex = ['bg-yellow-500', 'bg-[#008CFF]', 'bg-yellow-500', 'bg-primary', 'bg-[#008CFF]', 'bg-[#746C82]'];
 
@@ -63,10 +64,54 @@ interface ShiftCardProps {
 }
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, selectedRadio, onDataChanged }) => {
+    const { user } = useAuth();
+
     const confirmCount =
         (shiftDataSingle as ShiftDate).shift_assignment?.filter((assignment: ShiftAssignment) => {
             return assignment.assignmentstatus === 'approved';
         }).length || 0;
+
+    const handleEnrollShift = async () => {
+        if (!user?.accountid) {
+            toast.error('Không thể xác định thông tin người dùng');
+            return;
+        }
+
+        const shiftDateStr =
+            shiftDataSingle.shiftdate instanceof Date
+                ? shiftDataSingle.shiftdate.toISOString().split('T')[0]
+                : new Date(shiftDataSingle.shiftdate).toISOString().split('T')[0];
+
+        const response = await createShiftEnrollment(user.accountid, shiftDataSingle.shiftid, shiftDateStr);
+
+        if (response.ok) {
+            toast.success('Đăng ký ca làm việc thành công');
+            onDataChanged?.();
+        } else {
+            toast.error(response.message);
+        }
+    };
+
+    const handleUnenrollShift = async () => {
+        if (!user?.accountid) {
+            toast.error('Không thể xác định thông tin người dùng');
+            return;
+        }
+
+        const shiftDateStr =
+            shiftDataSingle.shiftdate instanceof Date
+                ? shiftDataSingle.shiftdate.toISOString().split('T')[0]
+                : new Date(shiftDataSingle.shiftdate).toISOString().split('T')[0];
+
+        const response = await deleteShiftEnrollment(user.accountid, shiftDataSingle.shiftid, shiftDateStr);
+
+        if (response.ok) {
+            toast.success('Hủy đăng ký ca làm việc thành công');
+            onDataChanged?.();
+        } else {
+            toast.error(response.message);
+        }
+    };
 
     return (
         <div
@@ -195,6 +240,34 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                     >
                         <Icon icon="material-symbols:cancel-outline-rounded" />
                         Hủy đăng ký
+                    </Button>
+                )}
+                {type === 'enrollments' && role === 'employee' && selectedRadio === 'enrolled' && (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Icon icon="lucide:user-round-check" className="text-xl text-green-600" />
+                            <span className="text-sm font-medium text-green-600">Đã đăng ký</span>
+                        </div>
+                        {(shiftDataSingle as ShiftDate).shift_enrollment &&
+                            (shiftDataSingle as ShiftDate).shift_enrollment!.length > 0 && (
+                                <div className="text-xs text-gray-500">
+                                    Ngày đăng ký:{' '}
+                                    {new Date(
+                                        (shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentdate ||
+                                            new Date(),
+                                    ).toLocaleDateString('vi-VN')}
+                                </div>
+                            )}
+                        <Button variant="destructive" size="sm" onClick={handleUnenrollShift}>
+                            <Icon icon="material-symbols:cancel-outline-rounded" />
+                            Hủy đăng ký
+                        </Button>
+                    </>
+                )}
+                {type === 'enrollments' && role === 'employee' && selectedRadio === 'unenrolled' && (
+                    <Button variant="outline" onClick={handleEnrollShift}>
+                        <Icon icon="material-symbols:check-circle-outline-rounded" />
+                        Đăng ký
                     </Button>
                 )}
             </div>

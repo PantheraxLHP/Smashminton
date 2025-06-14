@@ -182,6 +182,50 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
                             </div>
                         </Fragment>
                     ))}
+                {(type as string) === 'enrollments' &&
+                    role === 'employee' &&
+                    selectedRadio === 'enrolled' &&
+                    (shiftData as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
+                        <Fragment key={`enrollment-enrolled-${index}`}>
+                            <div
+                                className={`mx-2`}
+                                style={{
+                                    gridColumn: getColPos(shiftDate),
+                                    gridRow: getRowPos(shiftDate),
+                                }}
+                            >
+                                <ShiftCard
+                                    shiftDataSingle={shiftDate}
+                                    role={role}
+                                    type={type as 'enrollments' | 'assignments'}
+                                    selectedRadio={selectedRadio}
+                                    onDataChanged={onDataChanged}
+                                />
+                            </div>
+                        </Fragment>
+                    ))}
+                {(type as string) === 'enrollments' &&
+                    role === 'employee' &&
+                    selectedRadio === 'unenrolled' &&
+                    (shiftData as ShiftDate[]).map((shiftDate: ShiftDate, index) => (
+                        <Fragment key={`enrollment-unenrolled-${index}`}>
+                            <div
+                                className={`mx-2`}
+                                style={{
+                                    gridColumn: getColPos(shiftDate),
+                                    gridRow: getRowPos(shiftDate),
+                                }}
+                            >
+                                <ShiftCard
+                                    shiftDataSingle={shiftDate}
+                                    role={role}
+                                    type={type as 'enrollments' | 'assignments'}
+                                    selectedRadio={selectedRadio}
+                                    onDataChanged={onDataChanged}
+                                />
+                            </div>
+                        </Fragment>
+                    ))}
                 {(type as string) === 'assignments' &&
                     (role === 'employee' || role === 'wh_manager') &&
                     (shiftData as ShiftAssignment[]).map((assignment: ShiftAssignment, index) => (

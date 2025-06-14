@@ -28,7 +28,7 @@ const ShiftAssignmentPage = () => {
     });
     const [weekNumber, setWeekNumber] = useState<number>(getWeek(today, { weekStartsOn: 1 }));
     const [year, setYear] = useState<number>(today.getFullYear());
-    const [selectedRadio, setSelectedRadio] = useState<string>('fulltime');
+    const [selectedRadio, setSelectedRadio] = useState<string>(type === 'enrollments' ? 'unenrolled' : 'fulltime');
     const { user } = useAuth();
     const [shiftData, setShiftData] = useState<ShiftDate[] | ShiftEnrollment[] | ShiftAssignment[]>([]);
     const [personalShift, setPersonalShift] = useState<ShiftEnrollment[] | ShiftAssignment[]>([]);
@@ -104,8 +104,20 @@ const ShiftAssignmentPage = () => {
                     user?.accountid,
                 );
                 if (response.ok) {
-                    setShiftData(response.data as ShiftEnrollment[]);
-                    setPersonalShift(response.data as ShiftEnrollment[]);
+                    setShiftData(response.data as ShiftDate[]);
+
+                    const enrollments: ShiftEnrollment[] = [];
+                    (response.data as ShiftDate[]).forEach((shiftDate) => {
+                        if (shiftDate.shift_enrollment && shiftDate.shift_enrollment.length > 0) {
+                            shiftDate.shift_enrollment.forEach((enrollment) => {
+                                enrollments.push({
+                                    ...enrollment,
+                                    shift_date: shiftDate,
+                                });
+                            });
+                        }
+                    });
+                    setPersonalShift(enrollments);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }
@@ -118,7 +130,7 @@ const ShiftAssignmentPage = () => {
                 );
                 if (response.ok) {
                     setShiftData(response.data as ShiftDate[]);
-                    setPersonalShift(response.data as ShiftEnrollment[]);
+                    setPersonalShift([]);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }

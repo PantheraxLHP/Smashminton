@@ -165,3 +165,51 @@ export const getPartTimeShiftEnrollment = async (dayfrom: Date, dayto: Date, fil
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách đăng ký ca làm');
     }
 };
+
+export const createShiftEnrollment = async (employeeid: number, shiftid: number, shiftdate: string) => {
+    try {
+        const response = await fetch('/api/shiftdate/post-enrollment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                employeeid,
+                shiftid,
+                shiftdate,
+            }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể đăng ký ca làm việc');
+        }
+
+        return ServiceResponse.success(result);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể đăng ký ca làm việc');
+    }
+};
+
+export const deleteShiftEnrollment = async (employeeid: number, shiftid: number, shiftdate: string) => {
+    try {
+        const response = await fetch('/api/shiftdate/delete-enrollment', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                employeeid,
+                shiftid,
+                shiftdate,
+            }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể hủy đăng ký ca làm việc');
+        }
+
+        return ServiceResponse.success(result);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể hủy đăng ký ca làm việc');
+    }
+};
