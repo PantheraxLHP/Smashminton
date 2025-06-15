@@ -1,4 +1,6 @@
+import { BookingDetailFilters } from '@/app/booking-detail/page';
 import { Filters, SelectedCourts } from '@/app/booking/courts/page';
+import { formatDateString } from '@/lib/utils';
 import { ServiceResponse } from '@/lib/serviceResponse';
 
 export const getCourts = async (filter: Filters) => {
@@ -188,5 +190,29 @@ export const deleteBookingCourt = async (bookingData: { username?: string; court
         return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện đặt sân');
+    }
+};
+
+export const getBookingDetail = async (filters: BookingDetailFilters) => {
+    try {
+        const queryParams = new URLSearchParams({
+            date: formatDateString(filters.date),
+            zoneid: filters.zoneid.toString(),
+        });
+
+        const response = await fetch(`/api/booking/get-booking-detail?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể tải danh sách đặt sân');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách đặt sân');
     }
 };

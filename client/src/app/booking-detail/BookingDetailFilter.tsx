@@ -1,23 +1,43 @@
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { useState } from 'react';
-
-const BookingDetailFilter = () => {
-    const zones = ['A', 'B', 'C'];
+import { useEffect, useState } from 'react';
+import { BookingDetailFilters } from './page';
+import { FeatureZone, getZones } from '@/services/zones.service';
+const BookingDetailFilter = ({
+    handleFilterChange,
+}: {
+    handleFilterChange: (newFilters: BookingDetailFilters) => void;
+}) => {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [selectedZone, setSelectedZone] = useState<string>(zones[0]);
+    const [selectedZone, setSelectedZone] = useState<number>(1);
+    const [zones, setZones] = useState<FeatureZone[]>([]);
+    useEffect(() => {
+        const fetchZones = async () => {
+            const response = await getZones();
+            if (response.ok) {
+                setZones(response.data.zones);
+            }
+        };
+        fetchZones();
+    }, []);
 
+    useEffect(() => {
+        handleFilterChange({
+            date: selectedDate.toISOString(),
+            zoneid: selectedZone,
+        });
+    }, [selectedDate, selectedZone]);
     return (
-        <div className="w-full max-w-xs rounded-lg border p-4 shadow-md flex flex-col gap-5 h-full">
+        <div className="flex h-full w-full max-w-xs flex-col gap-5 rounded-lg border p-4 shadow-md">
             <div className="flex flex-col gap-2">
-                <span className="font-semibold text-lg">Chọn ngày</span>
+                <span className="text-lg font-semibold">Chọn ngày</span>
                 <div className="">
                     <div className="custom-calendar-wrapper">
                         <Calendar
                             value={selectedDate}
                             onChange={(value) => setSelectedDate(value as Date)}
                             locale="vi-VN"
-                            minDate={new Date("2000-01-01")}
+                            minDate={new Date('2000-01-01')}
                             className="custom-calendar"
                         />
                     </div>
@@ -29,14 +49,15 @@ const BookingDetailFilter = () => {
                 <div className="grid grid-cols-3 gap-2">
                     {zones.map((zone) => (
                         <button
-                            key={zone}
-                            onClick={() => setSelectedZone(zone)}
-                            className={`rounded-lg border px-3 py-1 text-sm ${selectedZone === zone
-                                ? 'bg-primary-500 text-white'
-                                : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
-                                } transition`}
+                            key={zone.zoneid}
+                            onClick={() => setSelectedZone(zone.zoneid)}
+                            className={`rounded-lg border px-3 py-1 text-sm ${
+                                selectedZone === zone.zoneid
+                                    ? 'bg-primary-500 text-white'
+                                    : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                            } transition`}
                         >
-                            Zone {zone}
+                            {zone.zonename}
                         </button>
                     ))}
                 </div>
@@ -103,6 +124,6 @@ const BookingDetailFilter = () => {
             </style>
         </div>
     );
-}
+};
 
 export default BookingDetailFilter;
