@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatDate, formatPrice, formatTimeFullText } from '@/lib/utils';
+import { getBookingDetail } from '@/services/booking.service';
 import { Fragment, useEffect, useState } from 'react';
 import BookingEvents from './BookingEvents';
 import { BookingDetailFilters } from './page';
-import { getBookingDetail } from '@/services/booking.service';
 
 interface BookingEvent {
     starttime: string;
@@ -169,7 +169,7 @@ const BookingDetailCourtList = ({ filters }: { filters: BookingDetailFilters | u
                                                     court.ongoing?.[0]?.zone ||
                                                     court.completed?.[0]?.zone ||
                                                     'Zone A'}{' '}
-                                                - Ngày {formatDate(new Date())}
+                                                - Ngày {formatDate(new Date(filters?.date || ''))}
                                             </DialogTitle>
                                         </DialogHeader>
                                         <BookingEvents court={court} date={new Date()} />
