@@ -384,13 +384,13 @@ export class ExcelManipulationService {
                     case 'shift':
                         ruleTable = searcher.findCellsContaining('RuleTable AssignableShifts', sheetName);
                         break;
-                    case 'enrollmentShift':
+                    case 'enrollmentshift':
                         ruleTable = searcher.findCellsContaining('RuleTable AssignableEnrollmentShifts', sheetName);
                         break;
                     case 'employee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
                         break;
-                    case 'enrollmentEmployee':
+                    case 'enrollmentemployee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
                         break;
                 }
