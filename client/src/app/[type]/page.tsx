@@ -51,7 +51,7 @@ const ShiftAssignmentPage = () => {
         }
 
         if (type === 'enrollments' && user?.role === 'employee') {
-            setSelectedRadio('assignable');
+            setSelectedRadio('unenrolled');
         } else if (type === 'assignments' && user?.role === 'hr_manager') {
             setSelectedRadio('fulltime');
         }
@@ -128,9 +128,28 @@ const ShiftAssignmentPage = () => {
                     'unenrolled',
                     user?.accountid,
                 );
-                if (response.ok) {
+
+                const personnalResponse = await getPartTimeShiftEnrollment(
+                    selectedWeek.from,
+                    selectedWeek.to,
+                    'enrolled',
+                    user?.accountid,
+                );
+
+                if (response.ok && personnalResponse.ok) {
                     setShiftData(response.data as ShiftDate[]);
-                    setPersonalShift([]);
+                    const enrollments: ShiftEnrollment[] = [];
+                    (personnalResponse.data as ShiftDate[]).forEach((shiftDate) => {
+                        if (shiftDate.shift_enrollment && shiftDate.shift_enrollment.length > 0) {
+                            shiftDate.shift_enrollment.forEach((enrollment) => {
+                                enrollments.push({
+                                    ...enrollment,
+                                    shift_date: shiftDate,
+                                });
+                            });
+                        }
+                    });
+                    setPersonalShift(enrollments);
                 } else {
                     console.error('Error fetching shift data:', response.message || 'Unknown error occurred');
                 }

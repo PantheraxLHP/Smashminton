@@ -4,64 +4,49 @@ import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link'; // Import Link from next/link
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
-import { MdOutlineSportsTennis } from 'react-icons/md';
 import EditProfile from './EditProfile';
+import UserReceipts from './UserReceipts';
 import { updatePassword, updateStudentCard } from '@/services/accounts.service';
 import { toast } from 'sonner';
+import { getReceiptDetail } from '@/services/receipts.service';
 
-interface Booking {
-    time: string;
-    phone: string;
-    person: string;
-    court: string;
-    price: string;
+// Types for the API data
+interface Product {
+    productid: number;
+    productname: string;
+    quantity: number;
 }
 
-const upcomingBookings: Booking[] = [
-    {
-        time: '09:00 - 11:00',
-        phone: '0123345434',
-        person: 'A. Phú',
-        court: 'Sân 3 (Zone A)',
-        price: '180,000 VNĐ',
-    },
-    {
-        time: '11:00 - 13:00',
-        phone: '0123345435',
-        person: 'B. Minh',
-        court: 'Sân 4 (Zone B)',
-        price: '200,000 VNĐ',
-    },
-    {
-        time: '15:00 - 17:00',
-        phone: '0123345235',
-        person: 'B. Nhat',
-        court: 'Sân 4 (Zone B)',
-        price: '180,000 VNĐ',
-    },
-];
+interface Rental {
+    productid: number;
+    productname: string;
+    quantity: number;
+    rentaldate: string;
+}
 
-const pastBookings: Booking[] = [
-    {
-        time: '09:00 - 11:00',
-        phone: '0123345434',
-        person: 'A. Phú',
-        court: 'Sân 1 (Zone A)',
-        price: '180,000 VNĐ',
-    },
-    {
-        time: '11:00 - 13:00',
-        phone: '0123345435',
-        person: 'B. Minh',
-        court: 'Sân 2 (Zone B)',
-        price: '200,000 VNĐ',
-    },
-];
+interface Court {
+    starttime: string;
+    endtime: string;
+    duration: string;
+    date: string;
+    zone: string;
+    guestphone: string;
+    totalamount: string;
+    products: Product[];
+    rentals: Rental[];
+}
+
+interface Receipt {
+    receiptid: number;
+    paymentmethod: string;
+    totalamount: string;
+    courts: Court[];
+}
 
 const UserProfilePage = () => {
-    const [activeTab, setActiveTab] = useState('upcoming');
+    const [activeTab, setActiveTab] = useState('bookings');
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
     const { user, setUser } = useAuth();
@@ -74,6 +59,37 @@ const UserProfilePage = () => {
     const [backImage, setBackImage] = useState<File | null>(null);
     const [frontImagePreview, setFrontImagePreview] = useState<string | null>(null);
     const [backImagePreview, setBackImagePreview] = useState<string | null>(null);
+
+    const [receipts, setReceipts] = useState<Receipt[]>([]);
+    const [isLoadingReceipts, setIsLoadingReceipts] = useState(false);
+
+    useEffect(() => {
+        const fetchUserReceipts = async () => {
+            setIsLoadingReceipts(true);
+            try {
+                const customerid = user?.accounttype === 'Customer' ? user?.accountid : 0;
+                const employeeid = user?.accounttype === 'Employee' ? user?.accountid : 0;
+
+                const response = await getReceiptDetail(customerid, employeeid);
+                if (response.ok) {
+                    // Ensure the data is an array
+                    const receiptsData = Array.isArray(response.data) ? response.data : [];
+                    setReceipts(receiptsData);
+                } else {
+                    toast.error(response.message || 'Không thể tải danh sách đơn hàng');
+                }
+            } catch (error) {
+                console.error('Error fetching receipts:', error);
+                toast.error('Không thể tải lịch sử đặt sân');
+            } finally {
+                setIsLoadingReceipts(false);
+            }
+        };
+
+        if (user?.accountid) {
+            fetchUserReceipts();
+        }
+    }, [user?.accountid]);
 
     const handleImageUpload = (file: File, type: 'front' | 'back') => {
         if (type === 'front') {
@@ -155,7 +171,7 @@ const UserProfilePage = () => {
     };
     return (
         <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
-            <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
+            <div className="mx-auto max-w-6xl rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
                     {userProfile?.avatarurl ? (
@@ -207,23 +223,20 @@ const UserProfilePage = () => {
                 {/* Tabs */}
                 <div className="mt-4 flex gap-8 border-b text-sm font-semibold">
                     <button
-                        onClick={() => handleTabClick('upcoming')}
-                        className={`py-2 ${activeTab === 'upcoming' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
+                        onClick={() => handleTabClick('bookings')}
+                        className={`py-2 ${activeTab === 'bookings' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
                     >
-                        Sân & Dịch vụ sắp diễn ra
+                        Lịch sử Sân & Dịch vụ
                     </button>
-                    <button
-                        onClick={() => handleTabClick('past')}
-                        className={`py-2 ${activeTab === 'past' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
-                    >
-                        Sân & Dịch vụ đã sử dụng
-                    </button>
-                    <button
-                        onClick={() => handleTabClick('student')}
-                        className={`py-2 ${activeTab === 'student' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
-                    >
-                        Học sinh/Sinh viên
-                    </button>
+                    {user?.accounttype === 'Customer' && (
+                        <button
+                            onClick={() => handleTabClick('student')}
+                            className={`py-2 ${activeTab === 'student' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
+                        >
+                            Học sinh/Sinh viên
+                        </button>
+                    )}
+
                     <button
                         onClick={() => handleTabClick('changepassword')}
                         className={`py-2 ${activeTab === 'changepassword' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
@@ -232,63 +245,29 @@ const UserProfilePage = () => {
                     </button>
                 </div>
 
-                {/* Content for "Sân & Dịch vụ sắp diễn ra" */}
-                {activeTab === 'upcoming' && (
-                    <div className="mt-4 max-h-80 space-y-4 overflow-y-auto">
-                        {upcomingBookings.length > 0 ? (
-                            upcomingBookings.map((booking, index) => (
-                                <div key={index} className="border-primary-500 relative rounded border p-4 shadow-sm">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500">{booking.time}</p>
-                                            <div className="mt-2 flex items-center gap-2 text-sm text-gray-700">
-                                                <FaPhone className="text-gray-400" /> {booking.phone} ({booking.person})
-                                            </div>
-                                            <div className="mt-1 flex items-center gap-2 text-sm text-gray-700">
-                                                <MdOutlineSportsTennis className="text-gray-400" /> {booking.court}
-                                            </div>
-                                        </div>
-                                        <div className="text-right text-sm font-bold text-black">{booking.price}</div>
-                                    </div>
+                {/* Content for "Lịch sử Sân & Dịch vụ" */}
+                {activeTab === 'bookings' && (
+                    <div className="mt-4 max-h-80 overflow-y-auto">
+                        {isLoadingReceipts ? (
+                            <div className="flex items-center justify-center p-8 text-gray-500">
+                                <div className="text-center">
+                                    <div className="border-primary-600 mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+                                    <span className="text-lg">Đang tải lịch sử đặt sân...</span>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="flex items-center justify-center gap-2 text-center text-gray-600">
-                                <p>Chưa có lịch đặt sân...</p>
-                                <Link href="/booking">
-                                    <p className="hover:text-primary-700 text-primary-600 cursor-pointer">
-                                        Đặt sân ngay →
-                                    </p>
-                                </Link>
                             </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Content for "Sân & Dịch vụ đã sử dụng" */}
-                {activeTab === 'past' && (
-                    <div className="mt-4 max-h-80 space-y-4 overflow-y-auto">
-                        {pastBookings.length > 0 ? (
-                            pastBookings.map((booking, index) => (
-                                <div key={index} className="relative rounded border border-gray-500 p-4 shadow-sm">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-500">{booking.time}</p>
-                                            <div className="mt-2 flex items-center gap-2 text-sm text-gray-700">
-                                                <FaPhone className="text-gray-400" /> {booking.phone} ({booking.person})
-                                            </div>
-                                            <div className="mt-1 flex items-center gap-2 text-sm text-gray-700">
-                                                <MdOutlineSportsTennis className="text-gray-400" /> {booking.court}
-                                            </div>
-                                        </div>
-                                        <div className="text-right text-sm font-bold text-black">{booking.price}</div>
-                                    </div>
+                        ) : receipts.length === 0 ? (
+                            <div className="flex items-center justify-center gap-2 p-8 text-center text-gray-600">
+                                <div>
+                                    <p className="mb-2">Chưa có lịch đặt sân...</p>
+                                    <Link href="/booking">
+                                        <p className="hover:text-primary-700 text-primary-600 cursor-pointer">
+                                            Đặt sân ngay →
+                                        </p>
+                                    </Link>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="text-center text-gray-600">
-                                <p>Chưa có lịch sử đặt sân...</p>
                             </div>
+                        ) : (
+                            <UserReceipts receipts={receipts} />
                         )}
                     </div>
                 )}

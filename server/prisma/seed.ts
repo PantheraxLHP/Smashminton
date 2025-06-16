@@ -325,7 +325,7 @@ async function main() {
     });
 
     for (let i = 0; i < employeeIds.length; i++) {
-        if (i <= 50) {
+        if (i <= 2) {
             await prisma.employees.create({
                 data: {
                     employeeid: employeeIds[i],
