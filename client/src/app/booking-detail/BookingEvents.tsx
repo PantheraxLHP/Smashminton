@@ -1,7 +1,7 @@
 import { formatDate, formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-    
+
 interface BookingEvent {
     starttime: string;
     endtime: string;
@@ -103,23 +103,14 @@ const BookingEvents: React.FC<BookingEventsProps> = ({ court, date }) => {
                                 <AccordionTrigger className="cursor-pointer !py-1 text-lg">
                                     <div className="flex items-center gap-2">
                                         <Icon icon="mdi:package-variant-closed-check" className="size-6" />
-                                        <span>
-                                            {event.products.length} Sản phẩm -{' '}
-                                            {formatPrice(
-                                                event.products.reduce(
-                                                    (sum, product) => sum + product.price * product.quantity,
-                                                    0,
-                                                ),
-                                            )}
-                                        </span>
+                                        <span>{event.products.length} Sản phẩm </span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="text-base">
                                     <div className="flex flex-col gap-1">
                                         {event.products.map((product: any, index: number) => (
                                             <span key={index}>
-                                                {product.quantity} {product.name} -{' '}
-                                                {formatPrice(product.price * product.quantity)}
+                                                {product.quantity} {product.productname}
                                             </span>
                                         ))}
                                     </div>
@@ -131,23 +122,14 @@ const BookingEvents: React.FC<BookingEventsProps> = ({ court, date }) => {
                                 <AccordionTrigger className="cursor-pointer !py-1 text-lg">
                                     <div className="flex items-center gap-2">
                                         <Icon icon="mdi:package-variant" className="size-6" />
-                                        <span>
-                                            {event.rentals.length} Dịch vụ -{' '}
-                                            {formatPrice(
-                                                event.rentals.reduce(
-                                                    (sum, rental) => sum + rental.price * rental.quantity,
-                                                    0,
-                                                ),
-                                            )}
-                                        </span>
+                                        <span>{event.rentals.length} Dịch vụ </span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="text-base">
                                     <div className="flex flex-col gap-1">
                                         {event.rentals.map((rental: any, index: number) => (
                                             <span key={index}>
-                                                {rental.quantity} {rental.name} -{' '}
-                                                {formatPrice(rental.price * rental.quantity)}
+                                                {rental.quantity} {rental.productname}
                                             </span>
                                         ))}
                                     </div>
