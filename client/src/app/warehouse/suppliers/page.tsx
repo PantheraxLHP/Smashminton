@@ -7,6 +7,7 @@ import { getSuppliers, deleteSupplier } from '@/services/suppliers.service';
 import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import { ProductOption } from './AddSuppliers';
 import { toast } from 'sonner';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 
 export interface Supplier {
@@ -33,12 +34,17 @@ export default function SupplierManagementPage() {
     const [editData, setEditData] = useState<Supplier | null>(null);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(4);
+    const [totalPages, setTotalPages] = useState(2);
 
     const fetchSuppliers = async () => {
-        const response = await getSuppliers();
+        console.log('[DEBUG] Fetching suppliers with page:', page, 'pageSize:', pageSize);
+        const response = await getSuppliers(page, pageSize);
         if (response.ok) {
-            setProductsList(response.data);
-            const mapped: Supplier[] = response.data.map((supplier: any) => ({
+            const { data, pagination } = response.data;
+
+            const mapped: Supplier[] = data.map((supplier: any) => ({
                 supplierid: supplier.supplierid,
                 name: supplier.suppliername || '',
                 phone: supplier.phonenumber || '',
@@ -50,15 +56,16 @@ export default function SupplierManagementPage() {
                     productname: p.productname,
                 })),
             }));
+
             setSuppliers(mapped);
+            setTotalPages(pagination.totalPages);
         }
     };
-    
 
     useEffect(() => {
         fetchSuppliers();
-    }, []);
-    
+    }, [page]);
+
 
     const filtersConfig: FilterConfig[] = [
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
@@ -114,8 +121,8 @@ export default function SupplierManagementPage() {
         } else {
             toast.error(`Lỗi khi xoá: ${result.message}`);
         }
-    };    
-    
+    };
+
 
     const handleSubmit = (formData: Supplier, isEdit: boolean) => {
         if (isEdit && formData.supplierid !== undefined) {
@@ -135,8 +142,8 @@ export default function SupplierManagementPage() {
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);
-    };    
-    
+    };
+
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -178,6 +185,15 @@ export default function SupplierManagementPage() {
                     showMoreOption={true}
                     showHeader
                 />
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

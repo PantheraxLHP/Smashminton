@@ -107,9 +107,6 @@ export default function ZoneCourtManager() {
         fetchZoneCourtData();
     }, [page]);
 
-    // useEffect(() => {
-    //     setPage(1);
-    // }, [filters.zonename]);
 
     useEffect(() => {
         if (!filters.zonename || filters.zonename.length === 0) {

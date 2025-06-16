@@ -1,8 +1,11 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        const response = await fetch(`${process.env.SERVER}/api/v1/suppliers/all-suppliers`, {
+        const searchParams = request.nextUrl.searchParams;
+        const params = new URLSearchParams(searchParams).toString();
+        const response = await fetch(`${process.env.SERVER}/api/v1/suppliers/all-suppliers?${params}`, {
             headers: {
                 'Content-Type': 'application/json',
             },
