@@ -1,13 +1,13 @@
-import { ShiftDate, ShiftAssignment, Employees } from '@/types/types';
-import { getWeek } from 'date-fns';
-import { Icon } from '@iconify/react';
-import { Input } from '@/components/ui/input';
-import { useDrag, useDrop } from 'react-dnd';
-import Image from 'next/image';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
-import { useEffect, useState } from 'react';
-import { addAssignment, deleteAssignment, searchEmployees } from '@/services/shiftdate.service';
+import { Input } from '@/components/ui/input';
 import { formatDateString } from '@/lib/utils';
+import { addAssignment, deleteAssignment, searchEmployees } from '@/services/shiftdate.service';
+import { Employees, ShiftAssignment, ShiftDate } from '@/types/types';
+import { Icon } from '@iconify/react';
+import { getWeek } from 'date-fns';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
 
 interface ShiftCardDetailProps {
     shiftDataSingle: ShiftDate;
@@ -140,10 +140,16 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
     const weekNumber = getWeek(new Date(shiftDataSingle.shiftdate), { weekStartsOn: 1 });
     const [availableEmployees, setAvailableEmployees] = useState<Employees[]>([]);
     const [isDraggingEmployee, setIsDraggingEmployee] = useState(false);
-
+    const [searchQuery, setSearchQuery] = useState('');
     // Fetch only available employees
     const fetchAvailableEmployees = async () => {
-        const response = await searchEmployees(shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize);
+        const response = await searchEmployees(
+            shiftDataSingle.shiftdate,
+            shiftDataSingle.shiftid,
+            searchQuery,
+            page,
+            pageSize,
+        );
         if (response.ok) {
             setAvailableEmployees(response.data.data);
             setTotalPages(response.data.pagination.totalPages);
@@ -153,7 +159,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
     useEffect(() => {
         fetchAvailableEmployees();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize]);
+    }, [shiftDataSingle.shiftdate, shiftDataSingle.shiftid, page, pageSize, searchQuery]);
 
     const [{ isOver }, dropRef] = useDrop({
         accept: [EMPLOYEE_TYPE, ASSIGNMENT_TYPE],
@@ -258,6 +264,9 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
                             name="search_rulename"
                             type="text"
                             placeholder="Tìm kiếm tên hoặc mã nhân viên"
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                            }}
                             defaultValue={''}
                             className="w-full pl-10"
                         />

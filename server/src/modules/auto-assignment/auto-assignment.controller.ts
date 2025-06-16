@@ -1,14 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, InternalServerErrorException, Put } from '@nestjs/common';
 import { ApiOperation, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AutoAssignmentService } from './auto-assignment.service';
-import { ExcelManipulationService } from './excel-manipulation.service';
 import { AutoAssignmentDto } from './dto/auto-assignment.dto';
+import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
 
 @Controller('auto-assignment')
 export class AutoAssignmentController {
     constructor(
         private readonly autoAssignmentService: AutoAssignmentService,
-        private readonly excelManipulationService: ExcelManipulationService
     ) { }
 
     @Post()
@@ -55,7 +54,8 @@ export class AutoAssignmentController {
                 fullTimeResult: { type: 'object' }
             }
         }
-    }) async performAutoAssignment(@Body() autoAssignmentDto: AutoAssignmentDto) {
+    })
+    async performAutoAssignment(@Body() autoAssignmentDto: AutoAssignmentDto) {
         try {
             const resultParttime = await this.autoAssignmentService.autoAssignParttimeShifts(autoAssignmentDto.partTimeOption);
             const resultFulltime = await this.autoAssignmentService.autoAssignFulltimeShifts(autoAssignmentDto.fullTimeOption);
@@ -93,6 +93,57 @@ export class AutoAssignmentController {
                 message: 'Failed to perform auto assignment',
                 error: error.message
             });
+        }
+    }
+
+    @Put()
+    @ApiOperation({
+        summary: 'Update auto assignment settings',
+    })
+    @ApiBody({
+        description: 'Update auto assignment settings',
+        type: UpdateAutoAssignmentDto,
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Auto assignment settings successfully updated',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean' },
+                message: { type: 'string' },
+                data: { type: 'object' }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 500,
+        description: 'Internal server error',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean', example: false },
+                message: { type: 'string' },
+                error: { type: 'string' }
+            }
+        }
+    })
+    async updateAutoAssignmentSettings(@Body() updateAutoAssignmentDto: UpdateAutoAssignmentDto) {
+        try {
+            const result = await this.autoAssignmentService.updateAutoAssignmentSettings(updateAutoAssignmentDto);
+
+            return {
+                success: true,
+                message: 'Auto assignment settings successfully updated',
+                data: result,
+            };
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            return {
+                success: false,
+                message: 'Failed to update auto assignment settings',
+                error: errorMsg
+            };
         }
     }
 }

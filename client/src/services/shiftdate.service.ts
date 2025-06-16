@@ -49,11 +49,12 @@ export const getShiftDateEmployee = async (employeeid: number, dayfrom: Date, da
     }
 };
 
-export const searchEmployees = async (shiftdate: Date, shiftid: number, page: number, pageSize: number) => {
+export const searchEmployees = async (shiftdate: Date, shiftid: number, q: string, page: number, pageSize: number) => {
     try {
         const queryParams = new URLSearchParams({
             shiftdate: formatDateString(shiftdate),
             shiftid: shiftid.toString(),
+            q: q,
             page: page.toString(),
             pageSize: pageSize.toString(),
         });
