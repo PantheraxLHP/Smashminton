@@ -74,14 +74,12 @@ export class AccountsService {
             }),
         );
 
-
-        // Kiểm tra các JSON trong ocrResults
-        const validResults = ocrResults.filter((ocrData) => {
-            // Kiểm tra nếu tất cả 3 trường đều không rỗng
+        // Lấy phần tử đầu tiên có đủ cả 3 trường
+        const validResult = ocrResults.find((ocrData) => {
             return ocrData.university !== '' && ocrData.id !== '' && ocrData.expiryYear !== '';
         });
 
-        if (validResults.length === 0) {
+        if (validResult === undefined) {
             // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
             const results = await Promise.all(
                 files.map((file) => this.cloudinaryService.uploadFiles(file)),
@@ -104,19 +102,17 @@ export class AccountsService {
             return { account, customer, urls: urlsObject };
         }
 
-        // Lưu thông tin OCR hợp lệ vào database
-        const studentCards = await Promise.all(
-            validResults.map(async (ocrData) => {
-                return await this.studentCardService.createStudentCard({
-                    studentcardid: account.accountid,
-                    schoolname: ocrData.university,
-                    studentid: ocrData.id,
-                    studyperiod: ocrData.expiryYear,
-                });
-            }),
-        );
+        // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
+        if (validResult) {
+            await this.studentCardService.createStudentCard({
+                studentcardid: account.accountid,
+                schoolname: validResult.university,
+                studentid: validResult.id,
+                studyperiod: validResult.expiryYear,
+            });
+        }
         // Trả về kết quả cuối cùng
-        return { account, customer, studentCards };
+        return { account, customer, studentCard: validResult };
     }
 
     findAll() {
@@ -231,13 +227,12 @@ export class AccountsService {
             }),
         );
 
-        // Kiểm tra các JSON trong ocrResults
-        const validResults = ocrResults.filter((ocrData) => {
-            // Kiểm tra nếu tất cả 3 trường đều không rỗng
+        // Lấy phần tử đầu tiên có đủ cả 3 trường
+        const validResult = ocrResults.find((ocrData) => {
             return ocrData.university !== '' && ocrData.id !== '' && ocrData.expiryYear !== '';
         });
 
-        if (validResults.length === 0) {
+        if (validResult === undefined) {
             // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
             const results = await Promise.all(
                 files.map((file) => this.cloudinaryService.uploadFiles(file)),
@@ -266,17 +261,15 @@ export class AccountsService {
             where: { studentcardid: accountId }
         });
 
-        // Lưu thông tin OCR hợp lệ vào database
-        const studentCards = await Promise.all(
-            validResults.map(async (ocrData) => {
-                return await this.studentCardService.createStudentCard({
-                    studentcardid: accountId,
-                    schoolname: ocrData.university,
-                    studentid: ocrData.id,
-                    studyperiod: ocrData.expiryYear,
-                });
-            }),
-        );
+        // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
+        if (validResult) {
+            await this.studentCardService.createStudentCard({
+                studentcardid: accountId,
+                schoolname: validResult.university,
+                studentid: validResult.id,
+                studyperiod: validResult.expiryYear,
+            });
+        }
 
         // Trả về kết quả từ findOne (sẽ bao gồm student card mới)
         const updatedAccountInfo = await this.findOne(accountId);
