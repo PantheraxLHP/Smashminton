@@ -50,7 +50,8 @@ export const menus = {
             link: '/warehouse',
             subMenu: [
                 { label: 'Khu vực/Sân', link: '/warehouse/zone-court' },
-                { label: 'Hàng hoá', link: '/warehouse/accessories' },
+                { label: 'Đồ ăn thức uống', link: '/warehouse/food' },
+                { label: 'Phụ kiện cầu lông', link: '/warehouse/accessories' },
                 { label: 'Nhà cung cấp', link: '/warehouse/suppliers' },
                 { label: 'Đơn đặt hàng', link: '/warehouse/orders' },
             ],
