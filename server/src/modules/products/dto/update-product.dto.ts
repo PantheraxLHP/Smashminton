@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateProductDto } from './create-product.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class UpdateProductDto extends PartialType(CreateProductDto) {}
+export class UpdateRentalPriceDto {
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ example: 12000 })
+  rentalprice: number;
+}

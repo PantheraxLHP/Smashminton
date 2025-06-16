@@ -28,6 +28,7 @@ import { BankDetailModule } from './modules/bank_detail/bank_detail.module';
 import { RewardRecordsModule } from './modules/reward_records/reward_records.module';
 import { ProductBatchModule } from './modules/product_batch/product_batch.module';
 import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
     imports: [
@@ -59,6 +60,7 @@ import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.
         RewardRecordsModule,
         ProductBatchModule,
         AutoAssignmentModule,
+        AdminModule,
     ],
     controllers: [AppController],
     providers: [AppService],

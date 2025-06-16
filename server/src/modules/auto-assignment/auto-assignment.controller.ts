@@ -66,6 +66,7 @@ export class AutoAssignmentController {
 
             if (parttimeSuccess && fulltimeSuccess) {
                 return {
+                    status: 201,
                     success: true,
                     message: 'Auto assignment successfully performed for both part-time and full-time shifts',
                     partTimeResult: resultParttime,
@@ -73,6 +74,7 @@ export class AutoAssignmentController {
                 };
             } else if (parttimeSuccess || fulltimeSuccess) {
                 return {
+                    status: 207,
                     success: false,
                     message: 'Auto assignment partially completed - some operations failed',
                     partTimeResult: resultParttime,
@@ -103,6 +105,31 @@ export class AutoAssignmentController {
     @ApiBody({
         description: 'Update auto assignment settings',
         type: UpdateAutoAssignmentDto,
+        examples: {
+            example1: {
+                summary: 'Basic Example',
+                value: {
+                    data: [
+                        {
+                            type: "employee",
+                            cols: ["RuleDescription", "RuleName", "OtherCol"]
+                        },
+                        {
+                            type: "shift",
+                            cols: ["RuleDescription2", "RuleName2", "OtherCol2"]
+                        },
+                        {
+                            type: "enrollmentshift",
+                            cols: ["RuleDescription3", "RuleName3", "OtherCol3"]
+                        },
+                        {
+                            type: "enrollmentemployee",
+                            cols: ["RuleDescription4", "RuleName4", "OtherCol4"]
+                        }
+                    ]
+                }
+            }
+        }
     })
     @ApiResponse({
         status: 200,
