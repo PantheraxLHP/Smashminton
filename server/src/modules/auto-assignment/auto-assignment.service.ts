@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ExcelManipulationService } from './excel-manipulation.service';
+import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
+import * as path from 'path';
 
 @Injectable()
 export class AutoAssignmentService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly excelManipulationService: ExcelManipulationService
+    ) { }
 
     async autoAssignParttimeShifts(sortOption: number) {
         try {
@@ -420,5 +426,32 @@ export class AutoAssignmentService {
             console.error("Error in assignRotateShift:", error);
             throw error; // Re-throw to be caught by the calling function
         }
+    }
+
+    async updateAutoAssignmentSettings(updateAutoAssignmentDto: UpdateAutoAssignmentDto) {
+        if (!updateAutoAssignmentDto.data) {
+            throw new Error("Invalid input data. 'data' are required.");
+        }
+
+        const basePath = "droolsServer/src/main/resources/dtables/";
+        const fileName = "drools_decisiontable.drl.xlsx";
+        const filePath = path.join(__dirname, "../../../../", basePath, fileName);
+
+        const deleteResult = await this.excelManipulationService.deleteRuleTableRowsWithBackup("DroolsRules", filePath);
+
+        if (!deleteResult || deleteResult.deletedRows === undefined) {
+            throw new Error("Failed to delete rule table rows or no rows deleted.");
+        }
+
+        const insertResult = await this.excelManipulationService.insertRuleTableData("DroolsRules", filePath, updateAutoAssignmentDto);
+
+        if (!insertResult || insertResult.insertedRows === undefined) {
+            throw new Error("Failed to insert rule table data or no rows inserted.");
+        }
+
+        return {
+            deleteResult,
+            insertResult
+        };
     }
 }
