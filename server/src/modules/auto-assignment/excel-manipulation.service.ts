@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
-import * as path from 'path';
 import * as fs from 'fs';
+import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
 
 @Injectable()
 export class ExcelSearcher {
@@ -188,35 +188,27 @@ export class ExcelSearcher {
 
 @Injectable()
 export class ExcelManipulationService {
-    async deleteRuleTableRows(type: string, sheetName: string, filePath: string) {
+    async deleteRuleTableRows(sheetName: string, filePath: string) {
         try {
             console.log('⚠️  IMPORTANT: Make sure the Excel file is CLOSED before running this!');
 
-            console.log(`\n🗑️ Delete Rule Table Rows - Type: ${type}, Sheet: ${sheetName}\n`);
+            console.log(`\n🗑️ Delete Rule Table Rows - Sheet: ${sheetName}\n`);
 
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(filePath);
             const searcher = new ExcelSearcher(workbook);
-            let ruleTables: any[] = [];
 
-            // Search for rule tables based on type
-            if (type === "shift") {
-                ruleTables = searcher.findCellsByPattern(/RuleTable.*Shifts/, sheetName);
-            } else if (type === "employee") {
-                ruleTables = searcher.findCellsByPattern(/RuleTable.*Employees/, sheetName);
-            } else {
-                // Generic search for any rule table containing the type
-                ruleTables = searcher.findCellsByPattern(new RegExp(`RuleTable.*${type}`, 'i'), sheetName);
-            }
+            //Search for any rule table containing exclude Sort...
+            const ruleTables = searcher.findCellsByPattern(new RegExp('RuleTable (?!Sort)\\w+', 'i'), sheetName);
 
             if (ruleTables.length === 0) {
-                console.log(`❌ No RuleTable declarations found for type "${type}".`);
+                console.log(`❌ No RuleTable declarations found.`);
                 console.log('Available worksheets:');
                 workbook.worksheets.forEach(ws => console.log(`   - ${ws.name}`));
                 return;
             }
 
-            console.log(`✅ Found ${ruleTables.length} RuleTable(s) for type "${type}":`);
+            console.log(`✅ Found ${ruleTables.length} RuleTable(s):`);
             for (const result of ruleTables) {
                 console.log(`   "${result.value}" at ${result.address} - Worksheet: ${result.worksheet}`);
             }
@@ -342,7 +334,7 @@ export class ExcelManipulationService {
         }
     }
 
-    async deleteRuleTableRowsWithBackup(type: string, sheetName: string, filePath: string) {
+    async deleteRuleTableRowsWithBackup(sheetName: string, filePath: string) {
         try {
 
             // Create backup first
@@ -351,7 +343,7 @@ export class ExcelManipulationService {
             console.log(`📋 Created backup: ${backupPath}`);
 
             // Perform the deletion
-            const result = await this.deleteRuleTableRows(type, sheetName, filePath);
+            const result = await this.deleteRuleTableRows(sheetName, filePath);
 
             console.log(`\n💾 Backup available at: ${backupPath}`);
             console.log('🔄 To restore, rename the backup file to replace the original');
@@ -363,6 +355,86 @@ export class ExcelManipulationService {
 
         } catch (error) {
             console.error('❌ Safe delete operation failed:', error instanceof Error ? error.message : String(error));
+            throw error;
+        }
+    }
+
+    async insertRuleTableData(sheetName: string, filePath: string, ruleTableData: UpdateAutoAssignmentDto) {
+        try {
+            console.log('⚠️  IMPORTANT: Make sure the Excel file is CLOSED before running this!');
+
+            console.log(`\n📥 Insert Rule Table Data - Sheet: ${sheetName}\n`);
+
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+            const searcher = new ExcelSearcher(workbook);
+            const worksheet = workbook.getWorksheet(sheetName);
+
+            if (!worksheet) {
+                console.log(`❌ Worksheet "${sheetName}" not found!`);
+                return;
+            }
+
+            console.log(`📊 Before insertion: ${worksheet.rowCount} rows x ${worksheet.columnCount} columns`);
+
+            let totalInsertedRows = 0;
+            for (const data of ruleTableData.data) {
+                let ruleTable: any[] = [];
+                switch ((data.type).toLowerCase()) {
+                    case 'shift':
+                        ruleTable = searcher.findCellsContaining('RuleTable AssignableShifts', sheetName);
+                        break;
+                    case 'enrollmentShift':
+                        ruleTable = searcher.findCellsContaining('RuleTable AssignableEnrollmentShifts', sheetName);
+                        break;
+                    case 'employee':
+                        ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
+                        break;
+                    case 'enrollmentEmployee':
+                        ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
+                        break;
+                }
+
+                if (ruleTable.length === 0) {
+                    console.log(`❌ No RuleTable found for type "${data.type}"`);
+                    continue;
+                }
+
+                console.log(`✅ Found ${ruleTable.length} RuleTable(s) for type "${data.type}":`);
+                ruleTable = ruleTable
+                    .map(rule => {
+                        const rowMatch = rule.address.match(/\d+/);
+                        return {
+                            ...rule,
+                            rowNumber: rowMatch ? parseInt(rowMatch[0]) : 0
+                        };
+                    })
+
+                const startRow = ruleTable[0].rowNumber;
+                const startRowInsert = startRow + 5;
+                worksheet.insertRow(startRowInsert, data.cols);
+                totalInsertedRows++;
+            }
+
+            console.log(`📊 After insertion: ${worksheet.rowCount} rows x ${worksheet.columnCount} columns`);
+            console.log(`📥 Total rows inserted: ${totalInsertedRows}`);
+
+            if (totalInsertedRows > 0) {
+                // CRITICAL: Save the file to make changes persistent!
+                await workbook.xlsx.writeFile(filePath);
+                console.log(`💾 File saved as: ${filePath}`);
+                console.log('✅ SUCCESS: Rule table data has been inserted!');
+            } else {
+                console.log('ℹ️ No changes made to the file (no data rows inserted)');
+            }
+
+            return {
+                filePath: filePath,
+                insertedRows: totalInsertedRows,
+            }
+
+        } catch (error) {
+            console.error('❌ Insert operation failed:', error instanceof Error ? error.message : String(error));
             throw error;
         }
     }
