@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import ServiceModal from './AddEditService';
+import { FaRegEdit } from 'react-icons/fa';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import { getProducts } from '@/services/products.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface Service {
     productname: string;
@@ -12,50 +15,93 @@ export interface Service {
     image: string;
 }
 
-const rawServices: Service[] = [
-    {
-        productname: "Vợt Yonex",
-        servicetype: "Thuê vợt",
-        price: "200.000 VND",
-        image: "/default.png",
-    },
-    {
-        productname: "Giày Atlas",
-        servicetype: "Thuê giày",
-        price: "200.000 VND",
-        image: "/default.png",
-    },
-    {
-        productname: "Giày Nike",
-        servicetype: "Thuê giày",
-        price: "150.000 VND",
-        image: "/default.png",
-    },
-];
-
 export default function RentalPriceManager() {
-    const [servicesState, setServicesState] = useState<Service[]>(rawServices);
-    const [filteredData, setFilteredData] = useState<Service[]>(rawServices);
-
+    const [servicesState, setServicesState] = useState<Service[]>([]);
+    const [filteredData, setFilteredData] = useState<Service[]>([]);
     const [editData, setEditData] = useState<Service | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(2);
+    const [editingItem, setEditingItem] = useState<Service | null>(null);
+    const [editedPrice, setEditedPrice] = useState<string>('');
+
 
     const [filters, setFilters] = useState<Record<string, any>>({
         productname: '',
-        servicetype: [],
+        servicetype: [3],
     });
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!Array.isArray(filters.servicetype) || filters.servicetype.length === 0) {
+                setServicesState([]);
+                return;
+            }
+
+            const selectedTypeId = filters.servicetype[0]; // 3: thuê vợt, 4: thuê giày
+            const response = await getProducts(selectedTypeId, page, pageSize);
+
+            if (response.ok) {
+                const data = response.data.data;
+                const pagination = response.data.pagination;
+
+                const mapToService = (items: any[], type: string): Service[] => {
+                    return items.map((item) => ({
+                        productname: item.productname,
+                        servicetype: type,
+                        price: item.rentalprice ? `${parseInt(item.rentalprice).toLocaleString()} VND` : '0 VND',
+                        image: item.productimgurl || '/default.png',
+                    }));
+                };
+
+                const typeName = selectedTypeId === 3 ? 'Thuê vợt' : 'Thuê giày';
+                const services = mapToService(data, typeName);
+
+                setServicesState(services);
+                setTotalPages(pagination.totalPages);
+            }
+        };
+
+        fetchData();
+    }, [filters.servicetype, page]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [filters.servicetype]);
+    
+    useEffect(() => {
+        let result = servicesState;
+
+        if (filters.productname) {
+            const keyword = filters.productname.toLowerCase();
+            result = result.filter((item) => item.productname.toLowerCase().includes(keyword));
+        }
+
+        if (Array.isArray(filters.servicetype) && filters.servicetype.length > 0) {
+            const selectedTypeId = filters.servicetype[0];
+            const typeMap: Record<number, string> = {
+                3: 'Thuê vợt',
+                4: 'Thuê giày',
+            };
+            const typeName = typeMap[selectedTypeId];
+            result = result.filter((item) => item.servicetype === typeName);
+        }
+
+        setFilteredData(result);
+    }, [filters, servicesState]);
+    
+    
 
     const getUniqueOptions = (data: Service[], key: keyof Service) => {
         return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
     };
 
-    const servicetypeOptions: FilterOption[] = getUniqueOptions(servicesState, 'servicetype').map(
-        (option) => ({
-            optionlabel: option,
-            optionvalue: option,
-        })
-    );
+    const servicetypeOptions: FilterOption[] = [
+        { optionlabel: 'Thuê vợt', optionvalue: 3 },
+        { optionlabel: 'Thuê giày', optionvalue: 4 },
+    ];
 
     const filtersConfig: FilterConfig[] = [
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
@@ -67,25 +113,36 @@ export default function RentalPriceManager() {
         {
             filterid: 'servicetype',
             filterlabel: 'Loại dịch vụ',
-            filtertype: 'checkbox',
+            filtertype: 'radio',
             filteroptions: servicetypeOptions,
         },
     ];
 
-    useEffect(() => {
-        let result = servicesState;
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filtersConfig.find((f) => f.filterid === filterid)?.filtertype;
 
-        if (filters.productname) {
-            const keyword = filters.productname.toLowerCase();
-            result = result.filter((item) => item.productname.toLowerCase().includes(keyword));
-        }
+        console.log('[Filter Change]', { filterid, value, type });
 
-        if (filters.servicetype && filters.servicetype.length > 0) {
-            result = result.filter((item) => filters.servicetype.includes(item.servicetype));
-        }
+        setFilters((prev) => {
+            const updated = { ...prev };
 
-        setFilteredData(result);
-    }, [filters, servicesState]);
+            if (type === 'search') {
+                updated[filterid] = value;
+            } else if (type === 'radio') {
+                let resolvedValue = value;
+                if (isNaN(value)) {
+                    const firstOption = servicetypeOptions[0]?.optionvalue || '';
+                    resolvedValue = firstOption;
+                }
+
+                updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+            }
+
+            return updated;
+        });
+    };
+    
+    
 
     const columns: Column<Service>[] = [
         {
@@ -98,13 +155,71 @@ export default function RentalPriceManager() {
             ),
         },
         { header: 'Dịch vụ áp dụng', accessor: 'servicetype' },
-        { header: 'Giá thuê', accessor: 'price' },
+        {
+            header: 'Giá thuê',
+            accessor: (item: Service) => (
+                <div className="flex flex-wrap items-center gap-2">
+                    {editingItem === item ? (
+                        <>
+                            <input
+                                type="text"
+                                value={editedPrice}
+                                onChange={(e) => setEditedPrice(e.target.value)}
+                                className="border border-gray-300 px-2 py-1 w-[70px] sm:w-[70px] md:w-[70px]"
+                                autoFocus
+                            />
+                            <button
+                                onClick={() => {
+                                    const parsedPrice = Number(editedPrice.replace(/[^\d]/g, ''));
+                                    if (isNaN(parsedPrice) || parsedPrice < 0) {
+                                        alert('Vui lòng nhập giá hợp lệ!');
+                                        return;
+                                    }
+
+                                    const updatedItem = {
+                                        ...item,
+                                        price: `${parsedPrice.toLocaleString()} VND`,
+                                    };
+
+                                    setServicesState((prev) =>
+                                        prev.map((svc) => (svc === item ? updatedItem : svc))
+                                    );
+                                    setEditingItem(null);
+                                }}
+                                className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+                            >
+                                Xong
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <span>{item.price}</span>
+                            <button
+                                onClick={() => {
+                                    setEditingItem(item);
+                                    const numericValue = item.price.replace(/[^\d]/g, '');
+                                    setEditedPrice(numericValue);
+                                }}
+                                className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
+                            >
+                                <FaRegEdit size={14} />
+                            </button>
+                        </>
+                    )}
+                </div>
+            ),
+        },     
     ];
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
             <div className="w-[280px]">
-                <Filter filters={filtersConfig} values={filters} setFilterValues={setFilters} />
+                <Filter
+                    filters={filtersConfig}
+                    values={filters}
+                    setFilterValues={setFilters}
+                    onFilterChange={handleFilterChange}
+                />
             </div>
 
             <div className="flex-1">
@@ -125,9 +240,20 @@ export default function RentalPriceManager() {
                         setServicesState((prev) => prev.filter((item) => item !== itemToDelete));
                     }}
                     showOptions={false}
-                    showMoreOption={true}
+                    showMoreOption={false}
                     showHeader
                 />
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    </div>
+                )}
+
 
                 <ServiceModal
                     open={showModal}
