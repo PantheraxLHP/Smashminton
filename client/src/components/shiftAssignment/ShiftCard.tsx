@@ -122,7 +122,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
         >
             {/*Phần header hiển thị thời gian bắt đầu và kết thúc của ca làm việc*/}
             <div
-                className={`text-center text-sm font-semibold text-white ${colorIndex[shiftDataSingle.shiftid - 1]} h-fit rounded-t-lg p-1`}
+                className={`z-2 text-center text-sm font-semibold text-white ${colorIndex[shiftDataSingle.shiftid - 1]} h-fit rounded-t-lg p-1`}
             >
                 {`${getShift(shiftDataSingle as ShiftDate)?.shiftstarthour} - ${getShift(shiftDataSingle as ShiftDate)?.shiftendhour}`}
             </div>
