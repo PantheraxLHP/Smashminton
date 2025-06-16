@@ -5,7 +5,7 @@ import { Type } from 'class-transformer';
 export class AutoAssignmentDto {
     @ApiProperty({
         description: 'Full-time shift option',
-        example: 'same',
+        example: 'random',
         type: String,
     })
     @IsString()
@@ -15,7 +15,7 @@ export class AutoAssignmentDto {
 
     @ApiProperty({
         description: 'Part-time shift option',
-        example: 1,
+        example: 2,
         type: Number,
     })
     @IsNumber()

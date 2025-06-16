@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @RestController
 @RequestMapping("/api")
@@ -28,8 +30,8 @@ public class AutoAssignmentController {
             @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
             @ApiResponse(responseCode = "500", description = "Internal server error during assignment")
     })
-    public ResponseEntity<AutoAssignmentResponse> performAutoAssignment(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Auto assignment request with sort options", required = true, content = @Content(schema = @Schema(implementation = AutoAssignmentRequest.class))) @RequestBody AutoAssignmentRequest request) {
+    @RequestBody(description = "Auto assignment request with sort options", required = true, content = @Content(schema = @Schema(implementation = AutoAssignmentRequest.class), mediaType = "application/json", examples = @ExampleObject(name = "Basic Example", value = "{ \"sortOption\": 2 }")))
+    public ResponseEntity<AutoAssignmentResponse> performAutoAssignment(@RequestBody AutoAssignmentRequest request) {
 
         try {
             AutoAssignmentResponse response = autoAssignmentService.performAutoAssignment(request);
