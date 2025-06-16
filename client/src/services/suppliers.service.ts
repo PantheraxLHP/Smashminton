@@ -1,22 +1,42 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export const getSuppliers = async () => {
+export const getSuppliers = async (page: number, pageSize: number) => {
     try {
-        const response = await fetch(`/api/suppliers/get-suppliers`, {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            pageSize: pageSize.toString(),
+        });
+
+        const response = await fetch(`/api/suppliers/get-suppliers?${queryParams}`, {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
         });
+
         const result = await response.json();
 
-        if (!response.ok) {
-            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        console.log('[DEBUG] getSuppliers full result:', result);
+
+        const suppliers = result.data?.data;
+        const pagination = result.data?.pagination;
+
+        if (!response.ok || !Array.isArray(suppliers)) {
+            return ServiceResponse.error(result.message || 'Dữ liệu trả về không hợp lệ');
         }
 
-        return ServiceResponse.success(result.data);
+        return ServiceResponse.success({
+            data: suppliers,
+            pagination,
+        });
     } catch (error) {
-        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+        console.error('[ERROR] getSuppliers:', error);
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu'
+        );
     }
 };
+
+
+
 
 export async function postSuppliers(data: {
     suppliername: string;

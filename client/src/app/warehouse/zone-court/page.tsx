@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { FaRegEdit } from 'react-icons/fa';
 import { getZoneCourt } from '@/services/zones.service';
 import { patchCourts } from '@/services/courts.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface Zone {
     zoneid?: number;
@@ -43,24 +44,40 @@ export default function ZoneCourtManager() {
     const [editedRatingGrade, setEditedRatingGrade] = useState<string>('');
     const [isAddZoneModalOpen, setIsAddZoneModalOpen] = useState(false);
     const [isAddCourtModalOpen, setIsAddCourtModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(2);
     const [filters, setFilters] = useState<Record<string, any>>({
         zonename: [],
     });
 
     async function fetchZoneCourtData() {
-        const res = await getZoneCourt();
+        try {
+            const res = await getZoneCourt(page, pageSize);
 
-        if (res.ok && Array.isArray(res.data?.zones)) {
-            const zoneList = res.data.zones;
+            if (!res.ok || !res.data) {
+                console.error('API trả về lỗi:', res.message);
+                return;
+            }
 
-            const transformedZones: Zone[] = zoneList.map((z: any) => ({
+            const { data, pagination } = res.data as {
+                data: any[];
+                pagination: { page: number; totalPages: number };
+            };
+
+            if (!Array.isArray(data)) {
+                console.error('Dữ liệu không hợp lệ: data không phải là mảng');
+                return;
+            }
+
+            const transformedZones: Zone[] = data.map((z: any) => ({
                 zonename: z.zonename,
                 type: z.zonetype,
                 image: z.zoneimgurl || '/default.png',
                 description: z.zonedescription,
             }));
 
-            const transformedCourts: Court[] = zoneList.flatMap((z: any) =>
+            const transformedCourts: Court[] = data.flatMap((z: any) =>
                 (z.courts || []).map((c: any) => ({
                     courtid: c.courtid,
                     courtname: c.courtname,
@@ -79,17 +96,17 @@ export default function ZoneCourtManager() {
             setFilters({
                 zonename: transformedZones.map(z => z.zonename),
             });
-        } else {
-            console.error('API trả về dữ liệu không hợp lệ:', res);
-        }
-    }
 
-    // Gọi lần đầu khi load
+            setTotalPages(pagination.totalPages);
+        } catch (error) {
+            console.error('Lỗi khi gọi API getZoneCourt:', error);
+        }
+    }    
+    
     useEffect(() => {
         fetchZoneCourtData();
-    }, []);
-    
-    
+    }, [page]);
+
 
     useEffect(() => {
         if (!filters.zonename || filters.zonename.length === 0) {
@@ -331,6 +348,16 @@ export default function ZoneCourtManager() {
                         showHeader={true}
                     />
                 </div>
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    </div>
+                )}
+
             </div>
 
             <AddZoneModal

@@ -53,23 +53,44 @@ export const postZones = async (formData: FormData) => {
     }
 };
 
-export const getZoneCourt = async () => {
+export const getZoneCourt = async (page: number, pageSize: number) => {
     try {
-        const res = await fetch('/api/zones/get-zone-court');
-        const result = await res.json();
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            pageSize: pageSize.toString(),
+        });
 
-        if (!res.ok) {
-            return ServiceResponse.error(result.message);
+        const res = await fetch(`/api/zones/get-zone-court?${queryParams}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+
+        const result = await res.json();
+        console.log('[DEBUG] getZoneCourt response:', result);
+
+        const zoneList = result.data?.data;
+        const pagination = result.data?.pagination;
+
+        // Kiểm tra đúng mảng
+        if (!res.ok || !Array.isArray(zoneList)) {
+            return ServiceResponse.error('Dữ liệu trả về không hợp lệ');
         }
 
-        const featuredZones = result.data.zones.map((zone: Zones) => ({
-            ...zone,
-            feature: featureTranslations[zone.zonetype || ''] || 'Không có thông tin',
-        }));
-        // Return a ServiceResponse object with the 'zones' as featuredZones in the 'data' property
-        return ServiceResponse.success({ zones: featuredZones });
+        return ServiceResponse.success({
+            data: zoneList,
+            totalItems: zoneList.length,
+            pagination: pagination,
+        });
     } catch (error) {
-        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách sân');
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể tải danh sách sân'
+        );
     }
 };
+
+
+
+
+
 
