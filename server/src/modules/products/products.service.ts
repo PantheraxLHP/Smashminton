@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateRentalPriceDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -31,7 +31,7 @@ export class ProductsService {
         }
 
         createProductDto.productimgurl = imageUrl;
-        
+
         const newProduct = await this.prisma.products.create({
             data: {
                 ...createProductDto,
@@ -135,11 +135,19 @@ export class ProductsService {
         });
     }
 
-    update(id: number, updateProductDto: UpdateProductDto) {
-        return this.prisma.products.update({
-            where: { productid: id },
-            data: updateProductDto,
+    async updateRentalPrice(productid: number, rentalprice: number) {
+        const updated = await this.prisma.products.update({
+            where: { productid },
+            data: {
+                rentalprice,
+                updatedat: new Date(),
+            },
         });
+
+        return {
+            message: 'Cập nhật giá thuê thành công',
+            data: updated,
+        };
     }
 
     remove(id: number) {

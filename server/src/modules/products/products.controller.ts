@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Query, Param, Delete, Put, NotFoundException, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Delete, Put, NotFoundException, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateRentalPriceDto } from './dto/update-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
@@ -43,7 +43,7 @@ export class ProductsController {
         @Body() createProductDto: CreateProductDto,
         @Query('productfiltervalueid') productfiltervalueid: string,
         @UploadedFile() file: Express.Multer.File
-    ) {        
+    ) {
         const _productfiltervalueid = +productfiltervalueid; // Ép kiểu number
         return this.productsService.create(createProductDto, file, _productfiltervalueid);
     }
@@ -70,4 +70,14 @@ export class ProductsController {
         }
         return this.productsService.getProductsWithBatches(pageNumber, pageSizeNumber);
     }
+
+    @Patch(':id/rental-price')
+    @ApiOperation({ summary: 'Update rental price of a product' })
+    updateRentalPrice(
+        @Param('id') productid: string,
+        @Body() body: UpdateRentalPriceDto
+    ) {
+        return this.productsService.updateRentalPrice(+productid, body.rentalprice);
+    }
+
 }
