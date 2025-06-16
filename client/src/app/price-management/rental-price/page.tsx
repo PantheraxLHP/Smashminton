@@ -7,8 +7,11 @@ import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import { getProducts } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { updateProductPrice } from '@/services/products.service';
+import { toast } from 'sonner';
 
 export interface Service {
+    productid?: number;
     productname: string;
     servicetype: string;
     price: string;
@@ -32,40 +35,41 @@ export default function RentalPriceManager() {
         productname: '',
         servicetype: [3],
     });
-    
+
+    const fetchData = async () => {
+        let selectedTypeId = 3;
+        if (Array.isArray(filters.servicetype) && filters.servicetype.length > 0) {
+            selectedTypeId = filters.servicetype[0];
+        } else {
+            setFilters((prev) => ({ ...prev, servicetype: [3] }));
+            return;
+        }
+
+        const response = await getProducts(selectedTypeId, page, pageSize);
+
+        if (response.ok) {
+            const data = response.data.data;
+            const pagination = response.data.pagination;
+
+            const mapToService = (items: any[], type: string): Service[] => {
+                return items.map((item) => ({
+                    productid: item.productid,
+                    productname: item.productname,
+                    servicetype: type,
+                    price: item.rentalprice ? `${parseInt(item.rentalprice).toLocaleString()} VND` : '0 VND',
+                    image: item.productimgurl || '/default.png',
+                }));
+            };
+
+            const typeName = selectedTypeId === 3 ? 'Thuê vợt' : 'Thuê giày';
+            const services = mapToService(data, typeName);
+
+            setServicesState(services);
+            setTotalPages(pagination.totalPages);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            let selectedTypeId = 3;
-            if (Array.isArray(filters.servicetype) && filters.servicetype.length > 0) {
-                selectedTypeId = filters.servicetype[0];
-            } else {
-                setFilters((prev) => ({ ...prev, servicetype: [3] }));
-                return;
-            }
-
-            const response = await getProducts(selectedTypeId, page, pageSize);
-
-            if (response.ok) {
-                const data = response.data.data;
-                const pagination = response.data.pagination;
-
-                const mapToService = (items: any[], type: string): Service[] => {
-                    return items.map((item) => ({
-                        productname: item.productname,
-                        servicetype: type,
-                        price: item.rentalprice ? `${parseInt(item.rentalprice).toLocaleString()} VND` : '0 VND',
-                        image: item.productimgurl || '/default.png',
-                    }));
-                };
-
-                const typeName = selectedTypeId === 3 ? 'Thuê vợt' : 'Thuê giày';
-                const services = mapToService(data, typeName);
-
-                setServicesState(services);
-                setTotalPages(pagination.totalPages);
-            }
-        };
-
         fetchData();
     }, [filters.servicetype, page]);
     
@@ -172,24 +176,28 @@ export default function RentalPriceManager() {
                                 autoFocus
                             />
                             <button
-                                onClick={() => {
-                                    const parsedPrice = Number(editedPrice.replace(/[^\d]/g, ''));
+                                onClick={async () => {
+                                    const parsedPrice = Number(editedPrice);
                                     if (isNaN(parsedPrice) || parsedPrice < 0) {
                                         alert('Vui lòng nhập giá hợp lệ!');
                                         return;
                                     }
 
-                                    const updatedItem = {
-                                        ...item,
-                                        price: `${parsedPrice.toLocaleString()} VND`,
-                                    };
+                                    if (item.productid === undefined) {
+                                        alert('Thiếu productid, không thể cập nhật.');
+                                        return;
+                                    }
+                                    const response = await updateProductPrice(item.productid, { price: parsedPrice });
 
-                                    setServicesState((prev) =>
-                                        prev.map((svc) => (svc === item ? updatedItem : svc))
-                                    );
-                                    setEditingItem(null);
+                                    if (response.ok) {
+                                        await fetchData();
+                                        setEditingItem(null);
+                                        toast.success('Cập nhật giá thành công!');
+                                    } else {
+                                        toast.error(`Cập nhật giá thất bại: ${response.message}`);
+                                    }
                                 }}
-                                className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+                                className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
                             >
                                 Xong
                             </button>

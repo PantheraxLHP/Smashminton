@@ -142,3 +142,37 @@ export const getAllProductsWithBatch = async () => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 };
+
+
+export const updateProductPrice = async (
+    productid: number,
+    data: { price: number }
+) => {
+    try {
+        const payload = {
+            productid,
+            ...data,
+        };
+
+        const response = await fetch(`/api/products/update-product-price`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể cập nhật giá khu vực');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể cập nhật giá khu vực'
+        );
+    }
+};
