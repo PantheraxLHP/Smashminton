@@ -1,20 +1,12 @@
-import {
-    Dialog,
-    DialogTrigger,
-    DialogContent,
-    DialogHeader,
-    DialogFooter,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
 import ShiftCard from '@/components/shiftAssignment/ShiftCard';
-import ShiftCardDetail from './ShiftCardDetail';
-import { ShiftDate } from '@/types/types';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ShiftDate } from '@/types/types';
 import { Icon } from '@iconify/react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import ShiftCardDetail from './ShiftCardDetail';
 
 interface ShiftCardDialogProps {
     shiftDataSingle: ShiftDate;

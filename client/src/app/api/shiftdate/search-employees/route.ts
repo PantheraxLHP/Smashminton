@@ -5,12 +5,15 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const params = new URLSearchParams(searchParams).toString();
-        const response = await fetch(`${process.env.SERVER}/api/v1/shift-date/employees-not-in-shift?${params}`, {
-            headers: {
-                'Content-Type': 'application/json',
+        const response = await fetch(
+            `${process.env.SERVER}/api/v1/shift-date/search-employees-not-in-shift?${params}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
             },
-            credentials: 'include',
-        });
+        );
 
         if (!response.ok) {
             return ApiResponse.error(`HTTP error! Status: ${response.status}`);
