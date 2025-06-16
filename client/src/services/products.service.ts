@@ -125,4 +125,20 @@ export const getAllProducts = async () => {
     }
 };
 
+export const getAllProductsWithBatch = async () => {
+    try {
+        const response = await fetch(`/api/products/get-all-products-with-batch`, {
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
 
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện yêu cầu');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+    }
+};

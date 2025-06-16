@@ -35,12 +35,14 @@ export default function RentalPriceManager() {
     
     useEffect(() => {
         const fetchData = async () => {
-            if (!Array.isArray(filters.servicetype) || filters.servicetype.length === 0) {
-                setServicesState([]);
+            let selectedTypeId = 3;
+            if (Array.isArray(filters.servicetype) && filters.servicetype.length > 0) {
+                selectedTypeId = filters.servicetype[0];
+            } else {
+                setFilters((prev) => ({ ...prev, servicetype: [3] }));
                 return;
             }
 
-            const selectedTypeId = filters.servicetype[0]; // 3: thuê vợt, 4: thuê giày
             const response = await getProducts(selectedTypeId, page, pageSize);
 
             if (response.ok) {
@@ -66,6 +68,7 @@ export default function RentalPriceManager() {
 
         fetchData();
     }, [filters.servicetype, page]);
+    
 
     useEffect(() => {
         setPage(1);
