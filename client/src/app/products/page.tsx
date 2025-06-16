@@ -101,7 +101,6 @@ const ProductsPage = () => {
             );
 
             if (result.ok) {
-                console.log('fasdfas', result.data);
                 setProducts(result.data.data);
                 setTotalPages(result.data.pagination.totalPages);
                 if (result.data.pagination.totalPages < result.data.pagination.page) {

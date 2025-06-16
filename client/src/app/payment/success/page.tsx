@@ -57,7 +57,6 @@ export default function PaymentSuccessPage() {
         }
         const handleCreateReceipt = async () => {
             if (apiParams.paymentMethod) {
-                console.log('apiParams', apiParams);
                 const response = await createReceipt(apiParams);
 
                 if (response.ok) {
