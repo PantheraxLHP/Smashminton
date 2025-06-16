@@ -283,6 +283,63 @@ async function main() {
                 createdat: new Date(),
                 updatedat: new Date(),
             },
+            // Thêm 4 khách hàng mới năm 2024
+            {
+                username: 'customer2024_1',
+                password: hashedPassword,
+                status: 'Active',
+                fullname: 'Customer 2024 One',
+                email: 'customer2024_1@example.com',
+                dob: new Date('2001-01-01'),
+                gender: 'Nam',
+                phonenumber: '0900000001',
+                address: 'Địa chỉ 1',
+                accounttype: 'Customer',
+                createdat: new Date('2024-02-15T10:00:00Z'),
+                updatedat: new Date('2024-02-15T10:00:00Z'),
+            },
+            {
+                username: 'customer2024_2',
+                password: hashedPassword,
+                status: 'Active',
+                fullname: 'Customer 2024 Two',
+                email: 'customer2024_2@example.com',
+                dob: new Date('2002-02-02'),
+                gender: 'Nữ',
+                phonenumber: '0900000002',
+                address: 'Địa chỉ 2',
+                accounttype: 'Customer',
+                createdat: new Date('2024-05-10T15:00:00Z'),
+                updatedat: new Date('2024-05-10T15:00:00Z'),
+            },
+            {
+                username: 'customer2024_3',
+                password: hashedPassword,
+                status: 'Active',
+                fullname: 'Customer 2024 Three',
+                email: 'customer2024_3@example.com',
+                dob: new Date('2003-03-03'),
+                gender: 'Nam',
+                phonenumber: '0900000003',
+                address: 'Địa chỉ 3',
+                accounttype: 'Customer',
+                createdat: new Date('2024-08-20T08:00:00Z'),
+                updatedat: new Date('2024-08-20T08:00:00Z'),
+            },
+            {
+                username: 'customer2024_4',
+                password: hashedPassword,
+                status: 'Active',
+                fullname: 'Customer 2024 Four',
+                email: 'customer2024_4@example.com',
+                dob: new Date('2004-04-04'),
+                gender: 'Nữ',
+                phonenumber: '0900000004',
+                address: 'Địa chỉ 4',
+                accounttype: 'Customer',
+                createdat: new Date('2024-12-01T12:00:00Z'),
+                updatedat: new Date('2024-12-01T12:00:00Z'),
+            },
         ],
     });
 
@@ -2636,14 +2693,45 @@ async function main() {
     // Thêm 2 court_booking cho mỗi booking
     for (let i = 0; i < bookingsList.length; i++) {
         for (let j = 0; j < 2; j++) {
+            // Lấy zone của court
+            const court = await prisma.courts.findUnique({
+                where: { courtid: ((i * 2 + j) % 8) + 1 },
+                select: { zoneid: true }
+            });
+            if (!court) continue;
+
+            // Lấy zone_prices cho zone này
+            const zonePrices = await prisma.zone_prices.findMany({
+                where: { zoneid: court.zoneid },
+                orderBy: { starttime: 'asc' }
+            });
+
+            // Chọn ngẫu nhiên một time slot từ zone_prices
+            const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
+            if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
+
+            // Tạo starttime và endtime dựa trên time slot
+            const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
+            const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+
+            const bookingDate = new Date(bookingsList[i].bookingdate!.toISOString().split('T')[0]);
+            const starttime = new Date(bookingDate);
+            starttime.setHours(startHour, startMinute, 0, 0);
+
+            const endtime = new Date(bookingDate);
+            endtime.setHours(endHour, endMinute, 0, 0);
+
+            // Tính duration (số giờ)
+            const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
+
             await prisma.court_booking.create({
                 data: {
-                    date: bookingsList[i].bookingdate,
-                    starttime: new Date(bookingsList[i].bookingdate.getTime() + j * 30 * 60 * 1000),
-                    endtime: new Date(bookingsList[i].bookingdate.getTime() + (j + 1) * 60 * 60 * 1000),
-                    duration: 1,
+                    date: bookingDate,
+                    starttime,
+                    endtime,
+                    duration,
                     bookingid: bookingsList[i].bookingid,
-                    courtid: ((i * 2 + j) % 8) + 1, // giả sử có 8 sân
+                    courtid: ((i * 2 + j) % 8) + 1,
                 },
             });
         }
@@ -2661,7 +2749,7 @@ async function main() {
             where: { bookingid },
             select: { date: true },
         });
-        const rentalDate = relatedCourtBooking?.date || new Date();
+        const rentalDate = relatedCourtBooking && relatedCourtBooking.date ? relatedCourtBooking.date : new Date();
 
         // 2 sản phẩm id 1-8
         const ids1: number[] = [];
@@ -2742,14 +2830,45 @@ async function main() {
     }
     // Tạo court_booking cho từng booking
     for (let i = 0; i < 3; i++) {
+        // Lấy zone của court
+        const court = await prisma.courts.findUnique({
+            where: { courtid: 10 + i },
+            select: { zoneid: true }
+        });
+        if (!court) continue;
+
+        // Lấy zone_prices cho zone này
+        const zonePrices = await prisma.zone_prices.findMany({
+            where: { zoneid: court.zoneid },
+            orderBy: { starttime: 'asc' }
+        });
+
+        // Chọn ngẫu nhiên một time slot từ zone_prices
+        const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
+        if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
+
+        // Tạo starttime và endtime dựa trên time slot
+        const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
+        const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+
+        const bookingDate = new Date([completedStart, ongoingStart, upcomingStart][i].toISOString().split('T')[0]);
+        const starttime = new Date(bookingDate);
+        starttime.setHours(startHour, startMinute, 0, 0);
+
+        const endtime = new Date(bookingDate);
+        endtime.setHours(endHour, endMinute, 0, 0);
+
+        // Tính duration (số giờ)
+        const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
+
         await prisma.court_booking.create({
             data: {
-                date: [completedStart, ongoingStart, upcomingStart][i],
-                starttime: [completedStart, ongoingStart, upcomingStart][i],
-                endtime: [completedEnd, ongoingEnd, upcomingEnd][i],
-                duration: 1,
+                date: bookingDate,
+                starttime,
+                endtime,
+                duration,
                 bookingid: testBookings[i].bookingid,
-                courtid: 10 + i, // dùng courtid khác để không trùng
+                courtid: 10 + i,
             },
         });
     }
@@ -2775,6 +2894,195 @@ async function main() {
                 bookingid: testBookings[i].bookingid,
             },
         });
+    }
+
+    // === SEED 10 RECEIPTS/BOOKINGS/ORDERS CHO MỖI THÁNG TRONG 12 THÁNG ===
+    const year = new Date().getFullYear();
+    function getRandomIntSeed(min: number, max: number) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    for (let month = 0; month < 12; month++) {
+        const bookingDataMonth: any[] = [];
+        const orderDataMonth: any[] = [];
+        // courtid cho từng zone (giả sử: 1-8 là A, 9-11 là B, 12-14 là C)
+        const zoneACourts = [1, 2, 3, 4, 5, 6, 7, 8];
+        const zoneBCourts = [9, 10, 11];
+        const zoneCCourts = [12, 13, 14];
+        // 5 receipt zone A
+        for (let i = 0; i < 5; i++) {
+            const date = new Date(year, month, 5 + i, 10, 0, 0);
+            const endDate = new Date(date.getTime() + 60 * 60 * 1000);
+            const bookingDateOnly = new Date(year, month, 5 + i);
+            bookingDataMonth.push({
+                guestphone: '0987654321',
+                bookingdate: bookingDateOnly,
+                totalprice: 200000 + i * 5000,
+                bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
+                createdat: date,
+                updatedat: endDate,
+                employeeid: 2,
+                customerid: 16,
+                voucherid: null,
+            });
+            orderDataMonth.push({
+                ordertype: i % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+                orderdate: date,
+                totalprice: 100000 + i * 10000,
+                status: i % 3 === 0 ? 'Hoàn thành' : i % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+                employeeid: 2,
+                customerid: 15,
+            });
+        }
+        // 3 receipt zone B
+        for (let i = 0; i < 3; i++) {
+            const date = new Date(year, month, 15 + i, 10, 0, 0);
+            const endDate = new Date(date.getTime() + 60 * 60 * 1000);
+            const bookingDateOnly = new Date(year, month, 15 + i);
+            bookingDataMonth.push({
+                guestphone: '0987654321',
+                bookingdate: bookingDateOnly,
+                totalprice: 200000 + (5 + i) * 5000,
+                bookingstatus: (5 + i) % 3 === 0 ? 'confirmed' : (5 + i) % 3 === 1 ? 'pending' : 'completed',
+                createdat: date,
+                updatedat: endDate,
+                employeeid: 2,
+                customerid: 16,
+                voucherid: null,
+            });
+            orderDataMonth.push({
+                ordertype: (5 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+                orderdate: date,
+                totalprice: 100000 + (5 + i) * 10000,
+                status: (5 + i) % 3 === 0 ? 'Hoàn thành' : (5 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+                employeeid: 2,
+                customerid: 15,
+            });
+        }
+        // 2 receipt zone C
+        for (let i = 0; i < 2; i++) {
+            const date = new Date(year, month, 25 + i, 10, 0, 0);
+            const endDate = new Date(date.getTime() + 60 * 60 * 1000);
+            const bookingDateOnly = new Date(year, month, 25 + i);
+            bookingDataMonth.push({
+                guestphone: '0987654321',
+                bookingdate: bookingDateOnly,
+                totalprice: 200000 + (8 + i) * 5000,
+                bookingstatus: (8 + i) % 3 === 0 ? 'confirmed' : (8 + i) % 3 === 1 ? 'pending' : 'completed',
+                createdat: date,
+                updatedat: endDate,
+                employeeid: 2,
+                customerid: 16,
+                voucherid: null,
+            });
+            orderDataMonth.push({
+                ordertype: (8 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+                orderdate: date,
+                totalprice: 100000 + (8 + i) * 10000,
+                status: (8 + i) % 3 === 0 ? 'Hoàn thành' : (8 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+                employeeid: 2,
+                customerid: 15,
+            });
+        }
+        await prisma.orders.createMany({ data: orderDataMonth, skipDuplicates: true });
+        await prisma.bookings.createMany({ data: bookingDataMonth, skipDuplicates: true });
+        // Lấy lại orderid và bookingid vừa tạo cho tháng này
+        const ordersListMonth = await prisma.orders.findMany({ orderBy: { orderid: 'desc' }, take: 10 });
+        const bookingsListMonth = await prisma.bookings.findMany({ orderBy: { bookingid: 'desc' }, take: 10 });
+        // Thêm 2 court_booking cho mỗi booking, nhưng phân bổ theo zone
+        for (let i = 0; i < bookingsListMonth.length; i++) {
+            for (let j = 0; j < 2; j++) {
+                if (!bookingsListMonth[i] || !bookingsListMonth[i].bookingdate) continue;
+                let courtid;
+                if (i < 5) courtid = zoneACourts[(i * 2 + j) % zoneACourts.length];
+                else if (i < 8) courtid = zoneBCourts[((i - 5) * 2 + j) % zoneBCourts.length];
+                else courtid = zoneCCourts[((i - 8) * 2 + j) % zoneCCourts.length];
+
+                // Lấy zone của court
+                const court = await prisma.courts.findUnique({
+                    where: { courtid },
+                    select: { zoneid: true }
+                });
+                if (!court) continue;
+
+                // Lấy zone_prices cho zone này
+                const zonePrices = await prisma.zone_prices.findMany({
+                    where: { zoneid: court.zoneid },
+                    orderBy: { starttime: 'asc' }
+                });
+
+                // Chọn ngẫu nhiên một time slot từ zone_prices
+                const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
+                if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
+
+                // Tạo starttime và endtime dựa trên time slot
+                const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
+                const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+
+                const bookingDate = new Date(bookingsListMonth[i].bookingdate!.toISOString().split('T')[0]);
+                const starttime = new Date(bookingDate);
+                starttime.setHours(startHour, startMinute, 0, 0);
+
+                const endtime = new Date(bookingDate);
+                endtime.setHours(endHour, endMinute, 0, 0);
+
+                // Tính duration (số giờ)
+                const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
+
+                await prisma.court_booking.create({
+                    data: {
+                        date: bookingDate,
+                        starttime,
+                        endtime,
+                        duration,
+                        bookingid: bookingsListMonth[i].bookingid,
+                        courtid,
+                    },
+                });
+            }
+        }
+        // Thêm 4 order_product cho mỗi order: 2 id random 1-8, 2 id random 8-18 (giữ nguyên logic)
+        for (let i = 0; i < ordersListMonth.length; i++) {
+            if (!ordersListMonth[i] || !bookingsListMonth[i] || !ordersListMonth[i].orderdate) continue;
+            const bookingid = bookingsListMonth[i].bookingid;
+            const relatedCourtBooking = await prisma.court_booking.findFirst({
+                where: { bookingid },
+                select: { date: true },
+            });
+            const rentalDate = relatedCourtBooking && relatedCourtBooking.date ? relatedCourtBooking.date : new Date();
+            const ids1: number[] = [];
+            while (ids1.length < 2) {
+                const id = getRandomIntSeed(1, 8);
+                if (!ids1.includes(id)) ids1.push(id);
+            }
+            const ids2: number[] = [];
+            while (ids2.length < 2) {
+                const id = getRandomIntSeed(8, 18);
+                if (!ids1.includes(id) && !ids2.includes(id)) ids2.push(id);
+            }
+            for (const pid of [...ids1, ...ids2]) {
+                await prisma.order_product.create({
+                    data: {
+                        orderid: ordersListMonth[i].orderid,
+                        productid: pid,
+                        quantity: 1 + (i % 3),
+                        returndate: (pid >= 14 && pid <= 18) ? rentalDate : null,
+                    },
+                });
+            }
+        }
+        // Tạo receipts cho từng order và booking (1-1 mapping)
+        const receiptDataMonth: any[] = [];
+        for (let i = 0; i < 10; i++) {
+            if (!ordersListMonth[i] || !bookingsListMonth[i] || !ordersListMonth[i].orderdate) continue;
+            receiptDataMonth.push({
+                paymentmethod: 'momo',
+                totalamount: 100000 + i * 10000,
+                createdat: new Date(ordersListMonth[i].orderdate!.getTime() + 5 * 60 * 1000),
+                orderid: ordersListMonth[i].orderid,
+                bookingid: bookingsListMonth[i].bookingid,
+            });
+        }
+        await prisma.receipts.createMany({ data: receiptDataMonth, skipDuplicates: true });
     }
 }
 

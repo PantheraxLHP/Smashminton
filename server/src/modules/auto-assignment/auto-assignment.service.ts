@@ -435,7 +435,7 @@ export class AutoAssignmentService {
 
         const basePath = "droolsServer/src/main/resources/dtables/";
         const fileName = "drools_decisiontable.drl.xlsx";
-        const filePath = path.join(__dirname, "../../../../", basePath, fileName);
+        const filePath = path.join(__dirname, "../../../../../", basePath, fileName);
 
         const deleteResult = await this.excelManipulationService.deleteRuleTableRowsWithBackup("DroolsRules", filePath);
 
