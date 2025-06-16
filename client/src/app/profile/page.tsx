@@ -171,7 +171,7 @@ const UserProfilePage = () => {
     };
     return (
         <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
-            <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow-2xl">
+            <div className="mx-auto max-w-6xl rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
                     {userProfile?.avatarurl ? (
@@ -228,12 +228,15 @@ const UserProfilePage = () => {
                     >
                         Lịch sử Sân & Dịch vụ
                     </button>
-                    <button
-                        onClick={() => handleTabClick('student')}
-                        className={`py-2 ${activeTab === 'student' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
-                    >
-                        Học sinh/Sinh viên
-                    </button>
+                    {user?.accounttype === 'Customer' && (
+                        <button
+                            onClick={() => handleTabClick('student')}
+                            className={`py-2 ${activeTab === 'student' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
+                        >
+                            Học sinh/Sinh viên
+                        </button>
+                    )}
+
                     <button
                         onClick={() => handleTabClick('changepassword')}
                         className={`py-2 ${activeTab === 'changepassword' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
