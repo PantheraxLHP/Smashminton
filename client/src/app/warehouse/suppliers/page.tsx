@@ -39,7 +39,6 @@ export default function SupplierManagementPage() {
     const [totalPages, setTotalPages] = useState(2);
 
     const fetchSuppliers = async () => {
-        console.log('[DEBUG] Fetching suppliers with page:', page, 'pageSize:', pageSize);
         const response = await getSuppliers(page, pageSize);
         if (response.ok) {
             const { data, pagination } = response.data;

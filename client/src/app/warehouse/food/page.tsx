@@ -5,8 +5,6 @@ import Image from 'next/image';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import FoodModal from './AddFood';
-import { getProductFilters, getProducts } from '@/services/products.service';
-import { ProductTypes, Products } from '@/types/types';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
 
 export interface FoodItem{
@@ -21,13 +19,6 @@ export interface FoodItem{
     status?: string;
     discount?: number;
 }
-
-// interface Food extends Products {
-//     lot: number;
-//     expiry: string;
-//     stock: number;
-//     discount: number;
-// }
 
 const rawData: FoodItem[] = [
     { name: 'Set cá viên chiên', category: 'Đồ ăn', sellingprice: 50000, costprice: 40000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png', discount: 0 },
