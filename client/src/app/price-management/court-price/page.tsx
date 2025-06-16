@@ -48,13 +48,12 @@ export default function CourtPriceManager() {
 
     useEffect(() => {
         const result = zonePricesState.filter((item) => {
-            const matchesName =
-                !filters.zonename ||
-                (Array.isArray(filters.zonename)
-                    ? filters.zonename.includes(item.zonename)
-                    : item.zonename.toLowerCase().includes(filters.zonename.toLowerCase()));
-            return matchesName;
+            if (!filters.zonename || filters.zonename.length === 0) {
+                return true;
+            }
+            return filters.zonename.includes(item.zonename);
         });
+        
         setFilteredData(result);
     }, [filters, zonePricesState]);
 

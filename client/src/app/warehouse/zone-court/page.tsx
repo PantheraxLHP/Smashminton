@@ -109,7 +109,9 @@ export default function ZoneCourtManager() {
 
 
     useEffect(() => {
-        if (!filters.zonename || filters.zonename.length === 0) {
+        if (!filters.zonename || filters.zonename.length === 0 || zoneState.length === 0) {
+            setCourtState(allCourts);
+        } else if (filters.zonename.length === zoneState.length) {
             setCourtState(allCourts);
         } else {
             const filteredCourts = allCourts.filter((c) =>
@@ -117,7 +119,8 @@ export default function ZoneCourtManager() {
             );
             setCourtState(filteredCourts);
         }
-    }, [filters.zonename, allCourts]);
+    }, [filters.zonename, allCourts, zoneState]);
+    
     
 
     const zoneOptions: FilterOption[] = zoneState.map((zone) => ({
