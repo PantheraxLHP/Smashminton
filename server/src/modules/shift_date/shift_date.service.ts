@@ -386,7 +386,7 @@ export class ShiftDateService {
           },
         },
         shift_enrollment: {
-          where: { employeeid }, // <-- Only get enrollment of this employee
+            where: { employeeid }, // <-- Only get enrollment of this employee  
           select: {
             shiftid: true,
             shiftdate: true,
