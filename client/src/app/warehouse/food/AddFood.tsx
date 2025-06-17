@@ -24,7 +24,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
     const [categoryOpen, setCategoryOpen] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<FoodItem>({
-        name: '', sellingprice: 0, category: '', stock: 0, lot: '', expiry: '', discount: 0, image: '/default.png',
+        id: 0, name: '', sellingprice: 0, category: '', stock: 0, lot: '', expiry: '', discount: 0, image: '/default.png',
     });
 
     useEffect(() => {
@@ -33,6 +33,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             setFoodPreview(editData.image);
         } else {
             setFormData({
+                id: 0,
                 name: '',
                 sellingprice: 0,
                 category: '',
@@ -41,6 +42,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 expiry: '',
                 discount: 0,
                 image: '/default.png',
+                status: '',
             });
         }
     }, [editData, open]);
@@ -212,6 +214,18 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                     </PopoverContent>
                                 </Popover>
                             </div>
+                            {formData.status == 'Sắp hết hạn' && (
+                                <div>
+                                    <label className="block text-sm mb-1">Giảm giá</label>
+                                    <input
+                                        name="discount"
+                                        type="number"
+                                        value={formData.discount}
+                                        onChange={handleChange}
+                                        className="w-full border rounded px-3 py-2"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
