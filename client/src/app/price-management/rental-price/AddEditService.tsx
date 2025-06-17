@@ -2,6 +2,8 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import { Service } from "./page";
+import { getRentalFilters } from "@/services/products.service";
+
 
 interface ServiceModalProps {
     open: boolean;
@@ -23,20 +25,25 @@ function formatPrice(price: string): string {
 
 export default function ServiceModal({ open, onClose, onSubmit, editData }: ServiceModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
-
+    const [filterData, setFilterData] = useState<any[]>([]);
+    const [availableValues, setAvailableValues] = useState<string[]>([]);    
     const [formData, setFormData] = useState<Service>({
         productname: "",
         price: "",
         servicetype: "",
         image: "",
+        quantity: 0,
     });
+
+    const [shoeSize, setShoeSize] = useState<string>("");
+    const [racketWeight, setRacketWeight] = useState<string>("");
 
     useEffect(() => {
         if (editData) {
             setFormData({
                 ...editData,
-                price: editData.price.replace(/[^\d]/g, ""), // loại bỏ dấu và VND
-                image: editData.image || "", // tránh lỗi src=""
+                price: editData.price.replace(/[^\d]/g, ""),
+                image: editData.image || "",
             });
         } else {
             setFormData({
@@ -44,9 +51,51 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                 price: "",
                 servicetype: "",
                 image: "",
+                quantity: 0,
             });
+            setShoeSize("");
+            setRacketWeight("");
         }
     }, [editData, open]);
+
+    useEffect(() => {
+        async function fetchFilters() {
+            try {
+                const response = await getRentalFilters();
+                if (response.ok && Array.isArray(response.data)) {
+                    setFilterData(response.data);
+                } else {
+                    console.error("Dữ liệu filters không hợp lệ:", response);
+                    setFilterData([]);
+                }
+
+            } catch (error) {
+                console.error("Lỗi khi lấy filter:", error);
+            }
+        }
+        fetchFilters();
+    }, []);
+
+    useEffect(() => {
+        const selectedTypeId = formData.servicetype === "Thuê vợt" ? 3 : formData.servicetype === "Thuê giày" ? 4 : null;
+
+        if (selectedTypeId) {
+            const typeData = filterData.find(f => f.producttypeid === selectedTypeId);
+            if (typeData && typeData.product_filter.length > 0) {
+                const values = typeData.product_filter[0].product_filter_values.map(
+                    (v: { value: string }) => v.value
+                );
+                
+                setAvailableValues(values);
+            } else {
+                setAvailableValues([]);
+            }
+        } else {
+            setAvailableValues([]);
+        }
+    }, [formData.servicetype, filterData]);
+    
+
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -71,11 +120,19 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
     function handleSubmit() {
         if (onSubmit) {
-            onSubmit({
+            const extendedData: any = {
                 ...formData,
                 price: formatPrice(formData.price),
                 image: formData.image || "",
-            });
+            };
+
+            if (formData.servicetype === "Thuê giày") {
+                extendedData.size = shoeSize;
+            } else if (formData.servicetype === "Thuê vợt") {
+                extendedData.weight = racketWeight;
+            }
+
+            onSubmit(extendedData);
         }
         onClose();
     }
@@ -92,14 +149,14 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                     className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg"
                 >
                     <h2 className="text-lg font-semibold mb-4">
-                        {editData ? "Sửa dịch vụ" : "Thêm dịch vụ"}
+                        {editData ? "Sửa dịch vụ" : "Thêm giày, vợt mới"}
                     </h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label className="block text-sm mb-1">Tên dịch vụ</label>
                             <input
-                                name="name"
+                                name="productname"
                                 type="text"
                                 value={formData.productname}
                                 onChange={handleChange}
@@ -107,7 +164,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                             />
                         </div>
                         <div>
-                            <label className="block text-sm mb-1">Giá thuê theo giờ</label>
+                            <label className="block text-sm mb-1">Giá thuê</label>
                             <input
                                 name="price"
                                 type="text"
@@ -119,7 +176,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                         <div>
                             <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
                             <select
-                                name="type"
+                                name="servicetype"
                                 value={formData.servicetype}
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
@@ -127,9 +184,53 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 <option value="">Chọn dịch vụ</option>
                                 <option value="Thuê giày">Thuê giày</option>
                                 <option value="Thuê vợt">Thuê vợt</option>
-                                {/* <option value="Atlas">Atlas</option> */}
                             </select>
                         </div>
+
+                        {formData.servicetype === "Thuê giày" && (
+                            <div>
+                                <label className="block text-sm mb-1">Kích cỡ giày</label>
+                                <select
+                                    value={shoeSize}
+                                    onChange={e => setShoeSize(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                >
+                                    <option value="">Chọn kích cỡ</option>
+                                    {availableValues.map((value, index) => (
+                                        <option key={index} value={value}>{value}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {formData.servicetype === "Thuê vợt" && (
+                            <div>
+                                <label className="block text-sm mb-1">Trọng lượng vợt</label>
+                                <select
+                                    value={racketWeight}
+                                    onChange={e => setRacketWeight(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                >
+                                    <option value="">Chọn trọng lượng</option>
+                                    {availableValues.map((value, index) => (
+                                        <option key={index} value={value}>{value}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {editData && (
+                            <div>
+                                <label className="block text-sm mb-1">Số lượng</label>
+                                <input
+                                    name="quantity"
+                                    type="number"
+                                    value={formData.quantity}
+                                    onChange={handleChange}
+                                    className="w-full border rounded px-3 py-2"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-2">

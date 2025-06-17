@@ -10,7 +10,6 @@ import PurchaseOrderForm from '@/components/warehouse/OrderForm';
 export interface FoodItem{
     name: string;
     sellingprice: number;
-    costprice: number;
     category: string;
     lot: string;
     expiry: string;
@@ -21,12 +20,12 @@ export interface FoodItem{
 }
 
 const rawData: FoodItem[] = [
-    { name: 'Set cá viên chiên', category: 'Đồ ăn', sellingprice: 50000, costprice: 40000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png', discount: 0 },
-    { name: 'Set cá viên chiên cay', category: 'Đồ ăn', sellingprice: 70000, costprice: 60000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png', discount: 0 },
-    { name: 'Snack O’Star', category: 'Đồ ăn', sellingprice: 25000, costprice: 20000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png', discount: 0 },
-    { name: 'Revive', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png', discount: 0 },
-    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png', discount: 0 },
-    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, costprice: 10000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png', discount: 0.1 },
+    { name: 'Set cá viên chiên', category: 'Đồ ăn', sellingprice: 50000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png', discount: 0 },
+    { name: 'Set cá viên chiên cay', category: 'Đồ ăn', sellingprice: 70000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png', discount: 0 },
+    { name: 'Snack O’Star', category: 'Đồ ăn', sellingprice: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png', discount: 0 },
+    { name: 'Revive', category: 'Đồ uống', sellingprice: 15000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png', discount: 0 },
+    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png', discount: 0 },
+    { name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png', discount: 0.1 },
 ];
 
 const processDataWithStatus = (data: FoodItem[]) => {
@@ -115,7 +114,6 @@ export default function FoodAndBeveragePage() {
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
         { header: 'Giá bán / sản phẩm', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND` },
-        { header: 'Giá nhập / sản phẩm', accessor: (item) => `${item.costprice.toLocaleString('vi-VN')} VND` },
         { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
         { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
@@ -139,7 +137,6 @@ export default function FoodAndBeveragePage() {
             name: item.name,
             category: item.category,
             sellingprice: item.sellingprice,
-            costprice: item.costprice,
             lot: item.lot,
             expiry: item.expiry,
             stock: item.stock,
@@ -169,7 +166,6 @@ export default function FoodAndBeveragePage() {
             lot: formData.lot,
             expiry: formData.expiry,
             sellingprice: Number(formData.sellingprice),
-            costprice: Number(formData.costprice),
             stock: Number(formData.stock),
             image: '/default.png',
         };
