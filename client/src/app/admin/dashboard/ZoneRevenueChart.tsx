@@ -1,5 +1,7 @@
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { useState } from "react"
+'use client';
+
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { useState } from 'react';
 import {
     ChartConfig,
     ChartContainer,
@@ -7,8 +9,8 @@ import {
     ChartLegendContent,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/chart';
+import { Button } from '@/components/ui/button';
 
 export interface ZoneRevenueChartProps {
     className?: string;
@@ -22,50 +24,52 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
     className,
     chartData,
     chartConfig,
-    chartWidth = "100%",
-    chartHeight = "400px",
+    chartWidth = '100%',
+    chartHeight = '400px',
 }) => {
     const [visibleZones, setVisibleZones] = useState<Record<string, boolean>>(
-        Object.keys(chartConfig).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+        Object.keys(chartConfig).reduce((acc, key) => ({ ...acc, [key]: true }), {}),
     );
 
     const handleActiveZoneClick = (data: any) => {
         const dataKey = data.dataKey;
-        setVisibleZones(prev => ({
+        setVisibleZones((prev) => ({
             ...prev,
-            [dataKey]: !prev[dataKey]
+            [dataKey]: !prev[dataKey],
         }));
     };
 
     return (
         <div
-            className={`flex flex-col border-2 rounded-lg p-3 bg-white ${className || ''}`}
+            className={`flex flex-col rounded-xl border bg-white p-6 shadow-lg ${className || ''}`}
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
-            <div className="flex flex-col w-full h-full gap-2">
-                <div className="flex gap-2 flex-wrap">
-                    {Object.entries(chartConfig).map(([key, config]) => (
-                        <Button
-                            key={key}
-                            variant={visibleZones[key] ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleActiveZoneClick({ dataKey: key })}
-                            className="text-xs"
-                            style={{
-                                backgroundColor: visibleZones[key] ? config.color : 'transparent',
-                                borderColor: config.color,
-                                color: visibleZones[key] ? 'white' : config.color,
-                            }}
-                        >
-                            {config.label}
-                        </Button>
-                    ))}
+            <div className="flex h-full w-full flex-col gap-4">
+                {/* Header Section */}
+                <div className="flex flex-col gap-3">
+                    <h2 className="text-center text-xl font-bold text-gray-800">Doanh thu các khu vực sân (Zone)</h2>
+                    <div className="flex flex-wrap gap-2">
+                        {Object.entries(chartConfig).map(([key, config]) => (
+                            <Button
+                                key={key}
+                                variant={visibleZones[key] ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleActiveZoneClick({ dataKey: key })}
+                                className="text-xs font-medium transition-all duration-200 hover:scale-105"
+                                style={{
+                                    backgroundColor: visibleZones[key] ? config.color : 'transparent',
+                                    borderColor: config.color,
+                                    color: visibleZones[key] ? 'white' : config.color,
+                                    boxShadow: visibleZones[key] ? `0 2px 4px ${config.color}30` : 'none',
+                                }}
+                            >
+                                {config.label}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
-                <span className="text-lg text-center w-full">
-                    Doanh thu của các khu vực sân (Zone) qua từng tháng
-                </span>
                 <div className="flex-1 overflow-hidden">
-                    <ChartContainer config={chartConfig} className="min-w-full h-full">
+                    <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <AreaChart
                             accessibilityLayer
                             data={chartData}
@@ -75,11 +79,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                 bottom: 10,
                             }}
                         >
-                            <CartesianGrid
-                                strokeDasharray={"3 3"}
-                                stroke="var(--color-gray-300)"
-                                vertical={false}
-                            />
+                            <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" vertical={false} />
                             <XAxis
                                 type="category"
                                 dataKey="month"
@@ -90,26 +90,16 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             <YAxis
                                 type="number"
                                 tickMargin={10}
+                                width={80}
                                 label={{
-                                    value: "Doanh thu (triệu đồng)",
+                                    value: 'Doanh thu (triệu đồng)',
                                     angle: -90,
                                     position: 'insideLeft',
                                     style: { textAnchor: 'middle' },
-                                    offset: 10
                                 }}
                             />
-                            <ChartTooltip
-                                content={<ChartTooltipContent
-                                    indicator="line"
-                                    hideLabel
-                                />}
-                                
-                            />                            
-                            <ChartLegend
-                                content={<ChartLegendContent
-                                    className="mt-6"
-                                />}
-                            />
+                            <ChartTooltip content={<ChartTooltipContent indicator="line" hideLabel />} />
+                            <ChartLegend content={<ChartLegendContent className="mt-6" />} />
                             <defs>
                                 {Object.entries(chartConfig).map(([key, value]) => (
                                     <linearGradient
@@ -120,37 +110,31 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                         x2="0"
                                         y2="1"
                                     >
-                                        <stop
-                                            offset="5%"
-                                            stopColor={`${value.color}`}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor={`${value.color}`}
-                                            stopOpacity={0.1}
-                                        />
+                                        <stop offset="5%" stopColor={`${value.color}`} />
+                                        <stop offset="95%" stopColor={`${value.color}`} stopOpacity={0.1} />
                                     </linearGradient>
                                 ))}
-                            </defs>                            
+                            </defs>
                             {Object.entries(chartConfig)
                                 .filter(([key]) => visibleZones[key])
                                 .map(([key, value]) => (
-                                <Area
-                                    key={key}
-                                    dataKey={key}
+                                    <Area
+                                        key={key}
+                                        dataKey={key}
                                         type="monotone"
-                                    fill={`url(#fill${key.charAt(0).toUpperCase() + key.slice(1)})`}
-                                        fillOpacity={0.5}
-                                    stroke={`${value.color}`}
-                                    stackId="a"
-                                />
-                            ))}
+                                        fill={`${value.color}`}
+                                        fillOpacity={0.8}
+                                        stroke={`${value.color}`}
+                                        strokeWidth={2}
+                                        stackId="1"
+                                    />
+                                ))}
                         </AreaChart>
                     </ChartContainer>
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export default ZoneRevenueChart;
