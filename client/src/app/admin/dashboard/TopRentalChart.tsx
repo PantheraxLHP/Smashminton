@@ -9,6 +9,7 @@ export interface TopRentalChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const TopRentalChart: React.FC<TopRentalChartProps> = ({
@@ -17,6 +18,7 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
@@ -24,7 +26,7 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">Top 10 sản phẩm được thuê</span>
+                <span className="w-full text-center text-lg">Top 10 sản phẩm được thuê trong năm {year}</span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <BarChart

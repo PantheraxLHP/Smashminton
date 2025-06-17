@@ -9,6 +9,7 @@ export interface TopProductChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const TopProductChart: React.FC<TopProductChartProps> = ({
@@ -17,6 +18,7 @@ const TopProductChart: React.FC<TopProductChartProps> = ({
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
@@ -24,7 +26,7 @@ const TopProductChart: React.FC<TopProductChartProps> = ({
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">Top 10 sản phẩm bán chạy</span>
+                <span className="w-full text-center text-lg">Top 10 sản phẩm bán chạy trong năm {year}</span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <BarChart

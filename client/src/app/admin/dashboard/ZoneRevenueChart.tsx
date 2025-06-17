@@ -18,6 +18,7 @@ export interface ZoneRevenueChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
@@ -26,6 +27,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     const [visibleZones, setVisibleZones] = useState<Record<string, boolean>>(
         Object.keys(chartConfig).reduce((acc, key) => ({ ...acc, [key]: true }), {}),
@@ -47,7 +49,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
             <div className="flex h-full w-full flex-col gap-4">
                 {/* Header Section */}
                 <div className="flex flex-col gap-3">
-                    <h2 className="text-center text-xl font-bold text-gray-800">Doanh thu các khu vực sân (Zone)</h2>
+                    <h2 className="w-full text-center text-lg">Doanh thu các khu vực sân (Zone) trong năm {year}</h2>
                     <div className="flex flex-wrap gap-2">
                         {Object.entries(chartConfig).map(([key, config]) => (
                             <Button

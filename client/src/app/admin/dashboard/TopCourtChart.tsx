@@ -9,6 +9,7 @@ export interface TopCourtChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const TopCourtChart: React.FC<TopCourtChartProps> = ({
@@ -17,6 +18,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
@@ -24,7 +26,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">Top 10 sân được yêu thích (đặt nhiều)</span>
+                <span className="w-full text-center text-lg">Top 10 sân được yêu thích trong năm {year}</span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <BarChart

@@ -16,6 +16,7 @@ export interface NumberOfProductAndRentalChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps> = ({
@@ -24,6 +25,7 @@ const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
@@ -32,7 +34,7 @@ const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps
         >
             <div className="flex h-full w-full flex-col gap-2">
                 <span className="w-full text-center text-lg">
-                    Tổng số sản phẩm được bán và tổng số lượt cho thuê từng tháng
+                    Tổng số sản phẩm được bán và tổng số lượt cho thuê từng tháng trong năm {year}
                 </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">

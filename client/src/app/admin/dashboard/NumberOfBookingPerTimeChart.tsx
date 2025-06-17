@@ -16,6 +16,7 @@ export interface NumberOfBookingPerTimeChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = ({
@@ -24,6 +25,7 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
     chartConfig,
     chartWidth = '100%',
     chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
@@ -31,7 +33,9 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">Số lượt đặt sân theo từng khung giờ qua các tháng</span>
+                <span className="w-full text-center text-lg">
+                    Số lượt đặt sân theo từng khung giờ qua các tháng trong năm {year}
+                </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <LineChart

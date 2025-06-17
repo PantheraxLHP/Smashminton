@@ -193,6 +193,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
                 <ZoneRevenueChart
                     chartData={dashboardData.zoneRevenue || []}
@@ -200,6 +201,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
             </div>
 
@@ -210,6 +212,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
                 <NumberOfProductAndRentalChart
                     chartData={dashboardData.productSalesRentals || []}
@@ -217,6 +220,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
             </div>
 
@@ -227,6 +231,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
                 <TopRentalChart
                     chartData={topRentalsData}
@@ -234,6 +239,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                     chartWidth="100%"
                     chartHeight="100%"
                     className=""
+                    year={year}
                 />
             </div>
         </div>
