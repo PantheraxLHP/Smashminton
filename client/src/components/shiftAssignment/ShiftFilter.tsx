@@ -225,7 +225,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                         Quay về
                                     </Button>
                                 </DialogTrigger>
-                                <Button>Thực hiện phân công</Button>
+                                <Button onClick={handleAutoAssign}>Thực hiện phân công</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
