@@ -30,32 +30,39 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                         <BarChart
                             accessibilityLayer
                             data={chartData}
-                            layout="horizontal"
+                            layout="vertical"
                             margin={{
                                 right: 20,
-                                bottom: 100,
+                                bottom: 20,
+                                left: 40,
                             }}
                         >
-                            <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" vertical={false} />
+                            <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" horizontal={false} />
                             <XAxis
-                                type="category"
-                                dataKey="rentalName"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={10}
-                                angle={-45}
-                                textAnchor="end"
-                                height={80}
-                            />
-                            <YAxis
                                 type="number"
                                 dataKey="rentalCount"
                                 tickMargin={10}
                                 tickLine={false}
                                 axisLine={false}
                             />
-                            <ChartTooltip content={<ChartTooltipContent hideIndicator />} />
-                            <Bar dataKey="rentalCount" radius={5} />
+                            <YAxis
+                                type="category"
+                                dataKey="rentalName"
+                                tickMargin={20}
+                                tickLine={false}
+                                axisLine={false}
+                                width={100}
+                            />
+                            <ChartTooltip
+                                content={
+                                    <ChartTooltipContent
+                                        hideIndicator
+                                        labelStyle={{ color: 'black', fontWeight: 'bold' }}
+                                        itemStyle={{ color: '#2563eb' }}
+                                    />
+                                }
+                            />
+                            <Bar dataKey="rentalCount" radius={5} fill="#3b82f6" />
                         </BarChart>
                     </ChartContainer>
                 </div>
