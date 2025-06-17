@@ -177,7 +177,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                                     <span>khách hàng mới</span>
                                 </>
                             ) : (
-                                <span className="text-4xl">{`${dashboardData.newCustomerRate || 0}%`}</span>
+                                <span className="text-4xl">{`${dashboardData.newCustomerRate.toFixed(2) || 0}%`}</span>
                             )}
                         </div>
                     </div>

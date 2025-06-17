@@ -55,9 +55,9 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                 variant={visibleZones[key] ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => handleActiveZoneClick({ dataKey: key })}
-                                className="text-xs font-medium transition-all duration-200 hover:scale-105"
+                                className={`border-2 text-xs font-medium transition-all duration-200 hover:scale-105 ${visibleZones[key] ? '' : 'bg-white'}`}
                                 style={{
-                                    backgroundColor: visibleZones[key] ? config.color : 'transparent',
+                                    backgroundColor: visibleZones[key] ? config.color : 'white',
                                     borderColor: config.color,
                                     color: visibleZones[key] ? 'white' : config.color,
                                     boxShadow: visibleZones[key] ? `0 2px 4px ${config.color}30` : 'none',
@@ -100,21 +100,6 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             />
                             <ChartTooltip content={<ChartTooltipContent indicator="line" hideLabel />} />
                             <ChartLegend content={<ChartLegendContent className="mt-6" />} />
-                            <defs>
-                                {Object.entries(chartConfig).map(([key, value]) => (
-                                    <linearGradient
-                                        key={key}
-                                        id={`fill${key.charAt(0).toUpperCase() + key.slice(1)}`}
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop offset="5%" stopColor={`${value.color}`} />
-                                        <stop offset="95%" stopColor={`${value.color}`} stopOpacity={0.1} />
-                                    </linearGradient>
-                                ))}
-                            </defs>
                             {Object.entries(chartConfig)
                                 .filter(([key]) => visibleZones[key])
                                 .map(([key, value]) => (
@@ -122,10 +107,9 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                         key={key}
                                         dataKey={key}
                                         type="monotone"
-                                        fill={`${value.color}`}
-                                        fillOpacity={0.8}
-                                        stroke={`${value.color}`}
-                                        strokeWidth={2}
+                                        fill={value.color}
+                                        fillOpacity={0.7}
+                                        stroke={value.color}
                                         stackId="1"
                                     />
                                 ))}
