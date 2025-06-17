@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 
 export interface BaseItem {
     name: string;
-    costprice: number;
-  }
+}
 
 interface OrderFormData {
     productName: string;
@@ -39,7 +38,6 @@ export default function PurchaseOrderForm<T extends BaseItem>({
             setFormData((prev) => ({
                 ...prev,
                 productName: item.name || '',
-                productPrice: item.costprice.toString() || '',
             }));
         } else {
             setFormData((prev) => ({

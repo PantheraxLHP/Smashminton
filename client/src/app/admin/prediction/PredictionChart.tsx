@@ -15,10 +15,20 @@ interface PredictionChartProps {
     title?: string;
 }
 
+const COLOR_MAP = new Map<string, string>();
 const COLORS = [
     "#34D399", "#60A5FA", "#FBBF24", "#F87171",
     "#A78BFA", "#F472B6", "#10B981", "#FDBA74",
 ];
+
+let colorIndex = 0;
+function getColorForId(id: string): string {
+    if (!COLOR_MAP.has(id)) {
+        COLOR_MAP.set(id, COLORS[colorIndex % COLORS.length]);
+        colorIndex++;
+    }
+    return COLOR_MAP.get(id)!;
+}
 
 const PredictionChart: React.FC<PredictionChartProps> = ({
     data,
@@ -67,8 +77,8 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
                         outerRadius={100}
                         label={renderCustomizedLabel}
                     >
-                        {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {chartData.map((entry) => (
+                            <Cell key={`cell-${entry.id}`} fill={getColorForId(entry.id)} />
                         ))}
                     </Pie>
                     <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
