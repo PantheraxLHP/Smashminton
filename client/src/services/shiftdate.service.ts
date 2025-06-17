@@ -214,3 +214,23 @@ export const deleteShiftEnrollment = async (employeeid: number, shiftid: number,
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể hủy đăng ký ca làm việc');
     }
 };
+
+export const autoAssignShift = async (fullTimeOption: string, partTimeOption: string) => {
+    try {
+        const response = await fetch('/api/shiftdate/post-auto-assignment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ fullTimeOption, partTimeOption }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện phân công tự động');
+        }
+
+        return ServiceResponse.success(result);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện phân công tự động');
+    }
+};

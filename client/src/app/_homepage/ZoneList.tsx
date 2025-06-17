@@ -45,7 +45,7 @@ export default function ZoneList() {
                 >
                     <div className="relative h-56 overflow-hidden">
                         <Image
-                            src={zone.zoneimgurl || '/placeholder-court.jpg'}
+                            src={zone.zoneimgurl || '/default.png'}
                             alt={zone.zonename || 'Sân cầu lông'}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

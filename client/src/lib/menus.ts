@@ -23,14 +23,14 @@ export const menus = {
     ],
     hr_manager: [
         {
+            label: 'Phân công công việc',
+            link: '/assignments',
+        },
+        {
             label: 'Quản lý nhân viên',
             link: '/employees',
         },
         { label: 'Danh sách ghi chú', link: '/approvals' },
-        {
-            label: 'Phân công công việc',
-            link: '/assignments',
-        },
     ],
     wh_manager: [
         {
