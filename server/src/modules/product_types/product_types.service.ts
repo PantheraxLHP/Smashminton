@@ -198,4 +198,113 @@ export class ProductTypesService {
       },
     }
   }
+
+  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    const productTypes = await this.prisma.product_types.findUnique({
+      where: {
+        producttypeid: productTypeId,
+      },
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: {
+              where: filterValueIds
+                ? { productfiltervalueid: { in: filterValueIds } }
+                : undefined,
+              include: {
+                product_attributes: {
+                  include: {
+                    products: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const productMap = new Map<number, any>();
+
+    productTypes?.product_filter.forEach(filter => {
+      filter.product_filter_values.forEach(value => {
+        value.product_attributes.forEach(attr => {
+          const product = attr.products;
+          if (product && !productMap.has(product.productid)) {
+            productMap.set(product.productid, product);
+          }
+        });
+      });
+    });
+
+    // Lấy danh sách productid duy nhất
+    const uniqueProducts = Array.from(productMap.values());
+
+    // Lấy stock quantity cho từng productid
+    const enrichedProducts = await Promise.all(uniqueProducts.map(async (product) => {
+      const purchaseOrders = await this.prisma.purchase_order.findMany({
+        where: {
+          productid: product.productid,
+          product_batch: {
+            OR: [
+              // Nếu có expiry date thì phải >= now
+              {
+                expirydate: {
+                  gte: now,
+                },
+              },
+              // Nếu expiry date là null thì vẫn lấy
+              {
+                expirydate: null,
+              },
+            ],
+          },
+        },
+        include: {
+          product_batch: true,
+        },
+      });
+      const quantity = purchaseOrders.reduce((sum, po) => {
+        return sum + (po.product_batch?.stockquantity || 0);
+      }, 0);
+
+      // 👉 Lấy 1 filter value duy nhất
+      const attribute = await this.prisma.product_attributes.findFirst({
+        where: {
+          productid: product.productid,
+        },
+        include: {
+          product_filter_values: true,
+        },
+      });
+
+      return {
+        productid: product.productid,
+        productname: product.productname,
+        sellingprice: product.sellingprice,
+        rentalprice: product.rentalprice,
+        productimgurl: product.productimgurl,
+        quantity,
+        productfiltervalueid: attribute?.product_filter_values?.productfiltervalueid || null,
+        value: attribute?.product_filter_values?.value || null,
+      };
+    }));
+
+    const total = enrichedProducts.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // ⛳ CHỖ NÀY paginate nè:
+    const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
+
+    return {
+      data: paginatedProducts,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
+  }
 }
