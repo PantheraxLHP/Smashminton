@@ -9,6 +9,7 @@ import { getProducts } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { updateProductPrice } from '@/services/products.service';
 import { toast } from 'sonner';
+import { add } from 'date-fns';
 
 export interface Service {
     productid?: number;
@@ -16,20 +17,20 @@ export interface Service {
     servicetype: string;
     price: string;
     image: string;
+    quantity: number;
 }
 
 export default function RentalPriceManager() {
     const [servicesState, setServicesState] = useState<Service[]>([]);
     const [filteredData, setFilteredData] = useState<Service[]>([]);
     const [editData, setEditData] = useState<Service | null>(null);
-    const [showModal, setShowModal] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [page, setPage] = useState(1);
     const [pageSize] = useState(12);
     const [totalPages, setTotalPages] = useState(2);
     const [editingItem, setEditingItem] = useState<Service | null>(null);
     const [editedPrice, setEditedPrice] = useState<string>('');
-
+    const [isAddShoeRacketModalOpen, setIsAddShoeRacketModalOpen] = useState(false);
 
     const [filters, setFilters] = useState<Record<string, any>>({
         productname: '',
@@ -58,6 +59,7 @@ export default function RentalPriceManager() {
                     servicetype: type,
                     price: item.rentalprice ? `${parseInt(item.rentalprice).toLocaleString()} VND` : '0 VND',
                     image: item.productimgurl || '/default.png',
+                    quantity: item.quantity || 0,
                 }));
             };
 
@@ -159,67 +161,28 @@ export default function RentalPriceManager() {
                     <img src={item.image} alt="" className="w-8 h-8 rounded object-cover" />
                     {item.productname}
                 </div>
-            ),
+            ), align: 'left',
         },
-        { header: 'Dịch vụ áp dụng', accessor: 'servicetype' },
+        { header: 'Dịch vụ áp dụng', accessor: 'servicetype', align: 'center' },
+        { header: 'Giá thuê', accessor: 'price', align: 'center' },  
+        { header: 'Số lượng', accessor: 'quantity', align: 'center' },
         {
-            header: 'Giá thuê',
+            header: '',
             accessor: (item: Service) => (
-                <div className="flex flex-wrap items-center gap-2">
-                    {editingItem === item ? (
-                        <>
-                            <input
-                                type="text"
-                                value={editedPrice}
-                                onChange={(e) => setEditedPrice(e.target.value)}
-                                className="border border-gray-300 px-2 py-1 w-[70px] sm:w-[70px] md:w-[70px]"
-                                autoFocus
-                            />
-                            <button
-                                onClick={async () => {
-                                    const parsedPrice = Number(editedPrice);
-                                    if (isNaN(parsedPrice) || parsedPrice < 0) {
-                                        alert('Vui lòng nhập giá hợp lệ!');
-                                        return;
-                                    }
-
-                                    if (item.productid === undefined) {
-                                        alert('Thiếu productid, không thể cập nhật.');
-                                        return;
-                                    }
-                                    const response = await updateProductPrice(item.productid, { price: parsedPrice });
-
-                                    if (response.ok) {
-                                        await fetchData();
-                                        setEditingItem(null);
-                                        toast.success('Cập nhật giá thành công!');
-                                    } else {
-                                        toast.error(`Cập nhật giá thất bại: ${response.message}`);
-                                    }
-                                }}
-                                className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
-                            >
-                                Xong
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{item.price}</span>
-                            <button
-                                onClick={() => {
-                                    setEditingItem(item);
-                                    const numericValue = item.price.replace(/[^\d]/g, '');
-                                    setEditedPrice(numericValue);
-                                }}
-                                className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
-                            >
-                                <FaRegEdit size={14} />
-                            </button>
-                        </>
-                    )}
+                <div className="flex justify-center items-center">
+                    <button
+                        onClick={() => {
+                            setSelectedIndex(filteredData.indexOf(item));
+                            setEditData(item);
+                            setIsAddShoeRacketModalOpen(true);
+                        }}
+                        className="text-primary-500 hover:text-primary-600"
+                    >
+                        <FaRegEdit size={16} />
+                    </button>
                 </div>
             ),
-        },     
+        }        
     ];
 
     return (
@@ -234,6 +197,16 @@ export default function RentalPriceManager() {
             </div>
 
             <div className="flex-1">
+                <div className="flex flex-row gap-4 justify-end mb-2">
+                    <div className="mb-2 hidden justify-end lg:flex">
+                        <button
+                            onClick={() => setIsAddShoeRacketModalOpen(true)}
+                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
+                        >
+                            Thêm giày, vợt
+                        </button>
+                    </div>
+                </div>
                 <DataTable
                     columns={columns}
                     data={filteredData}
@@ -244,7 +217,7 @@ export default function RentalPriceManager() {
                     onEdit={(index) => {
                         setSelectedIndex(index);
                         setEditData(filteredData[index]);
-                        setShowModal(true);
+                        setIsAddShoeRacketModalOpen(true);
                     }}
                     onDelete={(index) => {
                         const itemToDelete = filteredData[index];
@@ -267,11 +240,11 @@ export default function RentalPriceManager() {
 
 
                 <ServiceModal
-                    open={showModal}
+                    open={isAddShoeRacketModalOpen}
                     onClose={() => {
-                        setShowModal(false);
                         setEditData(null);
                         setSelectedIndex(null);
+                        setIsAddShoeRacketModalOpen(false);
                     }}
                     editData={editData}
                     onSubmit={(updatedService) => {
@@ -283,7 +256,7 @@ export default function RentalPriceManager() {
                             setServicesState((prev) => [...prev, updatedService]);
                         }
 
-                        setShowModal(false);
+                        setIsAddShoeRacketModalOpen(false);
                         setEditData(null);
                         setSelectedIndex(null);
                     }}

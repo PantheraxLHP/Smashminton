@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icon } from '@iconify/react';
 import AssignmentRuleList from './AssignmentRuleList';
 import WeekPicker, { WeekPickerProps } from './WeekPicker';
+import { autoAssignShift } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
 interface ShiftFilterProps extends WeekPickerProps {
     selectedRadio: string;
@@ -42,6 +44,16 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
     partTimeOption,
     setPartTimeOption,
 }) => {
+    const handleAutoAssign = async () => {
+        console.log(fullTimeOption, partTimeOption);
+        const response = await autoAssignShift(fullTimeOption || '', partTimeOption || '');
+        if (response.ok) {
+            toast.success('Phân công tự động thành công');
+        } else {
+            toast.error(response.message || 'Phân công tự động thất bại');
+        }
+    };
+
     return (
         <div className="flex w-fit flex-col gap-4 rounded-lg border p-4">
             <WeekPicker
@@ -181,7 +193,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                 <DialogTrigger asChild>
                                     <Button variant="secondary">Thoát</Button>
                                 </DialogTrigger>
-                                <Button>Thực hiện phân công</Button>
+                                <Button onClick={handleAutoAssign}>Thực hiện phân công</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -213,7 +225,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                         Quay về
                                     </Button>
                                 </DialogTrigger>
-                                <Button>Thực hiện phân công</Button>
+                                <Button onClick={handleAutoAssign}>Thực hiện phân công</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

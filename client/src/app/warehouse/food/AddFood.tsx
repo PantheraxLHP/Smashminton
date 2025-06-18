@@ -1,12 +1,6 @@
 'use client';
 
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-} from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronDown } from "lucide-react";
@@ -30,15 +24,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
     const [categoryOpen, setCategoryOpen] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<FoodItem>({
-        name: '',
-        sellingprice: 0,
-        costprice: 0,
-        category: '',
-        stock: 0,
-        lot: '',
-        expiry: '',
-        discount: 0,
-        image: '/default.png',
+        id: 0, name: '', sellingprice: 0, category: '', stock: 0, lot: '', expiry: '', discount: 0, image: '/default.png',
     });
 
     useEffect(() => {
@@ -47,15 +33,16 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             setFoodPreview(editData.image);
         } else {
             setFormData({
+                id: 0,
                 name: '',
                 sellingprice: 0,
-                costprice: 0,
                 category: '',
                 stock: 0,
                 lot: '',
                 expiry: '',
                 discount: 0,
                 image: '/default.png',
+                status: '',
             });
         }
     }, [editData, open]);
@@ -168,16 +155,6 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm mb-1">Giá nhập</label>
-                                <input
-                                    name="costprice"
-                                    type="number"
-                                    value={formData.costprice}
-                                    onChange={handleChange}
-                                    className="w-full border rounded px-3 py-2"
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-sm mb-1">Loại</label>
                                 <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
                                     <PopoverTrigger asChild>
@@ -237,6 +214,18 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                     </PopoverContent>
                                 </Popover>
                             </div>
+                            {formData.status == 'Sắp hết hạn' && (
+                                <div>
+                                    <label className="block text-sm mb-1">Giảm giá</label>
+                                    <input
+                                        name="discount"
+                                        type="number"
+                                        value={formData.discount}
+                                        onChange={handleChange}
+                                        className="w-full border rounded px-3 py-2"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 

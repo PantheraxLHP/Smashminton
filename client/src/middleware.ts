@@ -21,7 +21,7 @@ const ROLE_PERMISSIONS = {
 } as const;
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/auth/signin', '/auth/signup', '/contact', '/terms', '/privacy-policy', '/faq'] as const;
+const PUBLIC_ROUTES = ['/', '/signin', '/signup', '/contact', '/terms', '/privacy-policy', '/faq'] as const;
 
 // Common authenticated routes accessible to all logged-in users
 const COMMON_AUTH_ROUTES = ['/profile'] as const;
@@ -125,16 +125,14 @@ export function middleware(request: NextRequest) {
 
     // Redirect to signin if no token
     if (!token) {
-        const url = new URL('/auth/signin', request.url);
-        url.searchParams.set('callbackUrl', pathname);
+        const url = new URL('/signin', request.url);
         return NextResponse.redirect(url);
     }
 
     // Decode token
     const payload = decodeJWT(token);
     if (!payload) {
-        const url = new URL('/auth/signin', request.url);
-        url.searchParams.set('callbackUrl', pathname);
+        const url = new URL('/signin', request.url);
         return NextResponse.redirect(url);
     }
 
@@ -159,7 +157,8 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - public files with extensions
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };

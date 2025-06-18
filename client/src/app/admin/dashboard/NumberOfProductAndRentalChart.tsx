@@ -1,4 +1,6 @@
-import { Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts"
+'use client';
+
+import { Line, LineChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import {
     ChartConfig,
     ChartContainer,
@@ -6,7 +8,7 @@ import {
     ChartLegendContent,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart"
+} from '@/components/ui/chart';
 
 export interface NumberOfProductAndRentalChartProps {
     className?: string;
@@ -14,26 +16,28 @@ export interface NumberOfProductAndRentalChartProps {
     chartConfig: ChartConfig;
     chartWidth?: string;
     chartHeight?: string;
+    year: number;
 }
 
 const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps> = ({
     className,
     chartData,
     chartConfig,
-    chartWidth = "100%",
-    chartHeight = "400px",
+    chartWidth = '100%',
+    chartHeight = '400px',
+    year,
 }) => {
     return (
         <div
-            className={`flex flex-col border-2 rounded-lg p-3 bg-white ${className || ''}`}
+            className={`flex flex-col rounded-lg border-2 bg-white p-3 ${className || ''}`}
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
-            <div className="flex flex-col w-full h-full gap-2">
-                <span className="text-lg text-center w-full">
-                    Tổng số sản phẩm được bán và tổng số lượt cho thuê từng tháng
+            <div className="flex h-full w-full flex-col gap-2">
+                <span className="w-full text-center text-lg">
+                    Tổng số sản phẩm được bán và tổng số lượt cho thuê từng tháng trong năm {year}
                 </span>
                 <div className="flex-1 overflow-hidden">
-                    <ChartContainer config={chartConfig} className="min-w-full h-full">
+                    <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <LineChart
                             accessibilityLayer
                             data={chartData}
@@ -54,27 +58,10 @@ const NumberOfProductAndRentalChart: React.FC<NumberOfProductAndRentalChartProps
                                 tickFormatter={(value) => `Tháng ${value}`}
                                 angle={-45}
                             />
-                            <YAxis
-                                type="number"
-                                tickMargin={10}
-                                tickLine={false}
-                            />
-                            <ChartTooltip
-                                content={<ChartTooltipContent
-                                    indicator="line"
-                                    hideLabel
-                                />}
-                            />
-                            <ChartLegend
-                                content={<ChartLegendContent
-                                    className="mt-6"
-                                />}
-                            />
-                            <CartesianGrid
-                                strokeDasharray={"3 3"}
-                                stroke="var(--color-gray-300)"
-                                vertical={false}
-                            />
+                            <YAxis type="number" tickMargin={10} tickLine={false} />
+                            <ChartTooltip content={<ChartTooltipContent indicator="line" hideLabel />} />
+                            <ChartLegend content={<ChartLegendContent className="mt-6" />} />
+                            <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" vertical={false} />
                             {Object.entries(chartConfig).map(([key, config]) => (
                                 <Line
                                     key={key}
