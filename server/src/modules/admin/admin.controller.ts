@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { PredictionService } from './prediction.service';
-import { ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('admin')
 export class AdminController {
@@ -91,5 +92,71 @@ export class AdminController {
   async getNewCustomerRateByYear(@Param('year') year: string) {
     const result = await this.dashboardService.getNewCustomerRateByYear(+year);
     return result.rate * 100;
+  }
+
+  @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
+  @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
+  @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false, example: 1 })
+  @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2024 })
+  @ApiResponse({ status: 200, description: 'Sold ratio by filter value' })
+  @ApiResponse({ status: 400, description: 'Invalid year format' })
+  @Get('prediction/sold-ratio-by-filter-value')
+  async getSoldRatioByFilterValue(
+    @Query('type') type: string,
+    @Query('month') month?: number,
+    @Query('quarter') quarter?: number,
+    @Query('year') year?: number,
+  ) {
+    return this.predictionService.getSoldRatioByFilterValue({
+      type: type as 'month' | 'quarter',
+      month: month ? +month : undefined,
+      quarter: quarter ? +quarter : undefined,
+      year: year ? +year : undefined,
+    });
+  }
+
+  @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
+  @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
+  @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
+  @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
+  @ApiResponse({ status: 200, description: 'Purchased ratio by filter value' })
+  @ApiResponse({ status: 400, description: 'Invalid year format' })
+
+  @Get('prediction/purchased-ratio-by-filter-value')
+  async getPurchasedRatioByFilterValue(
+    @Query('type') type: 'month' | 'quarter' | 'year',
+    @Query('month') month?: string,
+    @Query('quarter') quarter?: string,
+    @Query('year') year?: string,
+  ) {
+    if (!year) throw new BadRequestException('Missing required parameter: year');
+    return this.predictionService.getPurchasedRatioByFilterValue({
+      type,
+      month: month ? +month : undefined,
+      quarter: quarter ? +quarter : undefined,
+      year: +year,
+    });
+  }
+
+  @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
+  @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
+  @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
+  @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
+  @ApiResponse({ status: 200, description: 'Sales and purchase by filter value' })
+  @ApiResponse({ status: 400, description: 'Invalid year format' })
+  @Get('prediction/sales-purchase-by-filter-value')
+  async getSalesAndPurchaseByFilterValue(
+    @Query('type') type: 'month' | 'quarter' | 'year',
+    @Query('month') month?: string,
+    @Query('quarter') quarter?: string,
+    @Query('year') year?: string,
+  ) {
+    if (!year) throw new BadRequestException('Missing required parameter: year');
+    return this.predictionService.getSalesAndPurchaseByFilterValue({
+      type,
+      month: month ? +month : undefined,
+      quarter: quarter ? +quarter : undefined,
+      year: +year,
+    });
   }
 }
