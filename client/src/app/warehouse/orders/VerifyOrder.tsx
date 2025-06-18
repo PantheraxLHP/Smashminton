@@ -2,12 +2,14 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { PurchaseOrder } from './page';
+import { verifyOrderSchema } from "../warehouse.schema";
+import { z } from 'zod';
 
 interface VerifyOrderModalProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (data: PurchaseOrder) => void;
-    orderData?: PurchaseOrder | null; 
+    orderData?: PurchaseOrder | null;
 }
 
 interface VerifyOrderFormData extends PurchaseOrder {
@@ -23,6 +25,7 @@ export default function VerifyOrderModal({
     orderData,
 }: VerifyOrderModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [formData, setFormData] = useState<VerifyOrderFormData>({
         orderid: 0,
         productid: 0,
@@ -63,28 +66,48 @@ export default function VerifyOrderModal({
         };
     }, [open, onClose]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: name === 'quantity' || name === 'price' || name === 'receivedQuantity'
-                ? Number(value)
-                : value,
-        }));
-    };
+        if (name === "receivedQuantity" || name === "price") {
+            const numericValue = Number(value);
+            setFormData(prev => ({ ...prev, [name]: isNaN(numericValue) ? 0 : numericValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    }
 
 
     const handleSubmit = () => {
         if (!orderData) return;
+        try {
+            verifyOrderSchema.parse({
+                ...formData,
+            });
+            if (onSubmit) {
+                onSubmit({
+                    ...orderData,
+                    quantity: formData.receivedQuantity,
+                });
+            }
+            setErrors({});
+            onClose();
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
+        }
+    };
 
-        onSubmit({
-            ...orderData,
-            quantity: formData.receivedQuantity,
-        });
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
-        onClose();
-    };      
-      
     if (!open) return null;
 
     return (
@@ -173,6 +196,7 @@ export default function VerifyOrderModal({
                                     className="w-full border rounded px-3 py-2"
                                     placeholder='Nhập số lượng giao'
                                 />
+                                {errors.receivedQuantity && <p className="text-red-500 text-sm">{errors.receivedQuantity}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Ngày hết hạn</label>
@@ -182,6 +206,7 @@ export default function VerifyOrderModal({
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.expiryDate && <p className="text-red-500 text-sm">{errors.expiryDate}</p>}
                             </div>
                         </div>
                     </div>

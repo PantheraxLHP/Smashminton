@@ -10,12 +10,15 @@ import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { updateProductPrice } from '@/services/products.service';
 import { toast } from 'sonner';
 import { add } from 'date-fns';
+import { z } from 'zod';
+
+
 
 export interface Service {
     productid?: number;
     productname: string;
     servicetype: string;
-    price: string;
+    price: number;
     image: string;
     quantity: number;
 }
@@ -57,7 +60,7 @@ export default function RentalPriceManager() {
                     productid: item.productid,
                     productname: item.productname,
                     servicetype: type,
-                    price: item.rentalprice ? `${parseInt(item.rentalprice).toLocaleString()} VND` : '0 VND',
+                    price: item.rentalprice ? parseInt(item.rentalprice) : 0,
                     image: item.productimgurl || '/default.png',
                     quantity: item.quantity || 0,
                 }));
@@ -164,7 +167,16 @@ export default function RentalPriceManager() {
             ), align: 'left',
         },
         { header: 'Dịch vụ áp dụng', accessor: 'servicetype', align: 'center' },
-        { header: 'Giá thuê', accessor: 'price', align: 'center' },  
+        {
+            header: 'Giá thuê',
+            accessor: (item: Service) => (
+                <div>{Number(item.price).toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                })}</div>
+            ),
+            align: 'center',
+        },
         { header: 'Số lượng', accessor: 'quantity', align: 'center' },
         {
             header: '',

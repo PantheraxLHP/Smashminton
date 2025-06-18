@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import React, { useRef, useEffect, useState } from 'react';
 import { FoodItem } from './page';
 import { FaPen } from "react-icons/fa";
+import { productSchema } from "../warehouse.schema";
+import { z } from "zod";
 
 const predefinedCategories = ["Đồ ăn", "Đồ uống", "Snack"];
 
@@ -22,6 +24,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
     const [foodAvatar, setFoodAvatar] = useState<File | null>(null);
     const [foodPreview, setFoodPreview] = useState<string>("");
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const modalRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<FoodItem>({
         id: 0, name: '', sellingprice: 0, category: '', stock: 0, lot: '', expiry: '', discount: 0, image: '/default.png',
@@ -53,19 +56,15 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
         function handleClickOutside(event: MouseEvent) {
             const target = event.target as Node;
             if (
-                modalRef.current &&
-                !modalRef.current.contains(target) &&
-                popoverRef.current &&
-                !popoverRef.current.contains(target)
+                modalRef.current && !modalRef.current.contains(target) &&
+                !popoverRef.current?.contains(target)
             ) {
                 onClose();
             }
         }
-
         if (open) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
@@ -73,14 +72,38 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === "sellingprice") {
+            const numericValue = Number(value);
+            setFormData(prev => ({ ...prev, [name]: isNaN(numericValue) ? 0 : numericValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     }
 
     function handleSubmit() {
-        if (onSubmit) {
-            onSubmit(formData);
+        try {
+            productSchema.parse({
+                ...formData,
+            });
+
+            if (onSubmit) {
+                onSubmit({
+                    ...formData,
+                    sellingprice: formData.sellingprice,
+                    image: foodAvatar ? URL.createObjectURL(foodAvatar) : formData.image,
+                });
+            }
+            setErrors({});
+            onClose();
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
         }
-        onClose();
     }
 
     const handleFoodImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +113,12 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             setFoodPreview(URL.createObjectURL(file));
         }
     };
+
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -110,7 +139,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                 {foodPreview ? (
                                     <img
                                         src={foodPreview}
-                                        alt="food Preview"
+                                        alt="/default.png"
                                         className="w-24 h-24 rounded-full object-cover border"
                                     />
                                 ) : (
@@ -143,6 +172,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Giá bán</label>
@@ -153,6 +183,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.sellingprice && <p className="text-red-500 text-sm">{errors.sellingprice}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Loại</label>

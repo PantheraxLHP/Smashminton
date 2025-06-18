@@ -5,6 +5,8 @@ import { Supplier } from './page';
 import { getAllProducts } from '@/services/products.service';
 import { postSuppliers, patchSuppliers } from '@/services/suppliers.service';
 import { toast } from 'sonner';
+import { supplierSchema } from '../warehouse.schema';
+import { z } from 'zod';
 
 export interface ProductOption {
     productid: number;
@@ -34,6 +36,7 @@ export default function AddSupplierModal({
 }: AddSupplierModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [formData, setFormData] = useState<Supplier>({
         name: '',
         contactname: '',
@@ -71,10 +74,6 @@ export default function AddSupplierModal({
             setSelectedProductId(0);
         }
     }, [open]);
-
-
-
-
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -114,52 +113,72 @@ export default function AddSupplierModal({
     };
 
     const handleSubmit = async () => {
-        setLoading(true);
-        if (editData && editData.supplierid !== undefined) {
-            const payload = {
-                suppliername: formData.name,
-                contactname: formData.contactname,
-                phonenumber: formData.phone,
-                email: formData.email,
-                address: formData.address,
-            };
+        try {
+            supplierSchema.parse({
+                ...formData,
+            });
+            setLoading(true);
+            if (editData && editData.supplierid !== undefined) {
+                const payload = {
+                    suppliername: formData.name,
+                    contactname: formData.contactname,
+                    phonenumber: formData.phone,
+                    email: formData.email,
+                    address: formData.address,
+                };
 
-            const result = await patchSuppliers(editData.supplierid, payload);
+                const result = await patchSuppliers(editData.supplierid, payload);
 
-            if (result.ok) {
-                onSubmit({ ...formData, supplierid: editData.supplierid }, true);
-                onClose();
+                if (result.ok) {
+                    onSubmit({ ...formData, supplierid: editData.supplierid }, true);
+                    setErrors({});
+                    onClose();
+                } else {
+                    toast.error('Không thể cập nhật nhà cung cấp: ' + (result.message || ''));
+                }
             } else {
-                toast.error('Không thể cập nhật nhà cung cấp: ' + (result.message || ''));
+                const payload = {
+                    suppliername: formData.name,
+                    contactname: formData.contactname,
+                    phonenumber: formData.phone,
+                    email: formData.email,
+                    address: formData.address,
+                    productids: formData.products.map(p => p.productid),
+                };
+
+                const result = await postSuppliers(payload);
+
+                if (result.ok) {
+                    onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
+                    onClose();
+                } else {
+                    toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
+                }
             }
-        } else {
-            const payload = {
-                suppliername: formData.name,
-                contactname: formData.contactname,
-                phonenumber: formData.phone,
-                email: formData.email,
-                address: formData.address,
-                productids: formData.products.map(p => p.productid),
-            };
-
-            const result = await postSuppliers(payload);
-
-            if (result.ok) {
-                onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
-                onClose();
-            } else {
-                toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
+            setLoading(false);
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
             }
         }
-        setLoading(false);
     };
+
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
     if (!open) return null;
 
     return (
         <>
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"></div>
-            <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
+            <div className="fixed inset-0 flex items-center justify-center z-50 px-4 mt-8">
                 <div
                     ref={modalRef}
                     className="bg-white rounded-xl w-full max-w-xl max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden p-6 border border-gray-300 shadow-xl"
@@ -177,6 +196,7 @@ export default function AddSupplierModal({
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
                         <div>
                             <label className="block text-sm mb-1">Số điện thoại</label>
@@ -186,6 +206,7 @@ export default function AddSupplierModal({
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
                         </div>
                         <div className="sm:col-span-2">
                             <label className="block text-sm mb-1">Tên người liên hệ</label>
@@ -195,6 +216,7 @@ export default function AddSupplierModal({
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {errors.contactname && <p className="text-red-500 text-sm">{errors.contactname}</p>}
                         </div>
                         <div className="sm:col-span-2">
                             <label className="block text-sm mb-1">Email</label>
@@ -204,6 +226,7 @@ export default function AddSupplierModal({
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                         </div>
                         <div className="sm:col-span-2">
                             <label className="block text-sm mb-1">Địa chỉ</label>
@@ -213,9 +236,10 @@ export default function AddSupplierModal({
                                 onChange={handleChange}
                                 className="w-full border rounded px-3 py-2"
                             />
+                            {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
                         </div>
 
-                        {!editData && (
+                        {(
                             <>
                                 <div className="sm:col-span-2">
                                     <label className="block text-sm mb-1">Chọn sản phẩm cung cấp</label>

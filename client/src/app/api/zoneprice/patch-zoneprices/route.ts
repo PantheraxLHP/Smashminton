@@ -25,10 +25,8 @@ export async function PATCH(request: NextRequest) {
         if (!response.ok) {
             return ApiResponse.error(`Lỗi server! Mã lỗi: ${response.status}`);
         }
-        console.log('[DEBUG] Backend PATCH zoneprice response:', result);
         return ApiResponse.success(result);
     } catch (error) {
-        console.error('[ERROR] PATCH zoneprice route exception:', error);
         return ApiResponse.error(
             error instanceof Error ? error.message : 'Lỗi khi cập nhật giá khu vực'
         );
