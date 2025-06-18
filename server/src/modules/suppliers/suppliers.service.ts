@@ -12,7 +12,7 @@ export class SuppliersService {
     return 'This action adds a new supplier';
   }
 
-  async createSupplierWithProducts(dto: CreateSupplierDto) {
+  async createSupplierWithProducts(dto: CreateSupplierDto, productid: number, costprice: number) {
     // Tạo supplier trước
     const newSupplier = await this.prisma.suppliers.create({
       data: {
@@ -24,18 +24,13 @@ export class SuppliersService {
       },
     });
 
-    // Tạo supply_products liên kết
-    if (dto.productids && dto.productids.length > 0) {
-      const data = dto.productids.map(productid => ({
+    await this.prisma.supply_products.create({
+      data: {
         supplierid: newSupplier.supplierid,
-        productid,
-      }));
-
-      await this.prisma.supply_products.createMany({
-        data,
-        skipDuplicates: true,
-      });
-    }
+        productid: productid,
+        costprice: costprice,
+      },
+    });
 
     return {
       message: 'Tạo nhà cung cấp và danh sách sản phẩm thành công',
@@ -69,11 +64,11 @@ export class SuppliersService {
       email: supplier.email,
       address: supplier.address,
       products: supplier.supply_products
-        .map(sp => sp.products)
-        .filter((p): p is NonNullable<typeof p> => p !== null)
-        .map(p => ({
-          productid: p.productid,
-          productname: p.productname,
+        .filter(sp => sp.products !== null)
+        .map(sp => ({
+          productid: sp.products!.productid,
+          productname: sp.products!.productname,
+          costprice: Number(sp.costprice),
         })),
     }));
 

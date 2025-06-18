@@ -60,7 +60,6 @@ export class ProductsService {
                 status: true,
                 sellingprice: true,
                 rentalprice: true,
-                costprice: true,
                 productimgurl: true
             },
             orderBy: {

@@ -26,9 +26,4 @@ export class CreateSupplierDto {
     @ApiProperty({ type: String, description: 'Địa chỉ nhà cung cấp', required: false })
     @IsString()
     address?: string;
-
-    @ApiProperty({ type: [Number], description: 'Danh sách productid mà supplier cung cấp', required: false })
-    @IsArray()
-    @IsInt({ each: true })
-    productids: number[];
 }
