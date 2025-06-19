@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsBoolean, IsNumber, IsOptional, IsNotEmpty, isArray, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class SingleColumnSetting {
+export class SingleRowSetting {
     @ApiProperty({
         description: 'Type for inserting correct RuleTable',
         example: 'shift',
@@ -13,8 +13,8 @@ export class SingleColumnSetting {
     @Type(() => String)
     type: string;
 
-    @ApiPropertyOptional({
-        description: 'Columns data (data of 1 single row)',
+    @ApiProperty({
+        description: 'Single row data (data of 1 row in multiple columns)',
         type: Array,
     })
     @IsNotEmpty()
@@ -24,12 +24,12 @@ export class SingleColumnSetting {
 }
 
 export class UpdateAutoAssignmentDto {
-    @ApiPropertyOptional({
-        description: 'Columns data (data of 1 single row)',
+    @ApiProperty({
+        description: 'Rows data',
         type: Array,
     })
     @IsNotEmpty()
     @IsArray()
     @Type(() => Array)
-    data: SingleColumnSetting[];
+    data: SingleRowSetting[];
 }
