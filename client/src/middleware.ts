@@ -5,9 +5,10 @@ import type { NextRequest } from 'next/server';
 const ROLE_PERMISSIONS = {
     guest: ['/booking', '/products', '/rentals'],
     customer: ['/booking', '/products', '/rentals'],
-    employee: ['/booking', '/booking-detail'],
-    hr_manager: ['/employees', '/approvals'],
+    employee: ['/booking', '/booking-detail', '/assignments', '/enrollments'],
+    hr_manager: ['/employees', '/approvals', '/assignments'],
     wh_manager: [
+        '/assignments',
         '/price-management',
         '/price-management/court-price',
         '/price-management/rental-price',
@@ -21,7 +22,17 @@ const ROLE_PERMISSIONS = {
 } as const;
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/signin', '/signup', '/contact', '/terms', '/privacy-policy', '/faq'] as const;
+const PUBLIC_ROUTES = [
+    '/',
+    '/signin',
+    '/signup',
+    '/contact',
+    '/terms',
+    '/privacy-policy',
+    '/faq',
+    '/products',
+    '/rentals',
+] as const;
 
 // Common authenticated routes accessible to all logged-in users
 const COMMON_AUTH_ROUTES = ['/profile'] as const;
