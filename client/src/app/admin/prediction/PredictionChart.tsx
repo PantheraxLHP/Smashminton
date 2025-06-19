@@ -1,90 +1,98 @@
-import React from "react";
+'use client';
+
+import React from 'react';
+import { PieChart, Pie, Cell } from 'recharts';
 import {
-    PieChart,
-    Pie,
-    Cell,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-} from "recharts";
+    ChartConfig,
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
+} from '@/components/ui/chart';
 
 interface PredictionChartProps {
     data: { id: string; name: string; quantity: number }[];
-    sortOrder: "asc" | "desc";
-    onSortOrderChange: (order: "asc" | "desc") => void;
+    sortOrder: 'asc' | 'desc';
     title?: string;
 }
 
-const COLOR_MAP = new Map<string, string>();
 const COLORS = [
-    "#34D399", "#60A5FA", "#FBBF24", "#F87171",
-    "#A78BFA", "#F472B6", "#10B981", "#FDBA74",
+    '#10B981', // emerald
+    '#0891B2', // cyan
+    '#2563EB', // blue
+    '#CA8A04', // yellow
+    '#EA580C', // orange
+    '#DC2626', // red
+    '#A16207', // amber
+    '#059669', // emerald-600
 ];
-
-let colorIndex = 0;
-function getColorForId(id: string): string {
-    if (!COLOR_MAP.has(id)) {
-        COLOR_MAP.set(id, COLORS[colorIndex % COLORS.length]);
-        colorIndex++;
-    }
-    return COLOR_MAP.get(id)!;
-}
 
 const PredictionChart: React.FC<PredictionChartProps> = ({
     data,
     sortOrder,
-    onSortOrderChange,
-    title = "Tỉ lệ phần trăm sản phẩm bán ra",
+    title = 'Tỉ lệ phần trăm sản phẩm bán ra',
 }) => {
     const totalQuantity = data.reduce((acc, item) => acc + item.quantity, 0);
 
-    const chartData = data.map((item) => ({
+    const chartData = data.map((item, index) => ({
         ...item,
+        id: item.id && item.id !== '' ? item.id : `item-${index}`,
+        name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 1}`,
         percent: totalQuantity === 0 ? 0 : (item.quantity / totalQuantity) * 100,
+        fill: COLORS[index % COLORS.length],
     }));
 
-    const renderCustomizedLabel = ({ name, percent }: any) => {
-        if (percent < 0.5) return ""; // tránh hiển thị label quá nhỏ
-        return `${name}: ${percent.toFixed(1)}%`;
-    };
+    // Create chart config for the data
+    const chartConfig: ChartConfig = {};
+    chartData.forEach((item, index) => {
+        chartConfig[item.id] = {
+            label: item.name,
+            color: COLORS[index % COLORS.length],
+        };
+    });
 
     return (
-        <div className="border rounded p-4 shadow bg-white">
-            <div className="flex justify-between items-center mb-4">
+        <div className="flex h-full flex-col">
+            <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">{title}</h2>
-                {/* Nếu muốn bật lại chức năng sắp xếp */}
-                {/* <div className="flex items-center gap-2">
-                    <label className="text-sm">Sắp xếp:</label>
-                    <select
-                        value={sortOrder}
-                        onChange={(e) => onSortOrderChange(e.target.value as "asc" | "desc")}
-                        className="border pl-2 pr-2 pt-1 pb-1 rounded"
-                    >
-                        <option value="asc">Tăng dần</option>
-                        <option value="desc">Giảm dần</option>
-                    </select>
-                </div> */}
             </div>
 
-            <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                    <Pie
-                        data={chartData}
-                        dataKey="percent"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={renderCustomizedLabel}
-                    >
-                        {chartData.map((entry) => (
-                            <Cell key={`cell-${entry.id}`} fill={getColorForId(entry.id)} />
-                        ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
-                    <Legend />
-                </PieChart>
-            </ResponsiveContainer>
+            <div className="flex-1 overflow-hidden">
+                <ChartContainer config={chartConfig} className="h-full min-w-full">
+                    <PieChart>
+                        <Pie data={chartData} dataKey="percent" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
+                            {chartData.map((item) => (
+                                <Cell key={`cell-${item.id}`} fill={item.fill} />
+                            ))}
+                        </Pie>
+                        <ChartTooltip
+                            content={
+                                <ChartTooltipContent
+                                    hideIndicator
+                                    labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+                                    itemStyle={{ color: '#6B7280' }}
+                                />
+                            }
+                        />
+                        <ChartLegend
+                            content={() => (
+                                <div className="flex items-center justify-center gap-4 pt-3">
+                                    {chartData.map((item) => (
+                                        <div key={item.id} className="flex items-center gap-1.5">
+                                            <div
+                                                className="h-4 w-4 shrink-0 rounded-[2px]"
+                                                style={{ backgroundColor: item.fill }}
+                                            />
+                                            <span>{item.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        />
+                    </PieChart>
+                </ChartContainer>
+            </div>
         </div>
     );
 };

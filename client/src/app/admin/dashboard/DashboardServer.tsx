@@ -1,6 +1,6 @@
 import { formatNumber } from '@/lib/utils';
 import { Icon } from '@iconify/react';
-import { getDashboardData } from '@/lib/dashboard';
+import { getDashboardData } from '@/services/dashboard.service';
 import { ChartConfig } from '@/components/ui/chart';
 import TopCourtChart from './TopCourtChart';
 import ZoneRevenueChart from './ZoneRevenueChart';
