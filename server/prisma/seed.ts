@@ -942,16 +942,73 @@ async function main() {
 
     await prisma.products.createMany({
         data: [
-            // 1: Quấn cán, 2: Túi đựng giày, 3: Ống cầu lông, 4: Bóng cầu lông, 5: Dây cầu lông
-            // 6: Thức ăn, 7: Nước uống, 8: Snack
-            // 9,10,11,12,13: Giày cầu lông
-            // 14,15,16,17,18: Vợt cầu lông
+            // 1->8: Quấn cán, 9->12: Túi đựng giày, 13->18: vớ cầu lông, 19->29: Ống cầu lông, 30-37: cước cầu lông
+            // 38->40; nước suối, 441->45: nước tăng lực, 46->50: nước thể thao, 51->55: nước ngọt có gas, 56->59: thanh năng lượng,60: đồ mặn
+            // 61-66: snack, 67-71: băng chặn mồ hôi
+            // 72->78: Giày cầu lông
+            // 79->87: Vợt cầu lông
             {
                 productname: 'Quấn cán cầu lông Yonex AC147EX',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
                 status: 'Available',
                 sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán cầu lông Yonex AC108EX',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447341/quan-can-vot-cau-long-yonex-ac147ex-2_mzac1e.webp',
+                status: 'Available',
+                sellingprice: 35000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn lót cán Yonex AC013CR',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-cau-long-yonex-ac108ex-1_ezzqmg.webp',
+                status: 'Available',
+                sellingprice: 130000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán vợt cầu lông Victor GR262DRM Xanh',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-vot-cau-long-victor-gr262drm-xanh_1741312232_nssuxz.webp',
+                status: 'Available',
+                sellingprice: 80000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán vợt cầu lông Victor GR262DRM Hồng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-vot-cau-long-victor-gr262drm-hong_1741312360_xjsr4h.webp',
+                status: 'Available',
+                sellingprice: 80000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán vợt cầu lông Victor GR262DRM Vàng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-vot-cau-long-victor-gr262drm-vang_1741312209_u6qm0e.webp',
+                status: 'Available',
+                sellingprice: 80000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán vợt Lining AXJN002-5',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-vot-lining-axjn002-5-1_fexubx.webp',
+                status: 'Available',
+                sellingprice: 35000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Quấn cán vợt cầu lông Victor Hello Kitty GR262KT',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750322952/quan-can-vot-cau-long-victor-hello-kitty-gr262kt-1_yayqma.webp',
+                status: 'Available',
+                sellingprice: 35000,
                 rentalprice: null,
             },
             {
@@ -963,9 +1020,73 @@ async function main() {
                 rentalprice: null,
             },
             {
+                productname: 'Túi đứng Kamito Eagle 2.0 KMTUI240390 - Xám',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323092/tui-dung-kamito-eagle-2-0-kmtui240390-xam-chinh-hang_1721864103_psc5w0.webp',
+                status: 'Available',
+                sellingprice: 99000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Túi đựng giày Yonex BAG224B1032Z',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323091/tui-dung-giay-yonex-bag224b1032z_1745456879_wi4apr.webp',
+                status: 'Available',
+                sellingprice: 129000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Túi đựng giày Kamito Eagle KMTUI220140 - Đen',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323091/tui-cau-long-kamito-eagle-kmtui220140-den-chinh-hang-2_e17b0l.webp',
+                status: 'Available',
+                sellingprice: 129000,
+                rentalprice: null,
+            },
+            {
                 productname: 'Vớ cầu lông Yonex',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746449369/vo-cau-long-yonex_emdrie.webp',
+                status: 'Available',
+                sellingprice: 65000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Vớ cầu lông Yonex SKSSSN2932RS chính hãng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323531/vo-cau-long-yonex-sksssn1932rs-chinh-hang_1739388277_shu4uv.webp',
+                status: 'Available',
+                sellingprice: 65000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Vớ cầu lông Taro TR021-02 ngắn - Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323530/vo-cau-long-taro-tr021-02-ngan-trang-chinh-hang_1739558183_vxurzn.webp',
+                status: 'Available',
+                sellingprice: 65000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Vớ Cầu Lông Yonex Lindan 2024 Dài',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323530/vo-cau-long-yonex-lindan-2024-dai-den-60k_1720981728_yledjt.webp',
+                status: 'Available',
+                sellingprice: 65000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Vớ Cầu Lông Yonex LCW 2024 Dài - Trắng',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323530/vo-cau-long-taro-tr021-02-ngan-trang-chinh-hang_1739558183_1_g6qg1k.webp',
+                status: 'Available',
+                sellingprice: 65000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Vớ cầu lông Yonex 75th dài xịn sọc đỏ',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750323530/vo-cau-long-yonex-75th-dai-xin-soc-do_1704133062_zkjcsg.webp',
                 status: 'Available',
                 sellingprice: 65000,
                 rentalprice: null,
@@ -987,6 +1108,78 @@ async function main() {
                 rentalprice: null,
             },
             {
+                productname: 'Ống Cầu Lông Taro xanh đỏ (3in1)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327172/ong-cau-long-taro-1_1696991640_ohg8dm.webp',
+                status: 'Available',
+                sellingprice: 285000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Kamito K10 Pro',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327171/ong-cau-long-kamito-k10-pro_1730677756_cwaahj.webp',
+                status: 'Available',
+                sellingprice: 290000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Hải Yến S90',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327169/ong-cau-long-hai-yen-s90-2_uwjuss.webp',
+                status: 'Available',
+                sellingprice: 290000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông VNB M01',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327173/ong-cau-long-vnb-m01-1_lzu4gv.webp',
+                status: 'Available',
+                sellingprice: 245000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Yonex AS50',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327174/ong-cau-long-yonex-as50-1_khxmwj.webp',
+                status: 'Available',
+                sellingprice: 1019000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Lê Quang (3in1)',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327417/ong-cau-long-le-quang_lghmar.webp',
+                status: 'Available',
+                sellingprice: 275000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống Cầu Lông Vina Star',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327168/cau-long-victor-lark-5-1_all1sr.webp',
+                status: 'Available',
+                sellingprice: 290000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Victor Lark 5',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447573/ong-cau-yonex_aurrs1.webp',
+                status: 'Available',
+                sellingprice: 290000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Ống cầu lông Hải Yến S70',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327169/ong-cau-long-hai-yen-s70-1_ewett1.webp',
+                status: 'Available',
+                sellingprice: 270000,
+                rentalprice: null,
+            },
+            {
                 productname: 'Cước Yonex pro',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447695/Yonex_PolyTour_Pro_16L___1_25_Tennis_String_Yellow_db2uyt.jpg',
@@ -995,10 +1188,188 @@ async function main() {
                 rentalprice: null,
             },
             {
+                productname: 'Dây cước căng vợt Victor VS-63DRM FM Xanh',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327807/day-cuoc-cang-vot-victor-vs-63drm-fm-xanh_1741314344_nujzqe.webp',
+                status: 'Available',
+                sellingprice: 180000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây cước căng vợt Victor VS-63CS DE',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327806/day-cuoc-cang-vot-victor-vs-63cs-de-2_1711072087_wdbdt5.webp',
+                status: 'Available',
+                sellingprice: 150000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây cước căng vợt Yonex BG Aerobite Boost',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327816/day-cuoc-cang-vot-yonex-bg-aerobite-boost_1739752263_stchkx.webp',
+                status: 'Available',
+                sellingprice: 215000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây Cước Căng Vợt Victor Hello Kitty VS-KT63',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327805/day-cuoc-cang-vot-victor-hello-kitty-vs-kt63-1_dakzus.webp',
+                status: 'Available',
+                sellingprice: 140000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây Cước Căng Vợt Mizuno M-SMOOTH 65H',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327805/day-cuoc-cang-vot-mizuno-m-smooth-65h-2_eh3dqk.webp',
+                status: 'Available',
+                sellingprice: 190000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây cước căng vợt cầu lông Yonex BG EXBOLT 65',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327805/day-cuoc-cang-vot-cau-long-yonex-bg-exbolt-65_1739752048_rvjyqx.webp',
+                status: 'Available',
+                sellingprice: 195000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Dây cước căng vợt Yonex BG 80',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750327808/day-cuoc-cang-vot-yonex-bg-80_1739751858_rlksej.webp',
+                status: 'Available',
+                sellingprice: 180000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước suối Aquafina 355ml',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750329780/nuoc-tinh-khiet-aquafina-355ml-202407091406304694_dcjvab.jpg',
+                status: 'Available',
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước suối La Vie 500ml',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750329780/slide-2_202410161047222495_qbzt55.jpg',
+                status: 'Available',
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước suối Dasani 510ml',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750329780/nuoc-tinh-khiet-dasani-500ml-202303081108189422_kohfjg.jpg',
+                status: 'Available',
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
                 productname: 'Nước uống tăng lực Monster bạc',
                 productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447734/monster-drink_edoi6w.jpg',
                 status: 'Available',
-                sellingprice: 170000,
+                sellingprice: 30000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước tăng lực Redbull Thái kẽm và vitamin 250ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330186/nuoc-tang-luc-redbull-thai-kem-va-vitamin-250ml_202505261536253958_cltkpe.jpg',
+                status: 'Available',
+                sellingprice: 13000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước tăng lực Sting hương dâu 330ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330186/nuoc-tang-luc-sting-huong-dau-330ml-201909031559004919_jfahc5.jpg',
+                status: 'Available',
+                sellingprice: 14000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước tăng lực Number1 330ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330186/nuoc-tang-luc-number1-330ml-202407241104383683_ujijox.jpg',
+                status: 'Available',
+                sellingprice: 12000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước tăng lực Rockstar lon 250ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330186/nuoc-tang-luc-rockstar-lon-250ml-202112111047273054_p7gpef.jpg',
+                status: 'Available',
+                sellingprice: 12000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước khoáng i-on Pocari Sweat chai 500ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330242/nuoc-khoang-pocari-sweat-chai-500ml-14112018102417_ymclsu.jpg',
+                status: 'Available',
+                sellingprice: 15000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước khoáng i-on Pocari Sweat chai 900ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330241/nuoc-khoang-i-on-pocari-sweat-chai-900ml-202208042301359394_h5awiq.jpg',
+                status: 'Available',
+                sellingprice: 26000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước bù khoáng Revive muối khoáng chai 500ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330243/nuoc-ngot-revive-vi-muoi-khoang-chai-500ml-201812060918208543_hodsuv.jpg',
+                status: 'Available',
+                sellingprice: 13000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước bù khoáng Revive chanh muối chai 390ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330365/revive-vi-chanh-muoi-390ml-201912101318119749_fzt3o0.jpg',
+                status: 'Available',
+                sellingprice: 13000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước uống vận động Aquarius Zero chai 390ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330244/nuoc-uong-van-dong-aquarius-zero-390ml-201909251628175295_n7kpp6.jpg',
+                status: 'Available',
+                sellingprice: 13000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước ngọt Coca Cola lon 320ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330415/nuoc-ngot-coca-cola-lon-320ml-202304131107525481_rgeo6d.jpg',
+                status: 'Available',
+                sellingprice: 12000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước ngọt 7 Up vị chanh lon 320ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330413/nuoc-ngot-7-up-lon-330ml-202312252102017018_oa6l1i.jpg',
+                status: 'Available',
+                sellingprice: 13000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước ngọt Mirinda hương xá xị chai 390ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330416/nuoc-ngot-mirinda-huong-xa-xi-chai-390ml-202310311413548237_evlxu4.jpg',
+                status: 'Available',
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước ngọt Fanta hương cam chai 390ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330411/79173_202411041443533533_fbok5t.jpg',
+                status: 'Available',
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Nước ngọt Sprite hương chanh chai 390ml',
+                productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330559/nuoc-ngot-sprite-huong-chanh-chai-390ml-202308231643528923_pq0wie.jpg',
+                status: 'Available',
+                sellingprice: 10000,
                 rentalprice: null,
             },
             {
@@ -1010,6 +1381,30 @@ async function main() {
                 rentalprice: null,
             },
             {
+                productname: 'Thanh Năng Lượng Hammer Bar - Peanut Butter Chocolate',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330419/whey-protein-hammer-bar-1-jpeg_lxx9tq.webp',
+                status: 'Available',
+                sellingprice: 78000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Thanh Năng Lượng Hammer Bar - Chocolate Chip',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330418/raw-energy-hammer-bar-3-jpeg_rj144i.webp',
+                status: 'Available',
+                sellingprice: 78000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Thanh Năng Lượng USA Zero Bar',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330412/banh-tach-le-zero-bar-1-unit-jpeg_ao7vcg.webp',
+                status: 'Available',
+                sellingprice: 55000,
+                rentalprice: null,
+            },
+            {
                 productname: 'Cá viên chiên ứ hự',
                 productimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746447470/cavienchien_vetkew.jpg',
                 status: 'Available',
@@ -1017,27 +1412,11 @@ async function main() {
                 rentalprice: null,
             },
             {
-                productname: 'Nước uống revive',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448342/nuoc-ngot-revive-vi-muoi_rr9iv6.jpg',
-                status: 'Available',
-                sellingprice: 15000,
-                rentalprice: null,
-            },
-            {
-                productname: 'Nước uống pocari',
-                productimgurl:
-                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448376/00015165_pocari_sweet_500ml_6751_5d15_large_88460a0edd_ec9nat.webp',
-                status: 'Available',
-                sellingprice: 15000,
-                rentalprice: null,
-            },
-            {
                 productname: 'Bánh snack OSea',
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448378/orion-post-new-24_lzha5b.png',
                 status: 'Available',
-                sellingprice: 100000,
+                sellingprice: 10000,
                 rentalprice: null,
             },
             {
@@ -1045,7 +1424,79 @@ async function main() {
                 productimgurl:
                     'https://res.cloudinary.com/dnagyxwcl/image/upload/v1746448375/snack-bi-do-vi-bo-nuong_oh4ezm.jpg',
                 status: 'Available',
-                sellingprice: 100000,
+                sellingprice: 10000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Snack khoai tây vị phô mai trứng muối',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330902/snack-khoai-tay-vi-pho-mai-trung-muoi-ostar-goi-90g-202211160854343621_cwzr2a.jpg',
+                status: 'Available',
+                sellingprice: 22000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Snack khoai tây vị bò Wagyu',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330902/snack-khoai-tay-vi-bo-wagyu-lays-goi-42g-202309070947114976_wyuac2.jpg',
+                status: 'Available',
+                sellingprice: 15000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Snack vị kem chua hành',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330904/snack-vi-kem-chua-hanh-lays-max-goi-75g-202305061701135459_z54kgj.jpg',
+                status: 'Available',
+                sellingprice: 15000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Snack khoai tây vị sườn nướng BBQ Brazil',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750330903/snack-khoai-tay-vi-suon-nuong-bbq-brazil-lays-goi-58g-202309070936486147_pz9zcn.jpg',
+                status: 'Available',
+                sellingprice: 15000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Băng chặn cổ tay Victor SP506DRM Xanh',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750334766/bang-chan-co-tay-victor-sp506drm-xanh_1741310698_kjlfos.webp',
+                status: 'Available',
+                sellingprice: 95000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Băng trán cầu lông Lining LDEU369-1',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750334766/bang-tran-cau-long-lining-ldeu369-1-noi-dia-trung_1738697151_bvzkbn.webp',
+                status: 'Available',
+                sellingprice: 55000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Băng chặn mồ hôi Lining LDEU175',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750334766/bang-chan-mo-hoi-lining-lqan372-2-noi-dia-trung_1693511749_tya5zm.webp',
+                status: 'Available',
+                sellingprice: 55000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Băng Chặn Mồ Hôi Victor SPTUC 2408',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750334766/bang-chan-mo-hoi-victor-sptuc-2408-chinh-hang_1716431761_bxgo38.webp',
+                status: 'Available',
+                sellingprice: 70000,
+                rentalprice: null,
+            },
+            {
+                productname: 'Băng chặn mồ hôi Lining LQAN372-2',
+                productimgurl:
+                    'https://res.cloudinary.com/dnagyxwcl/image/upload/v1750334766/bang-chan-mo-hoi-lining-ldes175_1732740130_qgkveu.webp',
+                status: 'Available',
+                sellingprice: 50000,
                 rentalprice: null,
             },
             {
@@ -1571,7 +2022,23 @@ async function main() {
             },
             {
                 productfilterid: 1,
-                value: 'Đồ uống',
+                value: 'Thanh năng lượng',
+            },
+            {
+                productfilterid: 1,
+                value: 'Nước suối',
+            },
+            {
+                productfilterid: 1,
+                value: 'Nước uống tăng lực',
+            },
+            {
+                productfilterid: 1,
+                value: 'Nước ngọt có gas',
+            },
+            {
+                productfilterid: 1,
+                value: 'Nước thể thao',
             },
             {
                 productfilterid: 2,
@@ -1592,6 +2059,10 @@ async function main() {
             {
                 productfilterid: 2,
                 value: 'Cước đan vợt',
+            },
+            {
+                productfilterid: 2,
+                value: 'Băng chặn mồ hôi',
             },
             {
                 productfilterid: 3,
@@ -1628,125 +2099,48 @@ async function main() {
         ],
     });
 
+    // Lấy map value -> id cho product_filter_values
+    const filterValues = await prisma.product_filter_values.findMany({ select: { productfiltervalueid: true, value: true } });
+    const valueToId = Object.fromEntries(filterValues.map(fv => [fv.value, fv.productfiltervalueid]));
+
+    const allProducts = await prisma.products.findMany({ select: { productid: true, productname: true } });
+    const productAttributesSeed = allProducts.map((p, idx) => {
+        // idx bắt đầu từ 0, productid từ 1
+        const i = idx + 1;
+        let value: string | undefined = undefined;
+        if (i >= 1 && i <= 8) value = 'Quấn cán cầu lông';
+        else if (i >= 9 && i <= 12) value = 'Túi đựng giày cầu lông';
+        else if (i >= 13 && i <= 18) value = 'Vớ cầu lông';
+        else if (i >= 19 && i <= 29) value = 'Ống cầu lông';
+        else if (i >= 30 && i <= 37) value = 'Cước đan vợt';
+        else if (i >= 38 && i <= 40) value = 'Nước suối';
+        else if (i >= 41 && i <= 45) value = 'Nước uống tăng lực';
+        else if (i >= 46 && i <= 50) value = 'Nước thể thao';
+        else if (i >= 51 && i <= 55) value = 'Nước ngọt có gas';
+        else if (i >= 56 && i <= 59) value = 'Thanh năng lượng';
+        else if (i === 60) value = 'Đồ mặn';
+        else if (i >= 61 && i <= 66) value = 'Snack';
+        else if (i >= 67 && i <= 71) value = 'Băng chặn mồ hôi';
+        // Giày cầu lông
+        else if (p.productname && p.productname.includes('Giày cầu lông')) {
+            if (p.productname.includes('S40')) value = '40';
+            else if (p.productname.includes('S41')) value = '41';
+            else if (p.productname.includes('S42')) value = '42';
+            else if (p.productname.includes('S43')) value = '43';
+            else if (p.productname.includes('S44')) value = '44';
+        }
+        // Vợt cầu lông
+        else if (p.productname && p.productname.includes('Vợt cầu lông')) {
+            if (p.productname.includes('3U')) value = '3U (85-89g)';
+            else if (p.productname.includes('4U')) value = '4U (80-84g)';
+            else if (p.productname.includes('5U')) value = '5U (75-79g)';
+        }
+        if (!value || !valueToId[value]) return null;
+        return { productid: p.productid, productfiltervalueid: valueToId[value] };
+    }).filter((x): x is { productid: number; productfiltervalueid: number } => x !== null);
+
     await prisma.product_attributes.createMany({
-        data: [
-            {
-                productid: 1,
-                productfiltervalueid: 5,
-            },
-            {
-                productid: 2,
-                productfiltervalueid: 6,
-            },
-            {
-                productid: 3,
-                productfiltervalueid: 7,
-            },
-            {
-                productid: 4,
-                productfiltervalueid: 4,
-            },
-            {
-                productid: 5,
-                productfiltervalueid: 4,
-            },
-            {
-                productid: 6,
-                productfiltervalueid: 8,
-            },
-            {
-                productid: 7,
-                productfiltervalueid: 3,
-            },
-            {
-                productid: 8,
-                productfiltervalueid: 2,
-            },
-            {
-                productid: 9,
-                productfiltervalueid: 1,
-            },
-            {
-                productid: 10,
-                productfiltervalueid: 3,
-            },
-            {
-                productid: 11,
-                productfiltervalueid: 3,
-            },
-            {
-                productid: 12,
-                productfiltervalueid: 2,
-            },
-            {
-                productid: 13,
-                productfiltervalueid: 2,
-            },
-            {
-                productid: 14,
-                productfiltervalueid: 13,
-            },
-            {
-                productid: 15,
-                productfiltervalueid: 14,
-            },
-            {
-                productid: 16,
-                productfiltervalueid: 13,
-            },
-            {
-                productid: 17,
-                productfiltervalueid: 14,
-            },
-            {
-                productid: 18,
-                productfiltervalueid: 15,
-            },
-            {
-                productid: 19,
-                productfiltervalueid: 14,
-            },
-            {
-                productid: 20,
-                productfiltervalueid: 15,
-            },
-            {
-                productid: 21,
-                productfiltervalueid: 10,
-            },
-            {
-                productid: 22,
-                productfiltervalueid: 10,
-            },
-            {
-                productid: 23,
-                productfiltervalueid: 9,
-            },
-            {
-                productid: 24,
-                productfiltervalueid: 9,
-            },
-            {
-                productid: 25,
-                productfiltervalueid: 10,
-            },
-            {
-                productid: 26,
-                productfiltervalueid: 11,
-            },
-            {
-                productid: 27,
-                productfiltervalueid: 9,
-            },
-            {
-                productid: 28,
-                productfiltervalueid: 10,
-            },
-            {
-                productid: 29,
-                productfiltervalueid: 11,
-            },
-        ],
+        data: productAttributesSeed,
     });
 
     await prisma.product_batch.createMany({
@@ -2708,7 +3102,7 @@ async function main() {
         }
     }
 
-    // Thêm 4 order_product cho mỗi order: 2 id random 1-8, 2 id random 8-18
+    // Thêm 4 order_product cho mỗi order: 4 id random 1-71, 2 id random 72-87
     function getRandomInt(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -2722,16 +3116,16 @@ async function main() {
         });
         const rentalDate = relatedCourtBooking && relatedCourtBooking.date ? relatedCourtBooking.date : new Date();
 
-        // 2 sản phẩm id 1-8
+        // 4 sản phẩm id 1-71
         const ids1: number[] = [];
-        while (ids1.length < 2) {
-            const id = getRandomInt(1, 8);
+        while (ids1.length < 4) {
+            const id = getRandomInt(1, 71);
             if (!ids1.includes(id)) ids1.push(id);
         }
-        // 2 sản phẩm id 8-18
+        // 2 sản phẩm id 72-87
         const ids2: number[] = [];
         while (ids2.length < 2) {
-            const id = getRandomInt(8, 18);
+            const id = getRandomInt(72, 87);
             if (!ids1.includes(id) && !ids2.includes(id)) ids2.push(id);
         }
         for (const pid of [...ids1, ...ids2]) {
@@ -2740,7 +3134,7 @@ async function main() {
                     orderid: ordersList[i].orderid,
                     productid: pid,
                     quantity: 1 + (i % 3),
-                    returndate: (pid >= 14 && pid <= 18) ? rentalDate : null,
+                    returndate: (pid >= 72 && pid <= 87) ? rentalDate : null,
                 },
             });
         }
@@ -3116,6 +3510,73 @@ async function main() {
             });
         }
     }
+
+    // === PRODUCT BATCH, SUPPLY_PRODUCTS, PURCHASE_ORDER DYNAMIC ===
+    const allProductsFull = await prisma.products.findMany({ select: { productid: true, productname: true } });
+    const productBatchSeed: any[] = [];
+    const supplyProductsSeed: any[] = [];
+    const purchaseOrderSeed: any[] = [];
+    let batchId = 1;
+    let reviveBatchIds: number[] = [];
+    for (let i = 0; i < allProductsFull.length; i++) {
+        const p = allProductsFull[i];
+        let isRevive = p.productname && p.productname.toLowerCase().includes('revive');
+        let isShoe = p.productname && p.productname.toLowerCase().includes('giày cầu lông');
+        let isRacket = p.productname && p.productname.toLowerCase().includes('vợt cầu lông');
+        // Nếu là Revive, tạo 2 batch (đợt 1, đợt 2)
+        if (isRevive) {
+            productBatchSeed.push({ batchname: `Lô ${p.productname} - đợt 1`, stockquantity: 10, expirydate: new Date('2025-11-30') });
+            productBatchSeed.push({ batchname: `Lô ${p.productname} - đợt 2`, stockquantity: 21, expirydate: new Date('2025-12-31') });
+            reviveBatchIds.push(batchId, batchId + 1);
+            // supply_products & purchase_order sẽ dùng batchId cho đợt 1
+            supplyProductsSeed.push({ supplierid: (i % 5) + 1, productid: p.productid, costprice: 10000 + (i % 20) * 5000 });
+            purchaseOrderSeed.push({ productid: p.productid, quantity: 10, employeeid: 3, supplierid: (i % 5) + 1, batchid: batchId });
+            batchId += 2;
+        } else {
+            const qty = (isShoe || isRacket) ? 5 : 10;
+            productBatchSeed.push({ batchname: `Lô ${p.productname}`, stockquantity: qty });
+            supplyProductsSeed.push({ supplierid: (i % 5) + 1, productid: p.productid, costprice: 10000 + (i % 20) * 5000 });
+            purchaseOrderSeed.push({ productid: p.productid, quantity: qty, employeeid: 3, supplierid: (i % 5) + 1, batchid: batchId });
+            batchId++;
+        }
+    }
+    // Xóa các batch cũ nếu có (đúng thứ tự: purchase_order trước, rồi product_batch)
+    await prisma.purchase_order.deleteMany({});
+    await prisma.product_batch.deleteMany({});
+    await prisma.supply_products.deleteMany({});
+    // Seed batch mới
+    await prisma.product_batch.createMany({ data: productBatchSeed });
+    await prisma.supply_products.createMany({ data: supplyProductsSeed });
+    // Lấy lại batch thực tế từ DB để map đúng batchid
+    const allBatches = await prisma.product_batch.findMany({ select: { batchid: true, batchname: true } });
+    // Map productid -> batchid (ưu tiên batch đợt 1 cho Revive)
+    const productIdToBatchId: Record<number, number> = {};
+    for (let i = 0; i < allProductsFull.length; i++) {
+        const p = allProductsFull[i];
+        let isRevive = p.productname && p.productname.toLowerCase().includes('revive');
+        if (isRevive) {
+            // batch đợt 1
+            const batch = allBatches.find(b => typeof b.batchname === 'string' && b.batchname.includes(p.productname as string) && b.batchname.includes('đợt 1'));
+            if (batch) productIdToBatchId[p.productid] = batch.batchid;
+        } else {
+            const batch = allBatches.find(b => typeof b.batchname === 'string' && b.batchname === `Lô ${p.productname}`);
+            if (batch) productIdToBatchId[p.productid] = batch.batchid;
+        }
+    }
+    // Tạo lại purchase_order với batchid thực tế
+    const purchaseOrderSeedFixed = allProductsFull.map((p, i) => {
+        let isShoe = p.productname && p.productname.toLowerCase().includes('giày cầu lông');
+        let isRacket = p.productname && p.productname.toLowerCase().includes('vợt cầu lông');
+        let qty = (isShoe || isRacket) ? 5 : 10;
+        return {
+            productid: p.productid,
+            quantity: qty,
+            employeeid: 3,
+            supplierid: (i % 5) + 1,
+            batchid: productIdToBatchId[p.productid],
+        };
+    });
+    await prisma.purchase_order.createMany({ data: purchaseOrderSeedFixed });
 }
 
 main()
