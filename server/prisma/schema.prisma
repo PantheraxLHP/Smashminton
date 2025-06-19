@@ -193,7 +193,6 @@ model products {
   status             String?
   sellingprice       Decimal?             @db.Decimal
   rentalprice        Decimal?             @db.Decimal
-  costprice          Decimal?             @db.Decimal
   productimgurl      String?
   createdat          DateTime?            @default(now()) @db.Timestamptz(6)
   updatedat          DateTime?            @default(now()) @db.Timestamptz(6)
@@ -329,6 +328,7 @@ model suppliers {
 model supply_products {
   productid  Int
   supplierid Int
+  costprice          Decimal?             @db.Decimal
   suppliers  suppliers @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
   products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
 

@@ -78,13 +78,8 @@ export default function PurchaseOrderPage() {
 
             const order = prev[orderIndex];
 
-            if (data.quantity > order.quantity) {
-                alert('Số lượng giao không hợp lệ!');
-                return prev;
-            }
-
             // Nếu giao đủ
-            if (data.quantity === order.quantity) {
+            if (data.quantity >= order.quantity) {
                 const updatedOrder: PurchaseOrder = {
                     ...order,
                     status: 'Đã giao hàng',

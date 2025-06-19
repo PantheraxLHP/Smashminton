@@ -7,6 +7,8 @@ import { getZonePrices, patchZonePrices } from '@/services/zoneprice.service';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import { toast } from 'sonner';
+import z from 'zod';
+import { priceSchema } from '../price-management.schema';
 
 
 interface ZonePriceProps extends ZonePrices {
@@ -92,7 +94,7 @@ export default function CourtPriceManager() {
                     {editingItem === item ? (
                         <>
                             <input
-                                type="text"
+                                type="number"
                                 value={editedPrice}
                                 onChange={(e) => setEditedPrice(e.target.value)}
                                 className="border border-gray-300 px-2 py-1 w-28"
@@ -101,13 +103,13 @@ export default function CourtPriceManager() {
                             <button
                                 onClick={async () => {
                                     const parsedPrice = Number(editedPrice);
-                                    if (isNaN(parsedPrice) || parsedPrice < 0) {
-                                        alert('Vui lòng nhập giá hợp lệ!');
-                                        return;
-                                    }
 
-                                    if (item.zonepriceid === undefined) {
-                                        alert('Thiếu zonepriceid, không thể cập nhật.');
+                                    try {
+                                        priceSchema.parse(parsedPrice);
+                                    } catch (error) {
+                                        if (error instanceof z.ZodError) {
+                                            toast.error(error.errors[0].message);
+                                        }
                                         return;
                                     }
 

@@ -64,7 +64,7 @@ export default function AccessoryPage() {
         });
         setFilteredData(result);
     }, [filters, data]);
-
+   
     const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
         optionlabel: option,
         optionvalue: option,
@@ -117,7 +117,7 @@ export default function AccessoryPage() {
             category: formData.category,
             sellingprice: Number(formData.sellingprice),
             stock: Number(formData.stock),
-            image: '/default.png',
+            image: formData.image || '/default.png',
             costprice: formData.costprice
         };
 
@@ -130,7 +130,7 @@ export default function AccessoryPage() {
 
         setEditData(null);
         setOpenModal(false);
-    };
+    };   
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">

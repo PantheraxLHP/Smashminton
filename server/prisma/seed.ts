@@ -953,7 +953,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 10000,
                 rentalprice: null,
-                costprice: 10000,
             },
             {
                 productname: 'Túi đựng giày cầu lông',
@@ -962,7 +961,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 150000,
                 rentalprice: null,
-                costprice: 150000,
             },
             {
                 productname: 'Vớ cầu lông Yonex',
@@ -971,7 +969,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 65000,
                 rentalprice: null,
-                costprice: 65000,
             },
             {
                 productname: 'Ống cầu lông Lining AYQN024',
@@ -980,7 +977,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 255000,
                 rentalprice: null,
-                costprice: 255000,
             },
             {
                 productname: 'Ống cầu lông Yonex AS40',
@@ -989,7 +985,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 950000,
                 rentalprice: null,
-                costprice: 950000,
             },
             {
                 productname: 'Cước Yonex pro',
@@ -998,7 +993,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 230000,
                 rentalprice: null,
-                costprice: 23000,
             },
             {
                 productname: 'Nước uống tăng lực Monster bạc',
@@ -1006,7 +1000,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 170000,
                 rentalprice: null,
-                costprice: 170000,
             },
             {
                 productname: 'Thanh protein block chocolate',
@@ -1015,7 +1008,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 120000,
                 rentalprice: null,
-                costprice: 120000,
             },
             {
                 productname: 'Cá viên chiên ứ hự',
@@ -1023,7 +1015,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 50000,
                 rentalprice: null,
-                costprice: 50000,
             },
             {
                 productname: 'Nước uống revive',
@@ -1032,7 +1023,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 15000,
                 rentalprice: null,
-                costprice: 15000,
             },
             {
                 productname: 'Nước uống pocari',
@@ -1041,7 +1031,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 15000,
                 rentalprice: null,
-                costprice: 15000,
             },
             {
                 productname: 'Bánh snack OSea',
@@ -1050,7 +1039,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 100000,
                 rentalprice: null,
-                costprice: 100000,
             },
             {
                 productname: 'Bánh snack bí đỏ',
@@ -1059,7 +1047,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: 100000,
                 rentalprice: null,
-                costprice: 100000,
             },
             {
                 productname: 'Giày cầu lông Yonex 88 Dial Trắng - S41',
@@ -1068,7 +1055,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Yonex 88 Dial Trắng - S42',
@@ -1077,7 +1063,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Yonex Comfort Z3 Trắng - S41',
@@ -1086,7 +1071,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Yonex Comfort Z3 Đen - S42',
@@ -1095,7 +1079,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ - S43',
@@ -1104,7 +1087,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen - S42',
@@ -1113,7 +1095,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Giày cầu lông Mizuno Blade Z Trắng Đen - S43',
@@ -1122,7 +1103,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Yonex Arcsaber 11 Play - 4U (80-84g)',
@@ -1131,7 +1111,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Yonex Arcsaber 88 Play 2024 - 4U (80-84g)',
@@ -1140,7 +1119,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Yonex Nanoflare StarBucks Xanh - 3U (85-89g)',
@@ -1149,7 +1127,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 3U (85-89g)',
@@ -1158,7 +1135,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 4U (80-84g)',
@@ -1167,7 +1143,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Trắng - 5U (75-79g)',
@@ -1176,7 +1151,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 3U (85-89g)',
@@ -1185,7 +1159,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
@@ -1194,7 +1167,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
             {
                 productname: 'Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
@@ -1203,7 +1175,6 @@ async function main() {
                 status: 'Available',
                 sellingprice: null,
                 rentalprice: 50000,
-                costprice: 40000,
             },
         ],
     });
@@ -1250,35 +1221,35 @@ async function main() {
 
     await prisma.supply_products.createMany({
         data: [
-            { supplierid: 1, productid: 1 },
-            { supplierid: 2, productid: 2 },
-            { supplierid: 3, productid: 3 },
-            { supplierid: 4, productid: 4 },
-            { supplierid: 5, productid: 5 },
-            { supplierid: 1, productid: 6 },
-            { supplierid: 2, productid: 7 },
-            { supplierid: 3, productid: 8 },
-            { supplierid: 4, productid: 9 },
-            { supplierid: 5, productid: 10 },
-            { supplierid: 1, productid: 11 },
-            { supplierid: 2, productid: 12 },
-            { supplierid: 3, productid: 13 },
-            { supplierid: 4, productid: 14 },
-            { supplierid: 5, productid: 15 },
-            { supplierid: 1, productid: 16 },
-            { supplierid: 2, productid: 17 },
-            { supplierid: 3, productid: 18 },
-            { supplierid: 4, productid: 19 },
-            { supplierid: 5, productid: 20 },
-            { supplierid: 1, productid: 21 },
-            { supplierid: 2, productid: 22 },
-            { supplierid: 3, productid: 23 },
-            { supplierid: 4, productid: 24 },
-            { supplierid: 5, productid: 25 },
-            { supplierid: 1, productid: 26 },
-            { supplierid: 2, productid: 27 },
-            { supplierid: 3, productid: 28 },
-            { supplierid: 4, productid: 29 }
+            { supplierid: 1, productid: 1, costprice: 10000 },
+            { supplierid: 2, productid: 2, costprice: 150000 },
+            { supplierid: 3, productid: 3, costprice: 65000 },
+            { supplierid: 4, productid: 4, costprice: 255000 },
+            { supplierid: 5, productid: 5, costprice: 950000 },
+            { supplierid: 1, productid: 6, costprice: 23000 },
+            { supplierid: 2, productid: 7, costprice: 170000 },
+            { supplierid: 3, productid: 8, costprice: 120000 },
+            { supplierid: 4, productid: 9, costprice: 50000 },
+            { supplierid: 5, productid: 10, costprice: 15000 },
+            { supplierid: 1, productid: 11, costprice: 15000 },
+            { supplierid: 2, productid: 12, costprice: 100000 },
+            { supplierid: 3, productid: 13, costprice: 100000 },
+            { supplierid: 4, productid: 14, costprice: 40000 },
+            { supplierid: 5, productid: 15, costprice: 40000 },
+            { supplierid: 1, productid: 16, costprice: 40000 },
+            { supplierid: 2, productid: 17, costprice: 40000 },
+            { supplierid: 3, productid: 18, costprice: 40000 },
+            { supplierid: 4, productid: 19, costprice: 40000 },
+            { supplierid: 5, productid: 20, costprice: 40000 },
+            { supplierid: 1, productid: 21, costprice: 40000 },
+            { supplierid: 2, productid: 22, costprice: 40000 },
+            { supplierid: 3, productid: 23, costprice: 40000 },
+            { supplierid: 4, productid: 24, costprice: 40000 },
+            { supplierid: 5, productid: 25, costprice: 40000 },
+            { supplierid: 1, productid: 26, costprice: 40000 },
+            { supplierid: 2, productid: 27, costprice: 40000 },
+            { supplierid: 3, productid: 28, costprice: 40000 },
+            { supplierid: 4, productid: 29, costprice: 40000 }
         ],
     });
 

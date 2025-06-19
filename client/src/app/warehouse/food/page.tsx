@@ -128,7 +128,7 @@ export default function FoodAndBeveragePage() {
     const handleSubmit = (formData: FoodItem) => {
         const newFood: FoodItem = {
             ...formData,
-            image: '/default.png',
+            image: formData.image || '/default.png',
         };
 
         if (editData) {

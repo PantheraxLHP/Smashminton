@@ -7,6 +7,8 @@ import { getZones } from "@/services/zones.service";
 import { postCourts } from "@/services/courts.service";
 import { Zone } from "./page";
 import { toast } from "sonner";
+import { courtSchema } from "../warehouse.schema";
+import { z } from "zod";
 
 interface CourtModalProps {
     open: boolean;
@@ -26,7 +28,7 @@ export default function AddCourtModal({
     const [courtPreview, setCourtPreview] = useState<string>("");
     const [zones, setZones] = useState<Zone[]>([]);
     const [loading, setLoading] = useState(false);
-
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [formData, setFormData] = useState<Court>({
         courtname: "",
         image: "",
@@ -83,48 +85,68 @@ export default function AddCourtModal({
     };
 
     async function handleSubmit() {
-        if (!formData.courtname || !formData.zoneid) {
-            toast.error("Vui lòng nhập tên sân và chọn Zone.");
-            return;
-        }
-
-        setLoading(true);
-        const submitData = new FormData();
-        submitData.append("courtname", formData.courtname);
-        submitData.append("zoneid", String(formData.zoneid));
-        submitData.append("statuscourt", "Active");
-        submitData.append("avgrating", "5");
-        const today = new Date().toISOString().split("T")[0];
-        submitData.append("timecalculateavg", today);
-
-
-        if (courtAvatar) {
-            submitData.append("image", courtAvatar);
-        }
-
+        setErrors({});
         try {
-            const response = await postCourts(submitData);
-            if (response.ok) {
-                toast.success("Thêm sân thành công!");
-                onSubmit?.({
-                    ...formData,
-                    image: response.data?.imageUrl || "",
-                    zonename: zones.find(z => z.zoneid === formData.zoneid)?.zonename ?? '',
-                });
-                onClose();
-                onSuccess?.(); 
-            } else {
-                toast.error(response.message || "Thêm sân thất bại.");
+            courtSchema.parse({
+                ...formData,
+            });
+            if (!formData.courtname || !formData.zoneid) {
+                toast.error("Vui lòng nhập tên sân và chọn Zone.");
+                return;
+            }
+
+            setLoading(true);
+            const submitData = new FormData();
+            submitData.append("courtname", formData.courtname);
+            submitData.append("zoneid", String(formData.zoneid));
+            submitData.append("statuscourt", "Active");
+            submitData.append("avgrating", "5");
+            const today = new Date().toISOString().split("T")[0];
+            submitData.append("timecalculateavg", today);
+
+
+            if (courtAvatar) {
+                submitData.append("image", courtAvatar);
+            }
+
+            try {
+                const response = await postCourts(submitData);
+                if (response.ok) {
+                    toast.success("Thêm sân thành công!");
+                    onSubmit?.({
+                        ...formData,
+                        image: response.data?.imageUrl || "",
+                        zonename: zones.find(z => z.zoneid === formData.zoneid)?.zonename ?? '',
+                    });
+                    setErrors({});
+                    onClose();
+                    onSuccess?.();
+                } else {
+                    toast.error(response.message || "Thêm sân thất bại.");
+                }
+            } catch (error) {
+                toast.error("Đã xảy ra lỗi khi thêm sân.");
+                console.error(error);
+            }
+            finally {
+                setLoading(false);
             }
         } catch (error) {
-            toast.error("Đã xảy ra lỗi khi thêm sân.");
-            console.error(error);
-        }
-        finally {
-            setLoading(false);
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
         }
     }
 
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -180,6 +202,7 @@ export default function AddCourtModal({
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.courtname && <p className="text-red-500 text-sm">{errors.courtname}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Zone chứa sân</label>

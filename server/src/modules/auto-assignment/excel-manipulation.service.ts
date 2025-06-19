@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
+import { AutoAssignmentRule, SingleRowRule } from './dto/auto-assignment-rule.dto';
 
 @Injectable()
 export class ExcelSearcher {
@@ -216,6 +217,8 @@ export class ExcelManipulationService {
             const worksheet = workbook.getWorksheet(sheetName);
             if (!worksheet) {
                 console.log(`❌ Worksheet "${sheetName}" not found!`);
+                console.log('Available worksheets:');
+                workbook.worksheets.forEach(ws => console.log(`   - ${ws.name}`));
                 return;
             }
 
@@ -372,6 +375,8 @@ export class ExcelManipulationService {
 
             if (!worksheet) {
                 console.log(`❌ Worksheet "${sheetName}" not found!`);
+                console.log('Available worksheets:');
+                workbook.worksheets.forEach(ws => console.log(`   - ${ws.name}`));
                 return;
             }
 
@@ -383,16 +388,29 @@ export class ExcelManipulationService {
                 switch ((data.type).toLowerCase()) {
                     case 'shift':
                         ruleTable = searcher.findCellsContaining('RuleTable AssignableShifts', sheetName);
+                        data.cols.push("");
+                        data.cols.push("ShiftRule");
                         break;
                     case 'enrollmentshift':
                         ruleTable = searcher.findCellsContaining('RuleTable AssignableEnrollmentShifts', sheetName);
+                        data.cols.push("");
+                        data.cols.push("EnrollmentShiftRule");
                         break;
                     case 'employee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
+                        data.cols.splice(2, 0, ["-", "-"]);
+                        data.cols.push("");
+                        data.cols.push("EmployeeRule");
                         break;
                     case 'enrollmentemployee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
+                        data.cols.splice(2, 0, ["-", "-"]);
+                        data.cols.push("");
+                        data.cols.push("EnrollmentEmployeeRule");
                         break;
+                    default:
+                        console.log(`❌ Unknown rule type "${data.type}"`);
+                        continue;
                 }
 
                 if (ruleTable.length === 0) {
@@ -435,6 +453,176 @@ export class ExcelManipulationService {
 
         } catch (error) {
             console.error('❌ Insert operation failed:', error instanceof Error ? error.message : String(error));
+            throw error;
+        }
+    }
+
+    getRuleType = (ruleTableName: string): string => {
+        switch (ruleTableName.toLowerCase()) {
+            case 'ruletable assignableshifts':
+                return 'shift';
+            case 'ruletable assignableenrollmentshifts':
+                return 'enrollmentShift';
+            case 'ruletable eligibleemployees':
+                return 'employee';
+            case 'ruletable eligibleenrollmentemployees':
+                return 'enrollmentEmployee';
+            default:
+                return 'unknownType';
+        }
+    }
+
+    async getRuleTableData(sheetName: string, filePath: string): Promise<AutoAssignmentRule | null> {
+        try {
+            console.log(`\n📊 Get Rule Table Data - Sheet: ${sheetName}\n`);
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.readFile(filePath);
+            const searcher = new ExcelSearcher(workbook);
+            const worksheet = workbook.getWorksheet(sheetName);
+
+            //Search for any rule table containing exclude Sort...
+            const ruleTables = searcher.findCellsByPattern(new RegExp('RuleTable (?!Sort)\\w+', 'i'), sheetName);
+
+            if (ruleTables.length === 0) {
+                console.log(`❌ No RuleTable declarations found.`);
+                console.log('Available worksheets:');
+                workbook.worksheets.forEach(ws => console.log(`   - ${ws.name}`));
+                return null;
+            }
+
+            console.log(`✅ Found ${ruleTables.length} RuleTable(s):`);
+            for (const result of ruleTables) {
+                console.log(`   "${result.value}" at ${result.address} - Worksheet: ${result.worksheet}`);
+            }
+
+            if (!worksheet) {
+                console.log(`❌ Worksheet "${sheetName}" not found!`);
+                console.log('Available worksheets:');
+                workbook.worksheets.forEach(ws => console.log(`   - ${ws.name}`));
+                return null;
+            }
+
+            const ruleTableData: AutoAssignmentRule = {
+                data: []
+            };
+
+            for (const rule of ruleTables) {
+                const rowMatch = rule.address.match(/\d+/);
+                const ruleTableRow = rowMatch ? parseInt(rowMatch[0]) : 0;
+                const metadataRow = worksheet.getRow(ruleTableRow + 4);
+                const conditions: string[] = [];
+                const actions: string[] = [];
+                const subObj: string[] = [];
+
+                if (metadataRow) {
+                    metadataRow.eachCell((cell, colNumber) => {
+                        const cellValue = cell.value?.toString().trim() || '';
+                        if (cellValue.startsWith('sub:')) {
+                            subObj.push(cellValue.slice(4).trim());
+                        } else if (cellValue.startsWith('condition:')) {
+                            conditions.push(cellValue.slice(10).trim());
+                        } else if (cellValue.startsWith('action:')) {
+                            actions.push(cellValue.slice(7).trim());
+                        }
+                    });
+                }
+
+                const boundaries = {
+                    subObj: 2 + subObj.length,
+                    conditions: 2 + subObj.length + conditions.length,
+                    actions: 2 + subObj.length + conditions.length + actions.length
+                }
+
+                const startRowRead = ruleTableRow + 5;
+
+                console.log(`🎯 Processing rule table at row ${ruleTableRow}`);
+                console.log(`   Starting data extraction from row ${startRowRead}`);
+
+                let endRowRead = startRowRead;
+                let foundBlankRow = false;
+                while (endRowRead <= worksheet.rowCount && !foundBlankRow) {
+                    const row = worksheet.getRow(endRowRead);
+                    let hasData = false;
+
+                    row.eachCell({ includeEmpty: false }, (cell) => {
+                        if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
+                            hasData = true;
+                            return;
+                        }
+                    });
+
+                    if (!hasData) {
+                        foundBlankRow = true;
+                        console.log(`   Found blank row at ${endRowRead}`);
+                    } else {
+                        endRowRead++;
+                    }
+                }
+
+                const rowsToRead = foundBlankRow ? endRowRead - startRowRead : worksheet.rowCount - startRowRead;
+
+                if (rowsToRead > 0) {
+                    console.log(`   Reading ${rowsToRead} rows (${startRowRead} to ${endRowRead - 1})`);
+
+                    for (let i = startRowRead; i < endRowRead; i++) {
+                        const row = worksheet.getRow(i);
+                        const rowData: SingleRowRule = {
+                            ruleName: '',
+                            ruleType: this.getRuleType(rule.value?.toString().trim() || ''),
+                            ruleDescription: '',
+                            subObj: [],
+                            conditions: [],
+                            actions: []
+                        };
+
+                        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                            const cellValue = cell.value?.toString().trim() || '';
+
+                            if (colNumber === 1) {
+                                rowData.ruleDescription = cellValue;
+                            } else if (colNumber === 2) {
+                                rowData.ruleName = cellValue;
+                            } else if (colNumber > 2 && colNumber <= boundaries.subObj) {
+                                const subObjIndex = colNumber - 3;
+                                rowData.subObj.push({
+                                    subObjName: subObj[subObjIndex] || '',
+                                    subObjValue: cellValue
+                                });
+                            } else if (colNumber > boundaries.subObj && colNumber <= boundaries.conditions) {
+                                const conditionIndex = colNumber - (boundaries.subObj + 1);
+                                rowData.conditions.push({
+                                    conditionName: conditions[conditionIndex] || '',
+                                    conditionValue: cellValue
+                                });
+                            } else if (colNumber > boundaries.conditions && colNumber <= boundaries.actions) {
+                                const actionIndex = colNumber - (boundaries.conditions + 1);
+                                rowData.actions.push({
+                                    actionName: actions[actionIndex] || '',
+                                    actionValue: cellValue
+                                });
+
+                            } else {
+                                return; // Skip any additional columns
+                            }
+                        });
+
+                        ruleTableData.data.push(rowData);
+                    }
+
+                    console.log(`   Extracted ${ruleTableData.data.length} rows of data`);
+                }
+            }
+
+            if (ruleTableData.data.length === 0) {
+                console.log('ℹ️ No data rows found in the rule tables');
+                return null;
+            } else {
+                console.log('✅ SUCCESS: Rule table data has been extracted!');
+                console.log(`\n📊 Total Rule Table Data extracted: ${ruleTableData.data.length} rows`);
+                return ruleTableData;
+            }
+        } catch (error) {
+            console.error('❌ Get Rule Table Data operation failed:', error instanceof Error ? error.message : String(error));
             throw error;
         }
     }

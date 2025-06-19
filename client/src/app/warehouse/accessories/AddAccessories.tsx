@@ -14,8 +14,10 @@ import { cn } from "@/lib/utils";
 import React, { useRef, useEffect, useState } from 'react';
 import { Accessory } from './page';
 import { FaPen } from "react-icons/fa";
+import { productSchema } from "../warehouse.schema";
+import { z } from "zod";
 
-const predefinedCategories = ["Quả cầu lông", "Quấn cán", "Phụ kiện khác"];  
+const predefinedCategories = ["Quả cầu lông", "Quấn cán", "Phụ kiện khác"];
 
 interface AccessoryModalProps {
     open: boolean;
@@ -33,6 +35,7 @@ export default function AccessoryModal({
     const [accessoryAvatar, setAccessoryAvatar] = useState<File | null>(null);
     const [accessoryPreview, setAccessoryPreview] = useState<string>("");
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const modalRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<Accessory>({
         name: '',
@@ -40,7 +43,7 @@ export default function AccessoryModal({
         category: '',
         stock: 0,
         costprice: 0,
-        image: '',
+        image: '/default.png',
     });
 
     useEffect(() => {
@@ -57,7 +60,7 @@ export default function AccessoryModal({
                 category: '',
                 stock: 0,
                 costprice: 0,
-                image: '',
+                image: '/default.png',
             });
         }
     }, [editData, open]);
@@ -68,10 +71,8 @@ export default function AccessoryModal({
         function handleClickOutside(event: MouseEvent) {
             const target = event.target as Node;
             if (
-                modalRef.current &&
-                !modalRef.current.contains(target) &&
-                popoverRef.current &&
-                !popoverRef.current.contains(target)
+                modalRef.current && !modalRef.current.contains(target) &&
+                !popoverRef.current?.contains(target)
             ) {
                 onClose();
             }
@@ -88,18 +89,41 @@ export default function AccessoryModal({
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === "sellingprice") {
+            const numericValue = Number(value);
+            setFormData(prev => ({ ...prev, [name]: isNaN(numericValue) ? 0 : numericValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     }
 
+
     function handleSubmit() {
-        if (onSubmit) {
-            onSubmit({
+        try {
+            productSchema.parse({
                 ...formData,
-                sellingprice: formData.sellingprice,
             });
+
+            if (onSubmit) {
+                onSubmit({
+                    ...formData,
+                    sellingprice: formData.sellingprice,
+                    image: accessoryAvatar ? URL.createObjectURL(accessoryAvatar) : formData.image,
+                });
+            }
+            setErrors({});
+            onClose();
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
         }
-        onClose();
     }
+
 
     const handleAccessoryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -108,6 +132,12 @@ export default function AccessoryModal({
             setAccessoryPreview(URL.createObjectURL(file));
         }
     };
+
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -130,7 +160,7 @@ export default function AccessoryModal({
                                 {accessoryPreview ? (
                                     <img
                                         src={accessoryPreview}
-                                        alt="food Preview"
+                                        alt="/default.png"
                                         className="w-24 h-24 rounded-full object-cover border"
                                     />
                                 ) : (
@@ -138,7 +168,7 @@ export default function AccessoryModal({
                                         📷
                                     </div>
                                 )}
-                                <label htmlFor="food-upload-file">
+                                <label htmlFor="accessory-upload-file">
                                     <div className="absolute bottom-0 right-0 p-1 bg-gray-200 rounded-full border hover:bg-gray-300 cursor-pointer">
                                         <FaPen size={14} />
                                     </div>
@@ -148,7 +178,7 @@ export default function AccessoryModal({
                                     accept="image/*"
                                     onChange={handleAccessoryImageChange}
                                     className="hidden"
-                                    id="food-upload-file"
+                                    id="accessory-upload-file"
                                 />
                             </div>
                             <p className="text-sm text-gray-500">Ảnh food</p>
@@ -162,26 +192,18 @@ export default function AccessoryModal({
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-sm mb-1">Giá nhập</label>
-                                <input
-                                    name="costprice"
-                                    type="input"
-                                    value={formData.costprice}
-                                    onChange={handleChange}
-                                    className="w-full border rounded px-3 py-2"
-                                />
+                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Giá bán</label>
                                 <input
                                     name="sellingprice"
-                                    type="input"
+                                    type="number"
                                     value={formData.sellingprice}
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.sellingprice && <p className="text-red-500 text-sm">{errors.sellingprice}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Loại</label>

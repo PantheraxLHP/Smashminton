@@ -9,18 +9,14 @@ import React, { useRef, useEffect, useState } from "react";
 import { Service } from "./page";
 import { getRentalFilters } from "@/services/products.service";
 import { FaPen } from "react-icons/fa";
+import { serviceSchema } from "../price-management.schema";
+import { z } from "zod";
 
 interface ServiceModalProps {
     open: boolean;
     onClose: () => void;
     onSubmit?: (data: Service) => void;
     editData?: Service | null;
-}
-
-function normalizeTimeString(time: string) {
-    const [hour, minute] = time.split(":").map(Number);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(hour)}:${pad(minute)}`;
 }
 
 function formatPrice(price: string): string {
@@ -38,9 +34,10 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     const [servicePreview, setServicePreview] = useState<string>("");
     const [filterData, setFilterData] = useState<any[]>([]);
     const [availableValues, setAvailableValues] = useState<string[]>([]);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [formData, setFormData] = useState<Service>({
         productname: "",
-        price: "",
+        price: 0,
         servicetype: "",
         image: "",
         quantity: 0,
@@ -53,15 +50,15 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         if (editData) {
             setFormData({
                 ...editData,
-                price: editData.price.replace(/[^\d]/g, ""),
-                image: editData.image || "",
+                price: editData.price,
+                image: editData.image || '/default.png',
             });
         } else {
             setFormData({
                 productname: "",
-                price: "",
+                price: 0,
                 servicetype: "",
-                image: "",
+                image: '/default.png',
                 quantity: 0,
             });
             setShoeSize("");
@@ -127,39 +124,73 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [open, onClose]);
-    
 
-    function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    }
+        if (name === 'price') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value ? parseFloat(value) : 0,
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+
 
     function handleSubmit() {
-        if (onSubmit) {
-            const extendedData: any = {
+        try {
+            serviceSchema.parse({
                 ...formData,
-                price: formatPrice(formData.price),
-                image: formData.image || "",
-            };
+                shoeSize: shoeSize || undefined,
+                racketWeight: racketWeight || undefined,
+            });
 
-            if (formData.servicetype === "Thuê giày") {
-                extendedData.size = shoeSize;
-            } else if (formData.servicetype === "Thuê vợt") {
-                extendedData.weight = racketWeight;
+            if (onSubmit) {
+                const extendedData: any = {
+                    ...formData,
+                    price: formData.price,
+                    image: serviceAvatar ? URL.createObjectURL(serviceAvatar) : formData.image,
+                };
+
+                if (formData.servicetype === "Thuê giày") {
+                    extendedData.size = shoeSize;
+                } else if (formData.servicetype === "Thuê vợt") {
+                    extendedData.weight = racketWeight;
+                }
+
+                onSubmit(extendedData)
             }
-
-            onSubmit(extendedData);
+            setServiceAvatar(null);
+            setServicePreview("");
+            onClose();
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
         }
-        onClose();
     }
-    
+
     const handleServiceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (file) {
-                setServiceAvatar(file);
-                setServicePreview(URL.createObjectURL(file));
-            }
-        };
+        const file = e.target.files?.[0];
+        if (file) {
+            setServiceAvatar(file);
+            setServicePreview(URL.createObjectURL(file));
+        }
+    };
+
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
+
 
     if (!open) return null;
 
@@ -215,16 +246,18 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.productname && <p className="text-red-500 text-sm">{errors.productname}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Giá thuê</label>
                                 <input
                                     name="price"
-                                    type="text"
+                                    type="number"
                                     value={formData.price}
                                     onChange={handleChange}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
@@ -291,8 +324,8 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                                                 )}
                                                             />
                                                             {item}
-                                                        </CommandItem>                                                   
-                                                    
+                                                        </CommandItem>
+
                                                     ))}
                                                 </CommandGroup>
                                             </Command>

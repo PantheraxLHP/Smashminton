@@ -52,4 +52,32 @@ export class ProductTypesController {
       : undefined;
     return this.productTypesService.findAllProductsFromProductType(+id, filterValues, pageNumber, pageSizeNumber);
   }
+
+  @Get('/:id/products/v2')
+  @ApiQuery({
+    name: 'productfiltervalue',
+    required: false,
+    type: String,
+    description: 'Comma-separated list of productfiltervalue IDs',
+  })
+  @ApiOperation({ summary: 'Get products from product type + filtervalueid, value' })
+  findAllProductsFromProductType_V2(@Param('id') id: number,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '12',
+    @Query('productfiltervalue') productFilterValueQuery?: string) {
+    const pageNumber = parseInt(page) || 1;
+    const pageSizeNumber = parseInt(pageSize) || 12;
+    // Validation
+    if (pageNumber < 1) {
+      throw new Error('Page number must be greater than 0');
+    }
+    if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+      throw new Error('Page size must be between 1 and 100');
+    }
+
+    const filterValues: number[] | undefined = productFilterValueQuery
+      ? productFilterValueQuery.split(',').map((v) => +v)
+      : undefined;
+    return this.productTypesService.findAllProductsFromProductType_V2(+id, filterValues, pageNumber, pageSizeNumber);
+  }
 }

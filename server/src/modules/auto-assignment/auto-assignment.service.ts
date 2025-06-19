@@ -454,4 +454,18 @@ export class AutoAssignmentService {
             insertResult
         };
     }
+
+    async getAutoAssignmentSettings() {
+        const basePath = "droolsServer/src/main/resources/dtables/";
+        const fileName = "drools_decisiontable.drl.xlsx";
+        const filePath = path.join(__dirname, "../../../../../", basePath, fileName);
+
+        const ruleTableData = await this.excelManipulationService.getRuleTableData("DroolsRules", filePath);
+
+        if (!ruleTableData) {
+            throw new Error("No auto assignment settings found.");
+        }
+
+        return ruleTableData;
+    }
 }
