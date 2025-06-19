@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSupplierDto } from './dto/create-supplier.dto';
+import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductsService } from '../products/products.service';
@@ -8,13 +8,8 @@ import { ProductsService } from '../products/products.service';
 export class SuppliersService {
   constructor(private prisma: PrismaService) { }
 
-  create(createSupplierDto: CreateSupplierDto) {
-    return 'This action adds a new supplier';
-  }
-
-  async createSupplierWithProducts(dto: CreateSupplierDto, productid: number, costprice: number) {
-    // Tạo supplier trước
-    const newSupplier = await this.prisma.suppliers.create({
+  async createSupplierWithProducts(dto: CreateSupplierWithProductsDto) {
+    const supplier = await this.prisma.suppliers.create({
       data: {
         suppliername: dto.suppliername,
         contactname: dto.contactname,
@@ -24,17 +19,22 @@ export class SuppliersService {
       },
     });
 
-    await this.prisma.supply_products.create({
-      data: {
-        supplierid: newSupplier.supplierid,
-        productid: productid,
-        costprice: costprice,
-      },
-    });
+    if (dto.supplies && dto.supplies.length > 0) {
+      const supplyData = dto.supplies.map(item => ({
+        supplierid: supplier.supplierid,
+        productid: item.productid,
+        costprice: item.costprice,
+      }));
+
+      await this.prisma.supply_products.createMany({
+        data: supplyData,
+        skipDuplicates: true,
+      });
+    }
 
     return {
-      message: 'Tạo nhà cung cấp và danh sách sản phẩm thành công',
-      supplier: newSupplier,
+      message: 'Tạo nhà cung cấp thành công',
+      supplier,
     };
   }
 

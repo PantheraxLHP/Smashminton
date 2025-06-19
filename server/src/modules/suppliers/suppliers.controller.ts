@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
-import { CreateSupplierDto } from './dto/create-supplier.dto';
+import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 
@@ -10,17 +10,8 @@ export class SuppliersController {
 
   @Post('new-supplier')
   @ApiOperation({ summary: 'Create new supplier with productid + costprice' })
-  create(
-    @Body() dto: CreateSupplierDto,
-    @Query('productid') productid: string,
-    @Query('costprice') costprice: string) {
-    const _productid = +productid;
-    const _costprice = +costprice;
-
-    if (isNaN(_productid) || isNaN(_costprice)) {
-      throw new BadRequestException('productid and costprice must be valid numbers');
-    }
-    return this.suppliersService.createSupplierWithProducts(dto, _productid, _costprice);
+  create(@Body() dto: CreateSupplierWithProductsDto) {
+    return this.suppliersService.createSupplierWithProducts(dto);
   }
 
   @Get('all-suppliers')
