@@ -29,6 +29,7 @@ import { RewardRecordsModule } from './modules/reward_records/reward_records.mod
 import { ProductBatchModule } from './modules/product_batch/product_batch.module';
 import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
     imports: [
@@ -57,10 +58,10 @@ import { AdminModule } from './modules/admin/admin.module';
         ZonePricesModule,
         NodemailerModule,
         BankDetailModule,
-        RewardRecordsModule,
-        ProductBatchModule,
+        RewardRecordsModule, ProductBatchModule,
         AutoAssignmentModule,
         AdminModule,
+        MqttModule,
     ],
     controllers: [AppController],
     providers: [AppService],
