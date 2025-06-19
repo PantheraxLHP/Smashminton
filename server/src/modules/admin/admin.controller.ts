@@ -99,7 +99,7 @@ export class AdminController {
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2024 })
   @ApiResponse({ status: 200, description: 'Sold ratio by filter value' })
-  @ApiResponse({ status: 400, description: 'Invalid year format' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
   @Get('prediction/sold-ratio-by-filter-value')
   async getSoldRatioByFilterValue(
     @Query('type') type: string,
@@ -107,6 +107,19 @@ export class AdminController {
     @Query('quarter') quarter?: number,
     @Query('year') year?: number,
   ) {
+    if (type !== 'month' && type !== 'quarter') {
+      throw new BadRequestException("Type must be either 'month' or 'quarter'");
+    }
+    if (type === 'month') {
+      if (!month || isNaN(Number(month)) || Number(month) < 1 || Number(month) > 12) {
+        throw new BadRequestException('If type is month, month must be provided and in range 1-12');
+      }
+    }
+    if (type === 'quarter') {
+      if (!quarter || isNaN(Number(quarter)) || Number(quarter) < 1 || Number(quarter) > 4) {
+        throw new BadRequestException('If type is quarter, quarter must be provided and in range 1-4');
+      }
+    }
     return this.predictionService.getSoldRatioByFilterValue({
       type: type as 'month' | 'quarter',
       month: month ? +month : undefined,
@@ -120,16 +133,29 @@ export class AdminController {
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
   @ApiResponse({ status: 200, description: 'Purchased ratio by filter value' })
-  @ApiResponse({ status: 400, description: 'Invalid year format' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
 
   @Get('prediction/purchased-ratio-by-filter-value')
   async getPurchasedRatioByFilterValue(
-    @Query('type') type: 'month' | 'quarter' | 'year',
+    @Query('type') type: 'month' | 'quarter',
     @Query('month') month?: string,
     @Query('quarter') quarter?: string,
     @Query('year') year?: string,
   ) {
     if (!year) throw new BadRequestException('Missing required parameter: year');
+    if (type !== 'month' && type !== 'quarter') {
+      throw new BadRequestException("Type must be either 'month' or 'quarter'");
+    }
+    if (type === 'month') {
+      if (!month || isNaN(Number(month)) || Number(month) < 1 || Number(month) > 12) {
+        throw new BadRequestException('If type is month, month must be provided and in range 1-12');
+      }
+    }
+    if (type === 'quarter') {
+      if (!quarter || isNaN(Number(quarter)) || Number(quarter) < 1 || Number(quarter) > 4) {
+        throw new BadRequestException('If type is quarter, quarter must be provided and in range 1-4');
+      }
+    }
     return this.predictionService.getPurchasedRatioByFilterValue({
       type,
       month: month ? +month : undefined,
@@ -143,15 +169,28 @@ export class AdminController {
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
   @ApiResponse({ status: 200, description: 'Sales and purchase by filter value' })
-  @ApiResponse({ status: 400, description: 'Invalid year format' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
   @Get('prediction/sales-purchase-by-filter-value')
   async getSalesAndPurchaseByFilterValue(
-    @Query('type') type: 'month' | 'quarter' | 'year',
+    @Query('type') type: 'month' | 'quarter',
     @Query('month') month?: string,
     @Query('quarter') quarter?: string,
     @Query('year') year?: string,
   ) {
     if (!year) throw new BadRequestException('Missing required parameter: year');
+    if (type !== 'month' && type !== 'quarter') {
+      throw new BadRequestException("Type must be either 'month' or 'quarter'");
+    }
+    if (type === 'month') {
+      if (!month || isNaN(Number(month)) || Number(month) < 1 || Number(month) > 12) {
+        throw new BadRequestException('If type is month, month must be provided and in range 1-12');
+      }
+    }
+    if (type === 'quarter') {
+      if (!quarter || isNaN(Number(quarter)) || Number(quarter) < 1 || Number(quarter) > 4) {
+        throw new BadRequestException('If type is quarter, quarter must be provided and in range 1-4');
+      }
+    }
     return this.predictionService.getSalesAndPurchaseByFilterValue({
       type,
       month: month ? +month : undefined,

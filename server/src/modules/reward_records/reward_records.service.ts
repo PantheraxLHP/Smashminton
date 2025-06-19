@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateRewardRecordDto } from './dto/create-reward_record.dto';
 import { UpdateRewardRecordDto } from './dto/update-reward_record.dto';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginatedResult } from 'src/interfaces/pagination.interface';
 
