@@ -1,14 +1,15 @@
-import React from "react";
+'use client';
+
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    LabelList,
-} from "recharts";
+    ChartConfig,
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
+} from '@/components/ui/chart';
 
 interface DoubleBarChartProps {
     data: {
@@ -18,22 +19,47 @@ interface DoubleBarChartProps {
     }[];
 }
 
+const chartConfig: ChartConfig = {
+    sales: {
+        label: 'Bán ra',
+        color: '#4f46e5',
+    },
+    purchase: {
+        label: 'Mua vào',
+        color: '#10b981',
+    },
+};
+
 const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data }) => {
+    const safeData = data.map((item, index) => ({
+        ...item,
+        name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 1}`,
+    }));
+
     return (
-        <div className="border rounded p-4 shadow bg-white">
-            <h2 className="text-lg font-semibold mb-4">So sánh số lượng mua vào và bán ra</h2>
-            <div className="w-1/2 mx-auto" style={{ height: 250 }}>
-                <ResponsiveContainer width="100%" height="100%">
+        <div className="flex h-full flex-col">
+            <h2 className="mb-4 text-lg font-semibold">So sánh số lượng mua vào và bán ra</h2>
+            <div className="flex-1 overflow-hidden">
+                <ChartContainer config={chartConfig} className="h-full min-w-full">
                     <BarChart
-                        data={data}
+                        data={safeData}
                         margin={{ top: 30, right: 30, left: 0, bottom: 5 }}
                         barCategoryGap="80%"
                         barGap={30}
                     >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis dataKey="name" />
                         <YAxis />
-                        <Tooltip />
-                        <Legend />
+                        <ChartTooltip
+                            content={
+                                <ChartTooltipContent
+                                    hideIndicator
+                                    labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+                                    itemStyle={{ color: '#6B7280' }}
+                                />
+                            }
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
                         <Bar dataKey="sales" name="Bán ra" fill="#4f46e5" barSize={40}>
                             <LabelList dataKey="sales" position="top" />
                         </Bar>
@@ -41,7 +67,7 @@ const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data }) => {
                             <LabelList dataKey="purchase" position="top" />
                         </Bar>
                     </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
             </div>
         </div>
     );

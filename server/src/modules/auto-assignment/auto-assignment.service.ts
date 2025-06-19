@@ -33,7 +33,7 @@ export class AutoAssignmentService {
             }
 
             console.log("Part-time shifts assigned successfully");
-            
+
             const responseData = await response.json();
             return {
                 message: "Auto assignment for part-time shifts completed successfully.",
@@ -467,5 +467,46 @@ export class AutoAssignmentService {
         }
 
         return ruleTableData;
+    }
+
+    async updateNextWeekEnrollment() {
+        // Xác định tuần sau dựa vào ngày hiện tại
+        const today = new Date();
+        const currentDay = today.getDay();
+        const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
+        const nextWeekStart = new Date(today);
+        nextWeekStart.setDate(today.getDate() + dayToMonday);
+        nextWeekStart.setUTCHours(0, 0, 0, 0);
+        const nextWeekEnd = new Date(nextWeekStart);
+        nextWeekEnd.setDate(nextWeekStart.getDate() + 7);
+        nextWeekEnd.setUTCHours(0, 0, 0, 0);
+
+        // Lấy tất cả shift_assignment tuần sau
+        const assignments = await this.prisma.shift_assignment.findMany({
+            where: {
+                shiftdate: { gte: nextWeekStart, lt: nextWeekEnd }
+            },
+            select: { employeeid: true, shiftid: true, shiftdate: true }
+        });
+
+        if (assignments.length === 0) {
+            return { updated: 0, message: 'No shift_assignment found for next week.' };
+        }
+        let totalUpdated = 0;
+        for (const a of assignments) {
+            const updated = await this.prisma.shift_enrollment.updateMany({
+                where: {
+                    employeeid: a.employeeid,
+                    shiftid: a.shiftid,
+                    shiftdate: a.shiftdate
+                },
+                data: { enrollmentstatus: 'assigned' }
+            });
+            totalUpdated += updated.count;
+        }
+        if (totalUpdated === 0) {
+            return { updated: 0, message: 'No shift_enrollment found to update.' };
+        }
+        return { updated: totalUpdated };
     }
 }

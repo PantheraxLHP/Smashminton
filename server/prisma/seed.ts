@@ -3055,6 +3055,67 @@ async function main() {
         }
         await prisma.receipts.createMany({ data: receiptDataMonth, skipDuplicates: true });
     }
+
+    // Tạo 20 shift_assignment và shift_enrollment trùng khóa, nằm trong tuần sau
+    const todaySeed = new Date();
+    const currentDaySeed = todaySeed.getDay();
+    const dayToMondaySeed = currentDaySeed === 0 ? 1 : 8 - currentDaySeed;
+    const nextWeekStartSeed = new Date(todaySeed);
+    nextWeekStartSeed.setDate(todaySeed.getDate() + dayToMondaySeed);
+    nextWeekStartSeed.setUTCHours(0, 0, 0, 0);
+    // Lấy 20 employeeid bất kỳ (fulltime + parttime)
+    const allEmployeeIds = [
+        ...fulltimeEmployeeIds.slice(0, 10),
+        ...parttimeEmployeeIds.slice(0, 10)
+    ];
+    for (let i = 0; i < 20; i++) {
+        const employeeid = allEmployeeIds[i % allEmployeeIds.length];
+        const shiftid = (i % 6) + 1; // shiftid từ 1 đến 6
+        const shiftdate = new Date(nextWeekStartSeed);
+        shiftdate.setDate(nextWeekStartSeed.getDate() + (i % 7)); // rải đều trong tuần sau
+
+        // Kiểm tra shift_assignment đã tồn tại chưa
+        const existAssignment = await prisma.shift_assignment.findUnique({
+            where: {
+                employeeid_shiftid_shiftdate: {
+                    employeeid,
+                    shiftid,
+                    shiftdate,
+                }
+            }
+        });
+        if (!existAssignment) {
+            await prisma.shift_assignment.create({
+                data: {
+                    employeeid,
+                    shiftid,
+                    shiftdate,
+                    assignmentstatus: 'approved',
+                },
+            });
+        }
+
+        // Kiểm tra shift_enrollment đã tồn tại chưa
+        const existEnrollment = await prisma.shift_enrollment.findUnique({
+            where: {
+                employeeid_shiftid_shiftdate: {
+                    employeeid,
+                    shiftid,
+                    shiftdate,
+                }
+            }
+        });
+        if (!existEnrollment) {
+            await prisma.shift_enrollment.create({
+                data: {
+                    employeeid,
+                    shiftid,
+                    shiftdate,
+                    enrollmentstatus: 'pending',
+                },
+            });
+        }
+    }
 }
 
 main()
