@@ -43,3 +43,17 @@ export const supplierSchema = z.object({
         .min(1, { message: "Địa chỉ không hợp lệ" })
         .regex(/^[a-zA-Z0-9]/, { message: "Địa chỉ không hợp lệ" }),
 });
+
+export const zoneSchema = z.object({
+    zonename: z.string()
+        .min(1, { message: "Tên khu vực không hợp lệ" })
+        .regex(/^[a-zA-Z0-9]/, { message: "Tên khu vực không hợp lệ" }),
+    zonedescription: z.string()
+        .regex(/^[a-zA-Z0-9]/, { message: "Mô tả không hợp lệ" }),
+});
+
+export const courtSchema = z.object({
+    courtname: z.string()
+        .min(1, { message: "Tên sân không hợp lệ" })
+        .regex(/^[a-zA-Z0-9]/, { message: "Tên sân không hợp lệ" }),
+});

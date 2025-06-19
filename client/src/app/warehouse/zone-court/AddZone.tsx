@@ -5,6 +5,8 @@ import { postZones } from "@/services/zones.service";
 import { toast } from 'sonner';
 import { FaPen } from "react-icons/fa";
 import { Zone } from './page';
+import { zoneSchema } from "../warehouse.schema";
+import { z } from "zod";
 
 interface ZoneModalProps {
     open: boolean;
@@ -17,21 +19,24 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
     const modalRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-
-    const [zonename, setZonename] = useState("");
-    const [zonetype, setZonetype] = useState("");
-    const [zonedescription, setZonedescription] = useState("");
-
-    const [zoneAvatar, setZoneAvatar] = useState<File | null>(null);
-    const [zonePreview, setZonePreview] = useState<string>("");
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [formData, setFormData] = useState({
+        zonename: "",
+        zonetype: "",
+        zonedescription: "",
+        zoneAvatar: null as File | null,
+        zonePreview: ""
+    });
 
     useEffect(() => {
         if (open) {
-            setZonename("");
-            setZonetype("");
-            setZonedescription("");
-            setZoneAvatar(null);
-            setZonePreview("");
+            setFormData({
+                zonename: "",
+                zonetype: "",
+                zonedescription: "",
+                zoneAvatar: null,
+                zonePreview: ""
+            });
             setMessage("");
         }
     }, [open]);
@@ -53,50 +58,74 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
     const handleZoneImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setZoneAvatar(file);
-            setZonePreview(URL.createObjectURL(file));
+            setFormData((prevData) => ({
+                ...prevData,
+                zoneAvatar: file,
+                zonePreview: URL.createObjectURL(file)
+            }));
         }
     };
 
     const handleSubmit = async () => {
-        if (!zonename || !zonetype) {
-            setMessage("Vui lòng điền đủ tên và loại zone.");
-            return;
-        }
-
-        setLoading(true);
-        setMessage("");
-
-        const formData = new FormData();
-        formData.append("zonename", zonename);
-        formData.append("zonetype", zonetype);
-        formData.append("zonedescription", zonedescription); 
-        if (zoneAvatar) {
-            formData.append("image", zoneAvatar);
-        }
-
-
+        setErrors({});
         try {
-            const response = await postZones(formData);
-            if (response.ok) {
-                toast.success("Thêm zone thành công");
-                onSuccess();
-                onSubmit({
-                    zonename,
-                    type: zonetype,
-                    description: zonedescription,
-                    image: response.data?.imageUrl || "",
-                });
-            } else {
-                toast.error(response.message || "Thêm zone thất bại");
+            zoneSchema.parse({
+                ...formData,
+            });
+
+            if (!formData.zonename || !formData.zonetype) {
+                setMessage("Vui lòng điền đủ tên và loại zone.");
+                return;
+            }
+
+            setLoading(true);
+            setMessage("");
+
+            const fd = new FormData();
+            fd.append("zonename", formData.zonename);
+            fd.append("zonetype", formData.zonetype);
+            fd.append("zonedescription", formData.zonedescription);
+            if (formData.zoneAvatar) {
+                fd.append("image", formData.zoneAvatar);
+            }
+
+            try {
+                const response = await postZones(fd);
+                if (response.ok) {
+                    toast.success("Thêm zone thành công");
+                    onSuccess();
+                    onSubmit({
+                        zonename: formData.zonename,
+                        type: formData.zonetype,
+                        description: formData.zonedescription,
+                        image: response.data?.imageUrl || "",
+                    });
+                } else {
+                    toast.error(response.message || "Thêm zone thất bại");
+                }
+            } catch (error) {
+                toast.error("Có lỗi xảy ra");
+            } finally {
+                setLoading(false);
+                setErrors({});
+                onClose();
             }
         } catch (error) {
-            toast.error("Có lỗi xảy ra");
-        } finally {
-            setLoading(false);
-            onClose();
+            if (error instanceof z.ZodError) {
+                const newErrors: any = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+            }
         }
     };
+
+    useEffect(() => {
+        if (!open) {
+            setErrors({});
+        }
+    }, [open]);
 
     if (!open) return null;
 
@@ -113,9 +142,9 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                     <div className="flex flex-col sm:flex-row gap-6 mb-6">
                         <div className="flex flex-col items-center gap-2">
                             <div className="relative w-24 h-24">
-                                {zonePreview ? (
+                                {formData.zonePreview ? (
                                     <img
-                                        src={zonePreview}
+                                        src={formData.zonePreview}
                                         alt="Zone Preview"
                                         className="w-24 h-24 rounded-full object-cover border"
                                     />
@@ -145,17 +174,18 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                                 <label className="block text-sm font-medium">Tên Zone</label>
                                 <input
                                     type="text"
-                                    value={zonename}
-                                    onChange={(e) => setZonename(e.target.value)}
+                                    value={formData.zonename}
+                                    onChange={(e) => setFormData({ ...formData, zonename: e.target.value })}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.zonename && <p className="text-red-500 text-sm">{errors.zonename}</p>}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium">Loại Zone</label>
                                 <select
-                                    value={zonetype}
-                                    onChange={(e) => setZonetype(e.target.value)}
+                                    value={formData.zonetype}
+                                    onChange={(e) => setFormData({ ...formData, zonetype: e.target.value })}
                                     className="w-full border rounded px-3 py-2"
                                 >
                                     <option value="">Chọn loại Zone</option>
@@ -169,10 +199,11 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                                 <label className="block text-sm font-medium">Mô tả</label>
                                 <input
                                     type="text"
-                                    value={zonedescription}
-                                    onChange={(e) => setZonedescription(e.target.value)}
+                                    value={formData.zonedescription}
+                                    onChange={(e) => setFormData({ ...formData, zonedescription: e.target.value })}
                                     className="w-full border rounded px-3 py-2"
                                 />
+                                {errors.zonedescription && <p className="text-red-500 text-sm">{errors.zonedescription}</p>}
                             </div>
                         </div>
                     </div>
