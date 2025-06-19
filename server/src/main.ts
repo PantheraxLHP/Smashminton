@@ -11,7 +11,7 @@ async function bootstrap() {
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.MQTT,
         options: {
-            url: 'mqtt://192.168.0.100:1883',  // Updated to match your MQTT broker IP
+            url: 'mqtt://localhost:1883',  // Updated to match your MQTT broker IP
             clientId: 'smashminton-server',
             clean: true,
             reconnectPeriod: 1000,
@@ -47,6 +47,6 @@ async function bootstrap() {
     // Start the HTTP server
     const port = process.env.PORT ?? 8000;
     await app.listen(port); console.log(`HTTP Server is running on http://localhost:${port}`);
-    console.log(`MQTT Microservice is running on mqtt://192.168.0.100:1883`);
+    console.log(`MQTT Microservice is running on mqtt://localhost:1883`);
 }
 bootstrap().catch((err) => console.error(err));

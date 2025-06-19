@@ -8,7 +8,7 @@ export class MqttService {
     @Client({
         transport: Transport.MQTT,
         options: {
-            url: 'mqtt://192.168.0.100:1883',
+            url: 'mqtt://localhost:1883',
             clientId: 'smashminton-mqtt-client',
             clean: true,
             reconnectPeriod: 1000,
@@ -105,6 +105,6 @@ export class MqttService {
     }
 
     private generateRequestId(): string {
-        return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
 }
