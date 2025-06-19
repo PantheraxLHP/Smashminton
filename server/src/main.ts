@@ -2,10 +2,22 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    // Create the main HTTP application
+    const app = await NestFactory.create(AppModule);    // Add microservice capabilities to the same app instance
+    app.connectMicroservice<MicroserviceOptions>({
+        transport: Transport.MQTT,
+        options: {
+            url: 'mqtt://192.168.0.100:1883',  // Updated to match your MQTT broker IP
+            clientId: 'smashminton-server',
+            clean: true,
+            reconnectPeriod: 1000,
+            connectTimeout: 30 * 1000,
+        },
+    });
 
     app.enableCors({
         origin: '*',
@@ -29,8 +41,12 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
 
+    // Start all microservices
+    await app.startAllMicroservices();
+
+    // Start the HTTP server
     const port = process.env.PORT ?? 8000;
-    await app.listen(port);
-    console.log(`Server is running on http://localhost:${port}`);
+    await app.listen(port); console.log(`HTTP Server is running on http://localhost:${port}`);
+    console.log(`MQTT Microservice is running on mqtt://192.168.0.100:1883`);
 }
 bootstrap().catch((err) => console.error(err));

@@ -48,11 +48,20 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
     useEffect(() => {
         if (editData) {
+            console.log("Edit data:", editData);
             setFormData({
                 ...editData,
                 price: editData.price,
                 image: editData.image || '/default.png',
+                value: editData.value || "",
             });
+            if (editData.servicetype === "Thuê giày") {
+                setShoeSize(editData.value || "");
+            } else if (editData.servicetype === "Thuê vợt") {
+                setRacketWeight(editData.value || "");
+            }
+            setServicePreview(editData.image || '/default.png');
+            setServiceAvatar(null);
         } else {
             setFormData({
                 productname: "",
@@ -188,6 +197,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     useEffect(() => {
         if (!open) {
             setErrors({});
+            setServicePreview("");
         }
     }, [open]);
 

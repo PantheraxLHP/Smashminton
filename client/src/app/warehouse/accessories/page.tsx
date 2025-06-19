@@ -155,7 +155,7 @@ export default function AccessoryPage() {
                             setOpenModal(true);
                             setEditData(null);
                         }}
-                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                        className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
                     >
                         Thêm phụ kiện
                     </button>

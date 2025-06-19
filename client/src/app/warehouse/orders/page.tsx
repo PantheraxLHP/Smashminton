@@ -157,7 +157,7 @@ export default function PurchaseOrderPage() {
         {
             header: 'Trạng thái',
             accessor: (item) => {
-                let colorClass = 'text-green-600';
+                let colorClass = 'text-primary-600';
                 if (item.status === 'Chờ giao hàng') colorClass = 'text-yellow-500';
                 if (item.status === 'Đã huỷ') colorClass = 'text-red-500';
 
@@ -181,7 +181,7 @@ export default function PurchaseOrderPage() {
             accessor: (item) =>
                 item.status !== 'Đã giao hàng' && item.status !== 'Đã huỷ' ? (
                     <button
-                        className="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 mr-2 cursor-pointer"
+                        className="bg-primary-500 text-white px-3 py-2 rounded hover:bg-primary-600 mr-2 cursor-pointer"
                         onClick={() => handleOpenVerifyModal(item)}
                     >
                         Xác nhận đơn

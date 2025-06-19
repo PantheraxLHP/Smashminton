@@ -20,6 +20,7 @@ export interface Supplier {
     products: {
         productid: number;
         productname: string;
+        costprice: number;
     }[];
 }
 
@@ -53,6 +54,7 @@ export default function SupplierManagementPage() {
                 products: (supplier.products || []).map((p: any) => ({
                     productid: p.productid,
                     productname: p.productname,
+                    costprice: p.costprice || 0,
                 })),
             }));
 
@@ -84,7 +86,7 @@ export default function SupplierManagementPage() {
                 <div className="flex flex-wrap gap-1">
                     {item.products.map((p) => (
                         <span key={p.productid} className="inline-block rounded bg-gray-200 px-2 py-1 text-xs">
-                            {p.productname}
+                            {p.productname} - {p.costprice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
                         </span>
                     ))}
                 </div>
@@ -169,7 +171,7 @@ export default function SupplierManagementPage() {
                 <div className="mb-2 hidden justify-end lg:flex">
                     <button
                         onClick={() => setOpenModal(true)}
-                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                        className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
                     >
                         Thêm nhà cung cấp
                     </button>

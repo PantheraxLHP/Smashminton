@@ -5,14 +5,10 @@ import ServiceModal from './AddEditService';
 import { FaRegEdit } from 'react-icons/fa';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
-import { getProducts } from '@/services/products.service';
+import { getProducts2 } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { updateProductPrice } from '@/services/products.service';
 import { toast } from 'sonner';
-import { add } from 'date-fns';
-import { z } from 'zod';
-
-
 
 export interface Service {
     productid?: number;
@@ -21,6 +17,7 @@ export interface Service {
     price: number;
     image: string;
     quantity: number;
+    value?: string;
 }
 
 export default function RentalPriceManager() {
@@ -49,7 +46,7 @@ export default function RentalPriceManager() {
             return;
         }
 
-        const response = await getProducts(selectedTypeId, page, pageSize);
+        const response = await getProducts2(selectedTypeId, page, pageSize);
 
         if (response.ok) {
             const data = response.data.data;
@@ -63,6 +60,7 @@ export default function RentalPriceManager() {
                     price: item.rentalprice ? parseInt(item.rentalprice) : 0,
                     image: item.productimgurl || '/default.png',
                     quantity: item.quantity || 0,
+                    value: item.value || '',
                 }));
             };
 

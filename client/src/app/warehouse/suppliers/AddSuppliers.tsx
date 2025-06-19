@@ -11,6 +11,7 @@ import { z } from 'zod';
 export interface ProductOption {
     productid: number;
     productname: string;
+    costprice: number;
 }
 
 interface AddSupplierModalProps {
@@ -25,6 +26,7 @@ async function fetchProducts(): Promise<ProductOption[]> {
     return res.data.map((product: any) => ({
         productid: product.productid,
         productname: product.productname,
+        costprice: product.costprice,
     }));
 }
 
@@ -48,6 +50,7 @@ export default function AddSupplierModal({
 
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
     const [selectedProductId, setSelectedProductId] = useState<number>(0);
+    const [productCostPrice, setProductCostPrice] = useState<number | null>(null);
 
     useEffect(() => {
         if (!editData && open) {
@@ -72,22 +75,9 @@ export default function AddSupplierModal({
                 products: [],
             });
             setSelectedProductId(0);
+            setProductCostPrice(null);
         }
     }, [open]);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
-        if (open) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [open, onClose]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -96,11 +86,28 @@ export default function AddSupplierModal({
 
     const handleAddProduct = () => {
         const product = productsList.find(p => p.productid === selectedProductId);
-        if (product && !formData.products.some(p => p.productid === selectedProductId)) {
-            setFormData((prev) => ({
-                ...prev,
-                products: [...prev.products, product],
-            }));
+        if (!productCostPrice || isNaN(productCostPrice)) {
+            toast.error("Chưa nhập giá cho sản phẩm");
+            return;
+        }
+
+        if (productCostPrice < 0 || productCostPrice > 1000000000) {
+            toast.error("Giá sản phẩm không hợp lệ");
+            return;
+        }
+
+        if (product && productCostPrice != null) {
+            const newProduct = {
+                ...product,
+                costprice: productCostPrice,
+            };
+            if (!formData.products.some(p => p.productid === selectedProductId)) {
+                setFormData((prev) => ({
+                    ...prev,
+                    products: [...prev.products, newProduct],
+                }));
+            }
+            setProductCostPrice(null);
         }
         setSelectedProductId(0);
     };
@@ -112,49 +119,73 @@ export default function AddSupplierModal({
         }));
     };
 
+    const popoverRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            const target = event.target as Node;
+            if (
+                modalRef.current && !modalRef.current.contains(target) &&
+                !popoverRef.current?.contains(target)
+            ) {
+                onClose();
+            }
+        }
+
+        if (open) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [open, onClose]);
+
     const handleSubmit = async () => {
         try {
+            // Validate form data with schema
             supplierSchema.parse({
                 ...formData,
             });
+
             setLoading(true);
-            if (editData && editData.supplierid !== undefined) {
-                const payload = {
-                    suppliername: formData.name,
-                    contactname: formData.contactname,
-                    phonenumber: formData.phone,
-                    email: formData.email,
-                    address: formData.address,
-                };
 
-                const result = await patchSuppliers(editData.supplierid, payload);
+            // Validate product data
+            const productsPayload = formData.products.map(p => {
+                const productid = Number(p.productid);
+                const costprice = Number(p.costprice);
 
-                if (result.ok) {
-                    onSubmit({ ...formData, supplierid: editData.supplierid }, true);
-                    setErrors({});
-                    onClose();
-                } else {
-                    toast.error('Không thể cập nhật nhà cung cấp: ' + (result.message || ''));
+                if (isNaN(productid) || isNaN(costprice)) {
+                    toast.error("Thông tin sản phẩm không hợp lệ");
+                    throw new Error("Thông tin sản phẩm không hợp lệ");
                 }
+
+                return {
+                    productid,
+                    costprice,
+                };
+            });
+
+            const payload = {
+                suppliername: formData.name,
+                contactname: formData.contactname,
+                phonenumber: formData.phone,
+                email: formData.email,
+                address: formData.address,
+                products: productsPayload,
+            };
+
+            console.log('[DEBUG] Sending postSuppliers with JSON payload:', payload);
+
+            const result = await postSuppliers(payload);
+
+            if (result.ok) {
+                onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
+                onClose();
             } else {
-                const payload = {
-                    suppliername: formData.name,
-                    contactname: formData.contactname,
-                    phonenumber: formData.phone,
-                    email: formData.email,
-                    address: formData.address,
-                    productids: formData.products.map(p => p.productid),
-                };
-
-                const result = await postSuppliers(payload);
-
-                if (result.ok) {
-                    onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
-                    onClose();
-                } else {
-                    toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
-                }
+                toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
             }
+
             setLoading(false);
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -165,7 +196,8 @@ export default function AddSupplierModal({
                 setErrors(newErrors);
             }
         }
-    };
+    };    
+    
 
     useEffect(() => {
         if (!open) {
@@ -181,7 +213,7 @@ export default function AddSupplierModal({
             <div className="fixed inset-0 flex items-center justify-center z-50 px-4 mt-8">
                 <div
                     ref={modalRef}
-                    className="bg-white rounded-xl w-full max-w-xl max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden p-6 border border-gray-300 shadow-xl"
+                    className="bg-white rounded-xl w-full max-w-2xl max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden p-6 border border-gray-300 shadow-xl"
                 >
                     <h2 className="text-lg font-semibold mb-6">
                         {editData ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp'}
@@ -239,55 +271,65 @@ export default function AddSupplierModal({
                             {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
                         </div>
 
-                        {(
-                            <>
-                                <div className="sm:col-span-2">
-                                    <label className="block text-sm mb-1">Chọn sản phẩm cung cấp</label>
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <select
-                                            value={selectedProductId}
-                                            onChange={(e) => setSelectedProductId(Number(e.target.value))}
-                                            className="flex-1 border rounded px-3 py-2"
-                                        >
-                                            <option value={0}>Chọn sản phẩm</option>
-                                            {productsList.map((product) => (
-                                                <option key={product.productid} value={product.productid}>
-                                                    {product.productname}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={handleAddProduct}
-                                            className="w-full sm:w-auto px-3 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
-                                        >
-                                            Thêm
-                                        </button>
-                                    </div>
-                                </div>
+                        <div className="sm:col-span-2">
+                            <label className="block text-sm mb-1">Chọn sản phẩm cung cấp</label>
+                            <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                <select
+                                    value={selectedProductId}
+                                    onChange={(e) => setSelectedProductId(Number(e.target.value))}
+                                    className="flex-1 border rounded px-3 py-2"
+                                >
+                                    <option value={0}>Chọn sản phẩm</option>
+                                    {productsList.map((product) => (
+                                        <option key={product.productid} value={product.productid}>
+                                            {product.productname}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={handleAddProduct}
+                                    className="w-full sm:w-auto px-3 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
+                                >
+                                    Thêm
+                                </button>
+                            </div>
 
-                                {formData.products.length > 0 && (
-                                    <div className="sm:col-span-2">
-                                        <label className="block text-sm mb-1 mt-2">Sản phẩm đã chọn</label>
-                                        <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
-                                            {formData.products.map((p) => (
-                                                <span
-                                                    key={p.productid}
-                                                    className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
-                                                >
-                                                    <span className="truncate">{p.productname}</span>
-                                                    <button
-                                                        onClick={() => handleRemoveProduct(p.productid)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </>
+                            {/* Đặt phần nhập giá ở dưới chọn sản phẩm */}
+                            {selectedProductId > 0 && (
+                                <div className="mt-4 w-full sm:w-auto">
+                                    <label className="block text-sm mb-1">Nhập giá cho sản phẩm</label>
+                                    <input
+                                        type="number"
+                                        value={productCostPrice ?? ''}
+                                        onChange={(e) => setProductCostPrice(Number(e.target.value))}
+                                        className="w-full border rounded px-3 py-2"
+                                        placeholder="Nhập giá sản phẩm"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {formData.products.length > 0 && (
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm mb-1 mt-4">Sản phẩm đã chọn</label>
+                                <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
+                                    {formData.products.map((p) => (
+                                        <span
+                                            key={p.productid}
+                                            className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
+                                        >
+                                            <span className="truncate">{p.productname} - {p.costprice}</span>
+                                            <button
+                                                onClick={() => handleRemoveProduct(p.productid)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
                         )}
                     </div>
 

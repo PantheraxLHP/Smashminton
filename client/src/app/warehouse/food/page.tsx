@@ -97,7 +97,7 @@ export default function FoodAndBeveragePage() {
                     ? 'text-yellow-600'
                     : item.status === 'Hết hạn'
                         ? 'text-red-600'
-                        : 'text-green-600',
+                        : 'text-primary-600',
         },
         {
             header: 'Giảm giá',
@@ -171,7 +171,7 @@ export default function FoodAndBeveragePage() {
                             setOpenModal(true);
                             setEditData(null);
                         }}
-                        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                        className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
                     >
                         Thêm sản phẩm
                     </button>
