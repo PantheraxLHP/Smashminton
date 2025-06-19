@@ -298,6 +298,7 @@ model shift_enrollment {
   shiftid        Int
   shiftdate      DateTime   @db.Timestamptz(6)
   enrollmentdate DateTime?  @default(now()) @db.Timestamptz(6)
+  enrollmentstatus String?
   employees      employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_employees")
   shift_date     shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_shiftdate")
 

@@ -90,6 +90,7 @@ create table if not exists shift_enrollment (
 	shiftid integer,
 	shiftdate timestamptz,
 	enrollmentdate timestamptz default now(),
+	enrollmentstatus text,
 	constraint pk_shiftenrollment primary key (employeeid, shiftid, shiftdate),
 	constraint fk_shiftenrollment_employees foreign key (employeeid) references employees(employeeid),
 	constraint fk_shiftenrollment_shiftdate foreign key (shiftid, shiftdate) references shift_date(shiftid, shiftdate)

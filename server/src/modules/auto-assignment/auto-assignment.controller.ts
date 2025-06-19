@@ -65,6 +65,7 @@ export class AutoAssignmentController {
             const fulltimeSuccess = resultFulltime?.success === true;
 
             if (parttimeSuccess && fulltimeSuccess) {
+                await this.autoAssignmentService.updateNextWeekEnrollment();
                 return {
                     status: 201,
                     success: true,
@@ -73,6 +74,9 @@ export class AutoAssignmentController {
                     fullTimeResult: resultFulltime,
                 };
             } else if (parttimeSuccess || fulltimeSuccess) {
+                if (parttimeSuccess) {
+                    await this.autoAssignmentService.updateNextWeekEnrollment();
+                }
                 return {
                     status: 207,
                     success: false,
@@ -220,5 +224,11 @@ export class AutoAssignmentController {
                 error: error.message
             });
         }
+    }
+    @Patch('update-nextweek-enrollment')
+    @ApiOperation({ summary: 'Update all shift_enrollment in next week to assigned if shift_assignment exists (auto, no params)' })
+    @ApiResponse({ status: 200, description: 'Update next week enrollmentstatus successfully' })
+    async updateNextWeekEnrollment() {
+        return this.autoAssignmentService.updateNextWeekEnrollment();
     }
 }
