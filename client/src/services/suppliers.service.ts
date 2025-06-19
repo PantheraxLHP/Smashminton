@@ -14,8 +14,6 @@ export const getSuppliers = async (page: number, pageSize: number) => {
 
         const result = await response.json();
 
-        console.log('[DEBUG] getSuppliers full result:', result);
-
         const suppliers = result.data?.data;
         const pagination = result.data?.pagination;
 
@@ -28,15 +26,11 @@ export const getSuppliers = async (page: number, pageSize: number) => {
             pagination,
         });
     } catch (error) {
-        console.error('[ERROR] getSuppliers:', error);
         return ServiceResponse.error(
             error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu'
         );
     }
 };
-
-
-
 
 export async function postSuppliers(data: {
     suppliername: string;
@@ -44,12 +38,14 @@ export async function postSuppliers(data: {
     phonenumber: string;
     email: string;
     address: string;
-    productids: number[];
+    products: { productid: number; costprice: number }[];
 }) {
     try {
         const response = await fetch('/api/suppliers/post-suppliers', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             credentials: 'include',
             body: JSON.stringify(data),
         });
@@ -65,6 +61,10 @@ export async function postSuppliers(data: {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 }
+
+
+
+
 
 export const patchSuppliers = async (
     supplierid: number,

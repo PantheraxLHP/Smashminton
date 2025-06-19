@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PredictionService {
   constructor(private prisma: PrismaService) { }
 
-  async getSoldRatioByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter' | 'year', month?: number, quarter?: number, year?: number }) {
+  async getSoldRatioByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter', month?: number, quarter?: number, year?: number }) {
     if (!year) {
       throw new BadRequestException('Missing required parameter: year');
     }
@@ -48,19 +48,26 @@ export class PredictionService {
     if (year) {
       orderWhere.orders = { orderdate: {} };
       if (type === 'month' && month) {
+        let endMonth = month + 1;
+        let endYear = year;
+        if (month === 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         orderWhere.orders.orderdate.gte = new Date(`${year}-${month.toString().padStart(2, '0')}-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year}-${(month + 1).toString().padStart(2, '0')}-01T00:00:00Z`);
+        orderWhere.orders.orderdate.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       } else if (type === 'quarter' && quarter) {
         const startMonth = (quarter - 1) * 3 + 1;
-        const endMonth = startMonth + 3;
+        let endMonth = startMonth + 3;
+        let endYear = year;
+        if (endMonth > 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         orderWhere.orders.orderdate.gte = new Date(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-      } else if (type === 'year') {
-        orderWhere.orders.orderdate.gte = new Date(`${year}-01-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year + 1}-01-01T00:00:00Z`);
+        orderWhere.orders.orderdate.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       }
     }
-
     // Lấy tổng quantity bán ra cho từng productid (returndate=null là bán, !=null là thuê)
     // Gom theo productid
     const orderProducts = await this.prisma.order_product.groupBy({
@@ -102,7 +109,7 @@ export class PredictionService {
    * Filter theo tháng/quý/năm
    * Trả về: productfilter_value_id, productfilter_value_name, ratio
    */
-  async getPurchasedRatioByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter' | 'year', month?: number, quarter?: number, year: number }) {
+  async getPurchasedRatioByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter', month?: number, quarter?: number, year: number }) {
     if (!year) {
       throw new BadRequestException('Missing required parameter: year');
     }
@@ -142,16 +149,24 @@ export class PredictionService {
     if (year) {
       purchaseWhere.createdat = {};
       if (type === 'month' && month) {
+        let endMonth = month + 1;
+        let endYear = year;
+        if (month === 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         purchaseWhere.createdat.gte = new Date(`${year}-${month.toString().padStart(2, '0')}-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year}-${(month + 1).toString().padStart(2, '0')}-01T00:00:00Z`);
+        purchaseWhere.createdat.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       } else if (type === 'quarter' && quarter) {
         const startMonth = (quarter - 1) * 3 + 1;
-        const endMonth = startMonth + 3;
+        let endMonth = startMonth + 3;
+        let endYear = year;
+        if (endMonth > 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         purchaseWhere.createdat.gte = new Date(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-      } else if (type === 'year') {
-        purchaseWhere.createdat.gte = new Date(`${year}-01-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year + 1}-01-01T00:00:00Z`);
+        purchaseWhere.createdat.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       }
     }
 
@@ -186,7 +201,7 @@ export class PredictionService {
     return result;
   }
 
-  async getSalesAndPurchaseByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter' | 'year', month?: number, quarter?: number, year: number }) {
+  async getSalesAndPurchaseByFilterValue({ type, month, quarter, year }: { type: 'month' | 'quarter', month?: number, quarter?: number, year: number }) {
     if (!year) {
       throw new BadRequestException('Missing required parameter: year');
     }
@@ -226,16 +241,24 @@ export class PredictionService {
     if (year) {
       orderWhere.orders = { orderdate: {} };
       if (type === 'month' && month) {
+        let endMonth = month + 1;
+        let endYear = year;
+        if (month === 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         orderWhere.orders.orderdate.gte = new Date(`${year}-${month.toString().padStart(2, '0')}-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year}-${(month + 1).toString().padStart(2, '0')}-01T00:00:00Z`);
+        orderWhere.orders.orderdate.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       } else if (type === 'quarter' && quarter) {
         const startMonth = (quarter - 1) * 3 + 1;
-        const endMonth = startMonth + 3;
+        let endMonth = startMonth + 3;
+        let endYear = year;
+        if (endMonth > 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         orderWhere.orders.orderdate.gte = new Date(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-      } else if (type === 'year') {
-        orderWhere.orders.orderdate.gte = new Date(`${year}-01-01T00:00:00Z`);
-        orderWhere.orders.orderdate.lt = new Date(`${year + 1}-01-01T00:00:00Z`);
+        orderWhere.orders.orderdate.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       }
     }
     // Điều kiện filter thời gian cho purchase_order
@@ -243,16 +266,24 @@ export class PredictionService {
     if (year) {
       purchaseWhere.createdat = {};
       if (type === 'month' && month) {
+        let endMonth = month + 1;
+        let endYear = year;
+        if (month === 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         purchaseWhere.createdat.gte = new Date(`${year}-${month.toString().padStart(2, '0')}-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year}-${(month + 1).toString().padStart(2, '0')}-01T00:00:00Z`);
+        purchaseWhere.createdat.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       } else if (type === 'quarter' && quarter) {
         const startMonth = (quarter - 1) * 3 + 1;
-        const endMonth = startMonth + 3;
+        let endMonth = startMonth + 3;
+        let endYear = year;
+        if (endMonth > 12) {
+          endMonth = 1;
+          endYear = year + 1;
+        }
         purchaseWhere.createdat.gte = new Date(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
-      } else if (type === 'year') {
-        purchaseWhere.createdat.gte = new Date(`${year}-01-01T00:00:00Z`);
-        purchaseWhere.createdat.lt = new Date(`${year + 1}-01-01T00:00:00Z`);
+        purchaseWhere.createdat.lt = new Date(`${endYear}-${endMonth.toString().padStart(2, '0')}-01T00:00:00Z`);
       }
     }
 
