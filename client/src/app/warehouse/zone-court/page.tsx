@@ -10,6 +10,9 @@ import { FaRegEdit } from 'react-icons/fa';
 import { getZoneCourt } from '@/services/zones.service';
 import { patchCourts } from '@/services/courts.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { ratingSchema } from "../warehouse.schema";
+import { z } from "zod";
+import { toast } from 'sonner';
 
 export interface Zone {
     zoneid?: number;
@@ -101,8 +104,8 @@ export default function ZoneCourtManager() {
         } catch (error) {
             console.error('Lỗi khi gọi API getZoneCourt:', error);
         }
-    }    
-    
+    }
+
     useEffect(() => {
         fetchZoneCourtData();
     }, [page]);
@@ -120,8 +123,8 @@ export default function ZoneCourtManager() {
             setCourtState(filteredCourts);
         }
     }, [filters.zonename, allCourts, zoneState]);
-    
-    
+
+
 
     const zoneOptions: FilterOption[] = zoneState.map((zone) => ({
         optionlabel: zone.zonename,
@@ -169,8 +172,8 @@ export default function ZoneCourtManager() {
         }
 
         setIsAddCourtModalOpen(false);
-    }    
-    
+    }
+
     const CourtColumns: Column<Court>[] = [
         {
             header: 'Sân',
@@ -201,7 +204,7 @@ export default function ZoneCourtManager() {
                         timecalculateavg: new Date(item.timecalavg).toISOString(),
                         zoneid: item.zoneid,
                         courtimgurl: item.image,
-                      });
+                    });
 
                     // Cập nhật UI
                     const updatedCourts = courtState.map((c) =>
@@ -214,7 +217,7 @@ export default function ZoneCourtManager() {
                         )
                     );
                 }
-                
+
 
                 const colorClass = isActive ? 'text-primary-600' : 'text-orange-500';
 
@@ -238,7 +241,7 @@ export default function ZoneCourtManager() {
                     {editingItem === item ? (
                         <>
                             <input
-                                type="text"
+                                type="number"
                                 value={editedRatingGrade}
                                 onChange={(e) => setEditedRatingGrade(e.target.value)}
                                 className="border border-gray-300 px-2 py-1 w-28"
@@ -248,7 +251,14 @@ export default function ZoneCourtManager() {
                                 onClick={async () => {
                                     const now = new Date().toISOString();
                                     const newRating = Number(editedRatingGrade);
-
+                                    try {
+                                        ratingSchema.parse(newRating);
+                                    } catch (error) {
+                                        if (error instanceof z.ZodError) {
+                                            toast.error(error.errors[0].message);
+                                        }
+                                        return;
+                                    }
                                     await patchCourts(item.courtid!, {
                                         courtname: item.courtname,
                                         statuscourt: item.status === 'Đang hoạt động' ? 'Active' : 'Inactive',
@@ -280,7 +290,7 @@ export default function ZoneCourtManager() {
                                         )
                                     );
                                     setEditingItem(null);
-                                }}                                
+                                }}
                                 className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
                             >
                                 Xong
@@ -376,7 +386,7 @@ export default function ZoneCourtManager() {
                 onClose={() => setIsAddCourtModalOpen(false)}
                 open={isAddCourtModalOpen}
                 onSubmit={handleSubmitCourt}
-                onSuccess={fetchZoneCourtData} 
+                onSuccess={fetchZoneCourtData}
             />
         </div>
     );

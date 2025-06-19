@@ -57,3 +57,11 @@ export const courtSchema = z.object({
         .min(1, { message: "Tên sân không hợp lệ" })
         .regex(/^[a-zA-Z0-9]/, { message: "Tên sân không hợp lệ" }),
 });
+
+export const ratingSchema = z
+    .number()
+    .min(0, { message: "Điểm số phải từ 0 tới 5" })
+    .max(5, { message: "Điểm số phải từ 0 tới 5" })
+    .refine((val) => val >= 0, {
+        message: "Điểm số phải từ 0 tới 5",
+    });
