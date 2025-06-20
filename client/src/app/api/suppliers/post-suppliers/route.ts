@@ -10,26 +10,21 @@ export async function POST(req: NextRequest) {
             phonenumber,
             email,
             address,
-            products,
+            supplies,
         }: {
             suppliername: string;
             contactname: string;
             phonenumber: string;
             email: string;
             address: string;
-            products: { productid: number; costprice: number }[];
+            supplies: { productid: number; costprice: number }[];
         } = body;
 
-        if (!suppliername || !contactname || !phonenumber || !email || !address || !Array.isArray(products)) {
+        if (!suppliername || !contactname || !phonenumber || !email || !address || !Array.isArray(supplies)) {
             return ApiResponse.error('Dữ liệu không hợp lệ');
         }
 
-        // Tạo query string từ products
-        const queryParams = products
-            .map(p => `productid=${encodeURIComponent(String(p.productid))}&costprice=${encodeURIComponent(String(p.costprice))}`)
-            .join('&');
-
-        const url = `${process.env.SERVER}/api/v1/suppliers/new-supplier?${queryParams}`;
+        const url = `${process.env.SERVER}/api/v1/suppliers/new-supplier?`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -37,7 +32,7 @@ export async function POST(req: NextRequest) {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ suppliername, contactname, phonenumber, email, address }),
+            body: JSON.stringify({ suppliername, contactname, phonenumber, email, address, supplies }),
         });
 
         const result = await response.json();

@@ -41,13 +41,21 @@ export async function postSuppliers(data: {
     products: { productid: number; costprice: number }[];
 }) {
     try {
+        const mappedData = {
+            ...data,
+            supplies: data.products.map(product => ({
+                productid: product.productid,
+                costprice: product.costprice
+            })),
+        };
+
         const response = await fetch('/api/suppliers/post-suppliers', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify(data),
+            body: JSON.stringify(mappedData),
         });
 
         const result = await response.json();
@@ -61,6 +69,7 @@ export async function postSuppliers(data: {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
     }
 }
+
 
 
 
