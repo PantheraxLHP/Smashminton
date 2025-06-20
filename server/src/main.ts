@@ -7,11 +7,13 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     // Create the main HTTP application
-    const app = await NestFactory.create(AppModule);    // Add microservice capabilities to the same app instance
+    const app = await NestFactory.create(AppModule);    
+    
+    // Add microservice capabilities to the same app instance
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.MQTT,
         options: {
-            url: 'mqtt://localhost:1883',  // Updated to match your MQTT broker IP
+            url: 'mqtt://localhost:1883',
             clientId: 'smashminton-server',
             clean: true,
             reconnectPeriod: 1000,
