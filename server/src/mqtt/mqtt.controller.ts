@@ -5,7 +5,7 @@ import { EventPattern, Payload, MessagePattern } from '@nestjs/microservices';
 export class MqttController {
     private readonly logger = new Logger(MqttController.name);
 
-    /**
+    /*
      * Handle ESP8266 responses
      */
     @EventPattern('smashminton/device/+/response')
@@ -15,16 +15,32 @@ export class MqttController {
         // Process different types of responses
         if (data.status === 'pong') {
             this.logger.log(`Ping response from device: ${data.timestamp}`);
-        } else if (data.status === 'success' && data.userId) {
-            this.logger.log(`Device registration successful: ${data.userId}`);
         } else if (data.status === 'error') {
             this.logger.error(`Device error: ${data.message}`);
+        } else if (data.action === 'enroll_finger') {
+            if (data.status === 'success') {
+                this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
+            } else {
+                this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);
+            }
+        } else if (data.action === 'delete_finger') {
+            if (data.status === 'success') {
+                this.logger.log(`✅ Fingerprint deleted successfully: ID=${data.fingerID}`);
+            } else {
+                this.logger.error(`❌ Fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
+            }
+        } else if (data.action === 'get_finger_count') {
+            if (data.status === 'success') {
+                this.logger.log(`📊 Fingerprint count: ${data.enrolledCount}/${data.capacity} enrolled`);
+            } else {
+                this.logger.error(`❌ Failed to get fingerprint count: ${data.message}`);
+            }
         }
 
         return data;
     }
 
-    /**
+    /*
      * Handle ESP8266 status updates
      */
     @EventPattern('smashminton/device/+/status')
@@ -40,7 +56,7 @@ export class MqttController {
         return data;
     }
 
-    /**
+    /*
      * Handle ESP8266 heartbeat
      */
     @EventPattern('smashminton/device/+/heartbeat')
@@ -49,25 +65,40 @@ export class MqttController {
         return data;
     }
 
-    /**
+    /*
      * Handle ESP8266 device info
      */
     @EventPattern('smashminton/device/+/info')
     handleDeviceInfo(@Payload() data: any) {
         this.logger.log('Device Info:', JSON.stringify(data, null, 2));
-
-        // Store device info in database or cache
-        // You can integrate with your existing device management system
-
         return data;
     }
 
-    /**
+    /*
      * Handle any MQTT message for debugging
      */
     @EventPattern('smashminton/+/+/+')
     handleAllMessages(@Payload() data: any) {
         this.logger.debug('MQTT Message:', JSON.stringify(data, null, 2));
+        return data;
+    }
+
+    /*
+     * Handle ESP8266 fingerprint events
+     */
+    @EventPattern('smashminton/device/+/fingerprint')
+    handleFingerprintEvent(@Payload() data: any) {
+        this.logger.log('Fingerprint Event:', JSON.stringify(data, null, 2));
+
+        if (data.eventType === 'match') {
+            this.logger.log(`🎯 Fingerprint match: ID=${data.fingerID}, Confidence=${data.confidence}`);
+            // Handle successful fingerprint authentication
+            // You can trigger court access, user login, etc.
+        } else if (data.eventType === 'unknown') {
+            this.logger.log('👤 Unknown fingerprint detected');
+            // Handle unknown fingerprint (access denied, log attempt, etc.)
+        }
+
         return data;
     }
 }

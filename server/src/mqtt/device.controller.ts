@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { MqttService } from './mqtt.service';
 
@@ -31,32 +31,6 @@ export class DeviceController {
         };
     }
 
-    @Post(':deviceId/register')
-    @ApiOperation({ summary: 'Register ESP8266 device' })
-    @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                deviceName: { type: 'string', example: 'Court 1 Sensor' },
-                location: { type: 'string', example: 'Main Court' }
-            }
-        }
-    })
-    async registerDevice(
-        @Param('deviceId') deviceId: string,
-        @Body() body: { deviceName: string; location: string }
-    ) {
-        await this.mqttService.registerDevice(deviceId, body.deviceName, body.location);
-        return {
-            success: true,
-            message: `Registration request sent to ${deviceId}`,
-            deviceName: body.deviceName,
-            location: body.location,
-            timestamp: new Date().toISOString()
-        };
-    }
-
     @Post(':deviceId/reset')
     @ApiOperation({ summary: 'Reset ESP8266 device' })
     @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
@@ -81,7 +55,7 @@ export class DeviceController {
                 data: { type: 'object', example: { key: 'value' } }
             }
         }
-    })
+    }) 
     async sendCustomCommand(
         @Param('deviceId') deviceId: string,
         @Body() body: { action: string; data?: any }
@@ -90,6 +64,64 @@ export class DeviceController {
         return {
             success: true,
             message: `Custom command '${body.action}' sent to ${deviceId}`,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    @Post(':deviceId/fingerprint/enroll')
+    @ApiOperation({ summary: 'Enroll new fingerprint on ESP8266 device' })
+    @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                fingerID: { type: 'number', example: 1, description: 'Fingerprint ID (1-127)' }
+            }
+        }
+    })
+    async enrollFingerprint(
+        @Param('deviceId') deviceId: string,
+        @Body() body: { fingerID: number }
+    ) {
+        await this.mqttService.sendCommand(deviceId, 'enroll_finger', { fingerID: body.fingerID });
+        return {
+            success: true,
+            message: `Fingerprint enrollment started for ID ${body.fingerID} on ${deviceId}`,
+            fingerID: body.fingerID,
+            instructions: 'Place finger on sensor when prompted',
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    @Delete(':deviceId/fingerprint/:fingerID')
+    @ApiOperation({ summary: 'Delete fingerprint from ESP8266 device' })
+    @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
+    @ApiParam({ name: 'fingerID', description: 'Fingerprint ID to delete' })
+    async deleteFingerprint(
+        @Param('deviceId') deviceId: string,
+        @Param('fingerID') fingerID: string
+    ) {
+        const id = parseInt(fingerID);
+        await this.mqttService.sendCommand(deviceId, 'delete_finger', { fingerID: id });
+        return {
+            success: true,
+            message: `Fingerprint ID ${id} deletion requested on ${deviceId}`,
+            fingerID: id,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    @Get(':deviceId/fingerprint/count')
+    @ApiOperation({ summary: 'Get enrolled fingerprint count from ESP8266 device' })
+    @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
+    async getFingerprintCount(
+        @Param('deviceId') deviceId: string
+    ) {
+        await this.mqttService.sendCommand(deviceId, 'get_finger_count');
+        return {
+            success: true,
+            message: `Fingerprint count request sent to ${deviceId}`,
+            note: 'Check MQTT logs for response',
             timestamp: new Date().toISOString()
         };
     }

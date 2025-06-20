@@ -1,6 +1,8 @@
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
-#include <ArduinoJson.h>  // For better JSON handling
+#include <ESP8266WiFi.h>     // Thu vien ket noi wifi
+#include <PubSubClient.h>    // Thu vien cho phep publish len mqtt server
+#include <SoftwareSerial.h>  // Thu vien cho phep tao mot ket noi de giao tiep mach dien tu khac
+#include <ArduinoJson.h>     // For better JSON handling
+#include <Adafruit_Fingerprint.h>  // Thu vien cho cam bien van tay AS608
 
 // Network Configuration
 const char* WIFI_SSID = "Vinh";
@@ -17,19 +19,38 @@ const unsigned long MQTT_RECONNECT_DELAY = 2000;  // 2 seconds
 // MQTT Topics
 const char* TOPIC_COMMAND = "smashminton/device/esp01/command";
 const char* TOPIC_RESPONSE = "smashminton/device/esp01/response";
+const char* TOPIC_INFO = "smashminton/device/esp01/info";
 const char* TOPIC_STATUS = "smashminton/device/esp01/status";
 const char* TOPIC_HEARTBEAT = "smashminton/device/esp01/heartbeat";
+const char* TOPIC_FINGERPRINT = "smashminton/device/esp01/fingerprint";
+
+// Hardware Configuration
+#define FINGERPRINT_RX D3  // GPIO0 - connect to AS608 TX
+#define FINGERPRINT_TX D4  // GPIO2 - connect to AS608 RX
 
 // Timing
 unsigned long lastHeartbeat = 0;
 const unsigned long HEARTBEAT_INTERVAL = 30000;  // 30 seconds
+unsigned long lastFingerprintScan = 0;
+const unsigned long FINGERPRINT_SCAN_INTERVAL = 1000;  // 1 second
+
+// Common Fingerprint Error Codes (for reference):
+// FINGERPRINT_OK = 0           - Success
+// FINGERPRINT_NOFINGER = 2     - No finger detected
+// FINGERPRINT_IMAGEFAIL = 3    - Failed to capture image
+// FINGERPRINT_IMAGEMESS = 6    - Image is messy/unclear
+// FINGERPRINT_FEATUREFAIL = 7  - Could not find fingerprint features
+// FINGERPRINT_NOMATCH = 8      - Could not match fingerprint
+// FINGERPRINT_NOTFOUND = 9     - No matching fingerprint found
+// Error 23 = FINGERPRINT_IMAGEMESS (image too messy/unclear)
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
+SoftwareSerial mySerial(FINGERPRINT_RX, FINGERPRINT_TX);
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
 // State tracking
-bool isRegistered = false;
-String userId = "";
+bool fingerprintInitialized = false;
 
 void setup() {
   Serial.begin(115200);
@@ -37,6 +58,7 @@ void setup() {
 
   connectToWiFi();
   setupMQTT();
+  setupFingerprint();
 
   Serial.println("✅ Setup completed!");
 }
@@ -47,6 +69,11 @@ void loop() {
     reconnectMQTT();
   }
   mqttClient.loop();
+
+  // Scan for fingerprints
+  if (fingerprintInitialized) {
+    scanFingerprint();
+  }
 
   // Send periodic heartbeat
   sendHeartbeat();
@@ -168,49 +195,42 @@ void handleCommand(const String& command) {
     sendErrorResponse("Invalid JSON format");
     return;
   }
+  // Check if message has NestJS microservice format with pattern and data
+  String action;
+  String requestId;
+  JsonDocument dataDoc;
+  
+  if (doc["pattern"].is<const char*>() && doc["data"].is<JsonObject>()) {
+    // NestJS microservice format: {"pattern":"topic","data":{...}}
+    Serial.println("🔍 Processing NestJS microservice format");
+    dataDoc = doc["data"];
+    action = dataDoc["action"] | "";
+    requestId = dataDoc["requestId"] | "";
+  } else {
+    // Direct format: {"action":"...","requestId":"..."}
+    Serial.println("🔍 Processing direct format");
+    action = doc["action"] | "";
+    requestId = doc["requestId"] | "";
+    dataDoc = doc;
+  }
+  Serial.printf("📋 Parsed - Action: '%s', RequestId: '%s'\n", action.c_str(), requestId.c_str());
 
-  String action = doc["action"] | "";
-  String requestId = doc["requestId"] | "";
-
-  if (action == "register") {
-    handleRegisterCommand(doc, requestId);
-  } else if (action == "ping") {
+  if (action == "ping") {
     handlePingCommand(requestId);
   } else if (action == "get_status") {
     handleStatusCommand(requestId);
   } else if (action == "reset") {
     handleResetCommand(requestId);
+  } else if (action == "enroll_finger") {
+    handleEnrollFingerCommand(dataDoc, requestId);
+  } else if (action == "delete_finger") {
+    handleDeleteFingerCommand(dataDoc, requestId);
+  } else if (action == "get_finger_count") {
+    handleGetFingerCountCommand(requestId);
   } else {
-    Serial.printf("❌ Unknown command: %s\n", action.c_str());
+    Serial.printf("❌ Unknown command: '%s'\n", action.c_str());
     sendErrorResponse("Unknown command: " + action, requestId);
   }
-}
-
-void handleRegisterCommand(const JsonDocument& doc, const String& requestId) {
-  String deviceName = doc["deviceName"] | "ESP01_Device";
-  String location = doc["location"] | "Unknown";
-
-  Serial.println("🔐 Processing registration...");
-
-  // Simulate registration logic
-  userId = "user_" + String(ESP.getChipId(), HEX);
-  isRegistered = true;
-
-  // Send registration response
-  JsonDocument response;
-  response["status"] = "success";
-  response["message"] = "Device registered successfully";
-  response["userId"] = userId;
-  response["deviceId"] = DEVICE_ID;
-  response["timestamp"] = millis();
-
-  if (!requestId.isEmpty()) {
-    response["requestId"] = requestId;
-  }
-
-  sendResponse(response);
-
-  Serial.printf("✅ Registration successful! User ID: %s\n", userId.c_str());
 }
 
 void handlePingCommand(const String& requestId) {
@@ -229,11 +249,10 @@ void handlePingCommand(const String& requestId) {
 void handleStatusCommand(const String& requestId) {
   JsonDocument response;
   response["status"] = "online";
-  response["registered"] = isRegistered;
-  response["userId"] = userId;
   response["wifiSignal"] = WiFi.RSSI();
   response["freeHeap"] = ESP.getFreeHeap();
   response["uptime"] = millis();
+  response["fingerprintStatus"] = fingerprintInitialized;
 
   if (!requestId.isEmpty()) {
     response["requestId"] = requestId;
@@ -284,7 +303,7 @@ void sendDeviceInfo() {
   String infoStr;
   serializeJson(info, infoStr);
 
-  mqttClient.publish("smashminton/device/esp01/info", infoStr.c_str());
+  mqttClient.publish(TOPIC_INFO, infoStr.c_str());
   Serial.println("📋 Device info sent");
 }
 
@@ -298,6 +317,7 @@ void sendHeartbeat() {
     heartbeat["uptime"] = millis();
     heartbeat["freeHeap"] = ESP.getFreeHeap();
     heartbeat["wifiSignal"] = WiFi.RSSI();
+    heartbeat["fingerprintStatus"] = fingerprintInitialized;
 
     String heartbeatStr;
     serializeJson(heartbeat, heartbeatStr);
@@ -306,4 +326,256 @@ void sendHeartbeat() {
       Serial.println("💓 Heartbeat sent");
     }
   }
+}
+
+// ===== FINGERPRINT FUNCTIONS =====
+
+void setupFingerprint() {
+  Serial.println("🔐 Initializing AS608 Fingerprint Sensor...");
+  
+  mySerial.begin(57600);
+  delay(100);
+  
+  if (finger.verifyPassword()) {
+    Serial.println("✅ AS608 Fingerprint sensor found!");
+    fingerprintInitialized = true;
+    
+    // Get sensor info
+    finger.getParameters();
+    Serial.printf("📊 Sensor Info:\n");
+    Serial.printf("   Status: 0x%X\n", finger.status_reg);
+    Serial.printf("   System ID: 0x%X\n", finger.system_id);
+    Serial.printf("   Capacity: %d\n", finger.capacity);
+    Serial.printf("   Security Level: %d\n", finger.security_level);
+    Serial.printf("   Device Address: 0x%X\n", finger.device_addr);
+    Serial.printf("   Packet Length: %d\n", finger.packet_len);
+    Serial.printf("   Baud Rate: %d\n", finger.baud_rate);
+    
+    // Count enrolled fingerprints
+    finger.getTemplateCount();
+    Serial.printf("   Enrolled Fingerprints: %d\n", finger.templateCount);
+    
+  } else {
+    Serial.println("❌ AS608 Fingerprint sensor not found!");
+    Serial.println("   Check wiring:");
+    Serial.printf("   AS608 VCC → D1 R2 3V3\n");
+    Serial.printf("   AS608 GND → D1 R2 GND\n");
+    Serial.printf("   AS608 TX  → D1 R2 D3 (GPIO0)\n");
+    Serial.printf("   AS608 RX  → D1 R2 D4 (GPIO2)\n");
+    fingerprintInitialized = false;
+  }
+}
+
+void scanFingerprint() {
+  if (millis() - lastFingerprintScan < FINGERPRINT_SCAN_INTERVAL) {
+    return;
+  }
+  lastFingerprintScan = millis();
+  
+  uint8_t p = finger.getImage();
+  if (p != FINGERPRINT_OK) {
+    // Only log if it's not just "no finger" - reduces spam
+    if (p != FINGERPRINT_NOFINGER) {
+      Serial.printf("⚠️ Image capture issue: %d\n", p);
+    }
+    return;
+  }
+  
+  // Convert image to template
+  p = finger.image2Tz();
+  if (p != FINGERPRINT_OK) {
+    // Handle common conversion errors more gracefully
+    if (p == FINGERPRINT_IMAGEMESS) {
+      Serial.println("⚠️ Fingerprint image unclear - try repositioning finger");
+    } else if (p == FINGERPRINT_FEATUREFAIL) {
+      Serial.println("⚠️ Could not find fingerprint features");
+    } else {
+      Serial.printf("❌ Failed to convert fingerprint image: %d\n", p);
+    }
+    return;
+  }
+  
+  // Search for matching fingerprint
+  p = finger.fingerFastSearch();
+  if (p == FINGERPRINT_OK) {
+    // Match found!
+    Serial.printf("🎯 Fingerprint match found! ID: %d, Confidence: %d\n", 
+                  finger.fingerID, finger.confidence);
+    
+    publishFingerprintEvent("match", finger.fingerID, finger.confidence);
+    
+    // Wait for finger removal to prevent multiple rapid matches
+    Serial.println("✋ Please remove finger...");
+    unsigned long waitStart = millis();
+    while (finger.getImage() != FINGERPRINT_NOFINGER && (millis() - waitStart) < 3000) {
+      yield();
+      delay(100);
+    }
+    
+  } else if (p == FINGERPRINT_NOTFOUND) {
+    Serial.println("👤 Unknown fingerprint detected");
+    publishFingerprintEvent("unknown", 0, 0);
+    
+    // Wait for finger removal
+    Serial.println("✋ Please remove finger...");
+    unsigned long waitStart = millis();
+    while (finger.getImage() != FINGERPRINT_NOFINGER && (millis() - waitStart) < 3000) {
+      yield();
+      delay(100);
+    }
+    
+  } else {
+    // Handle search errors more gracefully
+    if (p == FINGERPRINT_IMAGEMESS) {
+      // Don't spam console with this common error
+      static unsigned long lastMessError = 0;
+      if (millis() - lastMessError > 5000) {  // Only log every 5 seconds
+        Serial.println("⚠️ Fingerprint sensor needs cleaning or finger repositioning");
+        lastMessError = millis();
+      }
+    } else {
+      Serial.printf("❌ Fingerprint search error: %d\n", p);
+    }
+  }
+}
+
+void publishFingerprintEvent(const String& eventType, uint16_t fingerID, uint16_t confidence) {
+  JsonDocument event;
+  event["deviceId"] = DEVICE_ID;
+  event["eventType"] = eventType;
+  event["fingerID"] = fingerID;
+  event["confidence"] = confidence;
+  event["timestamp"] = millis();
+  
+  String eventStr;
+  serializeJson(event, eventStr);
+  
+  if (mqttClient.publish(TOPIC_FINGERPRINT, eventStr.c_str())) {
+    Serial.printf("📤 Fingerprint event sent: %s\n", eventStr.c_str());
+  }
+}
+
+// ===== MQTT COMMAND HANDLERS FOR FINGERPRINT =====
+
+void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId) {
+  uint8_t id = doc["fingerID"] | 1;
+  
+  Serial.printf("🔐 Starting fingerprint enrollment for ID: %d\n", id);
+  
+  JsonDocument response;
+  response["requestId"] = requestId;
+  response["action"] = "enroll_finger";
+  response["fingerID"] = id;
+  
+  // Check if ID is valid
+  if (id == 0 || id > finger.capacity) {
+    response["status"] = "error";
+    response["message"] = "Invalid finger ID";
+    sendResponse(response);
+    return;
+  }
+  
+  // Start enrollment process
+  int enrollResult = enrollFingerprint(id);
+  
+  if (enrollResult == FINGERPRINT_OK) {
+    response["status"] = "success";
+    response["message"] = "Fingerprint enrolled successfully";
+  } else {
+    response["status"] = "error";
+    response["message"] = "Enrollment failed. Error code: " + String(enrollResult);
+  }
+  
+  sendResponse(response);
+}
+
+void handleDeleteFingerCommand(const JsonDocument& doc, const String& requestId) {
+  uint8_t id = doc["fingerID"] | 1;
+  
+  Serial.printf("🗑️ Deleting fingerprint ID: %d\n", id);
+  
+  JsonDocument response;
+  response["requestId"] = requestId;
+  response["action"] = "delete_finger";
+  response["fingerID"] = id;
+  
+  uint8_t p = finger.deleteModel(id);
+  
+  if (p == FINGERPRINT_OK) {
+    response["status"] = "success";
+    response["message"] = "Fingerprint deleted successfully";
+    Serial.printf("✅ Fingerprint ID %d deleted\n", id);
+  } else {
+    response["status"] = "error";
+    response["message"] = "Failed to delete fingerprint. Error code: " + String(p);
+    Serial.printf("❌ Failed to delete fingerprint ID %d\n", id);
+  }
+  
+  sendResponse(response);
+}
+
+void handleGetFingerCountCommand(const String& requestId) {
+  finger.getTemplateCount();
+  
+  JsonDocument response;
+  response["requestId"] = requestId;
+  response["action"] = "get_finger_count";
+  response["status"] = "success";
+  response["enrolledCount"] = finger.templateCount;
+  response["capacity"] = finger.capacity;
+  
+  sendResponse(response);
+  
+  Serial.printf("📊 Enrolled fingerprints: %d/%d\n", finger.templateCount, finger.capacity);
+}
+
+int enrollFingerprint(uint8_t id) {
+  int p = -1;
+  
+  Serial.printf("📝 Place finger for ID %d...\n", id);
+  
+  // Wait for finger
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+    yield(); // Keep ESP8266 responsive
+    if (p == FINGERPRINT_NOFINGER) continue;
+    if (p != FINGERPRINT_OK) return p;
+  }
+  
+  // Convert first image
+  p = finger.image2Tz(1);
+  if (p != FINGERPRINT_OK) return p;
+  
+  Serial.println("🔄 Remove finger and place again...");
+  delay(2000);
+  
+  // Wait for finger removal
+  while (finger.getImage() != FINGERPRINT_NOFINGER) {
+    yield();
+  }
+  
+  // Wait for finger again
+  p = -1;
+  while (p != FINGERPRINT_OK) {
+    p = finger.getImage();
+    yield();
+    if (p == FINGERPRINT_NOFINGER) continue;
+    if (p != FINGERPRINT_OK) return p;
+  }
+  
+  // Convert second image
+  p = finger.image2Tz(2);
+  if (p != FINGERPRINT_OK) return p;
+  
+  // Create model
+  p = finger.createModel();
+  if (p != FINGERPRINT_OK) return p;
+  
+  // Store model
+  p = finger.storeModel(id);
+  if (p == FINGERPRINT_OK) {
+    Serial.printf("✅ Fingerprint enrolled successfully with ID: %d\n", id);
+  }
+  
+  return p;
 }

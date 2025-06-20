@@ -61,19 +61,7 @@ export class MqttService {
      */
     async getDeviceStatus(deviceId: string): Promise<void> {
         await this.sendCommand(deviceId, 'get_status');
-    }
-
-    /**
-     * Register device
-     */
-    async registerDevice(deviceId: string, deviceName: string, location: string): Promise<void> {
-        await this.sendCommand(deviceId, 'register', {
-            deviceName,
-            location,
-        });
-    }
-
-    /**
+    }    /**
      * Reset device
      */
     async resetDevice(deviceId: string): Promise<void> {
