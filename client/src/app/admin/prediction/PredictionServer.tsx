@@ -73,9 +73,15 @@ export default async function PredictionServer({
         const doubleBarData = predictionData.salesPurchase;
 
         return (
-            <div className="flex h-full min-h-screen w-full flex-col gap-4 bg-gray-200 p-4">
+            <div className="flex h-full w-full flex-col gap-4 bg-gray-200 p-4">
+                {/* Prediction Table */}
+                {showTable && (
+                    <div className="w-full rounded-lg border-2 bg-white p-4">
+                        <PredictionTable data={mappedSales} />
+                    </div>
+                )}
                 {/* Charts */}
-                <div className="flex h-80 w-full gap-2">
+                <div className="flex h-full w-full gap-2">
                     <div className="flex-1 rounded-lg border-2 bg-white p-4">
                         <PredictionChart data={mappedSales} title="Tỉ lệ sản phẩm bán ra" sortOrder={sortOrder} />
                     </div>
@@ -86,15 +92,8 @@ export default async function PredictionServer({
 
                 {/* Double Bar Chart */}
                 {doubleBarData.length > 0 && (
-                    <div className="h-80 w-full rounded-lg border-2 bg-white p-4">
+                    <div className="h-[80vh] w-full rounded-lg border-2 bg-white p-4">
                         <DoubleBarChart data={doubleBarData} />
-                    </div>
-                )}
-
-                {/* Prediction Table */}
-                {showTable && (
-                    <div className="w-full rounded-lg border-2 bg-white p-4">
-                        <PredictionTable data={mappedSales} />
                     </div>
                 )}
             </div>
@@ -104,7 +103,7 @@ export default async function PredictionServer({
 
         // Return error state
         return (
-            <div className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-4 bg-gray-200 p-4">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gray-200 p-4">
                 <h2 className="text-xl font-semibold text-red-600">Đã xảy ra lỗi!</h2>
                 <p className="text-gray-600">Không thể tải dữ liệu dự đoán từ server.</p>
                 <p className="text-sm text-gray-500">Vui lòng thử lại sau hoặc liên hệ quản trị viên.</p>

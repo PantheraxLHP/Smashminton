@@ -78,7 +78,7 @@ export default function PredictionPage({ searchParams }: PredictionPageProps) {
     const showTable = searchParams.showTable === 'true';
 
     return (
-        <div className="w-full">
+        <div className="h-full w-full">
             <PredictionControls timeType={timeType} selectedTime={selectedTime} selectedYear={selectedYear} />
 
             <Suspense
