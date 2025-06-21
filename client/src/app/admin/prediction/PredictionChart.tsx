@@ -61,7 +61,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({
             <div className="flex-1 overflow-hidden">
                 <ChartContainer config={chartConfig} className="h-full min-w-full">
                     <PieChart>
-                        <Pie data={chartData} dataKey="percent" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
+                        <Pie data={chartData} dataKey="percent" nameKey="name" cx="50%" cy="50%" outerRadius={150}>
                             {chartData.map((item) => (
                                 <Cell key={`cell-${item.id}`} fill={item.fill} />
                             ))}

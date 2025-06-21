@@ -234,3 +234,19 @@ export const autoAssignShift = async (fullTimeOption: string, partTimeOption: st
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện phân công tự động');
     }
 };
+
+export const getAutoAssignment = async () => {
+    try {
+        const response = await fetch('/api/shiftdate/get-auto-assignment', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+        const result = await response.json();
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể tải danh sách tự động phân công',
+        );
+    }
+};

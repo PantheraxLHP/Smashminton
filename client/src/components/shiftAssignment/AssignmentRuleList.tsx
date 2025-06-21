@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Dialog,
@@ -11,15 +10,27 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import AssignmentRuleDetail from './AssignmentRuleDetail';
+import { getAutoAssignment } from '@/services/shiftdate.service';
 
-interface CustomRuleList {
-    ruleid: number;
-    rulename: string;
-    applyto: string;
-    priority: number;
-    lastmodified: Date;
+export interface RuleCondition {
+    conditionName: string;
+    conditionValue: string;
+}
+
+export interface RuleAction {
+    actionName: string;
+    actionValue: string;
+}
+
+export interface AssignmentRule {
+    ruleName: string;
+    ruleType: string;
+    ruleDescription: string;
+    subObj: any[];
+    conditions: RuleCondition[];
+    actions: RuleAction[];
 }
 
 interface AssignmentRuleListProps {
@@ -29,56 +40,37 @@ interface AssignmentRuleListProps {
     setPartTimeOption?: (value: string) => void;
 }
 
+function formatRuleType(ruleType: string) {
+    switch (ruleType) {
+        case 'employee':
+            return 'Nhân viên';
+        case 'enrollmentEmployee':
+            return 'Nhân viên (Có đăng ký ca làm)';
+        case 'shift':
+            return 'Ca làm việc';
+        case 'enrollmentShift':
+            return 'Ca làm việc (Đã có người đăng ký)';
+        default:
+            return 'Không xác định';
+    }
+}
+
 const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     fullTimeOption,
     setFullTimeOption,
     partTimeOption,
     setPartTimeOption,
 }) => {
-    const [ruleList, setRuleList] = useState<CustomRuleList[]>([
-        {
-            ruleid: 1,
-            rulename: 'Quy tắc 1',
-            applyto: 'Nhân viên',
-            priority: 100,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 2,
-            rulename: 'Quy tắc 2',
-            applyto: 'Ca làm việc',
-            priority: 90,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 3,
-            rulename: 'Quy tắc 3',
-            applyto: 'Nhân viên',
-            priority: 80,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 4,
-            rulename: 'Quy tắc 4',
-            applyto: 'Ca làm việc',
-            priority: 70,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 5,
-            rulename: 'Quy tắc 5',
-            applyto: 'Nhân viên',
-            priority: 60,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 6,
-            rulename: 'Quy tắc 6',
-            applyto: 'Ca làm việc',
-            priority: 50,
-            lastmodified: new Date(),
-        },
-    ]);
+    const [ruleList, setRuleList] = useState<AssignmentRule[]>();
+    useEffect(() => {
+        const fetchAutoAssignment = async () => {
+            const response = await getAutoAssignment();
+            if (response.ok) {
+                setRuleList(response.data);
+            }
+        };
+        fetchAutoAssignment();
+    }, []);
 
     return (
         <div className="flex w-full flex-col gap-4">
@@ -96,15 +88,6 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                             <DialogDescription></DialogDescription>
                         </DialogHeader>
                         <AssignmentRuleDetail />
-                        <DialogFooter>
-                            <DialogTrigger asChild>
-                                <Button variant="secondary">
-                                    <Icon icon="material-symbols:arrow-back-rounded" />
-                                    Quay về
-                                </Button>
-                            </DialogTrigger>
-                            <Button>Lưu</Button>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
                 <Button variant="outline">
@@ -114,35 +97,25 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
             </div>
             <div className="flex w-full gap-4">
                 <div className="flex w-full max-w-full flex-col overflow-x-auto">
-                    <div className="grid grid-cols-[repeat(5,minmax(100px,200px))]">
+                    <div className="grid grid-cols-[repeat(4,minmax(150px,250px))]">
                         <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Tên quy tắc</div>
                         <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
                             Đối tượng áp dụng
                         </div>
-                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Độ ưu tiên</div>
-                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
-                            Chỉnh sửa lần cuối
-                        </div>
+                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Mô tả</div>
                         <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Thao tác</div>
                     </div>
-                    <div className="grid max-h-[40vh] grid-cols-[repeat(5,minmax(150px,200px))] items-center overflow-auto">
-                        {ruleList.map((rule) => (
-                            <Fragment key={`rule-${rule.ruleid}`}>
+                    <div className="grid max-h-[40vh] grid-cols-[repeat(4,minmax(150px,250px))] items-center overflow-auto">
+                        {ruleList?.map((rule) => (
+                            <Fragment key={`rule-${rule.ruleName}`}>
                                 <div className="flex h-full w-full items-center border-b p-2 text-sm">
-                                    {rule.rulename}
+                                    {rule.ruleName}
                                 </div>
                                 <div className="flex h-full w-full items-center border-b p-2 text-sm">
-                                    {rule.applyto}
+                                    {formatRuleType(rule.ruleType)}
                                 </div>
                                 <div className="flex h-full w-full items-center border-b p-2 text-sm">
-                                    {rule.priority}
-                                </div>
-                                <div className="flex h-full w-full items-center border-b p-2 text-sm">
-                                    {rule.lastmodified.toLocaleTimeString('vi-VN', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                    })}
+                                    {rule.ruleDescription}
                                 </div>
                                 <div className="flex h-full w-full flex-wrap items-center justify-center gap-2 border-b p-2">
                                     <Dialog>
@@ -160,16 +133,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 <DialogTitle>Chỉnh sửa quy tắc phân công</DialogTitle>
                                                 <DialogDescription></DialogDescription>
                                             </DialogHeader>
-                                            <AssignmentRuleDetail />
-                                            <DialogFooter>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="secondary">
-                                                        <Icon icon="material-symbols:arrow-back-rounded" />
-                                                        Quay về
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <Button>Lưu</Button>
-                                            </DialogFooter>
+                                            <AssignmentRuleDetail AssignmentRule={rule} />
                                         </DialogContent>
                                     </Dialog>
                                     <Button variant="outline_destructive" className="group w-full">
