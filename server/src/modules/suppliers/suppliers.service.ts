@@ -86,9 +86,23 @@ export class SuppliersService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} supplier`;
+  async findSuppliersByProduct(productid: number) {
+    const supplies = await this.prisma.supply_products.findMany({
+      where: {
+        productid: productid,
+      },
+      include: {
+        suppliers: true,
+      },
+    });
+
+    return supplies.map(sp => ({
+      supplierid: sp.suppliers?.supplierid,
+      suppliername: sp.suppliers?.suppliername,
+      costprice: sp.costprice,
+    }));
   }
+
 
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
     const updated = await this.prisma.suppliers.update({
