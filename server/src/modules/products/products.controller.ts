@@ -48,14 +48,13 @@ export class ProductsController {
         return this.productsService.create(createProductDto, file, _productfiltervalueid);
     }
 
-
     @Get('all-products')
     @ApiOperation({ summary: 'Get all products' })
     getAllBasicProducts() {
         return this.productsService.findAllBasicProducts();
     }
 
-    @Get('all-products-with-batches')
+    @Get('all-products-with-batches')   
     @ApiOperation({ summary: 'Get all products with batches' })
     getProductsWithBatches(@Query('page') page: string = '1',
         @Query('pageSize') pageSize: string = '12') {
