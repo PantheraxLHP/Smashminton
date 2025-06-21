@@ -2601,7 +2601,7 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 30,
-            },
+            }
         ],
     });
 
