@@ -112,7 +112,7 @@ model customers {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model employees {
   employeeid           Int                @id
-  fingerprintid        Int?
+  fingerprintid        Int?               @unique
   last_week_shift_type String?
   employee_type        String?
   role                 String?
@@ -338,11 +338,13 @@ model supply_products {
 
 model timesheet {
   timesheetid   Int        @id @default(autoincrement())
-  timesheetdate DateTime?  @db.Timestamptz(6)
+  timesheetdate DateTime  @db.Timestamptz(6)
   starthour     DateTime?  @db.Timestamptz(6)
   endhour       DateTime?  @db.Timestamptz(6)
-  employeeid    Int?
-  employees     employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_employees")
+  employeeid    Int
+  employees     employees @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_employees")
+
+  @@unique([employeeid, timesheetdate], map: "unique_timesheet_employeeid_timesheetdate")
 }
 
 model voucher {

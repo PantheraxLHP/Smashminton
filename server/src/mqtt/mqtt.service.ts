@@ -1,9 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClientProxy, Client, Transport } from '@nestjs/microservices';
+import { PrismaService } from 'src/modules/prisma/prisma.service';
 
 @Injectable()
 export class MqttService {
     private readonly logger = new Logger(MqttService.name);
+
+    constructor(
+        private readonly prisma: PrismaService
+    ) { }
 
     @Client({
         transport: Transport.MQTT,
@@ -94,5 +99,137 @@ export class MqttService {
 
     private generateRequestId(): string {
         return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    }
+
+    async registerEmployeeFingerprint(employeeId: number, fingerprintId: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeId },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeId} not found`);
+                throw new Error(`Employee with ID ${employeeId} not found`);
+            }
+
+            await this.prisma.employees.update({
+                where: { employeeid: employeeId },
+                data: {
+                    fingerprintid: fingerprintId
+                }
+            });
+
+            this.logger.log(`✅ Fingerprint ${fingerprintId} has been registered for employee ${employeeId}`);
+            return { success: true, message: `Fingerprint registered successfully` };
+        } catch (error) {
+            this.logger.error(`❌ Failed to register fingerprint for employee ${employeeId}:`, error);
+            throw error;
+        }
+    }
+
+    async deleteEmployeeFingerprint(employeeId: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeId },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeId} not found`);
+                throw new Error(`Employee with ID ${employeeId} not found`);
+            }
+
+            await this.prisma.employees.update({
+                where: { employeeid: employeeId },
+                data: {
+                    fingerprintid: null
+                }
+            });
+
+            this.logger.log(`✅ Fingerprint has been deleted for employee ${employeeId}`);
+            return { success: true, message: `Fingerprint deleted successfully` };
+        } catch (error) {
+            this.logger.error(`❌ Failed to delete fingerprint for employee ${employeeId}:`, error);
+            throw error;
+        }
+    }
+
+    async timeTracking(fingerprintId: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { fingerprintid: fingerprintId },
+            });
+
+            if (!employee) {
+                this.logger.error(`❌ Employee with fingerprint ID ${fingerprintId} not found`);
+                throw new Error(`Employee with fingerprint ID ${fingerprintId} not found`);
+            }
+
+            const result = await this.updateTimeSheet(employee.employeeid);
+            this.logger.log(`✅ Timesheet updated successfully for employee ${employee.employeeid}`);
+
+            return { success: true, message: `Time tracking updated successfully`, employee: employee.employeeid };
+
+        } catch (error) {
+            this.logger.error(`❌ Failed to track time for fingerprint ID ${fingerprintId}:`, error);
+            throw error;
+        }
+    }
+
+    async updateTimeSheet(employeeId: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeId },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeId} not found`);
+                throw new Error(`Employee with ID ${employeeId} not found`);
+            }
+
+            const currentTime = new Date();
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+
+            // Check if timesheet exists for today
+            const existingTimesheet = await this.prisma.timesheet.findUnique({
+                where: {
+                    employeeid_timesheetdate: {
+                        employeeid: employeeId,
+                        timesheetdate: currentDate
+                    }
+                }
+            });
+
+            if (existingTimesheet) {
+                // Employee already clocked in today - update end time
+                await this.prisma.timesheet.update({
+                    where: { timesheetid: existingTimesheet.timesheetid },
+                    data: {
+                        endhour: currentTime, // Update end time
+                    }
+                });
+
+                this.logger.log(`⏰ Clock-out recorded for employee ${employeeId} at ${currentTime.toISOString()}`);
+                return { action: 'clock-out', time: currentTime };
+
+            } else {
+                // First time today - create new timesheet (clock-in)
+                const newTimesheet = await this.prisma.timesheet.create({
+                    data: {
+                        employeeid: employeeId,
+                        timesheetdate: currentDate,
+                        starthour: currentTime,
+                        endhour: null,
+                    }
+                });
+
+                this.logger.log(`🟢 Clock-in recorded for employee ${employeeId} at ${currentTime.toISOString()}`);
+                return { action: 'clock-in', time: currentTime };
+            }
+
+        } catch (error) {
+            this.logger.error(`❌ Failed to update timesheet for employee ${employeeId}:`, error);
+            throw error;
+        }
     }
 }
