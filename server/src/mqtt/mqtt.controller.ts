@@ -1,43 +1,54 @@
 import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload, MessagePattern } from '@nestjs/microservices';
+import { MqttService } from './mqtt.service';
 
 @Controller()
 export class MqttController {
     private readonly logger = new Logger(MqttController.name);
 
+    constructor(
+        private readonly mqttService: MqttService
+    ) { }
+
     /*
      * Handle ESP8266 responses
      */
     @EventPattern('smashminton/device/+/response')
-    handleDeviceResponse(@Payload() data: any) {
+    async handleDeviceResponse(@Payload() data: any) {
         this.logger.log('Device Response:', JSON.stringify(data, null, 2));
+        try {
 
-        // Process different types of responses
-        if (data.status === 'pong') {
-            this.logger.log(`Ping response from device: ${data.timestamp}`);
-        } else if (data.status === 'error') {
-            this.logger.error(`Device error: ${data.message}`);
-        } else if (data.action === 'enroll_finger') {
-            if (data.status === 'success') {
-                this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
-            } else {
-                this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);
+            // Process different types of responses
+            if (data.status === 'pong') {
+                this.logger.log(`Ping response from device: ${data.timestamp}`);
+            } else if (data.status === 'error') {
+                this.logger.error(`Device error: ${data.message}`);
+            } else if (data.action === 'enroll_finger') {
+                if (data.status === 'success') {
+                    this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
+                    await this.mqttService.registerEmployeeFingerprint(data.employeeID, data.fingerID);
+                } else {
+                    this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);
+                }
+            } else if (data.action === 'delete_finger') {
+                if (data.status === 'success') {
+                    this.logger.log(`✅ Fingerprint deleted successfully: ID=${data.fingerID}`);
+                    await this.mqttService.deleteEmployeeFingerprint(data.employeeID);
+                } else {
+                    this.logger.error(`❌ Fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
+                }
+            } else if (data.action === 'get_finger_count') {
+                if (data.status === 'success') {
+                    this.logger.log(`📊 Fingerprint count: ${data.enrolledCount}/${data.capacity} enrolled`);
+                } else {
+                    this.logger.error(`❌ Failed to get fingerprint count: ${data.message}`);
+                }
             }
-        } else if (data.action === 'delete_finger') {
-            if (data.status === 'success') {
-                this.logger.log(`✅ Fingerprint deleted successfully: ID=${data.fingerID}`);
-            } else {
-                this.logger.error(`❌ Fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
-            }
-        } else if (data.action === 'get_finger_count') {
-            if (data.status === 'success') {
-                this.logger.log(`📊 Fingerprint count: ${data.enrolledCount}/${data.capacity} enrolled`);
-            } else {
-                this.logger.error(`❌ Failed to get fingerprint count: ${data.message}`);
-            }
+
+            return data;
+        } catch (error) {
+            this.logger.error('Error processing device response:', error);
         }
-
-        return data;
     }
 
     /*
@@ -75,30 +86,33 @@ export class MqttController {
     }
 
     /*
+     * Handle ESP8266 fingerprint events
+     */
+    @EventPattern('smashminton/device/+/fingerprint')
+    async handleFingerprintEvent(@Payload() data: any) {
+        this.logger.log('Fingerprint Event:', JSON.stringify(data, null, 2));
+
+        try {
+            if (data.eventType === 'match') {
+                this.logger.log(`🎯 Fingerprint match: ID=${data.fingerID}, Confidence=${data.confidence}`);
+                await this.mqttService.timeTracking(data.fingerID);
+            } else if (data.eventType === 'unknown') {
+                this.logger.log('👤 Unknown fingerprint detected');
+                // Handle unknown fingerprint (access denied, log attempt, etc.)
+            }
+
+            return data;
+        } catch (error) {
+            this.logger.error('❌ Error processing fingerprint event:', error);
+        }
+    }
+
+    /*
      * Handle any MQTT message for debugging
      */
     @EventPattern('smashminton/+/+/+')
     handleAllMessages(@Payload() data: any) {
         this.logger.debug('MQTT Message:', JSON.stringify(data, null, 2));
-        return data;
-    }
-
-    /*
-     * Handle ESP8266 fingerprint events
-     */
-    @EventPattern('smashminton/device/+/fingerprint')
-    handleFingerprintEvent(@Payload() data: any) {
-        this.logger.log('Fingerprint Event:', JSON.stringify(data, null, 2));
-
-        if (data.eventType === 'match') {
-            this.logger.log(`🎯 Fingerprint match: ID=${data.fingerID}, Confidence=${data.confidence}`);
-            // Handle successful fingerprint authentication
-            // You can trigger court access, user login, etc.
-        } else if (data.eventType === 'unknown') {
-            this.logger.log('👤 Unknown fingerprint detected');
-            // Handle unknown fingerprint (access denied, log attempt, etc.)
-        }
-
         return data;
     }
 }

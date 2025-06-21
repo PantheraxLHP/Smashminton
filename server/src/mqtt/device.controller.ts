@@ -75,38 +75,46 @@ export class DeviceController {
         schema: {
             type: 'object',
             properties: {
-                fingerID: { type: 'number', example: 1, description: 'Fingerprint ID (1-127)' }
+                fingerID: { type: 'number', example: 1, description: 'Fingerprint ID (1-127)' },
+                employeeID: { type: 'number', example: 1, description: 'Employee ID for enrolling fingerprint' }
             }
         }
     })
     async enrollFingerprint(
         @Param('deviceId') deviceId: string,
-        @Body() body: { fingerID: number }
+        @Body() body: { fingerID: number, employeeID: number }
     ) {
-        await this.mqttService.sendCommand(deviceId, 'enroll_finger', { fingerID: body.fingerID });
+        await this.mqttService.sendCommand(deviceId, 'enroll_finger', { employeeID: body.employeeID, fingerID: body.fingerID });
         return {
             success: true,
-            message: `Fingerprint enrollment started for ID ${body.fingerID} on ${deviceId}`,
+            message: `Fingerprint enrollment started for employee ID ${body.employeeID} with finger ID ${body.fingerID} on ${deviceId}`,
+            employeeID: body.employeeID,
             fingerID: body.fingerID,
             instructions: 'Place finger on sensor when prompted',
             timestamp: new Date().toISOString()
         };
     }
 
-    @Delete(':deviceId/fingerprint/:fingerID')
+    @Delete(':deviceId/fingerprint/delete')
     @ApiOperation({ summary: 'Delete fingerprint from ESP8266 device' })
     @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)' })
-    @ApiParam({ name: 'fingerID', description: 'Fingerprint ID to delete' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                fingerID: { type: 'number', example: 1, description: 'Fingerprint ID to delete (1-127)' }
+            }
+        }
+    })
     async deleteFingerprint(
         @Param('deviceId') deviceId: string,
-        @Param('fingerID') fingerID: string
+        @Body() body: { fingerID: number }
     ) {
-        const id = parseInt(fingerID);
-        await this.mqttService.sendCommand(deviceId, 'delete_finger', { fingerID: id });
+        await this.mqttService.sendCommand(deviceId, 'delete_finger', { fingerID: body.fingerID });
         return {
             success: true,
-            message: `Fingerprint ID ${id} deletion requested on ${deviceId}`,
-            fingerID: id,
+            message: `Fingerprint ID ${body.fingerID} deletion requested on ${deviceId}`,
+            fingerID: body.fingerID,
             timestamp: new Date().toISOString()
         };
     }
