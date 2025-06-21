@@ -1,10 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class UpdateRentalPriceDto {
-  @Type(() => Number)
+export class UpdateProductServiceDto {
+  @IsString()
+  @ApiProperty({ example: 'Pepsi' })
+  productname: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    required: false,
+    description: 'Hình ảnh sản phẩm',
+  })
+  productimgurl?: string;
+
   @IsNumber()
-  @ApiProperty({ example: 12000 })
-  rentalprice: number;
+  @Type(() => Number)
+  @ApiProperty({ type: Number, example: 8000, required: false })
+  rentalprice?: number;
 }

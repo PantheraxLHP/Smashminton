@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateRentalPriceDto } from './dto/update-product.dto';
+import { UpdateProductServiceDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -134,17 +134,27 @@ export class ProductsService {
         });
     }
 
-    async updateRentalPrice(productid: number, rentalprice: number) {
+    async updateRentalPrice(productid: number, updateProductServiceDto: UpdateProductServiceDto, file: Express.Multer.File) {
+        let imageUrl = updateProductServiceDto.productimgurl;
+
+        if (file) {
+            const uploadResult = await this.cloudinaryService.uploadProductImg(file);
+            imageUrl = uploadResult.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Upload ảnh thất bại');
+            }
+        }
+
         const updated = await this.prisma.products.update({
-            where: { productid },
+            where: { productid: productid },
             data: {
-                rentalprice,
-                updatedat: new Date(),
+                ...updateProductServiceDto,
+                productimgurl: imageUrl,
             },
         });
 
         return {
-            message: 'Cập nhật giá thuê thành công',
+            message: 'Cập nhật dịch vụ thành công',
             data: updated,
         };
     }
