@@ -34,6 +34,8 @@ unsigned long lastHeartbeat = 0;
 const unsigned long HEARTBEAT_INTERVAL = 30000;  // 30 seconds
 unsigned long lastFingerprintScan = 0;
 const unsigned long FINGERPRINT_SCAN_INTERVAL = 1000;  // 1 second
+unsigned long lastEnrollmentTime = 0;
+const unsigned long ENROLLMENT_COOLDOWN = 5000;  // 5 seconds cooldown after enrollment
 
 // Common Fingerprint Error Codes (for reference):
 // FINGERPRINT_OK = 0           - Success
@@ -391,6 +393,12 @@ void scanFingerprint() {
   if (millis() - lastFingerprintScan < FINGERPRINT_SCAN_INTERVAL) {
     return;
   }
+  
+  // Check if we're in cooldown period after enrollment
+  if (millis() - lastEnrollmentTime < ENROLLMENT_COOLDOWN) {
+    return; // Skip scanning during cooldown
+  }
+  
   lastFingerprintScan = millis();
 
   uint8_t p = finger.getImage();
@@ -606,6 +614,19 @@ int enrollFingerprint(uint8_t id) {
   if (p != FINGERPRINT_OK) return p;
 
   Serial.println("🔄 Remove finger and place again...");
+  
+  // Send intermediate status - remove finger
+  JsonDocument stepResponse;
+  stepResponse["action"] = "enroll_step";
+  stepResponse["step"] = "remove_finger";
+  stepResponse["employeeID"] = employeeID;
+  stepResponse["fingerID"] = fingerID;
+  stepResponse["timestamp"] = millis();
+  
+  String stepStr;
+  serializeJson(stepResponse, stepStr);
+  mqttClient.publish(TOPIC_RESPONSE, stepStr.c_str());
+  
   delay(2000);
 
   // Wait for finger removal (shorter timeout)
@@ -618,6 +639,20 @@ int enrollFingerprint(uint8_t id) {
   }
 
   // Wait for finger again with timeout
+  Serial.println("📝 Place finger again...");
+  
+  // Send intermediate status - place finger again
+  JsonDocument placeAgainResponse;
+  placeAgainResponse["action"] = "enroll_step";
+  placeAgainResponse["step"] = "place_again";
+  placeAgainResponse["employeeID"] = employeeID;
+  placeAgainResponse["fingerID"] = fingerID;
+  placeAgainResponse["timestamp"] = millis();
+  
+  String placeAgainStr;
+  serializeJson(placeAgainResponse, placeAgainStr);
+  mqttClient.publish(TOPIC_RESPONSE, placeAgainStr.c_str());
+  
   p = -1;
   startTime = millis();
   while (p != FINGERPRINT_OK) {
@@ -646,6 +681,7 @@ int enrollFingerprint(uint8_t id) {
   p = finger.storeModel(id);
   if (p == FINGERPRINT_OK) {
     Serial.printf("✅ Fingerprint enrolled successfully with ID: %d\n", id);
+    lastEnrollmentTime = millis(); // Set cooldown timer prevent immediate scanning
   }
 
   return p;
