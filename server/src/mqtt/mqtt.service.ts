@@ -101,6 +101,49 @@ export class MqttService {
         return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
 
+    async getNextAvailableFingerprintId() {
+        try {
+            const enrolledFingerprints = await this.prisma.employees.findMany({
+                where: {
+                    fingerprintid: {
+                        not: null
+                    }
+                },
+                orderBy: {
+                    fingerprintid: 'asc'
+                },
+                select: {
+                    fingerprintid: true
+                }
+            })
+
+            if (enrolledFingerprints.length === 0) {
+                this.logger.log('No fingerprints enrolled yet, starting from ID 1');
+                return 1;
+            }
+
+            let availableFingerprintId = 1;
+            let lastFingerprintId = 0
+            for (const fingerprint of enrolledFingerprints) {
+                const currentFingerprintId = fingerprint.fingerprintid!;
+                if (currentFingerprintId != lastFingerprintId + 1) {
+                    availableFingerprintId = lastFingerprintId + 1;
+                    this.logger.log(`📍 Found gap: Next available fingerprint ID is ${availableFingerprintId}`);
+                    return availableFingerprintId;
+                } else {
+                    lastFingerprintId = currentFingerprintId;
+                }
+            }
+
+            const nextAvailableId = lastFingerprintId + 1;
+            this.logger.log(`➡️ No gaps found, next fingerprint ID is ${nextAvailableId}`);
+            return nextAvailableId;
+        } catch (error) {
+            this.logger.error('Failed to get next available fingerprint ID:', error);
+            throw error;
+        }
+    }
+
     async registerEmployeeFingerprint(employeeId: number, fingerprintId: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
@@ -123,6 +166,38 @@ export class MqttService {
             return { success: true, message: `Fingerprint registered successfully` };
         } catch (error) {
             this.logger.error(`❌ Failed to register fingerprint for employee ${employeeId}:`, error);
+            throw error;
+        }
+    }
+
+    async handleDeleteFingerprint(deviceId: string, employeeId: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeId },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeId} not found`);
+                throw new Error(`Employee with ID ${employeeId} not found`);
+            }
+
+            if (!employee.fingerprintid) {
+                this.logger.warn(`No fingerprint found for employee ${employeeId}`);
+                return { success: true, message: `No fingerprint to delete for employee ${employeeId}` };
+            }
+
+            const fingerprintId = employee.fingerprintid;
+            await this.sendCommand(deviceId, 'delete_finger', {
+                fingerID: fingerprintId,
+                employeeID: employeeId,
+            });
+            return {
+                success: true,
+                message: `Fingerprint deletion command sent for employee ${employeeId}`,
+                fingerprintId: fingerprintId
+            }
+        } catch (error) {
+            this.logger.error(`❌ Failed to handle delete fingerprint for employee ${employeeId}:`, error);
             throw error;
         }
     }

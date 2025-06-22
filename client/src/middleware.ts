@@ -6,7 +6,7 @@ const ROLE_PERMISSIONS = {
     guest: ['/booking', '/products', '/rentals'],
     customer: ['/booking', '/products', '/rentals'],
     employee: ['/booking', '/booking-detail', '/assignments', '/enrollments'],
-    hr_manager: ['/employees', '/approvals', '/assignments'],
+    hr_manager: ['/employees', '/approvals', '/assignments', '/fingerprint'],
     wh_manager: [
         '/assignments',
         '/price-management',

@@ -1,13 +1,15 @@
 import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload, MessagePattern } from '@nestjs/microservices';
 import { MqttService } from './mqtt.service';
+import { FingerprintGateway } from './fingerprint.gateway';
 
 @Controller()
 export class MqttController {
     private readonly logger = new Logger(MqttController.name);
 
     constructor(
-        private readonly mqttService: MqttService
+        private readonly mqttService: MqttService,
+        private readonly fingerprintGateway: FingerprintGateway
     ) { }
 
     /*
@@ -22,18 +24,27 @@ export class MqttController {
             if (data.status === 'pong') {
                 this.logger.log(`Ping response from device: ${data.timestamp}`);
             } else if (data.status === 'error') {
-                this.logger.error(`Device error: ${data.message}`);
+                this.logger.error(`Device error: ${data.message}`);           
             } else if (data.action === 'enroll_finger') {
                 if (data.status === 'success') {
                     this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
                     await this.mqttService.registerEmployeeFingerprint(data.employeeID, data.fingerID);
+                    this.fingerprintGateway.enrollmentSuccess(data.employeeID, data.fingerID);
                 } else {
                     this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);
+                    this.fingerprintGateway.enrollmentFailure(data.employeeID, data.message || 'Enrollment failed');
+                }
+            } else if (data.action === 'enroll_step') {
+                this.logger.log(`🔄 Enrollment step: ${data.step} for employee ${data.employeeID}`);
+                if (data.step === 'remove_finger') {
+                    this.fingerprintGateway.enrollmentStep(data.employeeID, 'remove_finger');
+                } else if (data.step === 'place_again') {
+                    this.fingerprintGateway.enrollmentStep(data.employeeID, 'place_again');
                 }
             } else if (data.action === 'delete_finger') {
                 if (data.status === 'success') {
                     this.logger.log(`✅ Fingerprint deleted successfully: ID=${data.fingerID}`);
-                    await this.mqttService.deleteEmployeeFingerprint(data.employeeID);
+                    await this.mqttService.deleteEmployeeFingerprint(data.employeeID);   
                 } else {
                     this.logger.error(`❌ Fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
                 }
@@ -98,7 +109,6 @@ export class MqttController {
                 await this.mqttService.timeTracking(data.fingerID);
             } else if (data.eventType === 'unknown') {
                 this.logger.log('👤 Unknown fingerprint detected');
-                // Handle unknown fingerprint (access denied, log attempt, etc.)
             }
 
             return data;
