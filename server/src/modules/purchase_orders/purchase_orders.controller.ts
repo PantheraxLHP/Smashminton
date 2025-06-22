@@ -1,15 +1,21 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ApiOperation, ApiBody} from '@nestjs/swagger';
 import { PurchaseOrdersService } from './purchase_orders.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase_order.dto';
 import { UpdatePurchaseOrderDto } from './dto/update-purchase_order.dto';
 
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
-  constructor(private readonly purchaseOrdersService: PurchaseOrdersService) {}
+  constructor(private readonly purchaseOrdersService: PurchaseOrdersService) { }
 
   @Post()
-  create(@Body() createPurchaseOrderDto: CreatePurchaseOrderDto) {
-    return this.purchaseOrdersService.create(createPurchaseOrderDto);
+  @ApiOperation({ summary: 'Create purchase_order attached batch' })
+  @ApiBody({
+    description: 'Update supplier data',
+    type: CreatePurchaseOrderDto,
+  })
+  create(@Body() dto: CreatePurchaseOrderDto) {
+    return this.purchaseOrdersService.createPurchaseOrderWithBatch(dto);
   }
 
   @Get()

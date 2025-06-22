@@ -372,7 +372,7 @@ export class ProductTypesService {
           batchname: b.batchname,
           expirydate: b.expirydate,
           stockquantity: b.stockquantity,
-          status: b.status,
+          status: b.statusbatch,
         }));
 
       return {
