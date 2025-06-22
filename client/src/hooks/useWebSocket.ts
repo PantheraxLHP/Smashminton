@@ -68,7 +68,6 @@ export const useWebSocket = (url: string, namespace?: string) => {
 
         return () => {
             if (socket.current) {
-                console.log('🔌 Disconnecting Socket.IO');
                 socket.current.disconnect();
             }
         };
