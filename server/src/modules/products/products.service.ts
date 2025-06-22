@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductServiceDto } from './dto/update-product.dto';
+import { UpdateFoodAccessoryDto, UpdateProductServiceDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -134,7 +134,7 @@ export class ProductsService {
         });
     }
 
-    async updateRentalPrice(productid: number, updateProductServiceDto: UpdateProductServiceDto, file: Express.Multer.File) {
+    async updateProductService(productid: number, updateProductServiceDto: UpdateProductServiceDto, file: Express.Multer.File) {
         let imageUrl = updateProductServiceDto.productimgurl;
 
         if (file) {
@@ -158,6 +158,59 @@ export class ProductsService {
             data: updated,
         };
     }
+
+    async updateFoodAccessory(productid: number, batchid: number, updateFoodAccessoryDto: UpdateFoodAccessoryDto, file: Express.Multer.File) {
+        let imageUrl = updateFoodAccessoryDto.productimgurl;
+
+        if (file) {
+            const uploadResult = await this.cloudinaryService.uploadProductImg(file);
+            imageUrl = uploadResult.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Upload ảnh thất bại');
+            }
+        }
+
+        // 1. Cập nhật product
+        await this.prisma.products.update({
+            where: { productid: productid },
+            data: {
+                productname: updateFoodAccessoryDto.productname,
+                sellingprice: updateFoodAccessoryDto.sellingprice,
+                productimgurl: imageUrl,
+                updatedat: new Date(),
+            },
+        });
+
+        // 2. Kiểm tra xem batchid có thật sự gắn với productid qua purchase_order không
+        const foundPO = await this.prisma.purchase_order.findFirst({
+            where: {
+                productid: productid,
+                batchid: batchid,
+            },
+        });
+
+        if (!foundPO) {
+            throw new NotFoundException('Không tìm thấy batch gắn với sản phẩm này');
+        }
+
+        // 3. Cập nhật discount trong bảng batch
+    
+        const updatedBatch = await this.prisma.product_batch.update({
+            where: {
+                batchid: batchid,
+            },
+            data: {
+                ...(updateFoodAccessoryDto.discount !== undefined && { discount: +updateFoodAccessoryDto.discount }),
+                updatedat: new Date(),
+            },
+        });
+
+        return {
+            message: 'Cập nhật đồ ăn và phụ kiện thành công',
+            data: updatedBatch,
+        };
+    }
+
 
     remove(id: number) {
         return this.prisma.products.delete({ where: { productid: id } });
