@@ -44,8 +44,36 @@ export class PurchaseOrdersService {
   }
 
 
-  findAll() {
-    return `This action returns all purchaseOrders`;
+  async findAllPurchaseOrders(page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+
+
+    const purchaseOrders = await this.prisma.purchase_order.findMany({
+      orderBy: {
+        poid: 'asc',
+      },
+      include: {
+        products: true,
+        suppliers: true,
+        employees: true,
+        product_batch: true,
+      },
+    });
+
+    const total = purchaseOrders.length;
+    const totalPages = Math.ceil(total / limit);
+
+    const paginatedPurchaseOrders = purchaseOrders.slice(skip, skip + limit);
+
+    return {
+      data: paginatedPurchaseOrders,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 
   findOne(id: number) {
