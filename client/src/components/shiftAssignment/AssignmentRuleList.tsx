@@ -82,7 +82,10 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                             Thêm quy tắc
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-h-[80vh] !max-w-[600px] overflow-y-auto">
+                    <DialogContent
+                        className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
                         <DialogHeader>
                             <DialogTitle>Thêm quy tắc phân công mới</DialogTitle>
                             <DialogDescription></DialogDescription>
@@ -128,7 +131,10 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 <span className="group-hover:font-semibold">Chỉnh sửa</span>
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="max-h-[80vh] !max-w-[600px] overflow-y-auto">
+                                        <DialogContent
+                                            className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                                            onOpenAutoFocus={(e) => e.preventDefault()}
+                                        >
                                             <DialogHeader>
                                                 <DialogTitle>Chỉnh sửa quy tắc phân công</DialogTitle>
                                                 <DialogDescription></DialogDescription>
