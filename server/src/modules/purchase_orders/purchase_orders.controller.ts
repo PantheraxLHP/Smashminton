@@ -8,7 +8,7 @@ import { UpdatePurchaseOrderDto } from './dto/update-purchase_order.dto';
 export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) { }
 
-  @Post()
+  @Post('new-purchase-order')
   @ApiOperation({ summary: 'Create purchase_order attached batch' })
   @ApiBody({
     description: 'Update supplier data',
