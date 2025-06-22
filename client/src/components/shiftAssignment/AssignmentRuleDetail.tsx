@@ -49,7 +49,35 @@ function formatConditionName(conditionName: string) {
 const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentRule }) => {
     const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
-    const [backupAssignmentRule, setBackupAssignmentRule] = useState(
+
+    // Helper function to format condition values
+    const formatConditionValue = (condition: RuleCondition): RuleCondition => {
+        if (condition.conditionName.startsWith('is')) {
+            // Boolean conditions - keep as is
+            return condition;
+        } else {
+            // Numeric conditions - ensure format "operator value"
+            if (!condition.conditionValue.includes(' ')) {
+                // If no operator, add default
+                return {
+                    ...condition,
+                    conditionValue: `${CompareOperator.EqualTo} ${condition.conditionValue || '0'}`,
+                };
+            }
+            return condition;
+        }
+    };
+
+    // Form data states - these will persist across tab changes
+    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
+    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
+    const [ruleTarget, setRuleTarget] = useState('employee'); // Default target
+    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
+        AssignmentRule?.conditions?.map(formatConditionValue) || [],
+    );
+    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
+
+    const [backupAssignmentRule] = useState(
         AssignmentRule
             ? AssignmentRule
             : {
@@ -59,8 +87,35 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                   actions: [],
               },
     );
-    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(AssignmentRule?.conditions || []);
-    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
+
+    // Function to reset all form data (call this when popup closes)
+    const resetFormData = () => {
+        setRuleName(backupAssignmentRule.ruleName);
+        setRuleDescription(backupAssignmentRule.ruleDescription);
+        setRuleTarget('employee');
+        setRuleConditions(backupAssignmentRule.conditions || []);
+        setRuleActions(backupAssignmentRule.actions || []);
+        setSelectedTab(tabs[0]);
+    };
+
+    // Helper functions for managing conditions and actions
+    const updateConditionValue = (conditionName: string, newValue: string) => {
+        setRuleConditions((prev) =>
+            prev.map((condition) =>
+                condition.conditionName === conditionName ? { ...condition, conditionValue: newValue } : condition,
+            ),
+        );
+    };
+
+    const removeCondition = (conditionName: string) => {
+        setRuleConditions((prev) => prev.filter((condition) => condition.conditionName !== conditionName));
+    };
+
+    const updateActionValue = (actionName: string, newValue: string) => {
+        setRuleActions((prev) =>
+            prev.map((action) => (action.actionName === actionName ? { ...action, actionValue: newValue } : action)),
+        );
+    };
 
     return (
         <div className="flex h-[60vh] w-full flex-col">
@@ -85,14 +140,15 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                                 name="input_rulename"
                                 type="text"
                                 placeholder="VD: Quy tắc A"
-                                defaultValue={AssignmentRule?.ruleName}
+                                value={ruleName}
+                                onChange={(e) => setRuleName(e.target.value)}
                                 className="focus-visible:border-primary focus-visible:ring-primary/50 w-full border-gray-500"
                             />
                         </div>
                         <div className="flex w-full gap-4">
                             <div className="flex w-2/3 flex-col gap-1">
                                 <span className="text-xs">Đối tượng áp dụng</span>
-                                <Select>
+                                <Select value={ruleTarget} onValueChange={setRuleTarget}>
                                     <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                         <SelectValue placeholder="Chọn đối tượng" />
                                     </SelectTrigger>
@@ -114,7 +170,8 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                             <Textarea
                                 name="input_description"
                                 placeholder="Quy tắc được dùng để phân công nhân viên theo ..."
-                                defaultValue={AssignmentRule?.ruleDescription}
+                                value={ruleDescription}
+                                onChange={(e) => setRuleDescription(e.target.value)}
                                 className="focus-visible:border-primary focus-visible:ring-primary/50 h-full w-full border-gray-500"
                             />
                         </div>
@@ -155,11 +212,9 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                                 <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
                                     Thuộc tính cần so sánh
                                 </div>
+
                                 <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
-                                    Toán tử so sánh
-                                </div>
-                                <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
-                                    Giá trị so sánh
+                                    Giá trị
                                 </div>
                                 <div className="w-8 flex-shrink-0 border-b-1 border-b-gray-500">
                                     {/*Cột chứa nút xóa */}
@@ -169,43 +224,91 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                                 ruleConditions.map((condition) => (
                                     <div
                                         key={`rulecondition-${condition.conditionName}`}
-                                        className="flex h-full max-h-[40vh] w-full items-center overflow-y-auto border-b"
+                                        className="flex h-full max-h-[40vh] w-full items-center border-b"
                                     >
-                                        <div className="w-full p-2 text-sm">
+                                        <div className="w-full text-sm">
                                             {formatConditionName(condition.conditionName)}
                                         </div>
                                         <div className="w-full p-2">
-                                            <Select defaultValue={condition.conditionValue}>
-                                                <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
-                                                    <SelectValue placeholder={'Toán tử so sánh'} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value={CompareOperator.LessThan}>{'<'}</SelectItem>
-                                                    <SelectItem value={CompareOperator.GreaterThan}>{'>'}</SelectItem>
-                                                    <SelectItem value={CompareOperator.EqualTo}>{'=='}</SelectItem>
-                                                    <SelectItem value={CompareOperator.NotEqualTo}>{'!='}</SelectItem>
-                                                    <SelectItem value={CompareOperator.LessThanOrEqualTo}>
-                                                        {'<='}
-                                                    </SelectItem>
-                                                    <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>
-                                                        {'>='}
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="w-full p-2">
-                                            <Input
-                                                name="ruleconditioncomparevalue"
-                                                type="number"
-                                                placeholder="VD: 12"
-                                                defaultValue={condition.conditionValue}
-                                                className="focus-visible:border-primary focus-visible:ring-primary/50 w-full border-gray-500"
-                                            />
+                                            {condition.conditionName.startsWith('is') ? (
+                                                <Select
+                                                    value={condition.conditionValue}
+                                                    onValueChange={(value) =>
+                                                        updateConditionValue(condition.conditionName, value)
+                                                    }
+                                                >
+                                                    <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                        <SelectValue placeholder={'Giá trị'} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value={'true'}>{'Có'}</SelectItem>
+                                                        <SelectItem value={'false'}>{'Không'}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <div className="flex w-full flex-row gap-2">
+                                                    <Select
+                                                        value={
+                                                            condition.conditionValue.split(' ')[0] ||
+                                                            CompareOperator.EqualTo
+                                                        }
+                                                        onValueChange={(operator) => {
+                                                            const currentNumber =
+                                                                condition.conditionValue.split(' ')[1] || '';
+                                                            updateConditionValue(
+                                                                condition.conditionName,
+                                                                `${operator} ${currentNumber}`,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                            <SelectValue placeholder="Toán tử so sánh" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value={CompareOperator.LessThan}>
+                                                                {'<'}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.GreaterThan}>
+                                                                {'>'}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.EqualTo}>
+                                                                {'=='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.NotEqualTo}>
+                                                                {'!='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.LessThanOrEqualTo}>
+                                                                {'<='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>
+                                                                {'>='}
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Input
+                                                        name="ruleconditioncomparevalue"
+                                                        type="number"
+                                                        placeholder="VD: 12"
+                                                        value={condition.conditionValue.split(' ')[1] || ''}
+                                                        onChange={(e) => {
+                                                            const currentOperator =
+                                                                condition.conditionValue.split(' ')[0] ||
+                                                                CompareOperator.EqualTo;
+                                                            updateConditionValue(
+                                                                condition.conditionName,
+                                                                `${currentOperator} ${e.target.value}`,
+                                                            );
+                                                        }}
+                                                        className="focus-visible:border-primary focus-visible:ring-primary/50 w-full border-gray-500"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex w-8 flex-shrink-0 items-center justify-center">
                                             <Icon
                                                 icon="material-symbols:delete-outline-rounded"
                                                 className="size-6 cursor-pointer transition-all duration-300 hover:size-7 hover:text-red-500"
+                                                onClick={() => removeCondition(condition.conditionName)}
                                             />
                                         </div>
                                     </div>
@@ -244,13 +347,18 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                                             {formatActionName(ruleActions[0].actionName)}
                                         </div>
                                         <div className="w-full p-2">
-                                            <Select defaultValue={ruleActions[0].actionValue}>
+                                            <Select
+                                                value={ruleActions[0].actionValue}
+                                                onValueChange={(value) =>
+                                                    updateActionValue(ruleActions[0].actionName, value)
+                                                }
+                                            >
                                                 <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                                     <SelectValue placeholder={ruleActions[0].actionName} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={'true'}>{'Có '}</SelectItem>
-                                                    <SelectItem value={'false'}>{'Không '}</SelectItem>
+                                                    <SelectItem value={'true'}>{'Có'}</SelectItem>
+                                                    <SelectItem value={'false'}>{'Không'}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -266,7 +374,7 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                 )}
             </div>
             <div className="mt-4 flex w-full justify-end gap-2">
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={resetFormData}>
                     <Icon icon="material-symbols:arrow-back-rounded" />
                     Quay về
                 </Button>
