@@ -490,23 +490,98 @@ export class AutoAssignmentService {
         });
 
         if (assignments.length === 0) {
-            return { updated: 0, message: 'No shift_assignment found for next week.' };
+            return {
+                updated: 0,
+                assigned: 0,
+                notAssigned: 0,
+                skipped: 0,
+                total: 0,
+                message: `No shift_assignment found for next week (${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}).`
+            };
         }
-        let totalUpdated = 0;
-        for (const a of assignments) {
-            const updated = await this.prisma.shift_enrollment.updateMany({
-                where: {
-                    employeeid: a.employeeid,
-                    shiftid: a.shiftid,
-                    shiftdate: a.shiftdate
-                },
+
+        const assignmentKeys = new Set(
+            assignments.map(a => `${a.employeeid}-${a.shiftid}-${a.shiftdate.getTime()}`)
+        );
+
+        const nextWeekShiftEnrollments = await this.prisma.shift_enrollment.findMany({
+            where: {
+                shiftdate: { gte: nextWeekStart, lt: nextWeekEnd },
+            },
+            select: { employeeid: true, shiftid: true, shiftdate: true, enrollmentstatus: true }
+        });
+
+        if (nextWeekShiftEnrollments.length === 0) {
+            return {
+                updated: 0,
+                assigned: 0,
+                notAssigned: 0,
+                skipped: 0,
+                total: 0,
+                message: `No shift_enrollment found for next week (${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}).`
+            };
+        }
+
+        let skippedCount = 0;
+        const assigned: any[] = [];
+        const notAssigned: any[] = [];
+        for (const se of nextWeekShiftEnrollments) {
+            const key = `${se.employeeid}-${se.shiftid}-${se.shiftdate.getTime()}`;
+            if (assignmentKeys.has(key)) {
+                if (se.enrollmentstatus !== 'assigned') {
+                    assigned.push(se);
+                } else {
+                    skippedCount++;
+                }
+            } else {
+                if (se.enrollmentstatus !== 'not assigned') {
+                    notAssigned.push(se);
+                } else {
+                    skippedCount++;
+                }
+            }
+        }
+
+        let assignedCount = 0;
+        let notAssignedCount = 0;
+
+        if (assigned.length > 0) {
+            const assignedConditions = assigned.map(se => ({
+                employeeid: se.employeeid,
+                shiftid: se.shiftid,
+                shiftdate: se.shiftdate
+            }));
+
+            const assignedResult = await this.prisma.shift_enrollment.updateMany({
+                where: { OR: assignedConditions },
                 data: { enrollmentstatus: 'assigned' }
             });
-            totalUpdated += updated.count;
+            assignedCount = assignedResult.count;
         }
-        if (totalUpdated === 0) {
-            return { updated: 0, message: 'No shift_enrollment found to update.' };
+
+        if (notAssigned.length > 0) {
+            const notAssignedConditions = notAssigned.map(se => ({
+                employeeid: se.employeeid,
+                shiftid: se.shiftid,
+                shiftdate: se.shiftdate
+            }));
+
+            const notAssignedResult = await this.prisma.shift_enrollment.updateMany({
+                where: { OR: notAssignedConditions },
+                data: { enrollmentstatus: 'not assigned' }
+            });
+            notAssignedCount = notAssignedResult.count;
         }
-        return { updated: totalUpdated };
+
+        const totalUpdated = assignedCount + notAssignedCount;
+
+        return {
+            updated: totalUpdated,
+            assigned: assignedCount,
+            notAssigned: notAssignedCount,
+            skipped: skippedCount,
+            total: nextWeekShiftEnrollments.length,
+            message: `Updated ${totalUpdated} shift_enrollment for next week (${assignedCount} assigned, ${notAssignedCount} not assigned, ${skippedCount} skipped). Period: ${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}`
+        };
     }
 }

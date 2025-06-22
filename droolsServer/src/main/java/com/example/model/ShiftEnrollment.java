@@ -22,6 +22,8 @@ public class ShiftEnrollment {
 
     @Column(name = "enrollmentdate")
     private LocalDateTime enrollmentDate;
+    @Column(name = "enrollmentstatus")
+    private String enrollmentStatus;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employeeid", referencedColumnName = "employeeid", insertable = false, updatable = false)
     @JsonBackReference("employee-shiftEnrollments")
@@ -99,6 +101,14 @@ public class ShiftEnrollment {
             this.shiftId = shift.getShiftId();
             this.shiftDate = shift.getShiftDate();
         }
+    }
+
+    public String getEnrollmentStatus() {
+        return enrollmentStatus;
+    }
+
+    public void setEnrollmentStatus(String enrollmentStatus) {
+        this.enrollmentStatus = enrollmentStatus;
     }
 
     @Override
