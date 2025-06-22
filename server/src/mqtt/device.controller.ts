@@ -79,23 +79,19 @@ export class DeviceController {
         schema: {
             type: 'object',
             properties: {
-                fingerID: { type: 'number', example: 1, description: 'Fingerprint ID (1-127)' },
                 employeeID: { type: 'number', example: 1, description: 'Employee ID for enrolling fingerprint' }
             }
         }
     })    
     async enrollFingerprint(
         @Param('deviceId') deviceId: string,
-        @Body() body: { fingerID: number, employeeID: number }
+        @Body() body: { employeeID: number }
     ) {
-        this.fingerprintGateway.enrollmentStarted(body.employeeID, body.fingerID);
-        await this.mqttService.sendCommand(deviceId, 'enroll_finger', { employeeID: body.employeeID, fingerID: body.fingerID });
-
+        await this.mqttService.handleEnrollFingerprint(deviceId, body.employeeID);
         return {
             success: true,
-            message: `Fingerprint enrollment started for employee ID ${body.employeeID} with finger ID ${body.fingerID} on ${deviceId}`,
+            message: `Fingerprint enrollment started for employee ID ${body.employeeID} on ${deviceId}`,
             employeeID: body.employeeID,
-            fingerID: body.fingerID,
             instructions: 'Place finger on sensor when prompted',
             timestamp: new Date().toISOString()
         };

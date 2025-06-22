@@ -28,7 +28,7 @@ export class MqttController {
             } else if (data.action === 'enroll_finger') {
                 if (data.status === 'success') {
                     this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
-                    await this.mqttService.registerEmployeeFingerprint(data.employeeID, data.fingerID);
+                    await this.mqttService.enrollEmployeeFingerprint(data.employeeID, data.fingerID);
                     this.fingerprintGateway.enrollmentSuccess(data.employeeID, data.fingerID);
                 } else {
                     this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);

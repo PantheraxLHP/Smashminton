@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Button } from '@/components/ui/button';
-import { getNextAvailableFingerprintId, postEnrollFingerprint } from '@/services/fingerprint_enrollment.service';
+import { postEnrollFingerprint } from '@/services/fingerprint_enrollment.service';
+import { toast } from 'sonner';
 
 type STATUS_VALUE = 'start' | 'loading' | 'success' | 'fail' | 'press_again';
 
@@ -76,20 +77,11 @@ const FingerprintPage = () => {
         if (status !== 'start') return;
 
         try {
-            // Find next available fingerprint ID
-            const fingerprint_response = await getNextAvailableFingerprintId();
-            if (!fingerprint_response.ok) {
-                throw new Error(fingerprint_response.message || 'Không thể lấy ID vân tay tiếp theo');
-            }
-            const nextFingerId = fingerprint_response.data;
-
             setStatus('loading');
-            setFingerprintId(nextFingerId);
 
             // Send enrollment command to ESP8266
             const response = await postEnrollFingerprint({
                 employeeID: parseInt(employeeID),
-                fingerID: nextFingerId,
             });
 
             if (!response.ok) {
@@ -97,6 +89,7 @@ const FingerprintPage = () => {
             }
 
         } catch (error) {
+            toast.error('Đăng ký vân tay thất bại, vui lòng thử lại sau');
             setStatus('fail');
             setTimeout(() => setStatus('start'), 5000);
         }
