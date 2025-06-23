@@ -49,17 +49,6 @@ const AssignmentRuleDetail = ({
             return condition;
         }
     };
-    const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
-    const [selectedTab, setSelectedTab] = useState(tabs[0]);
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-    const popoverTriggerRef = useRef<HTMLButtonElement>(null);
-    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
-    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
-    const [ruleType, setRuleType] = useState(AssignmentRule?.ruleType || 'employee');
-    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
-        AssignmentRule?.conditions?.map(formatConditionForDisplay) || [{ conditionName: '', conditionValue: '' }],
-    );
-    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
 
     const getAvailableConditionsByType = (assignmentType: string) => {
         switch (assignmentType) {
@@ -108,11 +97,56 @@ const AssignmentRuleDetail = ({
         }
     };
 
+    // Function to initialize conditions with all available conditions for the rule type
+    const initializeConditionsForRuleType = (ruleType: string, existingConditions?: RuleCondition[]) => {
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        const existingConditionsMap = new Map<string, RuleCondition>();
+
+        // Map existing conditions by name
+        existingConditions?.forEach((condition) => {
+            if (condition.conditionName) {
+                existingConditionsMap.set(condition.conditionName, condition);
+            }
+        });
+
+        // Create conditions array with ALL available condition slots - always maintain full structure
+        return availableConditions.map((availableCondition) => {
+            const existingCondition = existingConditionsMap.get(availableCondition.conditionName);
+            if (existingCondition) {
+                return formatConditionForDisplay(existingCondition);
+            } else {
+                // Keep empty slot for this condition type - it can be filled later
+                return {
+                    conditionName: '',
+                    conditionValue: '',
+                    // Add a reference to which condition this slot represents
+                    _availableConditionName: availableCondition.conditionName,
+                    _defaultValue: availableCondition.defaultValue,
+                };
+            }
+        });
+    };
+
+    const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
+    const [selectedTab, setSelectedTab] = useState(tabs[0]);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const popoverTriggerRef = useRef<HTMLButtonElement>(null);
+    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
+    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
+    const [ruleType, setRuleType] = useState(AssignmentRule?.ruleType || 'employee');
+    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
+        initializeConditionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.conditions),
+    );
+    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
+
     // Reset conditions when assignment type changes
     useEffect(() => {
         if (!AssignmentRule) {
             // Only reset for new rules, not when editing existing rules
-            setRuleConditions([{ conditionName: '', conditionValue: '' }]);
+            setRuleConditions(initializeConditionsForRuleType(ruleType));
+        } else {
+            // For existing rules, reinitialize with the new rule type but keep existing data
+            setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions));
         }
     }, [ruleType, AssignmentRule]);
 
@@ -121,7 +155,7 @@ const AssignmentRuleDetail = ({
         setRuleDescription(AssignmentRule?.ruleDescription || '');
         setRuleType(AssignmentRule?.ruleType || 'employee');
         setRuleConditions(
-            AssignmentRule?.conditions?.map(formatConditionForDisplay) || [{ conditionName: '', conditionValue: '' }],
+            initializeConditionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.conditions),
         );
         setRuleActions(AssignmentRule?.actions || []);
         setSelectedTab(tabs[0]);
@@ -129,12 +163,23 @@ const AssignmentRuleDetail = ({
 
     // Helper functions for managing conditions and actions
     const addCondition = (conditionName: string, defaultValue: string) => {
-        const newCondition: RuleCondition = {
-            conditionName,
-            conditionValue: defaultValue,
-        };
-        setRuleConditions((prev) => [...prev, newCondition]);
-        setIsPopoverOpen(false); // Close popover after adding
+        // Find the specific empty condition slot for this condition type
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        const conditionIndex = availableConditions.findIndex(
+            (availableCondition) => availableCondition.conditionName === conditionName,
+        );
+
+        // Fill the deleted condition at the correct position
+        if (
+            conditionIndex !== -1 &&
+            ruleConditions[conditionIndex] &&
+            ruleConditions[conditionIndex].conditionName === conditionName &&
+            (!ruleConditions[conditionIndex].conditionValue || ruleConditions[conditionIndex].conditionValue === '')
+        ) {
+            updateConditionValue(conditionIndex, defaultValue);
+        }
+
+        setIsPopoverOpen(false);
 
         // Return focus to the trigger button after closing popover
         setTimeout(() => {
@@ -144,40 +189,43 @@ const AssignmentRuleDetail = ({
         }, 100);
     };
 
-    const updateConditionValue = (conditionName: string, newValue: string) => {
+    const updateConditionValue = (index: number, newValue: string) => {
         setRuleConditions((prev) =>
-            prev.map((condition) =>
-                condition.conditionName === conditionName ? { ...condition, conditionValue: newValue } : condition,
+            prev.map((condition, i) => (i === index ? { ...condition, conditionValue: newValue } : condition)),
+        );
+    };
+
+    const removeCondition = (index: number) => {
+        // Get the original condition name from available conditions to preserve it
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        const originalConditionName = availableConditions[index]?.conditionName || '';
+
+        setRuleConditions((prev) =>
+            prev.map((condition, i) =>
+                i === index ? { conditionName: originalConditionName, conditionValue: '' } : condition,
             ),
         );
     };
 
-    const removeCondition = (conditionName: string) => {
+    const updateConditionName = (index: number, newConditionName: string, defaultValue: string) => {
         setRuleConditions((prev) =>
-            prev.map((condition) =>
-                condition.conditionName === conditionName
-                    ? { ...condition, conditionName: '', conditionValue: '' }
-                    : condition,
+            prev.map((condition, i) =>
+                i === index ? { conditionName: newConditionName, conditionValue: defaultValue } : condition,
             ),
         );
     };
 
-    const updateConditionName = (oldConditionName: string, newConditionName: string, defaultValue: string) => {
-        setRuleConditions((prev) =>
-            prev.map((condition) =>
-                condition.conditionName === oldConditionName
-                    ? { conditionName: newConditionName, conditionValue: defaultValue }
-                    : condition,
-            ),
-        );
-    };
-
-    // Get available conditions that haven't been added yet
+    // Get available conditions that have been deleted (have empty values but keep names)
     const getAvailableConditions = () => {
-        const existingConditionNames = ruleConditions.map((c) => c.conditionName).filter((name) => name !== '');
-        return getAvailableConditionsByType(ruleType).filter(
-            (condition) => !existingConditionNames.includes(condition.conditionName),
-        );
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        return availableConditions.filter((availableCondition, index) => {
+            // Check if the condition at this index has empty value (was deleted)
+            return (
+                ruleConditions[index] &&
+                ruleConditions[index].conditionName === availableCondition.conditionName &&
+                (!ruleConditions[index].conditionValue || ruleConditions[index].conditionValue === '')
+            );
+        });
     };
 
     const updateActionValue = (actionName: string, newValue: string) => {
@@ -187,12 +235,17 @@ const AssignmentRuleDetail = ({
     };
 
     const saveRule = () => {
+        // Keep ALL conditions that have valid condition names (including deleted ones with empty values)
+        const allConditions = ruleConditions.filter(
+            (condition) => condition.conditionName && condition.conditionName !== '',
+        );
+
         const updatedRule: AssignmentRule = {
             ruleName: ruleName,
             ruleDescription: ruleDescription,
             ruleType: ruleType,
             subObj: [],
-            conditions: ruleConditions,
+            conditions: allConditions,
             actions: ruleActions,
         };
 
@@ -294,19 +347,26 @@ const AssignmentRuleDetail = ({
                                                         e.preventDefault();
                                                         e.stopPropagation();
 
-                                                        const emptyConditionIndex = ruleConditions.findIndex(
-                                                            (c) => c.conditionName === '',
+                                                        // Find the correct empty slot index for this condition
+                                                        const availableConditions =
+                                                            getAvailableConditionsByType(ruleType);
+                                                        const conditionIndex = availableConditions.findIndex(
+                                                            (availableCondition) =>
+                                                                availableCondition.conditionName ===
+                                                                condition.conditionName,
                                                         );
 
-                                                        if (emptyConditionIndex !== -1) {
-                                                            updateConditionName(
-                                                                '',
-                                                                condition.conditionName,
-                                                                condition.defaultValue,
-                                                            );
-                                                        } else {
-                                                            addCondition(
-                                                                condition.conditionName,
+                                                        // Fill the deleted condition at the correct index
+                                                        if (
+                                                            conditionIndex !== -1 &&
+                                                            ruleConditions[conditionIndex] &&
+                                                            ruleConditions[conditionIndex].conditionName ===
+                                                                condition.conditionName &&
+                                                            (!ruleConditions[conditionIndex].conditionValue ||
+                                                                ruleConditions[conditionIndex].conditionValue === '')
+                                                        ) {
+                                                            updateConditionValue(
+                                                                conditionIndex,
                                                                 condition.defaultValue,
                                                             );
                                                         }
@@ -355,16 +415,16 @@ const AssignmentRuleDetail = ({
                                                 : 'Chưa chọn điều kiện'}
                                         </div>
                                         <div className="w-full p-2">
-                                            {!condition.conditionName ? (
+                                            {!condition.conditionName || !condition.conditionValue ? (
                                                 <div className="text-sm text-gray-500">
-                                                    Chọn điều kiện từ danh sách bên phải
+                                                    {condition.conditionName
+                                                        ? 'Điều kiện đã bị xóa - Thêm lại từ danh sách bên phải'
+                                                        : 'Chọn điều kiện từ danh sách bên phải'}
                                                 </div>
                                             ) : condition.conditionName.startsWith('is') ? (
                                                 <Select
                                                     value={formatConditionValue(condition.conditionValue) || 'true'}
-                                                    onValueChange={(value) =>
-                                                        updateConditionValue(condition.conditionName, value)
-                                                    }
+                                                    onValueChange={(value) => updateConditionValue(index, value)}
                                                 >
                                                     <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                                         <SelectValue placeholder={'Giá trị'} />
@@ -384,10 +444,7 @@ const AssignmentRuleDetail = ({
                                                         onValueChange={(operator) => {
                                                             const currentNumber =
                                                                 condition.conditionValue?.split(' ')[1] || '0';
-                                                            updateConditionValue(
-                                                                condition.conditionName,
-                                                                `${operator} ${currentNumber}`,
-                                                            );
+                                                            updateConditionValue(index, `${operator} ${currentNumber}`);
                                                         }}
                                                     >
                                                         <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
@@ -424,7 +481,7 @@ const AssignmentRuleDetail = ({
                                                                 condition.conditionValue?.split(' ')[0] ||
                                                                 CompareOperator.EqualTo;
                                                             updateConditionValue(
-                                                                condition.conditionName,
+                                                                index,
                                                                 `${currentOperator} ${e.target.value}`,
                                                             );
                                                         }}
@@ -437,7 +494,7 @@ const AssignmentRuleDetail = ({
                                             <Icon
                                                 icon="material-symbols:delete-outline-rounded"
                                                 className="size-6 cursor-pointer transition-all duration-300 hover:size-7 hover:text-red-500"
-                                                onClick={() => removeCondition(condition.conditionName)}
+                                                onClick={() => removeCondition(index)}
                                             />
                                         </div>
                                     </div>
