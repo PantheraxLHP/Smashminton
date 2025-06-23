@@ -61,12 +61,16 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     partTimeOption,
     setPartTimeOption,
 }) => {
-    const [ruleList, setRuleList] = useState<AssignmentRule[]>();
+    const [ruleList, setRuleList] = useState<AssignmentRule[]>([]);
+    console.log('ruleList', ruleList);
+
     useEffect(() => {
         const fetchAutoAssignment = async () => {
             const response = await getAutoAssignment();
             if (response.ok) {
                 setRuleList(response.data);
+            } else {
+                setRuleList([]);
             }
         };
         fetchAutoAssignment();
@@ -82,12 +86,15 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                             Thêm quy tắc
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-h-[80vh] !max-w-[600px] overflow-y-auto">
+                    <DialogContent
+                        className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
                         <DialogHeader>
                             <DialogTitle>Thêm quy tắc phân công mới</DialogTitle>
                             <DialogDescription></DialogDescription>
                         </DialogHeader>
-                        <AssignmentRuleDetail />
+                        <AssignmentRuleDetail ruleList={ruleList} setRuleList={setRuleList} />
                     </DialogContent>
                 </Dialog>
                 <Button variant="outline">
@@ -128,12 +135,19 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 <span className="group-hover:font-semibold">Chỉnh sửa</span>
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="max-h-[80vh] !max-w-[600px] overflow-y-auto">
+                                        <DialogContent
+                                            className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                                            onOpenAutoFocus={(e) => e.preventDefault()}
+                                        >
                                             <DialogHeader>
                                                 <DialogTitle>Chỉnh sửa quy tắc phân công</DialogTitle>
                                                 <DialogDescription></DialogDescription>
                                             </DialogHeader>
-                                            <AssignmentRuleDetail AssignmentRule={rule} />
+                                            <AssignmentRuleDetail
+                                                AssignmentRule={rule}
+                                                ruleList={ruleList}
+                                                setRuleList={setRuleList}
+                                            />
                                         </DialogContent>
                                     </Dialog>
                                     <Button variant="outline_destructive" className="group w-full">
