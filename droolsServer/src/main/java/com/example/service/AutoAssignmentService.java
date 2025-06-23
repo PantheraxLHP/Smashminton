@@ -335,7 +335,7 @@ public class AutoAssignmentService {
                 }
 
                 if (chosenEmployee != null) {
-                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee);
+                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee, "approved");
                     shiftAssignments.addAssignment(assignment);
 
                     // Remove processed enrollment
@@ -443,7 +443,7 @@ public class AutoAssignmentService {
                 }
 
                 if (chosenEmployee != null) {
-                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee);
+                    ShiftAssignment assignment = assignEmployeeToShift(kieSession, chosenShift, chosenEmployee, "pending");
                     shiftAssignments.addAssignment(assignment);
                 }
             }
@@ -451,7 +451,7 @@ public class AutoAssignmentService {
         } while (true);
     }
 
-    private ShiftAssignment assignEmployeeToShift(KieSession kieSession, Shift_Date shift, Employee employee) {
+    private ShiftAssignment assignEmployeeToShift(KieSession kieSession, Shift_Date shift, Employee employee, String assignmentStatus) {
         // Update shift
         shift.setAssignedEmployees(shift.getAssignedEmployees() + 1);
         FactHandle shiftHandle = kieSession.getFactHandle(shift);
@@ -465,7 +465,7 @@ public class AutoAssignmentService {
         kieSession.update(employeeHandle, employee);
 
         // Create assignment
-        ShiftAssignment assignment = new ShiftAssignment(employee, shift);
+        ShiftAssignment assignment = new ShiftAssignment(employee, shift, assignmentStatus);
         kieSession.insert(assignment);
 
         return assignment;

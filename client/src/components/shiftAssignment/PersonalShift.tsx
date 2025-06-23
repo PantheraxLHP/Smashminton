@@ -41,7 +41,7 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({ role, type, personalShift
     );
 
     return (
-        <>
+        <div className="h-full overflow-y-auto">
             {(role === 'employee' || role === 'wh_manager') && (
                 <div className="flex h-full w-full flex-col items-center gap-5 rounded-lg border p-2">
                     {role === 'employee' && type === 'assignments' && (
@@ -83,7 +83,7 @@ const PersonalShift: React.FC<PersonalShiftProps> = ({ role, type, personalShift
                         })}
                 </div>
             )}
-        </>
+        </div>
     );
 };
 

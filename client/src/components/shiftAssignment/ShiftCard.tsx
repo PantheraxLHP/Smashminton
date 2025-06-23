@@ -66,6 +66,8 @@ interface ShiftCardProps {
 const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, selectedRadio, onDataChanged }) => {
     const { user } = useAuth();
 
+    console.log(shiftDataSingle);
+
     const confirmCount =
         (shiftDataSingle as ShiftDate).shift_assignment?.filter((assignment: ShiftAssignment) => {
             return assignment.assignmentstatus === 'approved';
@@ -225,38 +227,34 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                         Đăng ký
                     </Button>
                 )}
-                {type === 'enrollments' && role === 'employee' && selectedRadio === 'assigned' && (
-                    <Button
-                        variant="destructive"
-                        onClick={() => {
-                            handleUpdateShiftAssignment(
-                                (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
-                                    ? 'approved'
-                                    : 'refused',
-                                shiftDataSingle as ShiftEnrollment,
-                                onDataChanged,
-                            );
-                        }}
-                    >
-                        <Icon icon="material-symbols:cancel-outline-rounded" />
-                        Hủy đăng ký
-                    </Button>
-                )}
                 {type === 'enrollments' && role === 'employee' && selectedRadio === 'enrolled' && (
                     <>
                         <div className="flex items-center gap-2">
                             <Icon icon="lucide:user-round-check" className="text-xl text-green-600" />
+
                             <span className="text-sm font-medium text-green-600">Đã đăng ký</span>
                         </div>
+
                         {(shiftDataSingle as ShiftDate).shift_enrollment &&
                             (shiftDataSingle as ShiftDate).shift_enrollment!.length > 0 && (
-                                <div className="text-xs text-gray-500">
-                                    Ngày đăng ký:{' '}
-                                    {new Date(
-                                        (shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentdate ||
-                                            new Date(),
-                                    ).toLocaleDateString('vi-VN')}
-                                </div>
+                                <>
+                                    <div
+                                        className={`flex items-center gap-2 text-sm ${(shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentstatus == null ? 'hidden' : (shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentstatus == 'assigned' ? 'text-primary' : 'text-yellow-500'}`}
+                                    >
+                                        Tình trạng:{' '}
+                                        {(shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentstatus ==
+                                        'assigned'
+                                            ? 'Đã được phân công'
+                                            : 'Không được phân công'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        Ngày đăng ký:{' '}
+                                        {new Date(
+                                            (shiftDataSingle as ShiftDate).shift_enrollment![0].enrollmentdate ||
+                                                new Date(),
+                                        ).toLocaleDateString('vi-VN')}
+                                    </div>
+                                </>
                             )}
                         <Button variant="destructive" size="sm" onClick={handleUnenrollShift}>
                             <Icon icon="material-symbols:cancel-outline-rounded" />
