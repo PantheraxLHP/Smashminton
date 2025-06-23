@@ -89,7 +89,7 @@ export class ProductTypesController {
     type: String,
     description: 'Comma-separated list of productfiltervalue IDs',
   })
-  @ApiOperation({ summary: 'Get products from product type + batches info' })
+  @ApiOperation({ summary: 'Get products from product type + filtervalueid, value + batches info' })
   findAllProductsFromProductType_V3(@Param('id') id: number,
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '12',
