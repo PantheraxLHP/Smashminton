@@ -61,12 +61,14 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     partTimeOption,
     setPartTimeOption,
 }) => {
-    const [ruleList, setRuleList] = useState<AssignmentRule[]>();
+    const [ruleList, setRuleList] = useState<AssignmentRule[]>([]);
     useEffect(() => {
         const fetchAutoAssignment = async () => {
             const response = await getAutoAssignment();
             if (response.ok) {
                 setRuleList(response.data);
+            } else {
+                setRuleList([]);
             }
         };
         fetchAutoAssignment();
@@ -90,7 +92,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                             <DialogTitle>Thêm quy tắc phân công mới</DialogTitle>
                             <DialogDescription></DialogDescription>
                         </DialogHeader>
-                        <AssignmentRuleDetail />
+                        <AssignmentRuleDetail ruleList={ruleList} setRuleList={setRuleList} />
                     </DialogContent>
                 </Dialog>
                 <Button variant="outline">
@@ -139,7 +141,11 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 <DialogTitle>Chỉnh sửa quy tắc phân công</DialogTitle>
                                                 <DialogDescription></DialogDescription>
                                             </DialogHeader>
-                                            <AssignmentRuleDetail AssignmentRule={rule} />
+                                            <AssignmentRuleDetail
+                                                AssignmentRule={rule}
+                                                ruleList={ruleList}
+                                                setRuleList={setRuleList}
+                                            />
                                         </DialogContent>
                                     </Dialog>
                                     <Button variant="outline_destructive" className="group w-full">

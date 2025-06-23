@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssignmentRule, RuleCondition, RuleAction } from './AssignmentRuleList';
+import { formatConditionName, formatConditionValue, formatActionName } from './utils';
 
 enum CompareOperator {
     LessThan = '<',
@@ -16,65 +17,49 @@ enum CompareOperator {
     GreaterThanOrEqualTo = '>=',
 }
 
-function formatActionName(actionName: string) {
-    switch (actionName) {
-        case 'setEligible':
-            return 'Có thể phân công';
-        case 'setAssignable':
-            return 'Có thể phân công';
-        case 'setDeletable':
-            return 'Có thể xoá ';
-        default:
-            return actionName;
-    }
-}
+const AssignmentRuleDetail = ({
+    AssignmentRule,
+    ruleList,
+    setRuleList,
+}: {
+    AssignmentRule?: AssignmentRule;
+    ruleList: AssignmentRule[];
+    setRuleList: (ruleList: AssignmentRule[]) => void;
+}) => {
+    const formatConditionForDisplay = (condition: RuleCondition): RuleCondition => {
+        if (!condition || !condition.conditionName) {
+            return {
+                conditionName: '',
+                conditionValue: '',
+            };
+        }
 
-function formatConditionName(conditionName: string) {
-    switch (conditionName) {
-        case 'assignedEmployees':
-            return 'Số nhân viên được phân công';
-        case 'assignedShifts':
-        case 'assignedShiftInDay':
-            return 'Số ca làm đã được phân công trong ngày';
-        case 'assignedShiftInWeek':
-            return 'Số ca làm đã được phân công trong tuần';
-        case 'isAssigned':
-            return 'Đã được phân công';
-        case 'isAssignable':
-            return 'Có thể phân công';
-        case 'isEligible':
-            return 'Có thể phân công';
-        case 'isEnrolled':
-            return 'Có nhân viên đăng ký ca làm';
-        default:
-            return conditionName;
-    }
-}
-
-function formatConditionValue(conditionValue: string) {
-    switch (conditionValue) {
-        case 'ShiftEnrollment(getShift().equals($SD))':
-            return 'true';
-        case 'not(ShiftEnrollment(getShift().equals($SD)))':
-            return 'false';
-        case 'ShiftEnrollment(getEmployee().equals($E), getShift().equals($CSD))':
-            return 'true';
-        case 'not(ShiftEnrollment(getEmployee().equals($E), getShift().equals($CSD)))':
-            return 'false';
-        case 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))':
-            return 'true';
-        case 'not(ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD)))':
-            return 'false';
-        default:
-            return conditionValue;
-    }
-}
-
-const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentRule }) => {
+        if (condition.conditionName.startsWith('is')) {
+            return {
+                ...condition,
+                conditionValue: condition.conditionValue || 'true',
+            };
+        } else {
+            if (!condition.conditionValue || !condition.conditionValue.includes(' ')) {
+                return {
+                    ...condition,
+                    conditionValue: `${CompareOperator.EqualTo} ${condition.conditionValue || '0'}`,
+                };
+            }
+            return condition;
+        }
+    };
     const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const popoverTriggerRef = useRef<HTMLButtonElement>(null);
+    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
+    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
+    const [ruleType, setRuleType] = useState(AssignmentRule?.ruleType || 'employee');
+    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
+        AssignmentRule?.conditions?.map(formatConditionForDisplay) || [{ conditionName: '', conditionValue: '' }],
+    );
+    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
 
     const getAvailableConditionsByType = (assignmentType: string) => {
         switch (assignmentType) {
@@ -123,50 +108,18 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
         }
     };
 
-    const formatConditionForDisplay = (condition: RuleCondition): RuleCondition => {
-        if (!condition || !condition.conditionName) {
-            return {
-                conditionName: '',
-                conditionValue: '',
-            };
-        }
-
-        if (condition.conditionName.startsWith('is')) {
-            return {
-                ...condition,
-                conditionValue: condition.conditionValue || 'true',
-            };
-        } else {
-            if (!condition.conditionValue || !condition.conditionValue.includes(' ')) {
-                return {
-                    ...condition,
-                    conditionValue: `${CompareOperator.EqualTo} ${condition.conditionValue || '0'}`,
-                };
-            }
-            return condition;
-        }
-    };
-
-    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
-    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
-    const [ruleTarget, setRuleTarget] = useState(AssignmentRule?.ruleType || 'employee');
-    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
-        AssignmentRule?.conditions?.map(formatConditionForDisplay) || [{ conditionName: '', conditionValue: '' }],
-    );
-    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
-
     // Reset conditions when assignment type changes
     useEffect(() => {
         if (!AssignmentRule) {
             // Only reset for new rules, not when editing existing rules
             setRuleConditions([{ conditionName: '', conditionValue: '' }]);
         }
-    }, [ruleTarget, AssignmentRule]);
+    }, [ruleType, AssignmentRule]);
 
     const resetFormData = () => {
         setRuleName(AssignmentRule?.ruleName || '');
         setRuleDescription(AssignmentRule?.ruleDescription || '');
-        setRuleTarget(AssignmentRule?.ruleType || 'employee');
+        setRuleType(AssignmentRule?.ruleType || 'employee');
         setRuleConditions(
             AssignmentRule?.conditions?.map(formatConditionForDisplay) || [{ conditionName: '', conditionValue: '' }],
         );
@@ -200,7 +153,13 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
     };
 
     const removeCondition = (conditionName: string) => {
-        setRuleConditions((prev) => prev.filter((condition) => condition.conditionName !== conditionName));
+        setRuleConditions((prev) =>
+            prev.map((condition) =>
+                condition.conditionName === conditionName
+                    ? { ...condition, conditionName: '', conditionValue: '' }
+                    : condition,
+            ),
+        );
     };
 
     const updateConditionName = (oldConditionName: string, newConditionName: string, defaultValue: string) => {
@@ -216,7 +175,7 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
     // Get available conditions that haven't been added yet
     const getAvailableConditions = () => {
         const existingConditionNames = ruleConditions.map((c) => c.conditionName).filter((name) => name !== '');
-        return getAvailableConditionsByType(ruleTarget).filter(
+        return getAvailableConditionsByType(ruleType).filter(
             (condition) => !existingConditionNames.includes(condition.conditionName),
         );
     };
@@ -225,6 +184,19 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
         setRuleActions((prev) =>
             prev.map((action) => (action.actionName === actionName ? { ...action, actionValue: newValue } : action)),
         );
+    };
+
+    const saveRule = () => {
+        const updatedRule: AssignmentRule = {
+            ruleName: ruleName,
+            ruleDescription: ruleDescription,
+            ruleType: ruleType,
+            subObj: [],
+            conditions: ruleConditions,
+            actions: ruleActions,
+        };
+
+        setRuleList(ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule)));
     };
 
     return (
@@ -258,7 +230,7 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                         <div className="flex w-full gap-4">
                             <div className="flex w-2/3 flex-col gap-1">
                                 <span className="text-xs">Đối tượng áp dụng</span>
-                                <Select value={ruleTarget} onValueChange={setRuleTarget}>
+                                <Select value={ruleType} onValueChange={setRuleType}>
                                     <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                         <SelectValue placeholder="Chọn đối tượng" />
                                     </SelectTrigger>
@@ -535,7 +507,7 @@ const AssignmentRuleDetail = ({ AssignmentRule }: { AssignmentRule?: AssignmentR
                     <Icon icon="material-symbols:arrow-back-rounded" />
                     Quay về
                 </Button>
-                <Button>Lưu</Button>
+                <Button onClick={saveRule}>Lưu</Button>
             </div>
         </div>
     );
