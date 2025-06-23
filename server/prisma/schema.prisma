@@ -28,25 +28,6 @@ model accounts {
   employees   employees?
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model autoassignment_rules {
-  aaruleid        Int       @id @default(autoincrement())
-  rulename        String?
-  ruledescription String?
-  rulestatus      String?
-  ruleforemptype  String?
-  rulevalue       String?
-  ruleappliedfor  String?
-  ruletype        String?
-  rulesql         String?
-  columnname      String?
-  ctename         String?
-  canbecollided   Boolean?  @default(false)
-  condition       String?
-  createdat       DateTime? @default(now()) @db.Timestamptz(6)
-  updatedat       DateTime? @default(now()) @db.Timestamptz(6)
-}
-
 model bank_detail {
   bankdetailid Int        @id @default(autoincrement())
   bankname     String?

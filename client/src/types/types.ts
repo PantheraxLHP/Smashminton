@@ -56,24 +56,6 @@ export interface Employees {
     timesheet?: Timesheet[];
 }
 
-export interface AutoassignmentRules {
-    aaruleid: number;
-    rulename?: string;
-    ruledescription?: string;
-    rulestatus?: string;
-    ruleforemptype?: string;
-    rulevalue?: string;
-    ruleappliedfor?: string;
-    ruletype?: string;
-    rulesql?: string;
-    columnname?: string;
-    ctename?: string;
-    canbecollided?: boolean;
-    condition?: string;
-    createdat?: Date;
-    updatedat?: Date;
-}
-
 export interface BankDetail {
     bankdetailid: number;
     bankname?: string;
