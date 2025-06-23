@@ -20,6 +20,9 @@ export class ProductFilterService {
       where: {
         productfilterid: id,
       },
+      include: {
+        product_filter_values: true
+      },
     });
 
     if (!filter) {

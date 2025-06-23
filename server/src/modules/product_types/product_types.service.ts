@@ -307,4 +307,96 @@ export class ProductTypesService {
       },
     }
   }
+
+  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    const productTypes = await this.prisma.product_types.findUnique({
+      where: {
+        producttypeid: productTypeId,
+      },
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: {
+              where: filterValueIds
+                ? { productfiltervalueid: { in: filterValueIds } }
+                : undefined,
+              include: {
+                product_attributes: {
+                  include: {
+                    products: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const productMap = new Map<number, any>();
+
+    productTypes?.product_filter.forEach(filter => {
+      filter.product_filter_values.forEach(value => {
+        value.product_attributes.forEach(attr => {
+          const product = attr.products;
+          if (product && !productMap.has(product.productid)) {
+            productMap.set(product.productid, product);
+          }
+        });
+      });
+    });
+
+    // Lấy danh sách productid duy nhất
+    const uniqueProducts = Array.from(productMap.values());
+
+    // Lấy stock quantity cho từng productid
+    const enrichedProducts = await Promise.all(uniqueProducts.map(async (product) => {
+      const purchaseOrders = await this.prisma.purchase_order.findMany({
+        where: {
+          productid: product.productid,
+        },
+        include: {
+          product_batch: true,
+        },
+      });
+
+      // 👉 Lấy thông tin batches từ purchaseOrders
+      const batches = purchaseOrders
+        .map(po => po.product_batch)
+        .filter((b): b is NonNullable<typeof b> => b !== null)
+        .map(b => ({
+          batchid: b.batchid,
+          batchname: b.batchname,
+          expirydate: b.expirydate,
+          stockquantity: b.stockquantity,
+          status: b.statusbatch,
+        }));
+
+      return {
+        productid: product.productid,
+        productname: product.productname,
+        sellingprice: product.sellingprice,
+        rentalprice: product.rentalprice,
+        productimgurl: product.productimgurl,
+        batches: batches,
+      };
+    }));
+
+    const total = enrichedProducts.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // ⛳ CHỖ NÀY paginate nè:
+    const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
+
+    return {
+      data: paginatedProducts,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
+  }
 }

@@ -2148,131 +2148,161 @@ async function main() {
             {
                 batchname: 'Lô Quấn cán cầu lông Yonex AC147EX',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Túi đựng giày cầu lông',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vớ cầu lông Yonex',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Ống cầu lông Lining AYQN024',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Ống cầu lông Yonex AS40',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Cước Yonex pro',
                 stockquantity: 10,
+                discount: 0,
             },
             {
                 batchname: 'Lô Nước uống tăng lực Monster bạc',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Thanh protein block chocolate',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Cá viên chiên xiên bẩn',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Nước uống revive - đợt 1',
                 stockquantity: 10,
                 expirydate: new Date('2025-11-30'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Nước uống pocari',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Bánh snack OSea',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Bánh snack bí đỏ',
                 stockquantity: 10,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S41',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S42',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Trắng - S41',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Đen - S42',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ - S43',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S42',
                 stockquantity: 5,
                 expirydate: new Date('2026-12-31'),
+                discount: 0,
             },
             {
                 batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S43',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Arcsaber 11 Play - 4U (80-84g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Arcsaber 88 Play 2024 - 4U (80-84g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Yonex Nanoflare StarBucks Xanh - 3U (85-89g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 3U (85-89g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 4U (80-84g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 5U (75-79g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 3U (85-89g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
                 stockquantity: 5,
+                discount: 0,
             },
             {
                 batchname: 'Lô Nước uống revive - đợt 2',
                 stockquantity: 21,
                 expirydate: new Date('2025-12-31'),
+                discount: 0,
             },
         ],
     });
@@ -2601,7 +2631,7 @@ async function main() {
                 employeeid: 3,
                 supplierid: 1,
                 batchid: 30,
-            },
+            }
         ],
     });
 
@@ -3467,6 +3497,24 @@ async function main() {
         const shiftid = (i % 6) + 1; // shiftid từ 1 đến 6
         const shiftdate = new Date(nextWeekStartSeed);
         shiftdate.setDate(nextWeekStartSeed.getDate() + (i % 7)); // rải đều trong tuần sau
+
+        // Đảm bảo shift_date tồn tại trước khi tạo shift_assignment
+        const existShiftDate = await prisma.shift_date.findUnique({
+            where: {
+                shiftid_shiftdate: {
+                    shiftid,
+                    shiftdate,
+                }
+            }
+        });
+        if (!existShiftDate) {
+            await prisma.shift_date.create({
+                data: {
+                    shiftid,
+                    shiftdate,
+                }
+            });
+        }
 
         // Kiểm tra shift_assignment đã tồn tại chưa
         const existAssignment = await prisma.shift_assignment.findUnique({

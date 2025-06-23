@@ -55,7 +55,7 @@ type ProductBatch = {
     batchname: string;
     expirydate: Date;
     stockquantity: number;
-    status: string;
+    statusbatch: string;
     createdat: Date;
     updatedat: Date;
 };
@@ -523,7 +523,7 @@ async function main() {
                     batchname: `Batch-${productId}-${deliveryDate.toISOString().split('T')[0]}`,
                     expirydate: new Date(deliveryDate.getFullYear() + 1, deliveryDate.getMonth(), deliveryDate.getDate()),
                     stockquantity: estimatedQuantity,
-                    status: 'Mới',
+                    statusbatch: 'Mới',
                     createdat: deliveryDate,
                     updatedat: deliveryDate,
                 });

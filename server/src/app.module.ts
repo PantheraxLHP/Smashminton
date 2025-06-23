@@ -30,6 +30,7 @@ import { ProductBatchModule } from './modules/product_batch/product_batch.module
 import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MqttModule } from './mqtt/mqtt.module';
+import { PurchaseOrdersModule } from './modules/purchase_orders/purchase_orders.module';
 
 @Module({
     imports: [
@@ -62,6 +63,7 @@ import { MqttModule } from './mqtt/mqtt.module';
         AutoAssignmentModule,
         AdminModule,
         MqttModule,
+        PurchaseOrdersModule,
     ],
     controllers: [AppController],
     providers: [AppService],

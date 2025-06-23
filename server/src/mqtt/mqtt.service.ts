@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClientProxy, Client, Transport } from '@nestjs/microservices';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { FingerprintGateway } from './fingerprint.gateway';
 
 @Injectable()
 export class MqttService {
     private readonly logger = new Logger(MqttService.name);
 
     constructor(
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private readonly fingerprintGateway: FingerprintGateway
     ) { }
 
     @Client({
@@ -32,7 +34,7 @@ export class MqttService {
         this.logger.log('MQTT client disconnected');
     }
 
-    /**
+    /*
      * Send command to ESP8266 device
      */
     async sendCommand(deviceId: string, action: string, data?: any): Promise<void> {
@@ -54,26 +56,28 @@ export class MqttService {
         }
     }
 
-    /**
+    /*
      * Send ping to ESP8266
      */
     async pingDevice(deviceId: string): Promise<void> {
         await this.sendCommand(deviceId, 'ping');
     }
 
-    /**
+    /*
      * Get device status
      */
     async getDeviceStatus(deviceId: string): Promise<void> {
         await this.sendCommand(deviceId, 'get_status');
-    }    /**
+    }
+
+    /*
      * Reset device
      */
     async resetDevice(deviceId: string): Promise<void> {
         await this.sendCommand(deviceId, 'reset');
     }
 
-    /**
+    /*
      * Subscribe to device responses
      */
     subscribeToDeviceResponses(deviceId: string) {
@@ -81,7 +85,7 @@ export class MqttService {
         return this.client.send(topic, {});
     }
 
-    /**
+    /*
      * Subscribe to device status
      */
     subscribeToDeviceStatus(deviceId: string) {
@@ -89,7 +93,7 @@ export class MqttService {
         return this.client.send(topic, {});
     }
 
-    /**
+    /*
      * Subscribe to device heartbeat
      */
     subscribeToDeviceHeartbeat(deviceId: string) {
@@ -101,67 +105,184 @@ export class MqttService {
         return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
 
-    async registerEmployeeFingerprint(employeeId: number, fingerprintId: number) {
+    async getNextAvailableFingerprintId() {
         try {
-            const employee = await this.prisma.employees.findUnique({
-                where: { employeeid: employeeId },
-            });
+            const enrolledFingerprints = await this.prisma.employees.findMany({
+                where: {
+                    fingerprintid: {
+                        not: null
+                    }
+                },
+                orderBy: {
+                    fingerprintid: 'asc'
+                },
+                select: {
+                    fingerprintid: true
+                }
+            })
 
-            if (!employee) {
-                this.logger.error(`Employee with ID ${employeeId} not found`);
-                throw new Error(`Employee with ID ${employeeId} not found`);
+            if (enrolledFingerprints.length === 0) {
+                this.logger.log('No fingerprints enrolled yet, starting from ID 1');
+                return 1;
             }
 
-            await this.prisma.employees.update({
-                where: { employeeid: employeeId },
-                data: {
-                    fingerprintid: fingerprintId
+            let availableFingerprintId = 1;
+            let lastFingerprintId = 0
+            for (const fingerprint of enrolledFingerprints) {
+                const currentFingerprintId = fingerprint.fingerprintid!;
+                if (currentFingerprintId != lastFingerprintId + 1) {
+                    availableFingerprintId = lastFingerprintId + 1;
+                    this.logger.log(`📍 Found gap: Next available fingerprint ID is ${availableFingerprintId}`);
+                    return availableFingerprintId;
+                } else {
+                    lastFingerprintId = currentFingerprintId;
                 }
-            });
+            }
 
-            this.logger.log(`✅ Fingerprint ${fingerprintId} has been registered for employee ${employeeId}`);
-            return { success: true, message: `Fingerprint registered successfully` };
+            const nextAvailableId = lastFingerprintId + 1;
+            this.logger.log(`➡️ No gaps found, next fingerprint ID is ${nextAvailableId}`);
+            return nextAvailableId;
         } catch (error) {
-            this.logger.error(`❌ Failed to register fingerprint for employee ${employeeId}:`, error);
+            this.logger.error('Failed to get next available fingerprint ID:', error);
             throw error;
         }
     }
 
-    async deleteEmployeeFingerprint(employeeId: number) {
+    async handleEnrollFingerprint(deviceId: string, employeeID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
-                where: { employeeid: employeeId },
+                where: { employeeid: employeeID },
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeId} not found`);
-                throw new Error(`Employee with ID ${employeeId} not found`);
+                this.logger.error(`Employee with ID ${employeeID} not found`);
+                throw new Error(`Employee with ID ${employeeID} not found`);
+            }
+
+            if (employee.fingerprintid) {
+                this.logger.warn(`Employee ${employeeID} already has a fingerprint enrolled`);
+                return {
+                    success: true,
+                    message: `Employee ${employeeID} already has a fingerprint enrolled`
+                };
+            }
+
+            // Get next available fingerprint ID
+            const nextFingerprintId = await this.getNextAvailableFingerprintId();
+
+            // Send command to ESP8266 to start enrollment
+            this.fingerprintGateway.enrollmentStarted(employeeID, nextFingerprintId);
+            await this.sendCommand(deviceId, 'enroll_finger', {
+                employeeID: employeeID,
+                fingerID: nextFingerprintId,
+            });
+
+            return {
+                success: true,
+                message: `Enrollment started for employee ${employeeID}`,
+                employeeID: employeeID,
+                fingerprintID: nextFingerprintId
+            };
+        } catch (error) {
+            this.logger.error(`❌ Failed to handle enroll fingerprint for employee ${employeeID}:`, error);
+            throw error;
+        }
+    }
+
+    async enrollEmployeeFingerprint(employeeID: number, fingerprintID: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeID },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeID} not found`);
+                throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
             await this.prisma.employees.update({
-                where: { employeeid: employeeId },
+                where: { employeeid: employeeID },
+                data: {
+                    fingerprintid: fingerprintID
+                }
+            });
+
+            this.logger.log(`✅ Fingerprint ${fingerprintID} has been registered for employee ${employeeID}`);
+            return { success: true, message: `Fingerprint registered successfully` };
+        } catch (error) {
+            this.logger.error(`❌ Failed to register fingerprint for employee ${employeeID}:`, error);
+            throw error;
+        }
+    }
+
+    async handleDeleteFingerprint(deviceId: string, employeeID: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeID },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeID} not found`);
+                throw new Error(`Employee with ID ${employeeID} not found`);
+            }
+
+            if (!employee.fingerprintid) {
+                this.logger.warn(`No fingerprint found for employee ${employeeID}`);
+                return { success: true, message: `No fingerprint to delete for employee ${employeeID}` };
+            }
+
+            const fingerprintID = employee.fingerprintid;
+            await this.sendCommand(deviceId, 'delete_finger', {
+                fingerID: fingerprintID,
+                employeeID: employeeID,
+            });
+            
+            return {
+                success: true,
+                message: `Fingerprint deletion command sent for employee ${employeeID}`,
+                fingerprintID: fingerprintID
+            }
+        } catch (error) {
+            this.logger.error(`❌ Failed to handle delete fingerprint for employee ${employeeID}:`, error);
+            throw error;
+        }
+    }
+
+    async deleteEmployeeFingerprint(employeeID: number) {
+        try {
+            const employee = await this.prisma.employees.findUnique({
+                where: { employeeid: employeeID },
+            });
+
+            if (!employee) {
+                this.logger.error(`Employee with ID ${employeeID} not found`);
+                throw new Error(`Employee with ID ${employeeID} not found`);
+            }
+
+            await this.prisma.employees.update({
+                where: { employeeid: employeeID },
                 data: {
                     fingerprintid: null
                 }
             });
 
-            this.logger.log(`✅ Fingerprint has been deleted for employee ${employeeId}`);
+            this.logger.log(`✅ Fingerprint has been deleted for employee ${employeeID}`);
             return { success: true, message: `Fingerprint deleted successfully` };
         } catch (error) {
-            this.logger.error(`❌ Failed to delete fingerprint for employee ${employeeId}:`, error);
+            this.logger.error(`❌ Failed to delete fingerprint for employee ${employeeID}:`, error);
             throw error;
         }
     }
 
-    async timeTracking(fingerprintId: number) {
+    async timeTracking(fingerprintID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
-                where: { fingerprintid: fingerprintId },
+                where: { fingerprintid: fingerprintID },
             });
 
             if (!employee) {
-                this.logger.error(`❌ Employee with fingerprint ID ${fingerprintId} not found`);
-                throw new Error(`Employee with fingerprint ID ${fingerprintId} not found`);
+                this.logger.error(`❌ Employee with fingerprint ID ${fingerprintID} not found`);
+                throw new Error(`Employee with fingerprint ID ${fingerprintID} not found`);
             }
 
             const result = await this.updateTimeSheet(employee.employeeid);
@@ -170,20 +291,20 @@ export class MqttService {
             return { success: true, message: `Time tracking updated successfully`, employee: employee.employeeid };
 
         } catch (error) {
-            this.logger.error(`❌ Failed to track time for fingerprint ID ${fingerprintId}:`, error);
+            this.logger.error(`❌ Failed to track time for fingerprint ID ${fingerprintID}:`, error);
             throw error;
         }
     }
 
-    async updateTimeSheet(employeeId: number) {
+    async updateTimeSheet(employeeID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
-                where: { employeeid: employeeId },
+                where: { employeeid: employeeID },
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeId} not found`);
-                throw new Error(`Employee with ID ${employeeId} not found`);
+                this.logger.error(`Employee with ID ${employeeID} not found`);
+                throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
             const currentTime = new Date();
@@ -194,7 +315,7 @@ export class MqttService {
             const existingTimesheet = await this.prisma.timesheet.findUnique({
                 where: {
                     employeeid_timesheetdate: {
-                        employeeid: employeeId,
+                        employeeid: employeeID,
                         timesheetdate: currentDate
                     }
                 }
@@ -209,26 +330,26 @@ export class MqttService {
                     }
                 });
 
-                this.logger.log(`⏰ Clock-out recorded for employee ${employeeId} at ${currentTime.toISOString()}`);
+                this.logger.log(`⏰ Clock-out recorded for employee ${employeeID} at ${currentTime.toISOString()}`);
                 return { action: 'clock-out', time: currentTime };
 
             } else {
                 // First time today - create new timesheet (clock-in)
                 const newTimesheet = await this.prisma.timesheet.create({
                     data: {
-                        employeeid: employeeId,
+                        employeeid: employeeID,
                         timesheetdate: currentDate,
                         starthour: currentTime,
                         endhour: null,
                     }
                 });
 
-                this.logger.log(`🟢 Clock-in recorded for employee ${employeeId} at ${currentTime.toISOString()}`);
+                this.logger.log(`🟢 Clock-in recorded for employee ${employeeID} at ${currentTime.toISOString()}`);
                 return { action: 'clock-in', time: currentTime };
             }
 
         } catch (error) {
-            this.logger.error(`❌ Failed to update timesheet for employee ${employeeId}:`, error);
+            this.logger.error(`❌ Failed to update timesheet for employee ${employeeID}:`, error);
             throw error;
         }
     }

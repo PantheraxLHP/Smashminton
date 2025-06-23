@@ -284,6 +284,7 @@ export interface ShiftEnrollment {
     shiftid: number;
     shiftdate: Date;
     enrollmentdate?: Date;
+    enrollmentstatus?: string;
     employees?: Employees;
     shift_date?: ShiftDate;
 }

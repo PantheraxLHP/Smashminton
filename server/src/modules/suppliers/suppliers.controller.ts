@@ -32,9 +32,10 @@ export class SuppliersController {
     return this.suppliersService.findAll(pageNumber, pageSizeNumber);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.suppliersService.findOne(+id);
+  @Get(':productid/suppliers')
+  @ApiOperation({ summary: 'Find supplierid, suppliername, costprice' })
+  getSuppliersByProduct(@Param('productid') productid: string) {
+    return this.suppliersService.findSuppliersByProduct(+productid);
   }
 
   @Patch(':id')

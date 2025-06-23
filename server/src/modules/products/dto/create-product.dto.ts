@@ -22,11 +22,6 @@ export class CreateProductDto {
   @ApiProperty({type: Number, example: 8000, required: false })
   rentalprice?: number;
 
-  @IsNumber()
-  @Type(() => Number)
-  @ApiProperty({type: Number, example: 5000, required: false })
-  costprice?: number;
-
   @IsOptional()
   @IsString()
   @ApiProperty({
