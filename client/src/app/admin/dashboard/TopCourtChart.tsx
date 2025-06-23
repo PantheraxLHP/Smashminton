@@ -57,11 +57,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                                     />
                                 }
                             />
-                            <Bar dataKey="bookingCount" radius={5}>
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={`var(--color-chart-${index + 11})`} />
-                                ))}
-                            </Bar>
+                            <Bar dataKey="bookingCount" radius={5}></Bar>
                         </BarChart>
                     </ChartContainer>
                 </div>

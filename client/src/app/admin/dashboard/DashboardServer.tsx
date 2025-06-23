@@ -86,6 +86,27 @@ const topRentalsChartConfig: ChartConfig = {
     },
 };
 
+const topColors = [
+    'var(--color-chart-11)',
+    'var(--color-chart-12)',
+    'var(--color-chart-13)',
+    'var(--color-chart-14)',
+    'var(--color-chart-15)',
+    'var(--color-chart-16)',
+    'var(--color-chart-17)',
+    'var(--color-chart-18)',
+    'var(--color-chart-19)',
+    'var(--color-chart-20)',
+]
+
+const zoneColors = [
+    'var(--color-chart-31)',
+    'var(--color-chart-32)',
+    'var(--color-chart-35)',
+    'var(--color-chart-36)',
+    'var(--color-chart-37)',
+];
+
 export default async function DashboardServer({ year, activeTab }: DashboardServerProps) {
     const dashboardData = await getDashboardData(year);
 
@@ -94,42 +115,33 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
         dashboardData.topCourts?.map((court, index) => ({
             courtName: court.courtname,
             bookingCount: court.numberBooking,
-            fill: `var(--color-chart-${11 + index})`,
+            fill: topColors[index],
         })) || [];
 
     const topProductsData =
         dashboardData.topProducts?.map((product, index) => ({
             productName: product.productname,
             saleCount: product.totalSold,
-            fill: `var(--color-chart-${11 + index})`,
+            fill: topColors[index],
         })) || [];
 
     const topRentalsData =
         dashboardData.topRentedProducts?.map((rental, index) => ({
             rentalName: rental.productname,
             rentalCount: rental.totalRented,
-            fill: `var(--color-chart-${11 + index})`,
+            fill: topColors[index],
         })) || [];
 
     // Create dynamic zone revenue chart config based on actual zone names from API
     const dynamicZoneRevenueConfig: ChartConfig = {};
     if (dashboardData.zoneRevenue && dashboardData.zoneRevenue.length > 0) {
-        const colors = [
-            'var(--color-chart-31)',
-            'var(--color-chart-32)',
-            'var(--color-chart-35)',
-            'var(--color-chart-36)',
-            'var(--color-chart-37)',
-        ];
-        let colorIndex = 0;
 
-        Object.keys(dashboardData.zoneRevenue[0]).forEach((key) => {
+        Object.keys(dashboardData.zoneRevenue[0]).forEach((key, index) => {
             if (key !== 'month') {
                 dynamicZoneRevenueConfig[key] = {
                     label: key,
-                    color: colors[colorIndex % colors.length],
+                    color: zoneColors[index],
                 };
-                colorIndex++;
             }
         });
     }

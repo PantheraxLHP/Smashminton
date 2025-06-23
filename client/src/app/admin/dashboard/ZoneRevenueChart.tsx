@@ -32,21 +32,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
     const [visibleZones, setVisibleZones] = useState<Record<string, boolean>>(
         Object.keys(chartConfig).reduce((acc, key) => ({ ...acc, [key]: true }), {}),
     );
-
-    // Convert CSS variables to actual colors since CSS vars don't work well with Recharts SVG
-    const getActualColor = (cssVar: string): string => {
-        const colorMap: { [key: string]: string } = {
-            'var(--color-chart-31)': '#059669', // oklch(0.64 0.33 145) ≈ emerald-600
-            'var(--color-chart-32)': '#D97706', // oklch(0.65 0.35 30) ≈ amber-600
-            'var(--color-chart-33)': '#DC2626', // oklch(0.65 0.35 60) ≈ red-600
-            'var(--color-chart-34)': '#CA8A04', // oklch(0.60 0.30 10) ≈ yellow-600
-            'var(--color-chart-35)': '#2563EB', // oklch(0.65 0.35 210) ≈ blue-600
-            'var(--color-chart-36)': '#7C3AED', // oklch(0.60 0.35 275) ≈ violet-600
-            'var(--color-chart-37)': '#EC4899', // oklch(0.65 0.30 320) ≈ pink-600
-        };
-        return colorMap[cssVar] || cssVar; // fallback to original if not found
-    };
-
+    
     const handleActiveZoneClick = (data: any) => {
         const dataKey = data.dataKey;
         setVisibleZones((prev) => ({
@@ -57,7 +43,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
 
     return (
         <div
-            className={`flex flex-col rounded-xl border bg-white p-6 shadow-lg ${className || ''}`}
+            className={`flex flex-col rounded-lg border bg-white p-3 ${className || ''}`}
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-4">
@@ -68,7 +54,6 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                     </h2>
                     <div className="flex flex-wrap gap-2">
                         {Object.entries(chartConfig).map(([key, config]) => {
-                            const actualColor = getActualColor(config.color || '');
                             return (
                                 <Button
                                     key={key}
@@ -77,10 +62,10 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                     onClick={() => handleActiveZoneClick({ dataKey: key })}
                                     className={`border-2 text-xs font-medium transition-all duration-200 hover:scale-105 ${visibleZones[key] ? '' : 'bg-white'}`}
                                     style={{
-                                        backgroundColor: visibleZones[key] ? actualColor : 'white',
-                                        borderColor: actualColor,
-                                        color: visibleZones[key] ? 'white' : actualColor,
-                                        boxShadow: visibleZones[key] ? `0 2px 4px ${actualColor}30` : 'none',
+                                        backgroundColor: visibleZones[key] ? config.color : 'white',
+                                        borderColor: config.color,
+                                        color: visibleZones[key] ? 'white' : config.color,
+                                        boxShadow: visibleZones[key] ? `0 2px 4px ${config.color}/30` : 'none',
                                     }}
                                 >
                                     {config.label}
@@ -96,7 +81,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             data={chartData}
                             margin={{
                                 right: 30,
-                                left: 20,
+                                left: 10,
                                 bottom: 10,
                             }}
                         >
@@ -118,21 +103,24 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                                     position: 'insideLeft',
                                     style: { textAnchor: 'middle' },
                                 }}
+                            />                            
+                            <ChartTooltip
+                                content={<ChartTooltipContent indicator="line" hideLabel />}
                             />
-                            <ChartTooltip content={<ChartTooltipContent indicator="line" hideLabel />} />
-                            <ChartLegend content={<ChartLegendContent className="mt-6" />} />
+                            <ChartLegend
+                                content={<ChartLegendContent className="mt-6" />}
+                            />                                
                             {Object.entries(chartConfig)
                                 .filter(([key]) => visibleZones[key])
                                 .map(([key, value]) => {
-                                    const actualColor = getActualColor(value.color || '');
                                     return (
                                         <Area
                                             key={key}
                                             dataKey={key}
                                             type="monotone"
-                                            fill={actualColor}
-                                            fillOpacity={0.7}
-                                            stroke={actualColor}
+                                            fill={value.color}
+                                            fillOpacity={0.3}
+                                            stroke={value.color}
                                             stackId="1"
                                         />
                                     );

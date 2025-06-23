@@ -135,22 +135,6 @@ export async function getDashboardData(year: number): Promise<DashboardData> {
             newCustomerRateRes.ok ? newCustomerRateRes.json().catch(() => 0) : 0,
         ]);
 
-        // Log raw data for debugging (only in development)
-        if (process.env.NODE_ENV === 'development') {
-            console.log('Raw API responses:', {
-                revenue: data[0],
-                duration: data[1],
-                topCourts: data[2],
-                zoneRevenue: data[3],
-                newCustomers: data[4],
-                bookingTimeslot: data[5],
-                productSalesRentals: data[6],
-                topProducts: data[7],
-                topRentedProducts: data[8],
-                newCustomerRate: data[9],
-            });
-        }
-
         // Transform booking timeslot data to match chart expectations
         const transformedBookingTimeslot =
             data[5]?.map((item: any) => ({
