@@ -17,7 +17,6 @@ drop table if exists zones CASCADE;
 drop table if exists student_card CASCADE;
 drop table if exists customers CASCADE;
 drop table if exists timesheet CASCADE;
-drop table if exists autoassignment_rules CASCADE;
 drop table if exists reward_records CASCADE;
 drop table if exists reward_rules CASCADE;
 drop table if exists penalty_records CASCADE;
@@ -146,24 +145,6 @@ create table if not exists reward_records (
 	employeeid integer,
 	constraint fk_rewardrecords_rewardrules foreign key (rewardruleid) references reward_rules(rewardruleid),
 	constraint fk_rewardrecords_employees foreign key (employeeid) references employees(employeeid)
-);
-
-create table if not exists autoassignment_rules (
-    aaruleid integer generated always as identity primary key,
-    rulename text,
-    ruledescription text,
-    rulestatus text check (rulestatus in ('Active', 'Inactive')),
-    ruleforemptype text,
-    rulevalue text,
-    ruleappliedfor text,
-    ruletype text,
-    rulesql text,
-    columnname text,
-    ctename text,
-    canbecollided boolean default false,
-    condition text,
-    createdat timestamptz default now(),
-    updatedat timestamptz default now()
 );
 
 create table if not exists timesheet (
