@@ -74,7 +74,11 @@ const AssignmentRuleDetail = ({
     };
 
     // Function to initialize conditions with all available conditions for the rule type
-    const initializeConditionsForRuleType = (ruleType: string, existingConditions?: RuleCondition[]) => {
+    const initializeConditionsForRuleType = (
+        ruleType: string,
+        existingConditions?: RuleCondition[],
+        isNewRule: boolean = false,
+    ) => {
         const availableConditions = getAvailableConditionsByType(ruleType);
         const existingConditionsMap = new Map<string, RuleCondition>();
 
@@ -94,14 +98,22 @@ const AssignmentRuleDetail = ({
                     conditionValue: existingCondition.conditionValue,
                 };
             } else {
-                // Keep empty slot for this condition type - it can be filled later
-                return {
-                    conditionName: '',
-                    conditionValue: '',
-                    // Add a reference to which condition this slot represents
-                    _availableConditionName: availableCondition.conditionName,
-                    _defaultValue: availableCondition.defaultValue,
-                };
+                // For new rules, populate with condition name and default value to make them visible
+                // For existing rules, keep empty slots that can be filled later
+                if (isNewRule) {
+                    return {
+                        conditionName: availableCondition.conditionName,
+                        conditionValue: availableCondition.defaultValue,
+                    };
+                } else {
+                    return {
+                        conditionName: '',
+                        conditionValue: '',
+                        // Add a reference to which condition this slot represents
+                        _availableConditionName: availableCondition.conditionName,
+                        _defaultValue: availableCondition.defaultValue,
+                    };
+                }
             }
         });
     };
@@ -114,7 +126,11 @@ const AssignmentRuleDetail = ({
     const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
     const [ruleType, setRuleType] = useState(AssignmentRule?.ruleType || 'employee');
     const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
-        initializeConditionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.conditions),
+        initializeConditionsForRuleType(
+            AssignmentRule?.ruleType || 'employee',
+            AssignmentRule?.conditions,
+            !AssignmentRule,
+        ),
     );
     const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
 
@@ -122,10 +138,10 @@ const AssignmentRuleDetail = ({
     useEffect(() => {
         if (!AssignmentRule) {
             // Only reset for new rules, not when editing existing rules
-            setRuleConditions(initializeConditionsForRuleType(ruleType));
+            setRuleConditions(initializeConditionsForRuleType(ruleType, undefined, true));
         } else {
             // For existing rules, reinitialize with the new rule type but keep existing data
-            setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions));
+            setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions, false));
         }
     }, [ruleType, AssignmentRule]);
 
@@ -134,7 +150,11 @@ const AssignmentRuleDetail = ({
         setRuleDescription(AssignmentRule?.ruleDescription || '');
         setRuleType(AssignmentRule?.ruleType || 'employee');
         setRuleConditions(
-            initializeConditionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.conditions),
+            initializeConditionsForRuleType(
+                AssignmentRule?.ruleType || 'employee',
+                AssignmentRule?.conditions,
+                !AssignmentRule,
+            ),
         );
         setRuleActions(AssignmentRule?.actions || []);
         setSelectedTab(tabs[0]);
@@ -192,9 +212,12 @@ const AssignmentRuleDetail = ({
             actions: ruleActions,
         };
 
-        const updatedRuleList = ruleList.map((rule) =>
-            rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule,
-        );
+        let updatedRuleList: AssignmentRule[] = [];
+        if (AssignmentRule) {
+            updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
+        } else {
+            updatedRuleList = [...ruleList, updatedRule];
+        }
 
         const response = await updateAutoAssignment(updatedRuleList);
         if (response.ok) {
