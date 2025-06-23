@@ -3498,6 +3498,24 @@ async function main() {
         const shiftdate = new Date(nextWeekStartSeed);
         shiftdate.setDate(nextWeekStartSeed.getDate() + (i % 7)); // rải đều trong tuần sau
 
+        // Đảm bảo shift_date tồn tại trước khi tạo shift_assignment
+        const existShiftDate = await prisma.shift_date.findUnique({
+            where: {
+                shiftid_shiftdate: {
+                    shiftid,
+                    shiftdate,
+                }
+            }
+        });
+        if (!existShiftDate) {
+            await prisma.shift_date.create({
+                data: {
+                    shiftid,
+                    shiftdate,
+                }
+            });
+        }
+
         // Kiểm tra shift_assignment đã tồn tại chưa
         const existAssignment = await prisma.shift_assignment.findUnique({
             where: {
