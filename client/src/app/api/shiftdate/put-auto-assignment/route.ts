@@ -9,7 +9,7 @@ export async function PUT(request: NextRequest) {
         const response = await fetch(`${process.env.SERVER}/api/v1/auto-assignment`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: body }),
+            body: JSON.stringify(body),
             credentials: 'include',
         });
 

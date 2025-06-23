@@ -7,6 +7,8 @@ import { Icon } from '@iconify/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssignmentRule, RuleCondition, RuleAction } from './AssignmentRuleList';
 import { formatConditionName, formatConditionValue, formatActionName } from './utils';
+import { updateAutoAssignment } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
 enum CompareOperator {
     LessThan = '<',
@@ -26,67 +28,41 @@ const AssignmentRuleDetail = ({
     ruleList: AssignmentRule[];
     setRuleList: (ruleList: AssignmentRule[]) => void;
 }) => {
-    const formatConditionForDisplay = (condition: RuleCondition): RuleCondition => {
-        if (!condition || !condition.conditionName) {
-            return {
-                conditionName: '',
-                conditionValue: '',
-            };
-        }
-
-        if (condition.conditionName.startsWith('is')) {
-            return {
-                ...condition,
-                conditionValue: condition.conditionValue || 'true',
-            };
-        } else {
-            if (!condition.conditionValue || !condition.conditionValue.includes(' ')) {
-                return {
-                    ...condition,
-                    conditionValue: `${CompareOperator.EqualTo} ${condition.conditionValue || '0'}`,
-                };
-            }
-            return condition;
-        }
-    };
-
     const getAvailableConditionsByType = (assignmentType: string) => {
         switch (assignmentType) {
             case 'employee':
                 return [
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
+                    { conditionName: 'isEligible', defaultValue: 'true' },
                     {
                         conditionName: 'isAssigned',
                         defaultValue: 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))',
                     },
-                    { conditionName: 'isEligible', defaultValue: 'true' },
                 ];
             case 'enrollmentEmployee':
                 return [
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
-                    {
-                        conditionName: 'isAssigned',
-                        defaultValue: 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))',
-                    },
                     { conditionName: 'isEligible', defaultValue: 'true' },
                     {
                         conditionName: 'isEnrolled',
                         defaultValue: 'ShiftEnrollment(getEmployee().equals($E), getShift().equals($SD))',
+                    },
+                    {
+                        conditionName: 'isAssigned',
+                        defaultValue: 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))',
                     },
                 ];
             case 'shift':
                 return [
                     { conditionName: 'assignedEmployees', defaultValue: '== 0' },
                     { conditionName: 'isAssignable', defaultValue: 'true' },
-                    { conditionName: 'isAssigned', defaultValue: 'true' },
                 ];
             case 'enrollmentShift':
                 return [
                     { conditionName: 'assignedEmployees', defaultValue: '== 0' },
                     { conditionName: 'isAssignable', defaultValue: 'true' },
-                    { conditionName: 'isAssigned', defaultValue: 'true' },
                     {
                         conditionName: 'isEnrolled',
                         defaultValue: 'ShiftEnrollment(getShift().equals($SD))',
@@ -113,7 +89,10 @@ const AssignmentRuleDetail = ({
         return availableConditions.map((availableCondition) => {
             const existingCondition = existingConditionsMap.get(availableCondition.conditionName);
             if (existingCondition) {
-                return formatConditionForDisplay(existingCondition);
+                return {
+                    conditionName: existingCondition.conditionName,
+                    conditionValue: existingCondition.conditionValue,
+                };
             } else {
                 // Keep empty slot for this condition type - it can be filled later
                 return {
@@ -161,34 +140,6 @@ const AssignmentRuleDetail = ({
         setSelectedTab(tabs[0]);
     };
 
-    // Helper functions for managing conditions and actions
-    const addCondition = (conditionName: string, defaultValue: string) => {
-        // Find the specific empty condition slot for this condition type
-        const availableConditions = getAvailableConditionsByType(ruleType);
-        const conditionIndex = availableConditions.findIndex(
-            (availableCondition) => availableCondition.conditionName === conditionName,
-        );
-
-        // Fill the deleted condition at the correct position
-        if (
-            conditionIndex !== -1 &&
-            ruleConditions[conditionIndex] &&
-            ruleConditions[conditionIndex].conditionName === conditionName &&
-            (!ruleConditions[conditionIndex].conditionValue || ruleConditions[conditionIndex].conditionValue === '')
-        ) {
-            updateConditionValue(conditionIndex, defaultValue);
-        }
-
-        setIsPopoverOpen(false);
-
-        // Return focus to the trigger button after closing popover
-        setTimeout(() => {
-            if (popoverTriggerRef.current) {
-                popoverTriggerRef.current.focus();
-            }
-        }, 100);
-    };
-
     const updateConditionValue = (index: number, newValue: string) => {
         setRuleConditions((prev) =>
             prev.map((condition, i) => (i === index ? { ...condition, conditionValue: newValue } : condition)),
@@ -203,14 +154,6 @@ const AssignmentRuleDetail = ({
         setRuleConditions((prev) =>
             prev.map((condition, i) =>
                 i === index ? { conditionName: originalConditionName, conditionValue: '' } : condition,
-            ),
-        );
-    };
-
-    const updateConditionName = (index: number, newConditionName: string, defaultValue: string) => {
-        setRuleConditions((prev) =>
-            prev.map((condition, i) =>
-                i === index ? { conditionName: newConditionName, conditionValue: defaultValue } : condition,
             ),
         );
     };
@@ -234,7 +177,7 @@ const AssignmentRuleDetail = ({
         );
     };
 
-    const saveRule = () => {
+    const saveRule = async () => {
         // Keep ALL conditions that have valid condition names (including deleted ones with empty values)
         const allConditions = ruleConditions.filter(
             (condition) => condition.conditionName && condition.conditionName !== '',
@@ -249,9 +192,19 @@ const AssignmentRuleDetail = ({
             actions: ruleActions,
         };
 
-        setRuleList(ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule)));
-    };
+        const updatedRuleList = ruleList.map((rule) =>
+            rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule,
+        );
 
+        const response = await updateAutoAssignment(updatedRuleList);
+        if (response.ok) {
+            setRuleList(updatedRuleList);
+            toast.success('Quy tắc đã được lưu thành công');
+        } else {
+            toast.error(response.message || 'Lưu quy tắc thất bại');
+        }
+    };
+    console.log('ruleConditions', ruleConditions);
     return (
         <div className="flex h-[60vh] w-full flex-col">
             <div className="flex items-center">
@@ -407,7 +360,11 @@ const AssignmentRuleDetail = ({
                                 ruleConditions.map((condition, index) => (
                                     <div
                                         key={`rulecondition-${condition.conditionName || 'empty'}-${index}`}
-                                        className="flex h-full max-h-[40vh] w-full items-center border-b"
+                                        className={`flex h-full max-h-[40vh] w-full items-center border-b ${
+                                            !condition.conditionValue || condition.conditionValue.trim() === ''
+                                                ? 'hidden'
+                                                : ''
+                                        }`}
                                     >
                                         <div className="w-full text-sm">
                                             {condition.conditionName
@@ -415,13 +372,7 @@ const AssignmentRuleDetail = ({
                                                 : 'Chưa chọn điều kiện'}
                                         </div>
                                         <div className="w-full p-2">
-                                            {!condition.conditionName || !condition.conditionValue ? (
-                                                <div className="text-sm text-gray-500">
-                                                    {condition.conditionName
-                                                        ? 'Điều kiện đã bị xóa - Thêm lại từ danh sách bên phải'
-                                                        : 'Chọn điều kiện từ danh sách bên phải'}
-                                                </div>
-                                            ) : condition.conditionName.startsWith('is') ? (
+                                            {condition.conditionName.startsWith('is') ? (
                                                 <Select
                                                     value={formatConditionValue(condition.conditionValue) || 'true'}
                                                     onValueChange={(value) => updateConditionValue(index, value)}
@@ -475,7 +426,7 @@ const AssignmentRuleDetail = ({
                                                         name="ruleconditioncomparevalue"
                                                         type="number"
                                                         placeholder="VD: 12"
-                                                        value={condition.conditionValue?.split(' ')[1]}
+                                                        value={condition.conditionValue?.split(' ')[1] || ''}
                                                         onChange={(e) => {
                                                             const currentOperator =
                                                                 condition.conditionValue?.split(' ')[0] ||
