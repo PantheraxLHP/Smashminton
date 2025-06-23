@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePurchaseOrderDto } from './dto/create-purchase_order.dto';
-import { UpdatePurchaseOrderDto } from './dto/update-purchase_order.dto';
+import { UpdateDeliverySuccessfullyDto } from './dto/update-purchase_order.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -80,8 +80,40 @@ export class PurchaseOrdersService {
     return `This action returns a #${id} purchaseOrder`;
   }
 
-  update(id: number, updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
-    return `This action updates a #${id} purchaseOrder`;
+  async confirmDelivery(poid: number, realityQuantity: number, realityExpiryDate: Date) {
+    // 1. Kiểm tra đơn nhập có tồn tại không
+    const order = await this.prisma.purchase_order.findUnique({
+      where: { poid },
+      include: { product_batch: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Không tìm thấy đơn nhập hàng có ID = ${poid}`);
+    }
+
+    // 2. Cập nhật purchase_order
+    await this.prisma.purchase_order.update({
+      where: { poid },
+      data: {
+        statusorder: 'Đã nhận hàng',
+        deliverydate: new Date(),
+        updatedat: new Date(),
+      },
+    });
+
+    // 3. Cập nhật batch tương ứng
+    await this.prisma.product_batch.update({
+      where: { batchid: order.batchid! },
+      data: {
+        stockquantity: realityQuantity,
+        expirydate: realityExpiryDate,
+        updatedat: new Date(),
+      },
+    });
+
+    return {
+      message: 'Cập nhật đơn nhập và lô hàng thành công',
+    };
   }
 
   remove(id: number) {
