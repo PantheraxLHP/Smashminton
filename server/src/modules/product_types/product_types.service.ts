@@ -375,12 +375,22 @@ export class ProductTypesService {
           status: b.statusbatch,
         }));
 
+      // 👉 Lấy productfiltervalue từ product_attributes
+      const productAttr = await this.prisma.product_attributes.findFirst({
+        where: { productid: product.productid },
+        include: {
+          product_filter_values: true,
+        },
+      });
+
       return {
         productid: product.productid,
         productname: product.productname,
         sellingprice: product.sellingprice,
         rentalprice: product.rentalprice,
         productimgurl: product.productimgurl,
+        productfiltervalueid: productAttr?.productfiltervalueid || null,
+        value: productAttr?.product_filter_values?.value || null,
         batches: batches,
       };
     }));

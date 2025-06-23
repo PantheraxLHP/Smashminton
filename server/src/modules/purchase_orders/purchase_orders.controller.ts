@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { ApiOperation, ApiBody } from '@nestjs/swagger';
 import { PurchaseOrdersService } from './purchase_orders.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase_order.dto';
-import { UpdatePurchaseOrderDto } from './dto/update-purchase_order.dto';
+import { UpdateDeliverySuccessfullyDto } from './dto/update-purchase_order.dto';
 
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
@@ -39,9 +39,14 @@ export class PurchaseOrdersController {
     return this.purchaseOrdersService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
-    return this.purchaseOrdersService.update(+id, updatePurchaseOrderDto);
+  @Patch('successful-delivery/:id')
+  @ApiOperation({ summary: 'Confirm purchase_order successfully' })
+  @ApiBody({ description: 'fill', type: UpdateDeliverySuccessfullyDto })
+  async confirmPurchaseOrderDelivery(
+    @Param('id') poid: string,
+    @Body() body: UpdateDeliverySuccessfullyDto
+  ) {
+    return this.purchaseOrdersService.confirmDelivery(+poid, body.realityQuantity, new Date(body.realityExpiryDate));
   }
 
   @Delete(':id')
