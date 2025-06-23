@@ -18,6 +18,7 @@ export interface Service {
     image: string;
     quantity: number;
     value?: string;
+    productfiltervalueid?: number;
 }
 
 export default function RentalPriceManager() {
@@ -61,6 +62,7 @@ export default function RentalPriceManager() {
                     image: item.productimgurl || '/default.png',
                     quantity: item.quantity || 0,
                     value: item.value || '',
+                    productfiltervalueid: item.productfiltervalueid || null,
                 }));
             };
 

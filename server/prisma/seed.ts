@@ -2143,170 +2143,6 @@ async function main() {
         data: productAttributesSeed,
     });
 
-    await prisma.product_batch.createMany({
-        data: [
-            {
-                batchname: 'Lô Quấn cán cầu lông Yonex AC147EX',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Túi đựng giày cầu lông',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vớ cầu lông Yonex',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Ống cầu lông Lining AYQN024',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Ống cầu lông Yonex AS40',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Cước Yonex pro',
-                stockquantity: 10,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Nước uống tăng lực Monster bạc',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Thanh protein block chocolate',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Cá viên chiên xiên bẩn',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Nước uống revive - đợt 1',
-                stockquantity: 10,
-                expirydate: new Date('2025-11-30'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Nước uống pocari',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Bánh snack OSea',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Bánh snack bí đỏ',
-                stockquantity: 10,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S41',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Yonex 88 Dial Trắng - S42',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Trắng - S41',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Yonex Comfort Z3 Đen - S42',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Mizuno Wave Claw 3 Trắng Đen Đỏ - S43',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S42',
-                stockquantity: 5,
-                expirydate: new Date('2026-12-31'),
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Giày cầu lông Mizuno Blade Z Trắng Đen - S43',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Yonex Arcsaber 11 Play - 4U (80-84g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Yonex Arcsaber 88 Play 2024 - 4U (80-84g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Yonex Nanoflare StarBucks Xanh - 3U (85-89g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 3U (85-89g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 4U (80-84g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Trắng - 5U (75-79g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 3U (85-89g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 4U (80-84g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Vợt cầu lông Lining Axforce 10 Xanh Đen - 5U (75-79g)',
-                stockquantity: 5,
-                discount: 0,
-            },
-            {
-                batchname: 'Lô Nước uống revive - đợt 2',
-                stockquantity: 21,
-                expirydate: new Date('2025-12-31'),
-                discount: 0,
-            },
-        ],
-    });
-
     // Insert Orders data
     await prisma.orders.createMany({
         data: [
@@ -2417,221 +2253,6 @@ async function main() {
                 quantity: 1,
                 returndate: new Date('2025-09-19'),
             },
-        ],
-    });
-
-    await prisma.purchase_order.createMany({
-        data: [
-            {
-                productid: 1,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 1,
-            },
-            {
-                productid: 2,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 2,
-            },
-            {
-                productid: 3,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 3,
-            },
-            {
-                productid: 4,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 4,
-            },
-            {
-                productid: 5,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 5,
-            },
-            {
-                productid: 6,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 6,
-            },
-            {
-                productid: 7,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 7,
-            },
-            {
-                productid: 8,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 8,
-            },
-            {
-                productid: 9,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 9,
-            },
-            {
-                productid: 10,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 10,
-            },
-            {
-                productid: 11,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 11,
-            },
-            {
-                productid: 12,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 12,
-            },
-            {
-                productid: 13,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 13,
-            },
-            {
-                productid: 14,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 14,
-            },
-            {
-                productid: 15,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 15,
-            },
-            {
-                productid: 16,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 16,
-            },
-            {
-                productid: 17,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 17,
-            },
-            {
-                productid: 18,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 18,
-            },
-            {
-                productid: 19,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 19,
-            },
-            {
-                productid: 20,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 20,
-            },
-            {
-                productid: 21,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 21,
-            },
-            {
-                productid: 22,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 22,
-            },
-            {
-                productid: 23,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 23,
-            },
-            {
-                productid: 24,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 24,
-            },
-            {
-                productid: 25,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 25,
-            },
-            {
-                productid: 26,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 26,
-            },
-            {
-                productid: 27,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 27,
-            },
-            {
-                productid: 28,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 28,
-            },
-            {
-                productid: 29,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 29,
-            },
-            {
-                productid: 10,
-                quantity: 10,
-                employeeid: 3,
-                supplierid: 1,
-                batchid: 30,
-            }
         ],
     });
 
@@ -3588,7 +3209,7 @@ async function main() {
             batchId++;
         }
     }
-    // Xóa các batch cũ nếu có (đúng thứ tự: purchase_order trước, rồi product_batch)
+    // // Xóa các batch cũ nếu có (đúng thứ tự: purchase_order trước, rồi product_batch)
     await prisma.purchase_order.deleteMany({});
     await prisma.product_batch.deleteMany({});
     await prisma.supply_products.deleteMany({});
@@ -3625,6 +3246,54 @@ async function main() {
         };
     });
     await prisma.purchase_order.createMany({ data: purchaseOrderSeedFixed });
+
+    // Update expirydate cho các lô sản phẩm KHÔNG phải giày cầu lông, vợt cầu lông, đợt 1, đợt 2
+    const allBatchesUpdate = await prisma.product_batch.findMany({ select: { batchid: true, batchname: true } });
+    for (const batch of allBatchesUpdate) {
+        const name = (batch.batchname || '').toLowerCase();
+        if (
+            !name.includes('cầu lông') &&
+            !name.includes('đợt 1') &&
+            !name.includes('đợt 2') &&
+            !name.includes('dây') &&
+            !name.includes('túi') &&
+            !name.includes('quấn') &&
+            !name.includes('băng') &&
+            !name.includes('cước')
+        ) {
+            await prisma.product_batch.update({
+                where: { batchid: batch.batchid },
+                data: { expirydate: new Date('2026-12-31') },
+            });
+        }
+    }
+    // Update tất cả statusbatch thành 'Mới'
+    await prisma.product_batch.updateMany({ data: { statusbatch: 'Mới' } });
+
+    await prisma.purchase_order.updateMany({
+        data: {
+            deliverydate: new Date('2025-01-01')
+        }
+    });
+
+    await prisma.purchase_order.createMany({
+        data:[{
+            productid: 48,
+            quantity: 10,
+            employeeid: 3,
+            supplierid: 2,
+            batchid: 49,
+            deliverydate: new Date('2025-01-01')
+        },
+        {
+            productid: 49,
+            quantity: 10,
+            employeeid: 3,
+            supplierid: 2,
+            batchid: 51,
+            deliverydate: new Date('2025-01-01')
+        }]
+    });
 }
 
 main()

@@ -53,10 +53,10 @@ export default function AddSupplierModal({
     const [productCostPrice, setProductCostPrice] = useState<number | null>(null);
 
     useEffect(() => {
-        if (!editData && open) {
+        if (open) {
             fetchProducts().then(setProductsList).catch(console.error);
         }
-    }, [editData, open]);
+    }, [open]);
 
     useEffect(() => {
         if (open && editData) {

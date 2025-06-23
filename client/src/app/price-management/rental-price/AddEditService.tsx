@@ -41,6 +41,8 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         servicetype: "",
         image: "",
         quantity: 0,
+        productfiltervalueid: 0,
+        value: "",
     });
 
     const [shoeSize, setShoeSize] = useState<string>("");
@@ -48,7 +50,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
     useEffect(() => {
         if (editData) {
-            console.log("Edit data:", editData);
             setFormData({
                 ...editData,
                 price: editData.price,
@@ -81,6 +82,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                 const response = await getRentalFilters();
                 if (response.ok && Array.isArray(response.data)) {
                     setFilterData(response.data);
+                    console.log("Dữ liệu filters:", response.data);
                 } else {
                     console.error("Dữ liệu filters không hợp lệ:", response);
                     setFilterData([]);
@@ -269,152 +271,151 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                 />
                                 {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
                             </div>
-                            <div>
-                                <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
-                                <select
-                                    name="servicetype"
-                                    value={formData.servicetype}
-                                    onChange={handleChange}
-                                    className="w-full border rounded px-3 py-2"
-                                >
-                                    <option value="">Chọn dịch vụ</option>
-                                    <option value="Thuê giày">Thuê giày</option>
-                                    <option value="Thuê vợt">Thuê vợt</option>
-                                </select>
-                            </div>
-
-                            {formData.servicetype === "Thuê giày" && (
+                            {!editData && (
                                 <div>
-                                    <label className="block text-sm mb-1">Kích cỡ giày</label>
-                                    <Popover open={shoeOpen} onOpenChange={setShoeOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
-                                            >
-                                                {shoeSize || "Chọn hoặc nhập kích cỡ"}
-                                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent ref={shoePopoverRef} className="w-full p-0">
-                                            <Command
-                                                shouldFilter={false}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                        setShoeOpen(false);
-                                                    }
-                                                }}
-                                            >
-                                                <CommandInput
-                                                    placeholder="Nhập kích cỡ mới hoặc chọn..."
-                                                    value={shoeSize}
-                                                    onValueChange={(input) => setShoeSize(input)}
-                                                />
-                                                <CommandEmpty>
-                                                    <div className="p-2 text-sm text-muted-foreground">
-                                                        Không tìm thấy. Nhấn Enter để dùng kích cỡ mới: <strong>{shoeSize}</strong>
-                                                    </div>
-                                                </CommandEmpty>
-                                                <CommandGroup heading="Kích cỡ có sẵn">
-                                                    {availableValues.map((item) => (
-                                                        <CommandItem
-                                                            key={item}
-                                                            value={item}
-                                                            onSelect={() => {
-                                                                setShoeSize(item);
-                                                                setShoeOpen(false);
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    shoeSize === item ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            {item}
-                                                        </CommandItem>
-
-                                                    ))}
-                                                </CommandGroup>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            )}
-
-                            {formData.servicetype === "Thuê vợt" && (
-                                <div>
-                                    <label className="block text-sm mb-1">Trọng lượng vợt</label>
-                                    <Popover open={racketOpen} onOpenChange={setRacketOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
-                                            >
-                                                {racketWeight || "Chọn hoặc nhập trọng lượng"}
-                                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent ref={racketPopoverRef} className="w-full p-0">
-                                            <Command
-                                                shouldFilter={false}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                        setRacketOpen(false);
-                                                    }
-                                                }}
-                                            >
-                                                <CommandInput
-                                                    placeholder="Nhập trọng lượng mới hoặc chọn..."
-                                                    value={racketWeight}
-                                                    onValueChange={(input) => setRacketWeight(input)}
-                                                />
-                                                <CommandEmpty>
-                                                    <div className="p-2 text-sm text-muted-foreground">
-                                                        Không tìm thấy. Nhấn Enter để dùng trọng lượng mới: <strong>{racketWeight}</strong>
-                                                    </div>
-                                                </CommandEmpty>
-                                                <CommandGroup heading="Trọng lượng có sẵn">
-                                                    {availableValues.map((item) => (
-                                                        <CommandItem
-                                                            key={item}
-                                                            value={item}
-                                                            onSelect={() => {
-                                                                setRacketWeight(item);
-                                                                setRacketOpen(false);
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    shoeSize === item ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            {item}
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            )}
-
-
-                            {editData && (
-                                <div>
-                                    <label className="block text-sm mb-1">Số lượng</label>
-                                    <input
-                                        name="quantity"
-                                        type="number"
-                                        value={formData.quantity}
+                                    <label className="block text-sm mb-1">Dịch vụ áp dụng</label>
+                                    <select
+                                        name="servicetype"
+                                        value={formData.servicetype}
                                         onChange={handleChange}
-                                        className="w-full border rounded px-3 py-2"
-                                    />
+                                        className="w-full border rounded px-3 py-2 pb-2"
+                                    >
+                                        <option value="">Chọn dịch vụ</option>
+                                        <option value="Thuê giày">Thuê giày</option>
+                                        <option value="Thuê vợt">Thuê vợt</option>
+                                    </select>
+
+
+                                    {formData.servicetype === "Thuê giày" && (
+                                        <div>
+                                            <label className="block text-sm mb-1 mt-1">Kích cỡ giày</label>
+                                            <Popover open={shoeOpen} onOpenChange={setShoeOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
+                                                    >
+                                                        {shoeSize || "Chọn hoặc nhập kích cỡ"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent ref={shoePopoverRef} className="w-full p-0">
+                                                    <Command
+                                                        shouldFilter={false}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                setShoeOpen(false);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <CommandInput
+                                                            placeholder="Nhập kích cỡ mới hoặc chọn..."
+                                                            value={shoeSize}
+                                                            onValueChange={(input) => setShoeSize(input)}
+                                                        />
+                                                        <CommandEmpty>
+                                                            <div className="p-2 text-sm text-muted-foreground">
+                                                                Không tìm thấy. Nhấn Enter để dùng kích cỡ mới: <strong>{shoeSize}</strong>
+                                                            </div>
+                                                        </CommandEmpty>
+                                                        <CommandGroup heading="Kích cỡ có sẵn">
+                                                            {availableValues.map((item) => (
+                                                                <CommandItem
+                                                                    key={item}
+                                                                    value={item}
+                                                                    onSelect={() => {
+                                                                        setShoeSize(item);
+                                                                        setShoeOpen(false);
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            shoeSize === item ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {item}
+                                                                </CommandItem>
+
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    )}
+
+                                    {formData.servicetype === "Thuê vợt" && (
+                                        <div>
+                                            <label className="block text-sm mb-1 mt-1">Trọng lượng vợt</label>
+                                            <Popover open={racketOpen} onOpenChange={setRacketOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
+                                                    >
+                                                        {racketWeight || "Chọn hoặc nhập trọng lượng"}
+                                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent ref={racketPopoverRef} className="w-full p-0">
+                                                    <Command
+                                                        shouldFilter={false}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                setRacketOpen(false);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <CommandInput
+                                                            placeholder="Nhập trọng lượng mới hoặc chọn..."
+                                                            value={racketWeight}
+                                                            onValueChange={(input) => setRacketWeight(input)}
+                                                        />
+                                                        <CommandEmpty>
+                                                            <div className="p-2 text-sm text-muted-foreground">
+                                                                Không tìm thấy. Nhấn Enter để dùng trọng lượng mới: <strong>{racketWeight}</strong>
+                                                            </div>
+                                                        </CommandEmpty>
+                                                        <CommandGroup heading="Trọng lượng có sẵn">
+                                                            {availableValues.map((item) => (
+                                                                <CommandItem
+                                                                    key={item}
+                                                                    value={item}
+                                                                    onSelect={() => {
+                                                                        setRacketWeight(item);
+                                                                        setRacketOpen(false);
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            shoeSize === item ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {item}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-sm mb-1">Số lượng</label>
+                                        <input
+                                            name="quantity"
+                                            type="number"
+                                            value={formData.quantity}
+                                            onChange={handleChange}
+                                            className="w-full border rounded px-3 py-2"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>
