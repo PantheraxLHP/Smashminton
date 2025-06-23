@@ -6,6 +6,8 @@ import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import FoodModal from './AddFood';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
+import { getProducts3 } from '@/services/products.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface FoodItem {
     id: number;
@@ -20,55 +22,79 @@ export interface FoodItem {
     discount?: number;
 }
 
-const rawData: FoodItem[] = [
-    { id: 1, name: 'Set cá viên chiên', category: 'Đồ ăn', sellingprice: 50000, lot: '3', expiry: '2024-12-12', stock: 80, image: '/default.png', status: 'Hết hạn', discount: 0 },
-    { id: 2, name: 'Set cá viên chiên cay', category: 'Đồ ăn', sellingprice: 70000, lot: '3', expiry: '2024-12-12', stock: 60, image: '/default.png', status: 'Hết hạn', discount: 0 },
-    { id: 3, name: 'Snack O’Star', category: 'Đồ ăn', sellingprice: 25000, lot: '2', expiry: '2024-12-12', stock: 35, image: '/default.png', status: 'Hết hạn', discount: 0 },
-    { id: 4, name: 'Revive', category: 'Đồ uống', sellingprice: 15000, lot: '3', expiry: '2025-12-12', stock: 25, image: '/default.png', status: 'Còn hạn', discount: 0 },
-    { id: 5, name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, lot: '1', expiry: '2024-05-10', stock: 22, image: '/default.png', status: 'Hết hạn', discount: 0 },
-    { id: 6, name: 'Pocari', category: 'Đồ uống', sellingprice: 15000, lot: '2', expiry: '2025-06-28', stock: 30, image: '/default.png', status: 'Sắp hết hạn', discount: 0.1 },
-];
-
 const getUniqueOptions = (data: FoodItem[], key: keyof FoodItem) => {
     return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
 };
 
 export default function FoodAndBeveragePage() {
-    const [data, setData] = useState<FoodItem[]>(rawData);
-    const [filteredData, setFilteredData] = useState<FoodItem[]>(rawData);
+    const [data, setData] = useState<FoodItem[]>([]);
+    const [filteredData, setFilteredData] = useState<FoodItem[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const [editData, setEditData] = useState<FoodItem | null>(null);
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<FoodItem | null>(null);
-
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(2);
+    const [filtervalueid, setfiltervalueid] = useState<number[]>([]);
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         category: [],
-        price: [0, 100000],
+        price: [0, 500000],
         lot: [],
     });
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await getProducts3(1, page, pageSize, filtervalueid);
+                if (response.ok) {
+                    const products = Array.isArray(response.data.data) ? response.data.data : [];
+
+                    const apiData = products.map((product: any) => ({
+                        id: product.productid,
+                        name: product.productname,
+                        sellingprice: parseInt(product.sellingprice),
+                        category: "",
+                        lot: "",
+                        expiry: "",
+                        stock: 0,
+                        image: product.productimgurl,
+                        status: "",
+                        discount: 0,
+                    }));
+
+                    setData(apiData);
+                    setFilteredData(apiData);
+                    setTotalPages(response.data.pagination.totalPages);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        fetchData();
+    }, [page]);
 
     useEffect(() => {
         const result = data.filter((item) => {
             const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
-            const matchesPrice =
-                Array.isArray(filters.price) &&
-                filters.price.length === 2 &&
-                item.sellingprice >= filters.price[0] &&
-                item.sellingprice <= filters.price[1];
-            const matchesLot = filters.lot.length === 0 || filters.lot.includes(item.lot);
 
-            return matchesName && matchesCategory && matchesPrice && matchesLot;
+            const matchesPrice =
+                !filters.price || 
+                filters.price.length === 0 ||
+                (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
+
+            return matchesName && matchesCategory && matchesPrice;
         });
         setFilteredData(result);
     }, [filters, data]);
+    
+    
+    
 
     const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
-        optionlabel: option,
-        optionvalue: option,
-    }));
-    const lotOptions: FilterOption[] = getUniqueOptions(data, 'lot').map((option) => ({
         optionlabel: option,
         optionvalue: option,
     }));
@@ -77,8 +103,7 @@ export default function FoodAndBeveragePage() {
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
         { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
-        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 100000 },
-        { filterid: 'lot', filterlabel: 'Lô hàng', filtertype: 'checkbox', filteroptions: lotOptions },
+        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 500000 },
     ];
 
     const columns: Column<FoodItem>[] = [
@@ -142,7 +167,6 @@ export default function FoodAndBeveragePage() {
         setEditData(null);
         setOpenModal(false);
     };
-    
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -188,6 +212,16 @@ export default function FoodAndBeveragePage() {
                     showMoreOption
                     showHeader
                 />
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    </div>
+                )}
             </div>
 
             {openOrderForm && selectedOrderItem && (
