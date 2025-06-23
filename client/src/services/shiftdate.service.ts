@@ -275,7 +275,7 @@ export const updateAutoAssignment = async (ruleList: AssignmentRule[]) => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(ruleData),
+            body: JSON.stringify({ data: ruleData }),
         });
         const result = await response.json();
         if (!response.ok) {
