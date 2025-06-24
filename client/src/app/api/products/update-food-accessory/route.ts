@@ -1,23 +1,27 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
     try {
         const url = new URL(request.url);
-        const productfiltervalueid = url.searchParams.get('productfiltervalueid');
-        if (!productfiltervalueid) {
-            return ApiResponse.error('Thiếu productfiltervalueid trong query string');
+        const productid = url.searchParams.get('productid');
+        const batchid = url.searchParams.get('batchid');
+        if (!productid) {
+            return ApiResponse.error('Thiếu productid trong query string');
+        }
+        if (!batchid) {
+            return ApiResponse.error('Thiếu batchid trong query string');
         }
 
         const formData = await request.formData();
 
         const response = await fetch(
-            `${process.env.SERVER}/api/v1/products/new-product?productfiltervalueid=${productfiltervalueid}`,
+            `${process.env.SERVER}/api/v1/products/update-food-acccessory/${productid}/${batchid}`,
             {
-                method: 'POST',
+                method: 'PATCH',
                 body: formData,
             }
-        );
+        );        
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
         const result = await response.json();
         return ApiResponse.success(result);
     } catch (error) {
-        console.error('POST /api/products/post-products error:', error);
+        console.error('PATCH /api/products/update-food-accessory error:', error);
         return ApiResponse.error(
             error instanceof Error ? error.message : 'Lỗi không xác định'
         );

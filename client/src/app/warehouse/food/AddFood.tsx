@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, { useRef, useEffect, useState } from 'react';
-import { FoodItem } from './page';
 import { FaPen } from "react-icons/fa";
 import { productSchema } from "../warehouse.schema";
 import { z } from "zod";
-
-const predefinedCategories = ["Đồ ăn", "Đồ uống", "Snack"];
+import { createProducts, getSingleProductFilterValue, updateProducts } from "@/services/products.service";
+import { FoodItem } from "./page";
+import { toast } from "sonner";
 
 interface FoodModalProps {
     open: boolean;
@@ -21,14 +21,39 @@ interface FoodModalProps {
 }
 
 export default function FoodModal({ open, onClose, onSubmit, editData }: FoodModalProps) {
+    const [loading, setLoading] = useState(false);
     const [foodAvatar, setFoodAvatar] = useState<File | null>(null);
-    const [foodPreview, setFoodPreview] = useState<string>("");
+    const [foodPreview, setFoodPreview] = useState<string>("");  // Preview image
     const [categoryOpen, setCategoryOpen] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const modalRef = useRef<HTMLDivElement>(null);
     const [formData, setFormData] = useState<FoodItem>({
-        id: 0, name: '', sellingprice: 0, category: '', stock: 0, lot: '', expiry: '', discount: 0, image: '/default.png',
+        id: 0, name: '', sellingprice: 0, category: '', stock: 0, batchid: '', expiry: '', discount: 0, image: '/default.png',
     });
+
+    const [predefinedCategories, setPredefinedCategories] = useState<{ value: string; productfiltervalueid: string }[]>([]); // Store category and productfiltervalueid
+
+    useEffect(() => {
+        if (open) {
+            // Gọi API để lấy dữ liệu các loại sản phẩm
+            async function fetchCategories() {
+                try {
+                    const response = await getSingleProductFilterValue(1); // truyền productfilterid = 1
+                    if (response.ok) {
+                        const categories = response.data.product_filter_values.map((item: any) => ({
+                            value: item.value,
+                            productfiltervalueid: item.productfiltervalueid,
+                        }));
+                        setPredefinedCategories(categories);
+                    }
+                } catch (error) {
+                    console.error('Error fetching categories:', error);
+                }
+            }
+
+            fetchCategories();
+        }
+    }, [open]); // Chỉ gọi API khi modal mở
 
     useEffect(() => {
         if (editData) {
@@ -41,7 +66,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 sellingprice: 0,
                 category: '',
                 stock: 0,
-                lot: '',
+                batchid: '',
                 expiry: '',
                 discount: 0,
                 image: '/default.png',
@@ -80,21 +105,62 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
         }
     }
 
-    function handleSubmit() {
+    async function handleSubmit() {
+        setErrors({});
         try {
-            productSchema.parse({
-                ...formData,
-            });
+            productSchema.parse({ ...formData });
 
-            if (onSubmit) {
-                onSubmit({
-                    ...formData,
-                    sellingprice: formData.sellingprice,
-                    image: foodAvatar ? URL.createObjectURL(foodAvatar) : formData.image,
-                });
+            const selectedCategory = predefinedCategories.find(
+                (cat) => cat.value === formData.category
+            );
+            if (!selectedCategory && !editData) {
+                setErrors({ category: 'Vui lòng chọn một loại hợp lệ' });
+                return;
             }
-            setErrors({});
-            onClose();
+
+            setLoading(true);
+
+            const formDataObj = new FormData();
+            formDataObj.append('productname', formData.name);
+            formDataObj.append('sellingprice', formData.sellingprice.toString());
+
+            if (editData) {
+                formDataObj.append('discount', formData.discount?.toString() || '0');
+            } else {
+                // chỉ khi tạo mới mới cần gửi rentalprice và status
+                formDataObj.append('status', 'Available');
+                formDataObj.append('rentalprice', '0');
+            }
+
+            // Hình ảnh (mới nếu có, hoặc giữ lại ảnh cũ)
+            if (foodAvatar) {
+                formDataObj.append('productimgurl', foodAvatar);
+            } else {
+                formDataObj.append('productimgurl', formData.image || '/default.png');
+            }
+
+            let result;
+            if (editData) {
+                result = await updateProducts(
+                    formDataObj,
+                    editData.id.toString(),
+                    editData.batchid || ''
+                );
+            } else {
+                result = await createProducts(
+                    formDataObj,
+                    selectedCategory!.productfiltervalueid
+                );
+            }
+
+            if (result.status === 'success') {
+                toast.success(editData ? 'Cập nhật thành công' : 'Thêm sản phẩm mới thành công');
+                setErrors({});
+                onClose();
+            } else {
+                setErrors({ general: result.message || 'Thao tác thất bại' });
+                toast.error(result.message || 'Thao tác thất bại');
+            }
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const newErrors: any = {};
@@ -103,8 +169,11 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 });
                 setErrors(newErrors);
             }
+        } finally {
+            setLoading(false);
         }
     }
+
 
     const handleFoodImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -117,6 +186,8 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
     useEffect(() => {
         if (!open) {
             setErrors({});
+            setFoodAvatar(null);
+            setFoodPreview("");
         }
     }, [open]);
 
@@ -185,67 +256,70 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                 />
                                 {errors.sellingprice && <p className="text-red-500 text-sm">{errors.sellingprice}</p>}
                             </div>
-                            <div>
-                                <label className="block text-sm mb-1">Loại</label>
-                                <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
-                                        >
-                                            {formData.category || "Chọn hoặc nhập loại"}
-                                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0" ref={popoverRef}>
-                                        <Command
-                                            shouldFilter={false}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    e.preventDefault();
-                                                    setCategoryOpen(false); // đóng popover
-                                                }
-                                            }}
-                                        >
-                                            <CommandInput
-                                                placeholder="Nhập loại mới hoặc chọn..."
-                                                value={formData.category}
-                                                onValueChange={(input) =>
-                                                    setFormData((prev) => ({ ...prev, category: input }))
-                                                }
-                                            />
-                                            <CommandEmpty>
-                                                <div className="p-2 text-sm text-muted-foreground">
-                                                    Không tìm thấy. Nhấn Enter để dùng loại mới: <strong>{formData.category}</strong>
-                                                </div>
-                                            </CommandEmpty>
-                                            <CommandGroup heading="Loại có sẵn">
-                                                {predefinedCategories.map((item) => (
-                                                    <CommandItem
-                                                        key={item}
-                                                        value={item}
-                                                        onSelect={() => {
-                                                            setFormData((prev) => ({ ...prev, category: item }));
-                                                            setCategoryOpen(false); // đóng popover khi chọn
-                                                        }}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                formData.category === item ? "opacity-100" : "opacity-0"
-                                                            )}
-                                                        />
-                                                        {item}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                            {formData.status == 'Sắp hết hạn' && (
+                            {!editData && (
+                                <div>
+                                    <label className="block text-sm mb-1">Loại</label>
+                                    <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className="w-full justify-between border-gray-200 text-black hover:bg-gray-100 hover:text-black"
+                                            >
+                                                {formData.category || "Chọn hoặc nhập loại"}
+                                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0" ref={popoverRef}>
+                                            <Command
+                                                shouldFilter={false}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        setCategoryOpen(false); // đóng popover
+                                                    }
+                                                }}
+                                            >
+                                                <CommandInput
+                                                    placeholder="Nhập loại mới hoặc chọn..."
+                                                    value={formData.category}
+                                                    onValueChange={(input) =>
+                                                        setFormData((prev) => ({ ...prev, category: input }))
+                                                    }
+                                                />
+                                                <CommandEmpty>
+                                                    <div className="p-2 text-sm text-muted-foreground">
+                                                        Không tìm thấy. Nhấn Enter để dùng loại mới: <strong>{formData.category}</strong>
+                                                    </div>
+                                                </CommandEmpty>
+                                                <CommandGroup heading="Loại có sẵn">
+                                                    {predefinedCategories.map((item) => (
+                                                        <CommandItem
+                                                            key={item.value}
+                                                            value={item.value}
+                                                            onSelect={() => {
+                                                                setFormData((prev) => ({ ...prev, category: item.value }));
+                                                                setCategoryOpen(false); // đóng popover khi chọn
+                                                            }}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    formData.category === item.value ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {item.value}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            )}
+
+                            {editData && (
                                 <div>
                                     <label className="block text-sm mb-1">Giảm giá</label>
                                     <input
@@ -255,6 +329,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                         onChange={handleChange}
                                         className="w-full border rounded px-3 py-2"
                                     />
+                                    {errors.discount && <p className="text-red-500 text-sm">{errors.discount}</p>}
                                 </div>
                             )}
                         </div>
@@ -269,9 +344,16 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="px-4 py-2 rounded border text-green-600 border-green-600 hover:bg-green-50"
+                            disabled={loading}
+                            className="px-4 py-2 rounded border text-primary-600 border-primary-600 hover:bg-primary-50 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {editData ? 'Lưu' : 'Tạo'}
+                            {loading
+                                ? editData
+                                    ? 'Đang lưu...'
+                                    : 'Đang tạo...'
+                                : editData
+                                    ? 'Lưu'
+                                    : 'Tạo'}
                         </button>
                     </div>
                 </div>

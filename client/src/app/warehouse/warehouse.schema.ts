@@ -11,6 +11,10 @@ export const productSchema = z.object({
         .refine((val) => val > 0, {
             message: "Giá không hợp lệ. Vui lòng nhập giá lớn hơn 0.",
         }),
+    discount: z
+        .number()
+        .min(0, { message: "Giảm giá không hợp lệ" })
+        .max(1, { message: "Giảm giá không hợp lệ" })    
 });
 
 export const verifyOrderSchema = z.object({

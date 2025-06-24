@@ -1,52 +1,67 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-export interface BaseItem {
-    name: string;
-}
+import { findSupplier } from '@/services/products.service';
 
 interface OrderFormData {
-    productName: string;
-    productPrice: string;
-    supplier: string;
-    quantity: number;
+    productid: number;
+    productname: string;
+    costprice?: number;
+    supplierid?: number;
+    suppliername?: string;
+    quantity?: number;
 }
 
-interface PurchaseOrderFormProps<T extends BaseItem> {
+interface PurchaseOrderFormProps<T extends OrderFormData> {
     open: boolean;
     onClose: () => void;
     item?: T;
 }
 
-const suppliers = ['Nhà cung cấp A', 'Nhà cung cấp B', 'Nhà cung cấp C'];
-
-export default function PurchaseOrderForm<T extends BaseItem>({
+export default function PurchaseOrderForm<T extends OrderFormData>({
     open,
     onClose,
     item,
 }: PurchaseOrderFormProps<T>) {
+    const [supplierList, setSupplierList] = useState<
+        { supplierid: number; suppliername: string; costprice: number }[]
+    >([]);
     const [formData, setFormData] = useState<OrderFormData>({
-        productName: '',
-        productPrice: '',
-        supplier: '',
+        productid: 0,
+        productname: '',
+        costprice: 0,
+        supplierid: 0,
+        suppliername: '',
         quantity: 0,
     });
 
     useEffect(() => {
         if (item) {
-            setFormData((prev) => ({
-                ...prev,
-                productName: item.name || '',
-            }));
-        } else {
-            setFormData((prev) => ({
-                ...prev,
-                productName: '',
-                productPrice: '',
-            }));
+            setFormData({
+                productid: item.productid,
+                productname: item.productname || '',
+                costprice: item.costprice || 0,
+                quantity: item.quantity || 0,
+                supplierid: undefined,
+                suppliername: '',
+            });
+    
+            findSupplier(item.productid).then((res) => {
+                if (res.ok && Array.isArray(res.data)) {
+                    const suppliers = res.data.map((s: any) => ({
+                        supplierid: s.supplierid,
+                        suppliername: s.suppliername,
+                        costprice: parseInt(s.costprice),
+                    }));
+                    setSupplierList(suppliers);
+                } else {
+                    setSupplierList([]);
+                    console.error('Không tìm thấy nhà cung cấp:', res.message);
+                }
+            });
         }
-    }, [item]);
+    }, [item]);    
+    
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -64,7 +79,6 @@ export default function PurchaseOrderForm<T extends BaseItem>({
     };
 
     const handleExit = () => {
-        console.log('Thoát khỏi phiếu đặt hàng');
         onClose();
     };
 
@@ -81,8 +95,8 @@ export default function PurchaseOrderForm<T extends BaseItem>({
                     <div>
                         <label className="block text-sm font-medium mb-1">Tên hàng</label>
                         <input
-                            name="productName"
-                            value={formData.productName}
+                            name="productname"
+                            value={formData.productname}
                             onChange={handleChange}
                             readOnly
                             className="w-full rounded-xl border border-gray-300 px-3 py-2 bg-gray-100 cursor-not-allowed"
@@ -92,8 +106,8 @@ export default function PurchaseOrderForm<T extends BaseItem>({
                     <div>
                         <label className="block text-sm font-medium mb-1">Giá nhập</label>
                         <input
-                            name="productPrice"
-                            value={formData.productPrice}
+                            name="costprice"
+                            value={formData.costprice}
                             onChange={handleChange}
                             readOnly
                             className="w-full rounded-xl border border-gray-300 px-3 py-2 bg-gray-100 cursor-not-allowed"
@@ -103,18 +117,30 @@ export default function PurchaseOrderForm<T extends BaseItem>({
                     <div>
                         <label className="block text-sm font-medium mb-1">Nhà cung cấp</label>
                         <select
-                            name="supplier"
-                            value={formData.supplier}
-                            onChange={handleChange}
+                            name="supplierid"
+                            value={formData.supplierid ?? ''}
+                            onChange={(e) => {
+                                const selectedId = Number(e.target.value);
+                                const selectedSupplier = supplierList.find(s => s.supplierid === selectedId);
+                                if (selectedSupplier) {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        supplierid: selectedSupplier.supplierid,
+                                        suppliername: selectedSupplier.suppliername,
+                                        costprice: selectedSupplier.costprice,
+                                    }));
+                                }
+                            }}
                             className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                         >
                             <option value="">Chọn nhà cung cấp</option>
-                            {suppliers.map((s, i) => (
-                                <option key={i} value={s}>
-                                    {s}
+                            {supplierList.map((s) => (
+                                <option key={s.supplierid} value={s.supplierid}>
+                                    {`${s.suppliername} - ${s.costprice.toLocaleString('vi-VN')} VND`}
                                 </option>
                             ))}
                         </select>
+
                     </div>
 
                     <div>

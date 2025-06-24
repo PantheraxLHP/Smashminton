@@ -149,7 +149,7 @@ export const getProducts3 = async (
             queryParams.set('pageSize', pageSize.toString());
         }
 
-        const response = await fetch(`/api/products/get-products2?${queryParams.toString()}`, {
+        const response = await fetch(`/api/products/get-products3?${queryParams.toString()}`, {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
         });
@@ -280,6 +280,101 @@ export const updateProductPrice = async (
         return ServiceResponse.error(
             error instanceof Error ? error.message : 'Không thể cập nhật giá khu vực'
         );
+    }
+};
+
+export const createProducts = async (formData: FormData, productfiltervalueid: string) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('productfiltervalueid', productfiltervalueid);
+
+        const response = await fetch(
+            `/api/products/post-products?${queryParams.toString()}`,
+            {
+                method: 'POST',
+                body: formData,
+                credentials: 'include',
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                status: 'error',
+                message: result.message || 'Không thể tạo sản phẩm mới',
+            };
+        }
+
+        return {
+            status: 'success',
+            data: result.product,
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu',
+        };
+    }
+};
+
+export const updateProducts = async (formData: FormData, id: string, batchid: string) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('productid', id);
+        queryParams.set('batchid', batchid);
+
+        const response = await fetch(
+            `/api/products/update-food-accessory?${queryParams.toString()}`,
+            {
+                method: 'PATCH',
+                body: formData,
+                credentials: 'include',
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                status: 'error',
+                message: result.message || 'Không thể cập nhật sản phẩm',
+            };
+        }
+
+        return {
+            status: 'success',
+            data: result.product,
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu',
+        };
+    }
+};
+
+export const findSupplier = async (productid: number) => {
+    try {
+        const response = await fetch(`/api/products/find-suppliers?productid=${productid}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error('[ERROR] findSupplier failed:', result);
+            return ServiceResponse.error(result.message || 'Không thể tìm thấy nhà cung cấp');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        console.error('[ERROR] findSupplier exception:', error);
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tìm kiếm nhà cung cấp');
     }
 };
 

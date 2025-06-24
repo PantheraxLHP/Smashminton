@@ -14,7 +14,7 @@ export interface FoodItem {
     name: string;
     sellingprice: number;
     category: string;
-    lot: string;
+    batchid: string;
     expiry: string;
     stock: number;
     image: string;
@@ -41,58 +41,85 @@ export default function FoodAndBeveragePage() {
         name: '',
         category: [],
         price: [0, 500000],
-        lot: [],
+        batchid: [],
     });
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await getProducts3(1, page, pageSize, filtervalueid);
-                if (response.ok) {
-                    const products = Array.isArray(response.data.data) ? response.data.data : [];
+    async function fetchData() {
+        try {
+            const response = await getProducts3(1, page, pageSize, filtervalueid);
+            if (response.ok) {
+                const products = response.data?.data;
+                if (!Array.isArray(products)) {
+                    console.error("API không trả về mảng hợp lệ:", response.data);
+                    setData([]);
+                    setFilteredData([]);
+                    return;
+                }
 
-                    const apiData = products.map((product: any) => ({
+                const apiData: FoodItem[] = [];
+
+                products.forEach((product: any) => {
+                    const common = {
                         id: product.productid,
                         name: product.productname,
                         sellingprice: parseInt(product.sellingprice),
-                        category: "",
-                        lot: "",
-                        expiry: "",
-                        stock: 0,
-                        image: product.productimgurl,
-                        status: "",
-                        discount: 0,
-                    }));
+                        category: product.value,
+                        image: product.productimgurl || '/default.png',
+                    };
 
-                    setData(apiData);
-                    setFilteredData(apiData);
-                    setTotalPages(response.data.pagination.totalPages);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
+                    if (Array.isArray(product.batches) && product.batches.length > 0) {
+                        product.batches.forEach((batch: any) => {
+                            apiData.push({
+                                ...common,
+                                batchid: batch.batchid?.toString() || '',
+                                expiry: batch.expirydate || '',
+                                stock: batch.stockquantity || 0,
+                                status: batch.status || '',
+                                discount: 0,
+                            });
+                        });
+                    } else {
+                        // Nếu không có batch thì vẫn push sản phẩm với thông tin mặc định
+                        apiData.push({
+                            ...common,
+                            batchid: '',
+                            expiry: '',
+                            stock: product.quantity || 0,
+                            status: '',
+                            discount: 0,
+                        });
+                    }
+                });
+
+                setData(apiData);
+                setFilteredData(apiData);
+                setTotalPages(response.data.pagination.totalPages);
             }
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
+    }    
 
+    useEffect(() => {
         fetchData();
     }, [page]);
 
     useEffect(() => {
-        const result = data.filter((item) => {
-            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-            const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
+        const hasFilters = filters.name || (Array.isArray(filters.category) && filters.category.length > 0) || (Array.isArray(filters.price) && filters.price.length > 0);
+        const result = hasFilters
+            ? data.filter((item) => {
+                const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+                const matchesCategory = (Array.isArray(filters.category) && filters.category.length === 0) || (Array.isArray(filters.category) && filters.category.includes(item.category));
+                const matchesPrice =
+                    !filters.price ||
+                    filters.price.length === 0 ||
+                    (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
 
-            const matchesPrice =
-                !filters.price || 
-                filters.price.length === 0 ||
-                (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
-
-            return matchesName && matchesCategory && matchesPrice;
-        });
+                return matchesName && matchesCategory && matchesPrice;
+            })
+            : data;
         setFilteredData(result);
     }, [filters, data]);
-    
-    
-    
 
     const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
         optionlabel: option,
@@ -110,7 +137,7 @@ export default function FoodAndBeveragePage() {
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
         { header: 'Giá bán / sản phẩm', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND` },
-        { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
+        { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
         { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
         {
@@ -166,6 +193,7 @@ export default function FoodAndBeveragePage() {
 
         setEditData(null);
         setOpenModal(false);
+        fetchData();
     };
 
     return (
@@ -213,7 +241,7 @@ export default function FoodAndBeveragePage() {
                     showHeader
                 />
 
-                {totalPages > 1 && (
+                { totalPages > 1 && (
                     <div className="flex justify-center mt-4">
                         <PaginationComponent
                             page={page}
@@ -228,9 +256,13 @@ export default function FoodAndBeveragePage() {
                 <PurchaseOrderForm
                     open={openOrderForm}
                     onClose={() => setOpenOrderForm(false)}
-                    item={selectedOrderItem}
+                    item={{
+                        productid: selectedOrderItem.id,
+                        productname: selectedOrderItem.name,
+                    }}
                 />
             )}
+
         </div>
     );
 }

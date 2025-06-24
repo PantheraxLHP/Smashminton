@@ -87,6 +87,7 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             fd.append("zonedescription", formData.zonedescription);
             if (formData.zoneAvatar) {
                 fd.append("image", formData.zoneAvatar);
+                console.log("Zone image file:", formData.zoneAvatar);
             }
 
             try {
