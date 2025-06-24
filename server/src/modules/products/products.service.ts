@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateFoodAccessoryDto, UpdateProductServiceDto } from './dto/update-product.dto';
+import { UpdateFoodAccessoryDto, UpdateFoodAccessoryWithoutBatchDto, UpdateProductServiceDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
@@ -192,7 +192,7 @@ export class ProductsService {
         }
 
         // 3. Cập nhật discount trong bảng batch
-    
+
         const updatedBatch = await this.prisma.product_batch.update({
             where: {
                 batchid: batchid,
@@ -209,6 +209,33 @@ export class ProductsService {
         };
     }
 
+    async updateFoodAccessoryWithoutBatch(productid: number, updateFoodAccessoryWithoutBatch: UpdateFoodAccessoryWithoutBatchDto, file: Express.Multer.File) {
+        let imageUrl = updateFoodAccessoryWithoutBatch.productimgurl;
+
+        if (file) {
+            const uploadResult = await this.cloudinaryService.uploadProductImg(file);
+            imageUrl = uploadResult.secure_url || '';
+            if (!imageUrl) {
+                throw new BadRequestException('Upload ảnh thất bại');
+            }
+        }
+
+        // 1. Cập nhật product
+        const updatedFoodAccessoryWithoutBatch = await this.prisma.products.update({
+            where: { productid: productid },
+            data: {
+                productname: updateFoodAccessoryWithoutBatch.productname,
+                sellingprice: updateFoodAccessoryWithoutBatch.sellingprice,
+                productimgurl: imageUrl,
+                updatedat: new Date(),
+            },
+        });
+
+        return {
+            message: 'Cập nhật đồ ăn và phụ kiện thành công',
+            data: updatedFoodAccessoryWithoutBatch,
+        };
+    }
 
     remove(id: number) {
         return this.prisma.products.delete({ where: { productid: id } });

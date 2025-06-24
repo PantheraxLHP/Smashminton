@@ -3,6 +3,7 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductServiceDto } from './dto/update-product.dto';
 import { UpdateFoodAccessoryDto } from './dto/update-product.dto';
+import { UpdateFoodAccessoryWithoutBatchDto } from './dto/update-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
@@ -119,5 +120,29 @@ export class ProductsController {
         @UploadedFile() file: Express.Multer.File
     ) {
         return this.productsService.updateFoodAccessory(+productid, +batchid, body, file);
+    }
+
+    @Patch('update-food-acccessory-without-batch/:productid')
+    @ApiOperation({ summary: 'Update food and accessory without batch' })
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    updateFoodAccessoryWithoutBatch(
+        @Param('productid') productid: string,
+        @Body() body: UpdateFoodAccessoryWithoutBatchDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.productsService.updateFoodAccessoryWithoutBatch(+productid, body, file);
     }
 }
