@@ -6,6 +6,11 @@ import { FingerprintGateway } from './fingerprint.gateway';
 @Injectable()
 export class MqttService {
     private readonly logger = new Logger(MqttService.name);
+    private pendingDeletions = new Map<number, {
+        resolve: (value: any) => void;
+        reject: (reason: any) => void;
+        timeoutId: NodeJS.Timeout;
+    }>();
 
     constructor(
         private readonly prisma: PrismaService,
@@ -161,10 +166,8 @@ export class MqttService {
 
             if (employee.fingerprintid) {
                 this.logger.warn(`Employee ${employeeID} already has a fingerprint enrolled`);
-                return {
-                    success: true,
-                    message: `Employee ${employeeID} already has a fingerprint enrolled`
-                };
+                this.logger.warn(`Going to delete existing fingerprint before enrolling a new one`);
+                await this.handleDeleteFingerprintAndWaitForConfirmation(deviceId, employeeID);
             }
 
             // Get next available fingerprint ID
@@ -232,11 +235,15 @@ export class MqttService {
             }
 
             const fingerprintID = employee.fingerprintid;
+
+            // Send command to ESP8266
             await this.sendCommand(deviceId, 'delete_finger', {
                 fingerID: fingerprintID,
                 employeeID: employeeID,
             });
             
+            this.logger.log(`🔄 Fingerprint deletion command sent for employee ${employeeID}`);
+
             return {
                 success: true,
                 message: `Fingerprint deletion command sent for employee ${employeeID}`,
@@ -246,6 +253,48 @@ export class MqttService {
             this.logger.error(`❌ Failed to handle delete fingerprint for employee ${employeeID}:`, error);
             throw error;
         }
+    }
+
+    async handleDeleteFingerprintAndWaitForConfirmation(deviceId: string, employeeID: number): Promise<any> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const employee = await this.prisma.employees.findUnique({
+                    where: { employeeid: employeeID },
+                });
+
+                if (!employee) {
+                    reject(new Error(`Employee with ID ${employeeID} not found`));
+                    return;
+                }
+
+                if (!employee.fingerprintid) {
+                    this.logger.warn(`No fingerprint found for employee ${employeeID}`);
+                    resolve({ success: true, message: `No fingerprint to delete for employee ${employeeID}` });
+                    return;
+                }
+
+                // Set up timeout (10 seconds)
+                const timeoutId = setTimeout(() => {
+                    this.pendingDeletions.delete(employeeID);
+                    reject(new Error(`Device ${deviceId} deletion timeout for employee ${employeeID}`));
+                }, 10000);
+
+                // Store the promise resolver
+                this.pendingDeletions.set(employeeID, { resolve, reject, timeoutId });
+
+                // Send delete command
+                const fingerprintID = employee.fingerprintid;
+                await this.sendCommand(deviceId, 'delete_finger', {
+                    fingerID: fingerprintID,
+                    employeeID: employeeID,
+                });
+
+                this.logger.log(`🔄 Waiting for device ${deviceId} confirmation for employee ${employeeID} deletion...`);
+
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
     async deleteEmployeeFingerprint(employeeID: number) {
@@ -274,6 +323,35 @@ export class MqttService {
         }
     }
 
+    async handleEsp8266DeletionConfirmation(employeeID: number, success: boolean, message?: string): Promise<boolean> {
+        const pending = this.pendingDeletions.get(employeeID);
+        if (!pending) {
+            this.logger.warn(`No pending deletion found for employee ${employeeID}`);
+            return false; // No pending deletion found
+        }
+
+        // Clear timeout and remove from pending
+        clearTimeout(pending.timeoutId);
+        this.pendingDeletions.delete(employeeID);
+
+        if (success) {
+            try {
+                // Update database after ESP8266 confirms deletion
+                await this.deleteEmployeeFingerprint(employeeID);
+                this.logger.log(`✅ Fingerprint deletion confirmed and database updated for employee ${employeeID}`);
+                pending.resolve({ success: true, message: 'Fingerprint deleted successfully' });
+            } catch (error) {
+                this.logger.error(`❌ Database update failed after ESP8266 deletion for employee ${employeeID}:`, error);
+                pending.reject(error);
+            }
+        } else {
+            this.logger.error(`❌ ESP8266 deletion failed for employee ${employeeID}: ${message}`);
+            pending.reject(new Error(`ESP8266 deletion failed: ${message}`));
+        }
+
+        return true; // Had pending deletion
+    }
+
     async timeTracking(fingerprintID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
@@ -285,11 +363,7 @@ export class MqttService {
                 throw new Error(`Employee with fingerprint ID ${fingerprintID} not found`);
             }
 
-            const result = await this.updateTimeSheet(employee.employeeid);
-            this.logger.log(`✅ Timesheet updated successfully for employee ${employee.employeeid}`);
-
-            return { success: true, message: `Time tracking updated successfully`, employee: employee.employeeid };
-
+            await this.updateTimeSheet(employee.employeeid);
         } catch (error) {
             this.logger.error(`❌ Failed to track time for fingerprint ID ${fingerprintID}:`, error);
             throw error;

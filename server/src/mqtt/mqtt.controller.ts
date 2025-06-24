@@ -23,7 +23,7 @@ export class MqttController {
             // Process different types of responses
             if (data.status === 'pong') {
                 this.logger.log(`Ping response from device: ${data.timestamp}`);
-            } else if (data.status === 'error') {
+            } else if (data.action === 'error_response') {
                 this.logger.error(`Device error: ${data.message}`);           
             } else if (data.action === 'enroll_finger') {
                 if (data.status === 'success') {
@@ -40,13 +40,24 @@ export class MqttController {
                     this.fingerprintGateway.enrollmentStep(data.employeeID, 'remove_finger');
                 } else if (data.step === 'place_again') {
                     this.fingerprintGateway.enrollmentStep(data.employeeID, 'place_again');
-                }
+                }              
             } else if (data.action === 'delete_finger') {
                 if (data.status === 'success') {
                     this.logger.log(`✅ Fingerprint deleted successfully: ID=${data.fingerID}`);
-                    await this.mqttService.deleteEmployeeFingerprint(data.employeeID);   
+
+                    const hasPendingDeletion = await this.mqttService.handleEsp8266DeletionConfirmation(data.employeeID, true);
+
+                    if (!hasPendingDeletion) {
+                        await this.mqttService.deleteEmployeeFingerprint(data.employeeID);
+                    }
                 } else {
                     this.logger.error(`❌ Fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
+
+                    const hasPendingDeletion = await this.mqttService.handleEsp8266DeletionConfirmation(data.employeeID, false, data.message);
+
+                    if (!hasPendingDeletion) {
+                        this.logger.error(`❌ Regular fingerprint deletion failed: ID=${data.fingerID}, Error: ${data.message}`);
+                    }
                 }
             } else if (data.action === 'get_finger_count') {
                 if (data.status === 'success') {

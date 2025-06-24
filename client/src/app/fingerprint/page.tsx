@@ -194,6 +194,9 @@ const FingerprintPage = () => {
                     >
                         {isConnected ? 'Bắt đầu đăng ký' : 'Đang kết nối...'}
                     </Button>
+                    <span className="text-2xl text-red-500">
+                        Lưu ý: Sẽ xóa vân tay cũ nếu đã đăng ký trước đó
+                    </span>
                 </div>
             )}
             {status === 'loading' && (
@@ -203,7 +206,7 @@ const FingerprintPage = () => {
             )}
             {status === 'press_again' && (
                 <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl animate-pulse">
-                    Vui lòng nhấc tay ra và đặt lại
+                    Vui lòng nhấc tay ra và đặt lại sau khi nghe âm thanh thông báo
                 </span>
             )}
             {status === 'success' && (
