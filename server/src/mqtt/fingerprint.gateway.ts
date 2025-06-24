@@ -59,7 +59,7 @@ export class FingerprintGateway implements OnGatewayConnection, OnGatewayDisconn
             ...data,
             timestamp: Date.now()
         });
-        this.logger.log(`📤 Emitted ${event} to employee ${employeeID}:`, data);
+        this.logger.log(`📤 Emitted ${event} to employee ${employeeID} websocket client:`, data);
     }
 
     // Specific methods for fingerprint events

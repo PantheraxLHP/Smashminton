@@ -104,21 +104,43 @@ export class DeviceController {
         schema: {
             type: 'object',
             properties: {
-                employeeID: { type: 'number', example: 1, description: 'EmployeeID with fingerprint to be deleted' }
+                employeeID: { type: 'number', example: 1, description: 'EmployeeID with fingerprint to be deleted' },
+                waitForConfirmation: { type: 'boolean', example: false, description: 'Wait for ESP8266 confirmation before returning' }
             }
         }
     })
     async deleteFingerprint(
         @Param('deviceId') deviceId: string,
-        @Body() body: { employeeID: number }
+        @Body() body: { employeeID: number; waitForConfirmation?: boolean }
     ) {
-        await this.mqttService.handleDeleteFingerprint(deviceId, body.employeeID);
-        return {
-            success: true,
-            message: `Employee ID ${body.employeeID} fingerprint deletion requested on ${deviceId}`,
-            employeeID: body.employeeID,
-            timestamp: new Date().toISOString()
-        };
+        try {
+            if (body.waitForConfirmation) {
+                // Wait for confirmation
+                await this.mqttService.handleDeleteFingerprintAndWaitForConfirmation(deviceId, body.employeeID);
+                return {
+                    success: true,
+                    message: `Employee ID ${body.employeeID} fingerprint deleted successfully on ${deviceId}`,
+                    employeeID: body.employeeID,
+                    timestamp: new Date().toISOString()
+                };
+            } else {
+                await this.mqttService.handleDeleteFingerprint(deviceId, body.employeeID);
+                return {
+                    success: true,
+                    message: `Employee ID ${body.employeeID} fingerprint deletion requested on ${deviceId}`,
+                    employeeID: body.employeeID,
+                    note: 'Command sent, check MQTT logs for confirmation',
+                    timestamp: new Date().toISOString()
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: `Failed to delete fingerprint for employee ${body.employeeID}`,
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
     }
 
     @Get(':deviceId/fingerprint/count')

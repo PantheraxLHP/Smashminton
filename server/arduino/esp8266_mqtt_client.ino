@@ -177,6 +177,7 @@ void sendResponse(const JsonDocument& response) {
 
 void sendErrorResponse(const String& errorMessage, const String& requestId = "") {
   JsonDocument response;
+  response["action"] = "error_response";
   response["status"] = "error";
   response["message"] = errorMessage;
   response["timestamp"] = millis();
@@ -205,6 +206,16 @@ void beepFail() {
   delay(250);
   tone(BUZZER_PIN, 196, 300);
   delay(350);
+  noTone(BUZZER_PIN);
+}
+
+void beepAgain() {
+  tone(BUZZER_PIN, 440, 150);
+  delay(200);
+  tone(BUZZER_PIN, 523, 150);
+  delay(200);
+  tone(BUZZER_PIN, 587, 200);
+  delay(250);
   noTone(BUZZER_PIN);
 }
 
@@ -393,12 +404,12 @@ void scanFingerprint() {
   if (millis() - lastFingerprintScan < FINGERPRINT_SCAN_INTERVAL) {
     return;
   }
-  
+
   // Check if we're in cooldown period after enrollment
   if (millis() - lastEnrollmentTime < ENROLLMENT_COOLDOWN) {
-    return; // Skip scanning during cooldown
+    return;  // Skip scanning during cooldown
   }
-  
+
   lastFingerprintScan = millis();
 
   uint8_t p = finger.getImage();
@@ -522,7 +533,7 @@ void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId)
   }
 
   // Start enrollment process
-  int enrollResult = enrollFingerprint(fingerID);
+  int enrollResult = enrollFingerprint(fingerID, employeeID);
 
   if (enrollResult == FINGERPRINT_OK) {
     response["status"] = "success";
@@ -586,12 +597,12 @@ void handleGetFingerCountCommand(const String& requestId) {
   Serial.printf("📊 Enrolled fingerprints: %d/%d\n", finger.templateCount, finger.capacity);
 }
 
-int enrollFingerprint(uint8_t id) {
+int enrollFingerprint(uint8_t fingerID, uint8_t employeeID) {
   int p = -1;
   unsigned long startTime;
   const unsigned long FINGER_TIMEOUT = 10000;  // 10 seconds timeout
 
-  Serial.printf("📝 Place finger for ID %d...\n", id);
+  Serial.printf("📝 Place finger for ID %d...\n", fingerID);
 
   // Wait for finger with timeout
   startTime = millis();
@@ -614,7 +625,7 @@ int enrollFingerprint(uint8_t id) {
   if (p != FINGERPRINT_OK) return p;
 
   Serial.println("🔄 Remove finger and place again...");
-  
+
   // Send intermediate status - remove finger
   JsonDocument stepResponse;
   stepResponse["action"] = "enroll_step";
@@ -622,11 +633,11 @@ int enrollFingerprint(uint8_t id) {
   stepResponse["employeeID"] = employeeID;
   stepResponse["fingerID"] = fingerID;
   stepResponse["timestamp"] = millis();
-  
+
   String stepStr;
   serializeJson(stepResponse, stepStr);
   mqttClient.publish(TOPIC_RESPONSE, stepStr.c_str());
-  
+
   delay(2000);
 
   // Wait for finger removal (shorter timeout)
@@ -640,7 +651,8 @@ int enrollFingerprint(uint8_t id) {
 
   // Wait for finger again with timeout
   Serial.println("📝 Place finger again...");
-  
+  beepAgain();
+
   // Send intermediate status - place finger again
   JsonDocument placeAgainResponse;
   placeAgainResponse["action"] = "enroll_step";
@@ -648,11 +660,11 @@ int enrollFingerprint(uint8_t id) {
   placeAgainResponse["employeeID"] = employeeID;
   placeAgainResponse["fingerID"] = fingerID;
   placeAgainResponse["timestamp"] = millis();
-  
+
   String placeAgainStr;
   serializeJson(placeAgainResponse, placeAgainStr);
   mqttClient.publish(TOPIC_RESPONSE, placeAgainStr.c_str());
-  
+
   p = -1;
   startTime = millis();
   while (p != FINGERPRINT_OK) {
@@ -678,10 +690,10 @@ int enrollFingerprint(uint8_t id) {
   if (p != FINGERPRINT_OK) return p;
 
   // Store model
-  p = finger.storeModel(id);
+  p = finger.storeModel(fingerID);
   if (p == FINGERPRINT_OK) {
-    Serial.printf("✅ Fingerprint enrolled successfully with ID: %d\n", id);
-    lastEnrollmentTime = millis(); // Set cooldown timer prevent immediate scanning
+    Serial.printf("✅ Fingerprint enrolled successfully with ID: %d\n", fingerID);
+    lastEnrollmentTime = millis();  // Set cooldown timer prevent immediate scanning
   }
 
   return p;
