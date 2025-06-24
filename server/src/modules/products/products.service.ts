@@ -34,8 +34,7 @@ export class ProductsService {
 
         const newProduct = await this.prisma.products.create({
             data: {
-                ...createProductDto,
-                status: 'Available',
+                ...createProductDto
             },
         });
 
@@ -57,7 +56,6 @@ export class ProductsService {
             select: {
                 productid: true,
                 productname: true,
-                status: true,
                 sellingprice: true,
                 rentalprice: true,
                 productimgurl: true

@@ -171,10 +171,10 @@ model product_types {
 model products {
   productid          Int                  @id @default(autoincrement())
   productname        String?
-  status             String?
   sellingprice       Decimal?             @db.Decimal
   rentalprice        Decimal?             @db.Decimal
   productimgurl      String?
+  isdeleted          Boolean?             @default(false)
   createdat          DateTime?            @default(now()) @db.Timestamptz(6)
   updatedat          DateTime?            @default(now()) @db.Timestamptz(6)
   order_product      order_product[]

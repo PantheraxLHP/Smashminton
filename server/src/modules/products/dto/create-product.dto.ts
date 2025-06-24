@@ -7,11 +7,6 @@ export class CreateProductDto {
   @ApiProperty({ example: 'Pepsi' })
   productname: string;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ example: 'Available' })
-  status?: string;
-
   @IsNumber()
   @Type(() => Number)
   @ApiProperty({type: Number, example: 10000, required: false })
