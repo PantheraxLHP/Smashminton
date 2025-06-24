@@ -115,6 +115,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             );
             if (!selectedCategory && !editData) {
                 setErrors({ category: 'Vui lòng chọn một loại hợp lệ' });
+                toast.error('Vui lòng chọn một loại hợp lệ');
                 return;
             }
 
@@ -128,7 +129,6 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 formDataObj.append('discount', formData.discount?.toString() || '0');
             } else {
                 // chỉ khi tạo mới mới cần gửi rentalprice và status
-                formDataObj.append('status', 'Available');
                 formDataObj.append('rentalprice', '0');
             }
 
