@@ -373,6 +373,7 @@ export class ProductTypesService {
           expirydate: b.expirydate,
           stockquantity: b.stockquantity,
           status: b.statusbatch,
+          discount: b.discount,
         }));
 
       // 👉 Lấy productfiltervalue từ product_attributes
