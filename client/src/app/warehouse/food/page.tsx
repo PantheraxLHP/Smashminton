@@ -75,7 +75,7 @@ export default function FoodAndBeveragePage() {
                                 expiry: batch.expirydate || '',
                                 stock: batch.stockquantity || 0,
                                 status: batch.status || '',
-                                discount: 0,
+                                discount: batch.discount ? parseFloat(batch.discount) : 0,
                             });
                         });
                     } else {
@@ -83,7 +83,7 @@ export default function FoodAndBeveragePage() {
                         apiData.push({
                             ...common,
                             batchid: '',
-                            expiry: '',
+                            expiry: '1/1/2025',
                             stock: product.quantity || 0,
                             status: '',
                             discount: 0,
@@ -153,7 +153,7 @@ export default function FoodAndBeveragePage() {
         },
         {
             header: 'Giảm giá',
-            accessor: (item) => item.discount ? `${(item.discount * 100).toFixed(0)}%` : 'Không có',
+            accessor: (item) => item.discount ? `${(item.discount).toFixed(0)}%` : '0',
             align: 'center',
         },
     ];
@@ -177,20 +177,19 @@ export default function FoodAndBeveragePage() {
         setOpenOrderForm(true);
     };
 
-    const handleSubmit = (formData: FoodItem) => {
-        const newFood: FoodItem = {
-            ...formData,
-            image: formData.image || '/default.png',
-        };
+    const handleSubmit = () => {
+        // const newFood: FoodItem = {
+        //     ...formData,
+        //     image: formData.image || '/default.png',
+        // };
 
-        if (editData) {
-            const updated = data.map((item) => item.id === editData.id ? newFood : item);
-            setData(updated);
-        } else {
-            const newId = Math.max(0, ...data.map(d => d.id ?? 0)) + 1;
-            setData([...data, { ...newFood, id: newId }]);
-        }
-
+        // if (editData) {
+        //     const updated = data.map((item) => item.id === editData.id ? newFood : item);
+        //     setData(updated);
+        // } else {
+        //     const newId = Math.max(0, ...data.map(d => d.id ?? 0)) + 1;
+        //     setData([...data, { ...newFood, id: newId }]);
+        // }
         setEditData(null);
         setOpenModal(false);
         fetchData();

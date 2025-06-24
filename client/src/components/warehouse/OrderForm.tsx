@@ -151,7 +151,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                                     }));
                                 }
                             }}
-                            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                             <option value="">Chọn nhà cung cấp</option>
                             {supplierList.map((s) => (
@@ -169,7 +169,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                             type="number"
                             value={formData.quantity || ''}
                             onChange={handleChange}
-                            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             placeholder="Nhập số lượng"
                         />
                     </div>
@@ -184,7 +184,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
+                        className="px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition"
                     >
                         Tạo
                     </button>

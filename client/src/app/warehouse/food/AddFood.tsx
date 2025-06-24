@@ -9,7 +9,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { FaPen } from "react-icons/fa";
 import { productSchema } from "../warehouse.schema";
 import { z } from "zod";
-import { createProducts, getSingleProductFilterValue, updateProducts } from "@/services/products.service";
+import { createProducts, getSingleProductFilterValue, updateProducts, updateProductsWithoutBatch } from "@/services/products.service";
 import { FoodItem } from "./page";
 import { toast } from "sonner";
 
@@ -97,12 +97,12 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
-        if (name === "sellingprice") {
+        if (["sellingprice", "discount"].includes(name)) {
             const numericValue = Number(value);
             setFormData(prev => ({ ...prev, [name]: isNaN(numericValue) ? 0 : numericValue }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
-        }
+        }        
     }
 
     async function handleSubmit() {
@@ -124,15 +124,10 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             const formDataObj = new FormData();
             formDataObj.append('productname', formData.name);
             formDataObj.append('sellingprice', formData.sellingprice.toString());
-
+            formDataObj.append('rentalprice', '0');
             if (editData) {
-                formDataObj.append('discount', formData.discount?.toString() || '0');
-            } else {
-                // chỉ khi tạo mới mới cần gửi rentalprice và status
-                formDataObj.append('rentalprice', '0');
-            }
-
-            // Hình ảnh (mới nếu có, hoặc giữ lại ảnh cũ)
+                formDataObj.append('discount', (formData.discount ?? 0).toString());
+            } 
             if (foodAvatar) {
                 formDataObj.append('productimgurl', foodAvatar);
             } else {
@@ -140,12 +135,20 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             }
 
             let result;
+
             if (editData) {
-                result = await updateProducts(
-                    formDataObj,
-                    editData.id.toString(),
-                    editData.batchid || ''
-                );
+                if (!editData.batchid?.trim()) {
+                    result = await updateProductsWithoutBatch(
+                        formDataObj,
+                        editData.id.toString()
+                    );
+                } else {
+                    result = await updateProducts(
+                        formDataObj,
+                        editData.id.toString(),
+                        editData.batchid,
+                    );
+                }
             } else {
                 result = await createProducts(
                     formDataObj,
@@ -157,6 +160,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                 toast.success(editData ? 'Cập nhật thành công' : 'Thêm sản phẩm mới thành công');
                 setErrors({});
                 onClose();
+                if (onSubmit) onSubmit(formData);
             } else {
                 setErrors({ general: result.message || 'Thao tác thất bại' });
                 toast.error(result.message || 'Thao tác thất bại');
@@ -202,7 +206,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                     ref={modalRef}
                     className="bg-white rounded-xl p-6 w-full max-w-xl border border-gray-300 shadow-xl"
                 >
-                    <h2 className="text-lg font-semibold mb-6">Thêm đồ ăn / Thức uống</h2>
+                    <h2 className="text-lg font-semibold mb-6">{editData ? "Sửa đồ ăn / Thức uống" : "Thêm đồ ăn / Thức uống"}</h2>
 
                     <div className="flex flex-col sm:flex-row gap-6 mb-6">
                         <div className="flex flex-col items-center gap-2">
@@ -319,9 +323,9 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                 </div>
                             )}
 
-                            {editData && (
+                            {editData?.batchid?.trim() && (
                                 <div>
-                                    <label className="block text-sm mb-1">Giảm giá</label>
+                                    <label className="block text-sm mb-1">Phần trăm giảm giá</label>
                                     <input
                                         name="discount"
                                         type="number"

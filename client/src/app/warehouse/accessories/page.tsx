@@ -6,22 +6,21 @@ import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AccessoryModal from './AddAccessories';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
+import { getProducts3 } from '@/services/products.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
-export interface Accessory{
+export interface Accessory {
+    id: number;
     name: string;
     sellingprice: number;
-    costprice: number;
     category: string;
+    batchid: string;
+    expiry?: string;
     stock: number;
     image: string;
+    status?: string;
+    discount?: number;
 }
-const rawData: Accessory[] = [
-    { name: 'Grip Yonex', category: 'Grip', sellingprice: 50000, costprice: 40000, stock: 100, image: '/default.png'},
-    { name: 'Grip Lining', category: 'Grip', sellingprice: 40000, costprice: 30000, stock: 80, image: '/default.png'},
-    { name: 'Balo Yonex', category: 'Bag', sellingprice: 800000, costprice: 650000, stock: 20, image: '/default.png'},
-    { name: 'Túi đựng vợt', category: 'Bag', sellingprice: 600000, costprice: 500000, stock: 15, image: '/default.png'},
-    { name: 'Bình nước', category: 'Other', sellingprice: 100000, costprice: 90000, stock: 50, image: '/default.png'},
-];
 
 const getUniqueOptions = (data: Accessory[], key: keyof Accessory) => {
     return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
@@ -34,37 +33,92 @@ export default function AccessoryPage() {
     const [editData, setEditData] = useState<Accessory | null>(null);
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<Accessory | null>(null);
-
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(1);
+    const [filtervalueid] = useState<number[]>([]);
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         category: [],
-        brand: [],
-        price: [0, 1000000],
+        price: [0, 1500000],
     });
 
-    useEffect(() => {
-        setData(rawData);
-        const prices = rawData.map((d) => d.sellingprice);
-        setFilters((prev) => ({
-            ...prev,
-            price: [Math.min(...prices), Math.max(...prices)],
-        }));
-    }, []);
+    const fetchData = async () => {
+        try {
+            const response = await getProducts3(2, page, pageSize, filtervalueid);
+            if (response.ok) {
+                const products = response.data?.data;
+                if (!Array.isArray(products)) {
+                    console.error('API trả về không hợp lệ:', response.data);
+                    setData([]);
+                    return;
+                }
+
+                const apiData: Accessory[] = [];
+
+                products.forEach((product: any) => {
+                    const base = {
+                        id: product.productid,
+                        name: product.productname,
+                        sellingprice: parseInt(product.sellingprice),
+                        category: product.value,
+                        image: product.productimgurl || '/default.png',
+                    };
+
+                    if (Array.isArray(product.batches) && product.batches.length > 0) {
+                        product.batches.forEach((batch: any) => {
+                            apiData.push({
+                                ...base,
+                                batchid: batch.batchid?.toString() || '',
+                                expiry: batch.expirydate || '',
+                                stock: batch.stockquantity || 0,
+                                status: batch.status || '',
+                                discount: batch.discount ? parseFloat(batch.discount) : 0,
+                            });
+                        });
+                    } else {
+                        apiData.push({
+                            ...base,
+                            batchid: '',
+                            expiry: '1/1/2025',
+                            stock: product.quantity || 0,
+                            status: '',
+                            discount: 0,
+                        });
+                    }
+                });
+
+                setData(apiData);
+                setFilteredData(apiData);
+                setTotalPages(response.data.pagination.totalPages);
+            }
+        } catch (error) {
+            console.error('Lỗi fetch phụ kiện:', error);
+        }
+    };
 
     useEffect(() => {
-        const result = data.filter((item) => {
-            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-            const matchesCategory = filters.category.length === 0 || filters.category.includes(item.category);
-            const matchesPrice =
-                Array.isArray(filters.price) &&
-                filters.price.length === 2 &&
-                item.sellingprice >= filters.price[0] &&
-                item.sellingprice <= filters.price[1];
-            return matchesName && matchesCategory && matchesPrice;
-        });
+        fetchData();
+    }, [page]);
+
+    useEffect(() => {
+        const hasFilters = filters.name || (Array.isArray(filters.category) && filters.category.length > 0) || (Array.isArray(filters.price) && filters.price.length > 0);
+        const result = hasFilters
+            ? data.filter((item) => {
+                const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+                const matchesCategory = (Array.isArray(filters.category) && filters.category.length === 0) || (Array.isArray(filters.category) && filters.category.includes(item.category));
+                const matchesPrice =
+                    Array.isArray(filters.price) &&
+                    filters.price.length === 2 &&
+                    item.sellingprice >= filters.price[0] &&
+                    item.sellingprice <= filters.price[1];
+
+                return matchesName && matchesCategory && matchesPrice;
+            })
+            : data;
         setFilteredData(result);
     }, [filters, data]);
-   
+
     const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
         optionlabel: option,
         optionvalue: option,
@@ -74,34 +128,31 @@ export default function AccessoryPage() {
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
         { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
         { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
-        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1000000 },
+        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
     ];
 
     const columns: Column<Accessory>[] = [
         { header: 'Tên phụ kiện', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        { header: 'Giá bán', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND`, align: 'center' },
-        { header: 'Giá nhập', accessor: (item) => `${item.costprice.toLocaleString('vi-VN')} VND`, align: 'center' },
+        { header: 'Lô', accessor: 'batchid', align: 'center' },
+        {
+            header: 'Giá bán', accessor: (item) => `${Number(item.sellingprice).toLocaleString('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND',
+                                })}`, align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
     ];
 
     const handleEdit = (index: number) => {
         const item = filteredData[index];
-        setEditData({
-            name: item.name,
-            category: item.category,
-            sellingprice: item.sellingprice,
-            stock: item.stock,
-            costprice: item.costprice,
-            image: item.image,
-        });
+        setEditData(item);
         setOpenModal(true);
     };
 
     const handleDelete = (index: number) => {
         const item = filteredData[index];
         if (window.confirm(`Xác nhận xóa phụ kiện: ${item.name}?`)) {
-            const newData = data.filter((d) => d.name !== item.name);
+            const newData = data.filter((d) => d.id !== item.id);
             setData(newData);
         }
     };
@@ -111,26 +162,11 @@ export default function AccessoryPage() {
         setOpenOrderForm(true);
     };
 
-    const handleSubmit = (formData: Accessory) => {
-        const newAccessory: Accessory = {
-            name: formData.name,
-            category: formData.category,
-            sellingprice: Number(formData.sellingprice),
-            stock: Number(formData.stock),
-            image: formData.image || '/default.png',
-            costprice: formData.costprice
-        };
-
-        if (editData) {
-            const updated = data.map((item) => (item.name === editData.name ? newAccessory : item));
-            setData(updated);
-        } else {
-            setData([...data, newAccessory]);
-        }
-
+    const handleSubmit = () => {
         setEditData(null);
         setOpenModal(false);
-    };   
+        fetchData();
+    };
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -172,13 +208,22 @@ export default function AccessoryPage() {
                     showMoreOption
                     showHeader
                 />
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
+                    </div>
+                )}
             </div>
 
             {openOrderForm && selectedOrderItem && (
                 <PurchaseOrderForm
                     open={openOrderForm}
                     onClose={() => setOpenOrderForm(false)}
-                    item={selectedOrderItem}
+                    item={{
+                        productid: selectedOrderItem.id,
+                        productname: selectedOrderItem.name,
+                    }}
                 />
             )}
         </div>

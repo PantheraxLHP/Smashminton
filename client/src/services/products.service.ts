@@ -354,6 +354,41 @@ export const updateProducts = async (formData: FormData, id: string, batchid: st
     }
 };
 
+export const updateProductsWithoutBatch = async (formData: FormData, id: string) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('productid', id);
+
+        const response = await fetch(
+            `/api/products/update-product-without-batch?${queryParams.toString()}`,
+            {
+                method: 'PATCH',
+                body: formData,
+                credentials: 'include',
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                status: 'error',
+                message: result.message || 'Không thể cập nhật sản phẩm',
+            };
+        }
+
+        return {
+            status: 'success',
+            data: result.product,
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu',
+        };
+    }
+};
+
 export const findSupplier = async (productid: number) => {
     try {
         const response = await fetch(`/api/products/find-suppliers?productid=${productid}`, {
