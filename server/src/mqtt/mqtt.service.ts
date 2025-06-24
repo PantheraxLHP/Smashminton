@@ -160,7 +160,6 @@ export class MqttService {
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeID} not found`);
                 throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
@@ -199,7 +198,6 @@ export class MqttService {
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeID} not found`);
                 throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
@@ -225,13 +223,12 @@ export class MqttService {
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeID} not found`);
                 throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
             if (!employee.fingerprintid) {
                 this.logger.warn(`No fingerprint found for employee ${employeeID}`);
-                return { success: true, message: `No fingerprint to delete for employee ${employeeID}` };
+                return { success: false, message: `No fingerprint to delete for employee ${employeeID}` };
             }
 
             const fingerprintID = employee.fingerprintid;
@@ -269,7 +266,7 @@ export class MqttService {
 
                 if (!employee.fingerprintid) {
                     this.logger.warn(`No fingerprint found for employee ${employeeID}`);
-                    resolve({ success: true, message: `No fingerprint to delete for employee ${employeeID}` });
+                    resolve({ success: false, message: `No fingerprint to delete for employee ${employeeID}` });
                     return;
                 }
 
@@ -304,7 +301,6 @@ export class MqttService {
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeID} not found`);
                 throw new Error(`Employee with ID ${employeeID} not found`);
             }
 
@@ -336,7 +332,6 @@ export class MqttService {
 
         if (success) {
             try {
-                // Update database after ESP8266 confirms deletion
                 await this.deleteEmployeeFingerprint(employeeID);
                 this.logger.log(`✅ Fingerprint deletion confirmed and database updated for employee ${employeeID}`);
                 pending.resolve({ success: true, message: 'Fingerprint deleted successfully' });
@@ -349,82 +344,324 @@ export class MqttService {
             pending.reject(new Error(`ESP8266 deletion failed: ${message}`));
         }
 
-        return true; // Had pending deletion
+        return true;
     }
 
-    async timeTracking(fingerprintID: number) {
+    async getEmployeeAssignments(employeeID: number, shiftdate: Date) {
         try {
-            const employee = await this.prisma.employees.findUnique({
-                where: { fingerprintid: fingerprintID },
+            const assignments = await this.prisma.assignments.findMany({
+                where: {
+                    employeeid: employeeID,
+                    shiftdate: shiftdate,
+                },
+                include: {
+                    shift: true
+                },
+                orderBy: {
+                    shiftid: 'asc'
+                }
             });
 
-            if (!employee) {
-                this.logger.error(`❌ Employee with fingerprint ID ${fingerprintID} not found`);
-                throw new Error(`Employee with fingerprint ID ${fingerprintID} not found`);
-            }
-
-            await this.updateTimeSheet(employee.employeeid);
+            return assignments;
         } catch (error) {
-            this.logger.error(`❌ Failed to track time for fingerprint ID ${fingerprintID}:`, error);
+            this.logger.error(`❌ Failed to get assignments for employee ${employeeID} on ${shiftdate.toLocaleDateString("vi-VN")}:`, error);
             throw error;
         }
     }
 
-    async updateTimeSheet(employeeID: number) {
+    async addEmployeeLatePenaltyRecord(employeeID: number, lateTime: Date) {
+        const lateRule = await this.prisma.penalty_rules.findFirst({
+            where: {
+                penaltyname: 'Late for work',
+            },
+        });
+        if (lateRule) {
+            const currentMonthStart = new Date(lateTime.getFullYear(), lateTime.getMonth(), 1);
+            currentMonthStart.setHours(0, 0, 0, 0);
+            const currentMonthEnd = new Date(lateTime.getFullYear(), lateTime.getMonth() + 1, 0);
+            currentMonthEnd.setHours(23, 59, 59, 999);
+            const currentMonthLateCount = await this.prisma.penalty_records.count({
+                where: {
+                    penaltyruleid: lateRule.penaltyruleid,
+                    employeeid: employeeID,
+                    violationdate: {
+                        gte: currentMonthStart,
+                        lte: currentMonthEnd
+                    }
+                },
+            });
+            let finalPenaltyAmount: number | null = null;
+            if (lateRule.basepenalty !== null && lateRule.incrementalpenalty !== null && lateRule.maxiumpenalty !== null) {
+                const basePenalty = Number(lateRule.basepenalty);
+                const incrementalPenalty = Number(lateRule.incrementalpenalty);
+                const maxPenalty = Number(lateRule.maxiumpenalty);
+
+                if (currentMonthLateCount > 1) {
+                    const tmp = basePenalty + incrementalPenalty * currentMonthLateCount;
+                    if (tmp > maxPenalty) {
+                        finalPenaltyAmount = maxPenalty;
+                    } else {
+                        finalPenaltyAmount = tmp;
+                    }
+                } else {
+                    finalPenaltyAmount = basePenalty;
+                }
+
+                await this.prisma.penalty_records.create({
+                    data: {
+                        penaltyruleid: lateRule.penaltyruleid,
+                        employeeid: employeeID,
+                        violationdate: lateTime,
+                        finalpenaltyamount: finalPenaltyAmount
+                    }
+                });
+            }
+
+        }
+    }
+
+    async handleFingerprintScan(deviceId: string, fingerprintID: number, scanTime: Date) {
         try {
+            const currentDate = new Date(scanTime);
+            // Chỉnh về thời gian đầu ngày
+            currentDate.setHours(0, 0, 0, 0);
+
+            // Lấy nhân viên theo fingerprint ID
             const employee = await this.prisma.employees.findUnique({
-                where: { employeeid: employeeID },
+                where: { fingerprintid: fingerprintID },
+                include: { accounts: true }
             });
 
             if (!employee) {
-                this.logger.error(`Employee with ID ${employeeID} not found`);
-                throw new Error(`Employee with ID ${employeeID} not found`);
+                this.logger.error(`❌ Employee with fingerprint ID ${fingerprintID} not found`);
+                return {
+                    success: false,
+                    error: `Employee with fingerprint ID ${fingerprintID} not found`,
+                    action: 'none'
+                };
             }
 
-            const currentTime = new Date();
-            const currentDate = new Date();
-            currentDate.setHours(0, 0, 0, 0);
+            this.logger.log(`👤 Employee found: ${employee.employeeid} (${employee.accounts?.fullname || 'Unknown'}), Type: ${employee.employee_type}`);
 
-            // Check if timesheet exists for today
-            const existingTimesheet = await this.prisma.timesheet.findUnique({
-                where: {
-                    employeeid_timesheetdate: {
-                        employeeid: employeeID,
-                        timesheetdate: currentDate
-                    }
+            // Lấy các ca làm việc được phân công cho nhân viên này trong ngày hiện tại
+            const assignments = await this.getEmployeeAssignments(employee.employeeid, currentDate);
+
+            if (assignments.length === 0) {
+                this.logger.warn(`⚠️ No assignments found for employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
+                return {
+                    success: false,
+                    error: `No shift assignments found for today`,
+                    action: 'none',
+                    employeeId: employee.employeeid
+                };
+            }
+
+            // Hàm check đi trễ hơn giờ bắt đầu ca (timeBuffer mặc định = 15 phút)
+            const isLate = (shiftStart: string, checkin: Date, timeBuffer: number = 15) => {
+                const [h, m] = shiftStart.split(":").map(Number);
+                const shiftStartDate = new Date(checkin);
+                shiftStartDate.setHours(h, m + timeBuffer, 0, 0);
+                return checkin > shiftStartDate;
+            };
+
+            // Trường hợp nhân viên là nhân viên toàn thời gian
+            if (employee.employee_type?.toLowerCase() === "full-time") {
+                // Chỉ có tối đa 1 ca làm việc trong ngày
+                if (assignments.length > 1) {
+                    this.logger.error(`❌ Multiple assignments found for full-time employee ${employee.employeeid}`);
+                    return {
+                        success: false,
+                        error: `Full-time employee cannot have multiple shifts per day`,
+                        action: 'none',
+                        employeeId: employee.employeeid
+                    };
                 }
-            });
 
-            if (existingTimesheet) {
-                // Employee already clocked in today - update end time
-                await this.prisma.timesheet.update({
-                    where: { timesheetid: existingTimesheet.timesheetid },
-                    data: {
-                        endhour: currentTime, // Update end time
+                const assignment = assignments[0];
+
+                // Kiểm tra bảng chấm công 
+                const existingTimesheet = await this.prisma.timesheet.findUnique({
+                    where: {
+                        employeeid_shiftid_shiftdate: {
+                            employeeid: assignment.employeeid,
+                            shiftid: assignment.shiftid,
+                            shiftdate: assignment.shiftdate,
+                        }
                     }
                 });
 
-                this.logger.log(`⏰ Clock-out recorded for employee ${employeeID} at ${currentTime.toISOString()}`);
-                return { action: 'clock-out', time: currentTime };
-
-            } else {
-                // First time today - create new timesheet (clock-in)
-                const newTimesheet = await this.prisma.timesheet.create({
-                    data: {
-                        employeeid: employeeID,
-                        timesheetdate: currentDate,
-                        starthour: currentTime,
-                        endhour: null,
+                if (!existingTimesheet) {
+                    const late = assignment.shift?.shiftstarthour ? isLate(assignment.shift.shiftstarthour, scanTime) : false;
+                    if (late) {
+                        // Nếu đi trễ thì ghi lại vi phạm
+                        await this.addEmployeeLatePenaltyRecord(assignment.employeeid, scanTime);
                     }
-                });
 
-                this.logger.log(`🟢 Clock-in recorded for employee ${employeeID} at ${currentTime.toISOString()}`);
-                return { action: 'clock-in', time: currentTime };
+                    // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
+                    await this.prisma.timesheet.create({
+                        data: {
+                            employeeid: assignment.employeeid,
+                            shiftid: assignment.shiftid,
+                            shiftdate: assignment.shiftdate,
+                            checkin_time: scanTime
+                        }
+                    });
+                    this.logger.log(`🟢 Check-in recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
+                    return {
+                        success: true,
+                        action: 'check_in',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        shiftId: assignment.shiftid,
+                        time: scanTime,
+                        late: late,
+                        message: late ? `Check-in successful (LATE)` : `Check-in successful`
+                    };
+                } else if (!existingTimesheet.checkout_time) {
+                    // Nếu đã có bảng chấm công nhưng chưa check-out thì ghi giờ chấm công ra
+                    await this.prisma.timesheet.update({
+                        where: {
+                            employeeid_shiftid_shiftdate: {
+                                employeeid: assignment.employeeid,
+                                shiftid: assignment.shiftid,
+                                shiftdate: assignment.shiftdate,
+                            }
+                        },
+                        data: {
+                            checkout_time: scanTime
+                        }
+                    });
+                    this.logger.log(`🔵 Check-out recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                    return {
+                        success: true,
+                        action: 'check_out',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        shiftId: assignment.shiftid,
+                        time: scanTime,
+                        message: `Check-out successful`
+                    };
+                } else {
+                    // Trường hợp đã có bảng chấm công và đã check-out, thông báo và không cập nhật lại
+                    this.logger.warn(`⚠️ Full-time employee ${employee.employeeid} has already completed attendance for today`);
+                    return {
+                        success: false,
+                        error: `Already checked out for today`,
+                        action: 'none',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        checkInTime: existingTimesheet.checkin_time,
+                        checkOutTime: existingTimesheet.checkout_time
+                    };
+                }
             }
+            // Trường hợp nhân viên là nhân viên bán thời gian
+            else if (employee.employee_type?.toLowerCase() === "part-time") {
+                // Lấy tất cả các ca làm việc mà chưa có chấm công hoặc chấm công ra và sắp xếp theo shiftid
+                const availableAssignments = await this.prisma.shift_assignment.findMany({
+                    where: {
+                        employeeid: employee.employeeid,
+                        shiftdate: currentDate,
+                        OR: [
+                            { timesheet: { none: {} } },
+                            { timesheet: { some: { checkout_time: null } } }
+                        ]
+                    },
+                    include: {
+                        timesheet: true,
+                        shift_date: { include: { shift: true } }
+                    },
+                    orderBy: { shiftid: 'asc' }
+                });
+                // Trường hợp đã hoàn thành chấm công tất cả các ca làm việc trong ngày
+                if (availableAssignments.length === 0) {
+                    this.logger.warn(`⚠️ All shifts completed for part-time employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
+                    return {
+                        success: false,
+                        error: `All shifts for today are already completed`,
+                        action: 'none',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown'
+                    };
+                }
 
+                // Lấy ca làm việc đầu tiên trong danh sách có thể chấm công
+                const nextAssignment = availableAssignments[0];
+                const existingTimesheet = nextAssignment.timesheet?.[0];
+
+                if (!existingTimesheet) {
+                    const late = nextAssignment.shift_date?.shift?.shiftstarthour ? isLate(nextAssignment.shift_date.shift.shiftstarthour, scanTime) : false;
+
+                    if (late) {
+                        // Nếu đi trễ thì ghi lại vi phạm
+                        await this.addEmployeeLatePenaltyRecord(nextAssignment.employeeid, scanTime);
+                    }
+
+                    // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
+                    await this.prisma.timesheet.create({
+                        data: {
+                            employeeid: nextAssignment.employeeid,
+                            shiftid: nextAssignment.shiftid,
+                            shiftdate: nextAssignment.shiftdate,
+                            checkin_time: scanTime
+                        }
+                    });
+                    this.logger.log(`🟢 Check-in recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
+                    return {
+                        success: true,
+                        action: 'check_in',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        shiftId: nextAssignment.shiftid,
+                        time: scanTime,
+                        late: late,
+                        message: late ? `Check-in successful (LATE) for Shift ${nextAssignment.shiftid}` : `Check-in successful for Shift ${nextAssignment.shiftid}`
+                    };
+                } else if (!existingTimesheet.checkout_time) {
+                    // Nếu đã có bảng chấm công nhưng chưa check-out thì ghi giờ chấm công ra
+                    await this.prisma.timesheet.update({
+                        where: {
+                            employeeid_shiftid_shiftdate: {
+                                employeeid: nextAssignment.employeeid,
+                                shiftid: nextAssignment.shiftid,
+                                shiftdate: nextAssignment.shiftdate,
+                            }
+                        },
+                        data: {
+                            checkout_time: scanTime
+                        }
+                    });
+
+                    this.logger.log(`🔵 Check-out recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                    return {
+                        success: true,
+                        action: 'check_out',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        shiftId: nextAssignment.shiftid,
+                        time: scanTime,
+                        message: `Check-out successful for Shift ${nextAssignment.shiftid}`
+                    };
+                }
+            }
+            // Trường hợp nhân viên có loại khác "full-time" hoặc "part-time"
+            else {
+                this.logger.error(`❌ Unknown employee type: ${employee.employee_type} for employee ${employee.employeeid}`);
+                return {
+                    success: false,
+                    error: `Unknown employee type: ${employee.employee_type}`,
+                    action: 'none',
+                    employeeId: employee.employeeid,
+                    employeeName: employee.accounts?.fullname || 'Unknown'
+                };
+            }
         } catch (error) {
-            this.logger.error(`❌ Failed to update timesheet for employee ${employeeID}:`, error);
-            throw error;
+            this.logger.error(`❌ Failed to handle fingerprint scan for device ${deviceId} and fingerprint ID ${fingerprintID}:`, error);
+            return {
+                success: false,
+                error: error.message || 'Internal server error during fingerprint scan',
+                action: 'none'
+            };
         }
     }
 }

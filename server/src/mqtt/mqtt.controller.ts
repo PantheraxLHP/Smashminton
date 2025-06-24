@@ -117,11 +117,11 @@ export class MqttController {
         try {
             if (data.eventType === 'match') {
                 this.logger.log(`🎯 Fingerprint match: ID=${data.fingerID}, Confidence=${data.confidence}`);
-                await this.mqttService.timeTracking(data.fingerID);
+                await this.mqttService.handleFingerprintScan(data.deviceId, data.fingerID, new Date());
             } else if (data.eventType === 'unknown') {
                 this.logger.log('👤 Unknown fingerprint detected');
             }
-
+            
             return data;
         } catch (error) {
             this.logger.error('❌ Error processing fingerprint event:', error);

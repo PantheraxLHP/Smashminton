@@ -432,7 +432,7 @@ async function main() {
                 rewardname: 'Profit-sharing Bonus',
                 rewarddescription: 'Thưởng theo kết quả kinh doanh trong 1 năm',
                 rewardtype: '1 Month Salary',
-                rewardvalue: 0.2,
+                rewardvalue: 1,
             },
             {
                 rewardname: 'Holidays Bonus',

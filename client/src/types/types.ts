@@ -290,9 +290,8 @@ export interface Timesheet {
     shiftdate: Date;
     checkin_time?: Date;
     checkout_time?: Date;
-    createdat: Date;
-    updatedat: Date;
-    employees: Employees;
+    createdat?: Date;
+    updatedat?: Date;
     shiftassignment: ShiftAssignment;
 }
 
