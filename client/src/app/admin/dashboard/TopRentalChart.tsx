@@ -26,7 +26,9 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">Top 10 sản phẩm được thuê trong năm {year}</span>
+                <span className="w-full text-center text-lg font-semibold">
+                    Top 10 sản phẩm được thuê trong năm {year}
+                </span>
                 <div className="flex-1 overflow-hidden">
                     <ChartContainer config={chartConfig} className="h-full min-w-full">
                         <BarChart
@@ -35,8 +37,8 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                             layout="vertical"
                             margin={{
                                 right: 20,
-                                bottom: 20,
-                                left: 40,
+                                bottom: 10,
+                                left: 50,
                             }}
                         >
                             <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" horizontal={false} />
@@ -50,10 +52,10 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                             <YAxis
                                 type="category"
                                 dataKey="rentalName"
-                                tickMargin={20}
+                                tickMargin={30}
                                 tickLine={false}
                                 axisLine={false}
-                                width={100}
+                                width={200}
                             />
                             <ChartTooltip
                                 content={

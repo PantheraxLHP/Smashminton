@@ -37,6 +37,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                             layout="vertical"
                             margin={{
                                 right: 20,
+                                left: 50,
                             }}
                         >
                             <CartesianGrid strokeDasharray={'3 3'} stroke="#E5E7EB" horizontal={false} />

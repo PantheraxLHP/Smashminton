@@ -32,7 +32,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
     const [visibleZones, setVisibleZones] = useState<Record<string, boolean>>(
         Object.keys(chartConfig).reduce((acc, key) => ({ ...acc, [key]: true }), {}),
     );
-    
+
     const handleActiveZoneClick = (data: any) => {
         const dataKey = data.dataKey;
         setVisibleZones((prev) => ({
@@ -52,7 +52,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                     <h2 className="w-full text-center text-lg font-semibold">
                         Doanh thu các khu vực sân (Zone) trong năm {year}
                     </h2>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="ml-10 flex flex-wrap gap-2">
                         {Object.entries(chartConfig).map(([key, config]) => {
                             return (
                                 <Button
@@ -80,8 +80,8 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             accessibilityLayer
                             data={chartData}
                             margin={{
-                                right: 30,
-                                left: 10,
+                                right: 40,
+                                left: 20,
                                 bottom: 10,
                             }}
                         >
@@ -96,20 +96,16 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                             <YAxis
                                 type="number"
                                 tickMargin={10}
-                                width={80}
+                                width={100}
                                 label={{
                                     value: 'Doanh thu (triệu đồng)',
                                     angle: -90,
                                     position: 'insideLeft',
                                     style: { textAnchor: 'middle' },
                                 }}
-                            />                            
-                            <ChartTooltip
-                                content={<ChartTooltipContent indicator="line" hideLabel />}
                             />
-                            <ChartLegend
-                                content={<ChartLegendContent className="mt-6" />}
-                            />                                
+                            <ChartTooltip content={<ChartTooltipContent indicator="line" hideLabel />} />
+                            <ChartLegend content={<ChartLegendContent className="mt-6" />} />
                             {Object.entries(chartConfig)
                                 .filter(([key]) => visibleZones[key])
                                 .map(([key, value]) => {

@@ -33,7 +33,7 @@ const NumberOfBookingPerTimeChart: React.FC<NumberOfBookingPerTimeChartProps> = 
             style={{ width: `${chartWidth}`, height: `${chartHeight}` }}
         >
             <div className="flex h-full w-full flex-col gap-2">
-                <span className="w-full text-center text-lg">
+                <span className="w-full text-center text-lg font-semibold">
                     Số lượt đặt sân theo từng khung giờ qua các tháng trong năm {year}
                 </span>
                 <div className="flex-1 overflow-hidden">

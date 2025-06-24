@@ -4,7 +4,7 @@ import DashboardControls from './DashboardControls';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DashboardPageProps {
-    searchParams: { year?: string; tab?: string };
+    searchParams: Promise<{ year?: string; tab?: string }>;
 }
 
 function DashboardLoading() {
@@ -49,9 +49,10 @@ function DashboardClient({ year, activeTab }: { year: number; activeTab: string 
     return <DashboardServer year={year} activeTab={activeTab} />;
 }
 
-export default function DashboardPage({ searchParams }: DashboardPageProps) {
-    const year = Number(searchParams.year) || new Date().getFullYear();
-    const activeTab = searchParams.tab || 'số lượng';
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+    const params = await searchParams;
+    const year = Number(params.year) || new Date().getFullYear();
+    const activeTab = params.tab || 'số lượng';
 
     return (
         <div className="w-full">
