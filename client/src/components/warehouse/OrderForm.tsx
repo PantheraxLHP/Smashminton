@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { findSupplier } from '@/services/products.service';
+import { useAuth } from '@/context/AuthContext';
+import { createPurchaseOrder } from '@/services/purchaseorder.service';
+import { toast } from 'sonner';
 
 interface OrderFormData {
     productid: number;
@@ -23,6 +26,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
     onClose,
     item,
 }: PurchaseOrderFormProps<T>) {
+    const { user } = useAuth(); // 👈 lấy user từ context
     const [supplierList, setSupplierList] = useState<
         { supplierid: number; suppliername: string; costprice: number }[]
     >([]);
@@ -45,7 +49,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                 supplierid: undefined,
                 suppliername: '',
             });
-    
+
             findSupplier(item.productid).then((res) => {
                 if (res.ok && Array.isArray(res.data)) {
                     const suppliers = res.data.map((s: any) => ({
@@ -60,8 +64,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                 }
             });
         }
-    }, [item]);    
-    
+    }, [item]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -73,9 +76,28 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
         }));
     };
 
-    const handleSubmit = () => {
-        console.log('Dữ liệu phiếu đặt hàng:', formData);
-        onClose();
+    const handleSubmit = async () => {
+        if (!formData.supplierid || !formData.quantity || !user?.accountid) {
+            toast.error('Vui lòng chọn nhà cung cấp và nhập số lượng hợp lệ.');
+            return;
+        }
+
+        const payload = {
+            productid: formData.productid,
+            productname: formData.productname,
+            employeeid: user.accountid,
+            supplierid: formData.supplierid,
+            quantity: formData.quantity,
+        };
+
+        const res = await createPurchaseOrder(payload);
+
+        if (res.ok) {
+            toast.success('Đơn đặt hàng đã được tạo thành công.');
+            onClose();
+        } else {
+            toast.error(`Lỗi: ${res.message}`);
+        }
     };
 
     const handleExit = () => {
@@ -87,9 +109,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
             <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 className="text-xl font-semibold text-center mb-6">
-                    Phiếu đặt hàng
-                </h2>
+                <h2 className="text-xl font-semibold text-center mb-6">Phiếu đặt hàng</h2>
 
                 <div className="space-y-4">
                     <div>
@@ -97,7 +117,6 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                         <input
                             name="productname"
                             value={formData.productname}
-                            onChange={handleChange}
                             readOnly
                             className="w-full rounded-xl border border-gray-300 px-3 py-2 bg-gray-100 cursor-not-allowed"
                         />
@@ -108,7 +127,6 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                         <input
                             name="costprice"
                             value={formData.costprice}
-                            onChange={handleChange}
                             readOnly
                             className="w-full rounded-xl border border-gray-300 px-3 py-2 bg-gray-100 cursor-not-allowed"
                         />
@@ -121,9 +139,11 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                             value={formData.supplierid ?? ''}
                             onChange={(e) => {
                                 const selectedId = Number(e.target.value);
-                                const selectedSupplier = supplierList.find(s => s.supplierid === selectedId);
+                                const selectedSupplier = supplierList.find(
+                                    (s) => s.supplierid === selectedId
+                                );
                                 if (selectedSupplier) {
-                                    setFormData(prev => ({
+                                    setFormData((prev) => ({
                                         ...prev,
                                         supplierid: selectedSupplier.supplierid,
                                         suppliername: selectedSupplier.suppliername,
@@ -140,7 +160,6 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                                 </option>
                             ))}
                         </select>
-
                     </div>
 
                     <div>
