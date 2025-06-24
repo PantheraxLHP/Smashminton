@@ -110,7 +110,6 @@ model employees {
   reward_records       reward_records[]
   shift_assignment     shift_assignment[]
   shift_enrollment     shift_enrollment[]
-  timesheet            timesheet[]
 }
 
 model order_product {
@@ -328,7 +327,6 @@ model timesheet {
   createdat     DateTime? @default(now()) @db.Timestamptz(6)
   updatedat     DateTime? @default(now()) @db.Timestamptz(6)
 
-  employees       employees        @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction)
   shiftassignment shift_assignment @relation(fields: [employeeid, shiftid, shiftdate], references: [employeeid, shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_shiftassignment")
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_timesheet")
