@@ -148,12 +148,16 @@ create table if not exists reward_records (
 );
 
 create table if not exists timesheet (
-	timesheetid integer generated always as identity primary key,
-	timesheetdate timestamptz,
-	starthour timestamptz,
-	endhour timestamptz,
 	employeeid integer,
-	constraint fk_timesheet_employees foreign key (employeeid) references employees(employeeid)
+	shiftid integer,
+	shiftdate timestamptz,
+	checkin_time timestamptz,
+	checkout_time timestamptz,
+	createdat timestamptz default now(),
+	updatedat timestamptz default now(),
+
+	constraint pk_timesheet primary key (employeeid, shiftid, shiftdate),
+	constraint fk_timesheet_shiftassignment foreign key (employeeid, shiftid, shiftdate) references shift_assignment(employeeid, shiftid, shiftdate)
 );
 
 create table if not exists customers (

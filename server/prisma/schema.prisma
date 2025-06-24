@@ -186,7 +186,7 @@ model products {
 model product_batch {
   batchid        Int              @id @default(autoincrement())
   batchname      String?
-  expirydate     DateTime?        
+  expirydate     DateTime?
   stockquantity  Int?
   statusbatch    String?
   discount       Int?
@@ -257,10 +257,11 @@ model shift {
 model shift_assignment {
   employeeid       Int
   shiftid          Int
-  shiftdate        DateTime   @db.Timestamptz(6)
+  shiftdate        DateTime    @db.Timestamptz(6)
   assignmentstatus String?
-  employees        employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
-  shift_date       shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
+  employees        employees   @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
+  shift_date       shift_date  @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
+  timesheet        timesheet[]
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftassignment")
 }
@@ -276,13 +277,13 @@ model shift_date {
 }
 
 model shift_enrollment {
-  employeeid     Int
-  shiftid        Int
-  shiftdate      DateTime   @db.Timestamptz(6)
-  enrollmentdate DateTime?  @default(now()) @db.Timestamptz(6)
+  employeeid       Int
+  shiftid          Int
+  shiftdate        DateTime   @db.Timestamptz(6)
+  enrollmentdate   DateTime?  @default(now()) @db.Timestamptz(6)
   enrollmentstatus String?
-  employees      employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_employees")
-  shift_date     shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_shiftdate")
+  employees        employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_employees")
+  shift_date       shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_shiftdate")
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftenrollment")
 }
@@ -311,7 +312,7 @@ model suppliers {
 model supply_products {
   productid  Int
   supplierid Int
-  costprice          Decimal?             @db.Decimal
+  costprice  Decimal?  @db.Decimal
   suppliers  suppliers @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
   products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
 
@@ -319,14 +320,18 @@ model supply_products {
 }
 
 model timesheet {
-  timesheetid   Int        @id @default(autoincrement())
-  timesheetdate DateTime  @db.Timestamptz(6)
-  starthour     DateTime?  @db.Timestamptz(6)
-  endhour       DateTime?  @db.Timestamptz(6)
   employeeid    Int
-  employees     employees @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_employees")
+  shiftid       Int
+  shiftdate     DateTime  @db.Timestamptz(6)
+  checkin_time  DateTime? @db.Timestamptz(6)
+  checkout_time DateTime? @db.Timestamptz(6)
+  createdat     DateTime? @default(now()) @db.Timestamptz(6)
+  updatedat     DateTime? @default(now()) @db.Timestamptz(6)
 
-  @@unique([employeeid, timesheetdate], map: "unique_timesheet_employeeid_timesheetdate")
+  employees       employees        @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction)
+  shiftassignment shift_assignment @relation(fields: [employeeid, shiftid, shiftdate], references: [employeeid, shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_shiftassignment")
+
+  @@id([employeeid, shiftid, shiftdate], map: "pk_timesheet")
 }
 
 model voucher {
