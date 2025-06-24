@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { useState, Fragment, useEffect } from 'react';
 import AssignmentRuleDetail from './AssignmentRuleDetail';
-import { getAutoAssignment } from '@/services/shiftdate.service';
+import { getAutoAssignment, updateAutoAssignment } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
 export interface RuleCondition {
     conditionName: string;
@@ -75,6 +76,19 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
         fetchAutoAssignment();
     }, []);
 
+    const handleRemoveRule = async (ruleName: string) => {
+        if (ruleList.length === 1) {
+            toast.error('Không thể xóa quy tắc cuối cùng');
+            return;
+        }
+        const response = await updateAutoAssignment(ruleList.filter((r) => r.ruleName !== ruleName));
+        if (response.ok) {
+            toast.success('Xóa quy tắc thành công');
+            setRuleList(ruleList.filter((r) => r.ruleName !== ruleName));
+        } else {
+            toast.error(response.message || 'Xóa quy tắc thất bại');
+        }
+    };
     return (
         <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-end gap-4">
@@ -114,7 +128,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                     <div className="grid max-h-[40vh] grid-cols-[repeat(4,minmax(150px,250px))] items-center overflow-auto">
                         {ruleList?.map((rule) => (
                             <Fragment key={`rule-${rule.ruleName}`}>
-                                <div className="flex h-full w-full items-center border-b p-2 text-sm">
+                                <div className="flex h-full w-full items-center border-b p-2 text-sm break-all">
                                     {rule.ruleName}
                                 </div>
                                 <div className="flex h-full w-full items-center border-b p-2 text-sm">
@@ -149,7 +163,13 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                             />
                                         </DialogContent>
                                     </Dialog>
-                                    <Button variant="outline_destructive" className="group w-full">
+                                    <Button
+                                        variant="outline_destructive"
+                                        className="group w-full"
+                                        onClick={() => {
+                                            handleRemoveRule(rule.ruleName);
+                                        }}
+                                    >
                                         <Icon
                                             icon="material-symbols:delete-outline-rounded"
                                             className="size-5 transition-all duration-300 group-hover:size-6"

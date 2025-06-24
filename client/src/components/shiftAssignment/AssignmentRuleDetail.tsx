@@ -35,24 +35,15 @@ const AssignmentRuleDetail = ({
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
                     { conditionName: 'isEligible', defaultValue: 'true' },
-                    {
-                        conditionName: 'isAssigned',
-                        defaultValue: 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))',
-                    },
+                    { conditionName: 'isAssigned', defaultValue: 'true' },
                 ];
             case 'enrollmentEmployee':
                 return [
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
                     { conditionName: 'isEligible', defaultValue: 'true' },
-                    {
-                        conditionName: 'isEnrolled',
-                        defaultValue: 'ShiftEnrollment(getEmployee().equals($E), getShift().equals($SD))',
-                    },
-                    {
-                        conditionName: 'isAssigned',
-                        defaultValue: 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))',
-                    },
+                    { conditionName: 'isEnrolled', defaultValue: 'true' },
+                    { conditionName: 'isAssigned', defaultValue: 'true' },
                 ];
             case 'shift':
                 return [
@@ -63,10 +54,7 @@ const AssignmentRuleDetail = ({
                 return [
                     { conditionName: 'assignedEmployees', defaultValue: '== 0' },
                     { conditionName: 'isAssignable', defaultValue: 'true' },
-                    {
-                        conditionName: 'isEnrolled',
-                        defaultValue: 'ShiftEnrollment(getShift().equals($SD))',
-                    },
+                    { conditionName: 'isEnrolled', defaultValue: 'true' },
                 ];
             default:
                 return [{ conditionName: '', defaultValue: '' }];
@@ -216,6 +204,11 @@ const AssignmentRuleDetail = ({
         if (AssignmentRule) {
             updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
         } else {
+            //check unique rule name
+            if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
+                toast.error('Tên quy tắc đã tồn tại');
+                return;
+            }
             updatedRuleList = [...ruleList, updatedRule];
         }
 
@@ -507,17 +500,17 @@ const AssignmentRuleDetail = ({
                                         </div>
                                         <div className="w-full p-2">
                                             <Select
-                                                value={ruleActions[0].actionValue}
+                                                value={ruleActions[0].actionValue || 'true'}
                                                 onValueChange={(value) =>
                                                     updateActionValue(ruleActions[0].actionName, value)
                                                 }
                                             >
                                                 <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
-                                                    <SelectValue placeholder={ruleActions[0].actionName} />
+                                                    <SelectValue placeholder={'Giá trị'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={'true'}>{'Có'}</SelectItem>
-                                                    <SelectItem value={'false'}>{'Không'}</SelectItem>
+                                                    <SelectItem value={'setAssignable(true)'}>{'Có'}</SelectItem>
+                                                    <SelectItem value={'setAssignable(false)'}>{'Không'}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
