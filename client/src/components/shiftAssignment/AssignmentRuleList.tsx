@@ -62,7 +62,6 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     setPartTimeOption,
 }) => {
     const [ruleList, setRuleList] = useState<AssignmentRule[]>([]);
-    console.log('ruleList', ruleList);
 
     useEffect(() => {
         const fetchAutoAssignment = async () => {

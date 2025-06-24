@@ -4,8 +4,6 @@ import { NextRequest } from 'next/server';
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json();
-
-        console.log(body);
         const response = await fetch(`${process.env.SERVER}/api/v1/auto-assignment`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

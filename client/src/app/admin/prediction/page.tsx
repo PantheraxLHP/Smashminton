@@ -70,7 +70,7 @@ function PredictionClient({
     );
 }
 
-export default function PredictionPage({ searchParams }: PredictionPageProps) {
+export default async function PredictionPage({ searchParams }: PredictionPageProps) {
     const selectedYear = Number(searchParams.year) || 2024;
     const timeType = (searchParams.timeType as 'Tháng' | 'Quý') || 'Tháng';
     const selectedTime = searchParams.selectedTime || 'Tháng 1';

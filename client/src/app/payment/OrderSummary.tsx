@@ -17,7 +17,6 @@ export default function OrderSummary() {
     const getProductStockQuantity = async (productId: number) => {
         const result = await getSingleProduct(productId);
         if (result.ok) {
-            console.log('result: ', result.data.quantity);
             return result.data.quantity;
         }
         return 0;

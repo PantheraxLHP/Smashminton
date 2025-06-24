@@ -52,7 +52,7 @@ export default function PredictionControls({ timeType, selectedTime, selectedYea
             <span className="text-2xl font-semibold">Dự đoán các loại sản phẩm bán chạy</span>
             <button
                 onClick={handlePredict}
-                className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded px-4 py-2 text-white transition"
+                className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded-lg px-4 py-2 text-white transition"
             >
                 Dự đoán
             </button>
@@ -107,7 +107,7 @@ export default function PredictionControls({ timeType, selectedTime, selectedYea
                 <div className="flex items-end gap-2">
                     <button
                         onClick={handleRefresh}
-                        className="bg-primary-500 hover:bg-primary-600 rounded px-3 py-2 text-white transition-colors"
+                        className="bg-primary-500 hover:bg-primary-600 rounded-lg px-3 py-2 text-white transition-colors"
                     >
                         <Icon icon="material-symbols:refresh" className="h-4 w-4" />
                     </button>

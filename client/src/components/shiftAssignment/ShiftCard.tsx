@@ -66,8 +66,6 @@ interface ShiftCardProps {
 const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, selectedRadio, onDataChanged }) => {
     const { user } = useAuth();
 
-    console.log(shiftDataSingle);
-
     const confirmCount =
         (shiftDataSingle as ShiftDate).shift_assignment?.filter((assignment: ShiftAssignment) => {
             return assignment.assignmentstatus === 'approved';

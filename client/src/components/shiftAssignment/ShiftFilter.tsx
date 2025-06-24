@@ -45,7 +45,6 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
     setPartTimeOption,
 }) => {
     const handleAutoAssign = async () => {
-        console.log(fullTimeOption, partTimeOption);
         const response = await autoAssignShift(fullTimeOption || '', partTimeOption || '');
         if (response.ok) {
             toast.success('Phân công tự động thành công');

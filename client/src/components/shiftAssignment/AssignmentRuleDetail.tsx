@@ -227,7 +227,6 @@ const AssignmentRuleDetail = ({
             toast.error(response.message || 'Lưu quy tắc thất bại');
         }
     };
-    console.log('ruleConditions', ruleConditions);
     return (
         <div className="flex h-[60vh] w-full flex-col">
             <div className="flex items-center">

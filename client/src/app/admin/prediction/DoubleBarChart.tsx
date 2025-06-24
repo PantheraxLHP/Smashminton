@@ -38,14 +38,17 @@ const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data }) => {
 
     return (
         <div className="flex h-full flex-col">
-            <h2 className="mb-4 text-lg font-semibold">So sánh số lượng mua vào và bán ra</h2>
+            <h2 className="mb-4 text-lg font-semibold">
+                So sánh số lượng <span className="text-primary-500">mua vào</span> và{' '}
+                <span className="text-primary-500">bán ra</span>
+            </h2>
             <div className="flex-1 overflow-hidden">
                 <ChartContainer config={chartConfig} className="h-full min-w-full">
                     <BarChart
                         data={safeData}
-                        margin={{ top: 30, right: 30, left: 0, bottom: 5 }}
+                        margin={{ top: 30, right: 30, left: 30, bottom: 10 }}
                         barCategoryGap="80%"
-                        barGap={30}
+                        barGap={0}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis dataKey="name" />

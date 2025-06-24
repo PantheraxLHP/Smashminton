@@ -269,8 +269,6 @@ export const updateAutoAssignment = async (ruleList: AssignmentRule[]) => {
             ],
         }));
 
-        console.log('ruleData sending to server', ruleData);
-
         const response = await fetch('/api/shiftdate/put-auto-assignment', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
