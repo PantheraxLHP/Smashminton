@@ -16,7 +16,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly nodemailerService: NodemailerService,
         private readonly prisma: PrismaService,
-    ) { }
+    ) {}
 
     async validateUser(signinAuthDto: SigninAuthDto): Promise<SignInData | null> {
         const { username, password } = signinAuthDto;
@@ -40,7 +40,7 @@ export class AuthService {
                 username: user.username ?? '',
                 accounttype: user.accounttype ?? '',
                 role: roleEmployee ?? '',
-                avatarurl: user.avatarurl ?? ''
+                avatarurl: user.avatarurl ?? '',
             };
         }
         const isStudent = await this.accountService.checkStudentCustomer(Number(user.accountid));
@@ -57,10 +57,16 @@ export class AuthService {
     async validateUserByRefreshToken(refreshToken: string): Promise<SignInData | null> {
         try {
             // Xác thực refresh token
-            const payload: { sub: number; username: string; accounttype: string; role?: string; avatarurl?: string; isStudent?: boolean } =
-                await this.jwtService.verifyAsync(refreshToken, {
-                    secret: process.env.JWT_REFRESH_TOKEN_SECRET, // Sử dụng secret của refresh token
-                });
+            const payload: {
+                sub: number;
+                username: string;
+                accounttype: string;
+                role?: string;
+                avatarurl?: string;
+                isStudent?: boolean;
+            } = await this.jwtService.verifyAsync(refreshToken, {
+                secret: process.env.JWT_REFRESH_TOKEN_SECRET, // Sử dụng secret của refresh token
+            });
 
             // Lấy thông tin người dùng từ payload
             const user = {
@@ -124,12 +130,9 @@ export class AuthService {
             throw new BadRequestException('User does not have an email');
         }
         // Tạo token jwt chứa accountid, hết hạn 15 phút
-        const token = await this.jwtService.signAsync(
-            { accountid: user.accountid },
-            { expiresIn: '15m' }
-        );
+        const token = await this.jwtService.signAsync({ accountid: user.accountid }, { expiresIn: '15m' });
         // Tạo link reset password
-        const resetLink = `${process.env.CLIENT || 'http://localhost:3000'}/reset-password?token=${token}`;
+        const resetLink = `${process.env.CLIENT || 'http://localhost:3000'}/reset-password/${token}`;
         // Gửi email
         const info = await this.nodemailerService.sendResetPassword({ email: user.email, link: resetLink });
         if (!info) {
@@ -137,13 +140,12 @@ export class AuthService {
         }
         return {
             message: 'Reset password link sent successfully',
-            success: true
+            success: true,
         };
     }
 
     async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
         try {
-
             if (dto.newPassword !== dto.confirmPassword) {
                 throw new BadRequestException('Password and confirm password do not match');
             }
@@ -156,7 +158,7 @@ export class AuthService {
 
             // Tìm user theo accountid
             const user = await this.prisma.accounts.findUnique({
-                where: { accountid: accountid }
+                where: { accountid: accountid },
             });
             if (!user) {
                 throw new BadRequestException('User not found');
