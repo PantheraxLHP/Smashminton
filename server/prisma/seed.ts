@@ -1483,7 +1483,7 @@ async function main() {
     endOfWeek.setUTCHours(23, 59, 59, 999);
 
     const shiftdates = await prisma.shift_date.findMany({
-        where:{
+        where: {
             shiftdate: {
                 gte: startOfWeek,
                 lte: endOfWeek,
@@ -2904,17 +2904,21 @@ async function main() {
             if (batch) productIdToBatchId[p.productid] = batch.batchid;
         }
     }
+    const statusOptions = ['pending', 'delivered', 'canceled'];
     // Tạo lại purchase_order với batchid thực tế
     const purchaseOrderSeedFixed = allProductsFull.map((p, i) => {
         let isShoe = p.productname && p.productname.toLowerCase().includes('giày cầu lông');
         let isRacket = p.productname && p.productname.toLowerCase().includes('vợt cầu lông');
         let qty = (isShoe || isRacket) ? 5 : 10;
+        // Random status
+        const statusorder = statusOptions[Math.floor(Math.random() * statusOptions.length)];
         return {
             productid: p.productid,
             quantity: qty,
             employeeid: 3,
             supplierid: (i % 5) + 1,
             batchid: productIdToBatchId[p.productid],
+            statusorder,
         };
     });
     await prisma.purchase_order.createMany({ data: purchaseOrderSeedFixed });
@@ -2949,13 +2953,14 @@ async function main() {
     });
 
     await prisma.purchase_order.createMany({
-        data:[{
+        data: [{
             productid: 48,
             quantity: 10,
             employeeid: 3,
             supplierid: 2,
             batchid: 49,
-            deliverydate: new Date('2025-01-01')
+            deliverydate: new Date('2025-01-01'),
+            statusorder: 'delivered',
         },
         {
             productid: 49,
@@ -2963,7 +2968,8 @@ async function main() {
             employeeid: 3,
             supplierid: 2,
             batchid: 51,
-            deliverydate: new Date('2025-01-01')
+            deliverydate: new Date('2025-01-01'),
+            statusorder: 'delivered',
         }]
     });
 }
