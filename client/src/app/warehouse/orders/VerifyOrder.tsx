@@ -4,6 +4,9 @@ import { useRef, useEffect, useState } from 'react';
 import { PurchaseOrder } from './page';
 import { verifyOrderSchema } from "../warehouse.schema";
 import { z } from 'zod';
+import { updatePurchaseOrder, createPurchaseOrder } from '@/services/purchaseorder.service';
+import { toast } from 'sonner';
+
 
 interface VerifyOrderModalProps {
     open: boolean;
@@ -30,9 +33,10 @@ export default function VerifyOrderModal({
         orderid: 0,
         productid: 0,
         productname: '',
+        supplierid: 0,
         suppliername: '',
         batchid: '',
-        employeeid: '',
+        employeeid: 0,
         price: 0,
         quantity: 0,
         deliverydate: '',
@@ -77,19 +81,60 @@ export default function VerifyOrderModal({
     }
 
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!orderData) return;
+
         try {
             verifyOrderSchema.parse({
-                ...formData,
+                receivedQuantity: Number(formData.receivedQuantity),
+                expiryDate: formData.expiryDate,
             });
-            if (onSubmit) {
-                onSubmit({
-                    ...orderData,
-                    quantity: formData.receivedQuantity,
-                });
-            }
+            
             setErrors({});
+
+            const received = formData.receivedQuantity;
+            const ordered = formData.quantity;
+
+            // Gọi API xác nhận đơn hàng chính
+            const updateRes = await updatePurchaseOrder(formData.orderid, {
+                realityQuantity: received,
+                realityExpiryDate: formData.expiryDate,
+            });
+
+            if (!updateRes.ok) {
+                toast.error(updateRes.message || 'Xác nhận đơn hàng thất bại');
+                return;
+            }
+
+            // Nếu giao thiếu => tạo đơn mới
+            if (received < ordered) {
+                const remaining = ordered - received;
+
+                const createRes = await createPurchaseOrder({
+                    productid: formData.productid,
+                    productname: formData.productname,
+                    employeeid: formData.employeeid,
+                    supplierid: formData.supplierid,
+                    quantity: remaining,
+                });
+
+                if (!createRes.ok) {
+                    toast.error(createRes.message || 'Tạo đơn hàng mới thất bại');
+                    return;
+                }
+
+                toast.success('Xác nhận đơn hàng thành công');
+            } else {
+                toast.success('Xác nhận đơn hàng thành công');
+            }
+
+            onSubmit({
+                ...orderData,
+                quantity: received,
+                deliverydate: new Date().toISOString().split('T')[0],
+                status: 'Đã nhận hàng',
+            });
+
             onClose();
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -98,9 +143,12 @@ export default function VerifyOrderModal({
                     newErrors[err.path[0]] = err.message;
                 });
                 setErrors(newErrors);
+            } else {
+                toast.error('Có lỗi xảy ra khi xác nhận đơn hàng');
             }
         }
     };
+    
 
     useEffect(() => {
         if (!open) {
