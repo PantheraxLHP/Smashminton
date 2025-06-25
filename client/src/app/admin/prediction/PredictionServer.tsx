@@ -73,7 +73,7 @@ export default async function PredictionServer({
         const doubleBarData = predictionData.salesPurchase;
 
         return (
-            <div className="flex h-full w-full flex-col gap-4 bg-gray-200 p-4">
+            <div className="flex h-full w-full flex-col gap-4 rounded-lg bg-white p-4">
                 {/* Prediction Table */}
                 {showTable && (
                     <div className="w-full rounded-lg border-2 bg-white p-4">
@@ -83,17 +83,25 @@ export default async function PredictionServer({
                 {/* Charts */}
                 <div className="flex h-full w-full gap-2">
                     <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                        <PredictionChart data={mappedSales} title="Tỉ lệ sản phẩm bán ra" sortOrder={sortOrder} />
+                        <PredictionChart
+                            data={mappedSales}
+                            title={`Tỉ lệ loại sản phẩm bán ra trong ${selectedTime.toLowerCase()} năm ${selectedYear}`}
+                            sortOrder={sortOrder}
+                        />
                     </div>
                     <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                        <PredictionChart data={mappedPurchase} title="Tỉ lệ sản phẩm mua vào" sortOrder={sortOrder} />
+                        <PredictionChart
+                            data={mappedPurchase}
+                            title={`Tỉ lệ loại sản phẩm mua vào trong ${selectedTime.toLowerCase()} năm ${selectedYear}`}
+                            sortOrder={sortOrder}
+                        />
                     </div>
                 </div>
 
                 {/* Double Bar Chart */}
                 {doubleBarData.length > 0 && (
                     <div className="h-[80vh] w-full rounded-lg border-2 bg-white p-4">
-                        <DoubleBarChart data={doubleBarData} />
+                        <DoubleBarChart data={doubleBarData} selectedTime={selectedTime} selectedYear={selectedYear} />
                     </div>
                 )}
             </div>

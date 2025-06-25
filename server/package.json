@@ -19,8 +19,8 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
-        "win-resetdb": "npx prisma migrate reset --force --skip-seed && npx prisma db push && npx prisma db seed",
-        "win-resetdb-s": "npx prisma migrate reset --force --skip-seed && npx prisma db push && npx prisma db seed && npx prisma studio"
+        "win-resetdb": "npx prisma migrate reset --force --skip-seed && npx prisma db push && npx prisma db seed && npx tsx prisma/booking_orders_2019_2024.ts",
+        "win-resetdb-s": "npx prisma migrate reset --force --skip-seed && npx prisma db push && npx prisma db seed && npx tsx prisma/booking_orders_2019_2024.ts && npx prisma studio"
     },
     "dependencies": {
         "@keyv/redis": "^4.3.2",

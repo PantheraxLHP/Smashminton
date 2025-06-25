@@ -6,7 +6,7 @@ interface PredictionTableProps {
 
 const PredictionTable: React.FC<PredictionTableProps> = ({ data }) => {
     return (
-        <table className="min-w-full text-sm text-left border">
+        <table className="min-w-full text-sm text-left border rounded-lg bg-white">
             <thead>
                 <tr>
                     <th className="border px-4 py-2">Mã loại sản phẩm</th>

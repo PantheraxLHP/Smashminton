@@ -1,63 +1,169 @@
 'use client';
 
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Icon } from '@iconify/react';
 
-interface PredictionControlsProps {
+interface PredictionTableControlsProps {
+    timeType: string;
+    selectedTime: string;
+    onTimeTypeChange?: (type: string) => void;
+    onTimeChange?: (time: string) => void;
+    onPredict?: () => void;
+}
+
+export function PredictionTableControls({
+    timeType,
+    selectedTime,
+    onTimeTypeChange,
+    onTimeChange,
+    onPredict,
+}: PredictionTableControlsProps) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const handleTimeTypeChange = (type: string) => {
+        if (onTimeTypeChange) {
+            onTimeTypeChange(type);
+        } else {
+            const params = new URLSearchParams(searchParams);
+            params.set('timeType', type);
+            // Reset selectedTime when changing type
+            if (type === 'Tháng') {
+                params.set('selectedTime', 'Tháng 1');
+            } else {
+                params.set('selectedTime', 'Quý 1');
+            }
+            router.push(`?${params.toString()}`);
+        }
+    };
+
+    const handleTimeChange = (time: string) => {
+        if (onTimeChange) {
+            onTimeChange(time);
+        } else {
+            const params = new URLSearchParams(searchParams);
+            params.set('selectedTime', time);
+            router.push(`?${params.toString()}`);
+        }
+    };
+
+    const handlePredict = () => {
+        if (onPredict) {
+            onPredict();
+        } else {
+            const params = new URLSearchParams(searchParams);
+            params.set('showTable', 'true');
+            router.push(`?${params.toString()}`);
+        }
+    };
+
+    return (
+        <div className="flex flex-col justify-end gap-4 rounded-lg bg-white p-4">
+            <div className="flex items-center justify-center">
+                <span className="text-2xl font-semibold">Dự đoán các loại sản phẩm bán chạy theo tháng/quý</span>
+            </div>
+
+            <div className="flex items-center gap-4 mt-4">
+                <span>Chọn thời gian dự đoán</span>
+                <div className="flex flex-col">
+                    <label className="mb-1 text-sm font-medium">Chọn loại thời gian:</label>
+                    <select
+                        className="rounded border px-2 py-1"
+                        value={timeType}
+                        onChange={(e) => handleTimeTypeChange(e.target.value)}
+                    >
+                        <option>Tháng</option>
+                        <option>Quý</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col">
+                    <label className="mb-1 text-sm font-medium">Chọn {timeType.toLowerCase()}:</label>
+                    <select
+                        className="rounded border px-2 py-1"
+                        value={selectedTime}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                    >
+                        {timeType === 'Tháng'
+                            ? Array.from({ length: 12 }, (_, i) => (
+                                  <option key={i} value={`Tháng ${i + 1}`}>{`Tháng ${i + 1}`}</option>
+                              ))
+                            : Array.from({ length: 4 }, (_, i) => (
+                                  <option key={i} value={`Quý ${i + 1}`}>{`Quý ${i + 1}`}</option>
+                              ))}
+                    </select>
+                </div>
+
+                <Button onClick={handlePredict}>Dự đoán</Button>
+            </div>
+        </div>
+    );
+}
+
+interface PredictionChartControlsProps {
     timeType: string;
     selectedTime: string;
     selectedYear: number;
+    onTimeTypeChange?: (type: string) => void;
+    onTimeChange?: (time: string) => void;
+    onYearChange?: (year: number) => void;
 }
 
-export default function PredictionControls({ timeType, selectedTime, selectedYear }: PredictionControlsProps) {
+export function PredictionChartControls({
+    timeType,
+    selectedTime,
+    selectedYear,
+    onTimeTypeChange,
+    onTimeChange,
+    onYearChange,
+}: PredictionChartControlsProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const handleYearChange = (year: number) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('year', year.toString());
-        router.push(`?${params.toString()}`);
+        if (onYearChange) {
+            onYearChange(year);
+        } else {
+            const params = new URLSearchParams(searchParams);
+            params.set('year', year.toString());
+            router.push(`?${params.toString()}`);
+        }
     };
 
     const handleTimeTypeChange = (type: string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('timeType', type);
-        // Reset selectedTime when changing type
-        if (type === 'Tháng') {
-            params.set('selectedTime', 'Tháng 1');
+        if (onTimeTypeChange) {
+            onTimeTypeChange(type);
         } else {
-            params.set('selectedTime', 'Quý 1');
+            const params = new URLSearchParams(searchParams);
+            params.set('timeType', type);
+            // Reset selectedTime when changing type
+            if (type === 'Tháng') {
+                params.set('selectedTime', 'Tháng 1');
+            } else {
+                params.set('selectedTime', 'Quý 1');
+            }
+            router.push(`?${params.toString()}`);
         }
-        router.push(`?${params.toString()}`);
     };
 
     const handleTimeChange = (time: string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('selectedTime', time);
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleRefresh = () => {
-        router.refresh();
-    };
-
-    const handlePredict = () => {
-        const params = new URLSearchParams(searchParams);
-        params.set('showTable', 'true');
-        router.push(`?${params.toString()}`);
+        if (onTimeChange) {
+            onTimeChange(time);
+        } else {
+            const params = new URLSearchParams(searchParams);
+            params.set('selectedTime', time);
+            router.push(`?${params.toString()}`);
+        }
     };
 
     return (
-        <div className="flex items-center justify-between p-4">
-            <span className="text-2xl font-semibold">Dự đoán các loại sản phẩm bán chạy</span>
-            <button
-                onClick={handlePredict}
-                className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded-lg px-4 py-2 text-white transition"
-            >
-                Dự đoán
-            </button>
-
-            <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 rounded-lg bg-white">
+            <div className="flex items-center justify-center p-4">
+                <span className="text-2xl font-semibold">Biểu đồ</span>
+            </div>
+            <div className="flex items-center gap-4 rounded-lg bg-white p-4">
+                <span>Tuỳ chỉnh thời gian của biểu đồ</span>
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium">Chọn loại thời gian:</label>
                     <select
@@ -102,15 +208,6 @@ export default function PredictionControls({ timeType, selectedTime, selectedYea
                         <option value={2024}>2024</option>
                         <option value={2025}>2025</option>
                     </select>
-                </div>
-
-                <div className="flex items-end gap-2">
-                    <button
-                        onClick={handleRefresh}
-                        className="bg-primary-500 hover:bg-primary-600 rounded-lg px-3 py-2 text-white transition-colors"
-                    >
-                        <Icon icon="material-symbols:refresh" className="h-4 w-4" />
-                    </button>
                 </div>
             </div>
         </div>

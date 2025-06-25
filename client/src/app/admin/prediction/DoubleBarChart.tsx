@@ -17,6 +17,8 @@ interface DoubleBarChartProps {
         sales: number;
         purchase: number;
     }[];
+    selectedTime: string;
+    selectedYear: number;
 }
 
 const chartConfig: ChartConfig = {
@@ -30,7 +32,7 @@ const chartConfig: ChartConfig = {
     },
 };
 
-const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data }) => {
+const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data, selectedTime, selectedYear }) => {
     const safeData = data.map((item, index) => ({
         ...item,
         name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 1}`,
@@ -40,7 +42,7 @@ const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data }) => {
         <div className="flex h-full flex-col">
             <h2 className="mb-4 text-lg font-semibold">
                 So sánh số lượng <span className="text-primary-500">mua vào</span> và{' '}
-                <span className="text-primary-500">bán ra</span>
+                <span className="text-primary-500">bán ra </span> của từng loại sản phẩm trong {selectedTime.toLowerCase()} năm {selectedYear}
             </h2>
             <div className="flex-1 overflow-hidden">
                 <ChartContainer config={chartConfig} className="h-full min-w-full">
