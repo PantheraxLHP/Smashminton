@@ -4,7 +4,11 @@ import { PredictionTableControls, PredictionChartControls } from './PredictionCo
 import PredictionTable from './PredictionTable';
 import PredictionChart from './PredictionChart';
 import DoubleBarChart from './DoubleBarChart';
-import { getPredictionData } from '@/services/prediction.service';
+import {
+    getPredictionData,
+    getPredictionDataTable,
+    PredictionTable as PredictionTableType,
+} from '@/services/prediction.service';
 import { Button } from '@/components/ui/button';
 
 export default function PredictionPage() {
@@ -12,7 +16,7 @@ export default function PredictionPage() {
     const [tableTimeType, setTableTimeType] = useState<'Tháng' | 'Quý'>('Tháng');
     const [tableSelectedTime, setTableSelectedTime] = useState('Tháng 1');
     const [tableShow, setTableShow] = useState(false);
-    const [tableData, setTableData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [tableData, setTableData] = useState<PredictionTableType[]>([]);
     const [tableLoading, setTableLoading] = useState(false);
 
     // Chart control state (can still use search params or local state as needed)
@@ -31,14 +35,14 @@ export default function PredictionPage() {
         setTableShow(false);
         try {
             const type = tableTimeType === 'Tháng' ? 'month' : 'quarter';
-            const filters: any = { type, year: 2024 };
+            const filters: any = { type };
             if (type === 'month') {
                 filters.month = parseInt(tableSelectedTime.split(' ')[1], 10);
             } else {
                 filters.quarter = parseInt(tableSelectedTime.split(' ')[1], 10);
             }
-            const predictionData = await getPredictionData(filters);
-            setTableData(predictionData.soldRatio);
+            const predictionData = await getPredictionDataTable(filters);
+            setTableData(predictionData);
             setTableShow(true);
         } catch (e) {
             setTableData([]);

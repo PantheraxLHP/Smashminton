@@ -79,15 +79,6 @@ export async function getPredictionData(filters: PredictionFilters): Promise<Pre
             salesPurchaseRes.ok ? salesPurchaseRes.json().catch(() => []) : [],
         ]);
 
-        // Log raw data for debugging (only in development)
-        if (process.env.NODE_ENV === 'development') {
-            console.log('Raw prediction API responses:', {
-                soldRatio: data[0],
-                purchasedRatio: data[1],
-                salesPurchase: data[2],
-            });
-        }
-
         // Transform data to match chart expectations (if needed)
         const transformedSoldRatio =
             data[0]?.map((item: any, index: number) => ({
@@ -120,5 +111,51 @@ export async function getPredictionData(filters: PredictionFilters): Promise<Pre
     } catch (error) {
         console.error('Prediction data fetch error:', error);
         throw new Error('Failed to fetch prediction data');
+    }
+}
+
+export interface PredictionTable {
+    id: string;
+    name: string;
+}
+
+export interface PredictionTableFilters {
+    type: 'month' | 'quarter';
+    month?: number;
+    quarter?: number;
+}
+
+export async function getPredictionDataTable(filters: PredictionTableFilters): Promise<PredictionTable[]> {
+    try {
+        const params = new URLSearchParams({
+            filter_type: filters.type,
+        });
+
+        if (filters.type === 'month' && filters.month) {
+            params.append('value', filters.month.toString());
+        }
+
+        if (filters.type === 'quarter' && filters.quarter) {
+            params.append('value', filters.quarter.toString());
+        }
+        console.log(params.toString());
+
+        const response = await fetch(`${API_BASE}/api/v1/admin/prediction/predict-bestseller-by-time?${params}`, {
+            next: { revalidate: 300 },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch prediction table');
+        }
+
+        const data = await response.json();
+
+        return data.map((item: any) => ({
+            id: item.productfiltervalueid,
+            name: item.value,
+        }));
+    } catch (error) {
+        console.error('Prediction table fetch error:', error);
+        throw new Error('Failed to fetch prediction table');
     }
 }
