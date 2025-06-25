@@ -37,8 +37,7 @@ export default function PurchaseOrderPage() {
         const res = await getAllPurchaseOrder(page, pageSize);
         if (res.ok) {
             const { data, pagination } = res.data;
-            console.log('Fetched purchase orders:', data);
-
+            console.log("Data: ", data);
             const mapped: PurchaseOrder[] = data.map((po: any) => ({
                 orderid: po.poid,
                 productid: po.productid,
@@ -103,14 +102,26 @@ export default function PurchaseOrderPage() {
     };
 
     const columns: Column<PurchaseOrder>[] = [
-        { header: 'Mã đơn hàng', accessor: 'orderid' },
-        { header: 'Nhà cung cấp', accessor: 'suppliername' },
-        { header: 'Sản phẩm', accessor: 'productname' },
-        { header: 'Giá / Sản phẩm', accessor: 'price' },
-        { header: 'Số lượng', accessor: 'quantity' },
+        { header: 'Mã đơn hàng', accessor: 'orderid', align: 'center' },
+        { header: 'Nhà cung cấp', accessor: 'suppliername', align: 'left' },
+        { header: 'Sản phẩm', accessor: 'productname', align: 'left' },
+        {
+            header: 'Giá / Sản phẩm', accessor: (item) => item.price.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+            }), align: 'left'
+        },
+        { header: 'Số lượng', accessor: 'quantity', align: 'center' },
         {
             header: 'Tổng giá',
-            accessor: (item) => <span>{(item.price * item.quantity).toLocaleString()} đ</span>,
+            accessor: (item) => (
+                <span>
+                    {(item.price * item.quantity).toLocaleString('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                    })}
+                </span>
+            ), align: 'left'
         },
         {
             header: 'Trạng thái',
@@ -125,12 +136,12 @@ export default function PurchaseOrderPage() {
                         {item.status === 'Chờ giao hàng' && '...'}
                     </span>
                 );
-            },
+            }, align: 'center'
         },
     ];
 
     if (activeTab === 'completed') {
-        columns.splice(6, 0, { header: 'Ngày giao hàng', accessor: 'deliverydate' });
+        columns.splice(6, 0, { header: 'Ngày giao hàng', accessor: 'deliverydate', align: 'center' });
     }
 
     if (activeTab === 'pending') {
@@ -144,7 +155,7 @@ export default function PurchaseOrderPage() {
                     >
                         Xác nhận đơn
                     </button>
-                ) : null,
+                ) : null, align: 'center'
         });
         columns.push({
             header: '',
@@ -156,7 +167,7 @@ export default function PurchaseOrderPage() {
                     >
                         Huỷ đơn
                     </button>
-                ) : null,
+                ) : null, align: 'center'
         });
     }
 
@@ -170,7 +181,7 @@ export default function PurchaseOrderPage() {
         }
         return true;
     });
-    
+
 
     return (
         <div className="p-4 sm:p-6">

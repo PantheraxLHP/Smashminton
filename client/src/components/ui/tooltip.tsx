@@ -1,58 +1,61 @@
-"use client";
+"use client"
 
-import * as RadixTooltip from "@radix-ui/react-tooltip";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
-export function Tooltip({ children }: { children: React.ReactNode }) {
-    return (
-        <RadixTooltip.Provider delayDuration={0}>
-            {children}
-        </RadixTooltip.Provider>
-    );
+import { cn } from "@/lib/utils"
+
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
+  return (
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
+  )
 }
 
-export function TooltipRoot({
-    children,
-    open,
-    onOpenChange,
-}: {
-    children: React.ReactNode;
-    open?: boolean; // Thêm prop open để kiểm soát trạng thái mở/đóng
-    onOpenChange?: (open: boolean) => void; // Callback khi trạng thái thay đổi
-}) {
-    return (
-        <RadixTooltip.Root open={open} onOpenChange={onOpenChange}>
-            {children}
-        </RadixTooltip.Root>
-    );
+function Tooltip({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  return (
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
 }
 
-export function TooltipTrigger({ children }: { children: React.ReactNode }) {
-    return <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>;
+function TooltipTrigger({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
 }
 
-export function TooltipContent({
-    children,
-    className,
-}: {
-    children: React.ReactNode;
-    className?: string;
-}) {
-    return (
-        <RadixTooltip.Portal>
-            <RadixTooltip.Content
-                side="top"
-                align="end"
-                className={cn(
-                    "bg-white text-sm text-black shadow-lg rounded-md px-3 py-2 max-w-xs",
-                    "border border-gray-200",
-                    "animate-fadeIn",
-                    className
-                )}
-            >
-                {children}
-                <RadixTooltip.Arrow className="fill-white" />
-            </RadixTooltip.Content>
-        </RadixTooltip.Portal>
-    );
+function TooltipContent({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  )
 }
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

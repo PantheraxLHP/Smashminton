@@ -8,7 +8,7 @@ import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import { ProductOption } from './AddSuppliers';
 import { toast } from 'sonner';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface Supplier {
     supplierid?: number;
@@ -82,16 +82,48 @@ export default function SupplierManagementPage() {
         { header: 'Địa chỉ', accessor: 'address' },
         {
             header: 'Sản phẩm cung cấp',
-            cell: (item) => (
-                <div className="flex flex-wrap gap-1">
-                    {item.products.map((p) => (
-                        <span key={p.productid} className="inline-block rounded bg-gray-200 px-2 py-1 text-xs">
-                            {p.productname} - {p.costprice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-                        </span>
-                    ))}
-                </div>
-            ),
-        },
+            cell: (item) => {
+                const maxVisible = 5;
+                const visibleProducts = item.products.slice(0, maxVisible);
+                const hiddenProducts = item.products.slice(maxVisible);
+                const hiddenCount = item.products.length - maxVisible;
+
+                return (
+                    <div className="flex flex-wrap gap-1 items-center">
+                        {visibleProducts.map((p) => (
+                            <span
+                                key={p.productid}
+                                className="inline-block rounded bg-gray-200 px-2 py-1 text-xs"
+                            >
+                                {p.productname} - {p.costprice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                            </span>
+                        ))}
+
+                        {hiddenCount > 0 && (
+                            <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="cursor-pointer text-sm text-primary-600 underline">
+                                            và {hiddenCount} sản phẩm khác
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-white text-black border border-gray-300 shadow-sm outline-none ring-0 rounded-md text-xs max-h-40 overflow-y-auto space-y-1 p-2">
+                                        {hiddenProducts.map((p) => (
+                                            <div key={p.productid}>
+                                                {p.productname} - {p.costprice.toLocaleString('vi-VN', {
+                                                    style: 'currency',
+                                                    currency: 'VND',
+                                                })}
+                                            </div>
+                                        ))}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                    </div>
+                );
+            },
+        }
     ];
 
     const filteredData = suppliers.filter((item) => {
@@ -185,6 +217,7 @@ export default function SupplierManagementPage() {
                     showOptions={false}
                     showMoreOption={true}
                     showHeader
+                    showDelete
                 />
                 {totalPages > 1 && (
                     <div className="flex justify-center mt-4">

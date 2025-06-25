@@ -35,6 +35,7 @@ interface DataTableProps<T> {
     showOptions?: boolean;
     showMoreOption?: boolean;
     showHeader?: boolean;
+    showDelete?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -50,6 +51,7 @@ export default function DataTable<T extends Record<string, any>>({
     showOptions,
     showMoreOption,
     showHeader,
+    showDelete,
 }: DataTableProps<T>) {
     const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -276,6 +278,7 @@ export default function DataTable<T extends Record<string, any>>({
                                             }
                                         }}
                                         showOptions={showOptions}
+                                        showDelete={showDelete}
                                     />
                                 )}
                             </tr>

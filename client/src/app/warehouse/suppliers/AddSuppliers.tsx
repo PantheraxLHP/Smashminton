@@ -319,7 +319,13 @@ export default function AddSupplierModal({
                                             key={p.productid}
                                             className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
                                         >
-                                            <span className="truncate">{p.productname} - {p.costprice}</span>
+                                            <span className="truncate">
+                                                {p.productname} - {p.costprice.toLocaleString('vi-VN', {
+                                                    style: 'currency',
+                                                    currency: 'VND',
+                                                })}
+                                            </span>
+
                                             <button
                                                 onClick={() => handleRemoveProduct(p.productid)}
                                                 className="text-red-500 hover:text-red-700"

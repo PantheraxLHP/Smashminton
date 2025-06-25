@@ -1,4 +1,4 @@
-import { ChartConfig } from '@/components/ui/chart';
+
 import PredictionChart from './PredictionChart';
 import PredictionTable from './PredictionTable';
 import DoubleBarChart from './DoubleBarChart';
@@ -11,25 +11,6 @@ interface PredictionServerProps {
     sortOrder: 'asc' | 'desc';
     showTable: boolean;
 }
-
-// Chart configurations
-const predictionChartConfig: ChartConfig = {
-    quantity: {
-        label: 'Số lượng',
-        color: 'var(--color-primary)',
-    },
-};
-
-const doubleBarChartConfig: ChartConfig = {
-    sales: {
-        label: 'Sản phẩm bán ra',
-        color: 'var(--color-chart-31)',
-    },
-    purchase: {
-        label: 'Sản phẩm mua vào',
-        color: 'var(--color-chart-35)',
-    },
-};
 
 // Helper function to create API filters from component props
 function createApiFilters(timeType: 'Tháng' | 'Quý', selectedTime: string, selectedYear: number): PredictionFilters {
