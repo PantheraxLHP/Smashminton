@@ -413,3 +413,37 @@ export const findSupplier = async (productid: number) => {
     }
 };
 
+export const updateService = async (formData: FormData, id: string) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.set('id', id);
+
+        const response = await fetch(
+            `/api/products/update-service?${queryParams.toString()}`,
+            {
+                method: 'PATCH',
+                body: formData,
+                credentials: 'include',
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                status: 'error',
+                message: result.message || 'Không thể cập nhật sản phẩm',
+            };
+        }
+
+        return {
+            status: 'success',
+            data: result.product,
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu',
+        };
+    }
+};

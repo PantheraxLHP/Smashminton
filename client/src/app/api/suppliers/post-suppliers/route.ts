@@ -4,14 +4,8 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const {
-            suppliername,
-            contactname,
-            phonenumber,
-            email,
-            address,
-            supplies,
-        }: {
+        const { suppliername, contactname, phonenumber, email, address, supplies,}
+            : {
             suppliername: string;
             contactname: string;
             phonenumber: string;

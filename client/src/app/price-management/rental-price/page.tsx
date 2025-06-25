@@ -9,6 +9,7 @@ import { getProducts2 } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { updateProductPrice } from '@/services/products.service';
 import { toast } from 'sonner';
+import PurchaseOrderForm from '@/components/warehouse/OrderForm';
 
 export interface Service {
     productid?: number;
@@ -32,7 +33,8 @@ export default function RentalPriceManager() {
     const [editingItem, setEditingItem] = useState<Service | null>(null);
     const [editedPrice, setEditedPrice] = useState<string>('');
     const [isAddShoeRacketModalOpen, setIsAddShoeRacketModalOpen] = useState(false);
-
+    const [openOrderForm, setOpenOrderForm] = useState(false);
+    const [selectedOrderItem, setSelectedOrderItem] = useState<Service | null>(null);
     const [filters, setFilters] = useState<Record<string, any>>({
         productname: '',
         servicetype: [3],
@@ -133,8 +135,6 @@ export default function RentalPriceManager() {
     const handleFilterChange = (filterid: string, value: any) => {
         const type = filtersConfig.find((f) => f.filterid === filterid)?.filtertype;
 
-        console.log('[Filter Change]', { filterid, value, type });
-
         setFilters((prev) => {
             const updated = { ...prev };
 
@@ -178,23 +178,6 @@ export default function RentalPriceManager() {
             align: 'center',
         },
         { header: 'Số lượng', accessor: 'quantity', align: 'center' },
-        {
-            header: '',
-            accessor: (item: Service) => (
-                <div className="flex justify-center items-center">
-                    <button
-                        onClick={() => {
-                            setSelectedIndex(filteredData.indexOf(item));
-                            setEditData(item);
-                            setIsAddShoeRacketModalOpen(true);
-                        }}
-                        className="text-primary-500 hover:text-primary-600"
-                    >
-                        <FaRegEdit size={16} />
-                    </button>
-                </div>
-            ),
-        }        
     ];
 
     return (
@@ -235,9 +218,14 @@ export default function RentalPriceManager() {
                         const itemToDelete = filteredData[index];
                         setServicesState((prev) => prev.filter((item) => item !== itemToDelete));
                     }}
-                    showOptions={false}
-                    showMoreOption={false}
+                    showOptions={true}
+                    showMoreOption={true}
                     showHeader
+                    showDelete={false}
+                    onOrder={(index) => {
+                        setSelectedOrderItem(filteredData[index]);
+                        setOpenOrderForm(true);
+                    }}
                 />
 
                 {totalPages > 1 && (
@@ -273,6 +261,17 @@ export default function RentalPriceManager() {
                         setSelectedIndex(null);
                     }}
                 />
+                {openOrderForm && selectedOrderItem && (
+                    <PurchaseOrderForm
+                        open={openOrderForm}
+                        onClose={() => setOpenOrderForm(false)}
+                        item={{
+                            productid: selectedOrderItem.productid!,
+                            productname: selectedOrderItem.productname,
+                        }}
+                    />
+                )}
+
             </div>
         </div>
     );

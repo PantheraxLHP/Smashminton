@@ -11,6 +11,8 @@ import { getRentalFilters } from "@/services/products.service";
 import { FaPen } from "react-icons/fa";
 import { serviceSchema } from "../price-management.schema";
 import { z } from "zod";
+import { createProducts, updateService } from "@/services/products.service";
+import { toast } from "sonner";
 
 interface ServiceModalProps {
     open: boolean;
@@ -82,7 +84,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                 const response = await getRentalFilters();
                 if (response.ok && Array.isArray(response.data)) {
                     setFilterData(response.data);
-                    console.log("Dữ liệu filters:", response.data);
                 } else {
                     console.error("Dữ liệu filters không hợp lệ:", response);
                     setFilterData([]);
@@ -151,7 +152,8 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
 
 
-    function handleSubmit() {
+    async function handleSubmit() {
+        setErrors({});
         try {
             serviceSchema.parse({
                 ...formData,
@@ -159,24 +161,65 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                 racketWeight: racketWeight || undefined,
             });
 
-            if (onSubmit) {
-                const extendedData: any = {
-                    ...formData,
-                    price: formData.price,
-                    image: serviceAvatar ? URL.createObjectURL(serviceAvatar) : formData.image,
-                };
+            const typeId = formData.servicetype === "Thuê vợt" ? 3
+                : formData.servicetype === "Thuê giày" ? 4
+                    : null;
+            if (!typeId) {
+                setErrors({ servicetype: "Vui lòng chọn loại dịch vụ hợp lệ" });
+                return;
+            }
 
-                if (formData.servicetype === "Thuê giày") {
-                    extendedData.size = shoeSize;
-                } else if (formData.servicetype === "Thuê vợt") {
-                    extendedData.weight = racketWeight;
+            const selectedValue = formData.servicetype === "Thuê giày" ? shoeSize : racketWeight;
+
+            const filterItem = filterData
+                .find((f) => f.producttypeid === typeId)
+                ?.product_filter[0]
+                ?.product_filter_values
+                .find((val: any) => val.value === selectedValue);
+
+            if (!filterItem) {
+                setErrors({ value: "Giá trị không hợp lệ. Vui lòng chọn từ danh sách hoặc nhập mới đã được hỗ trợ." });
+                return;
+            }
+
+            const productfiltervalueid = filterItem.productfiltervalueid;
+
+            const formDataObj = new FormData();
+            formDataObj.append("productname", formData.productname);
+            formDataObj.append("rentalprice", formData.price.toString());
+            formDataObj.append("sellingprice", "0");
+            if (serviceAvatar) {
+                formDataObj.append("productimgurl", serviceAvatar);
+            } else {
+                formDataObj.append("productimgurl", formData.image || "/default.png");
+            }
+
+            let result;
+
+            if (editData?.productid != null) {
+                result = await updateService(formDataObj, editData.productid.toString());
+            } else {
+                result = await createProducts(formDataObj, productfiltervalueid);
+            }            
+
+            if (result.status === "success") {
+                if (onSubmit) {
+                    onSubmit({
+                        ...formData,
+                        image: serviceAvatar ? URL.createObjectURL(serviceAvatar) : formData.image,
+                        value: selectedValue,
+                        productfiltervalueid,
+                    });
                 }
 
-                onSubmit(extendedData)
+                toast.success(editData ? "Cập nhật thành công!" : "Tạo sản phẩm thành công!");
+                onClose();
+                setServiceAvatar(null);
+                setServicePreview("");
+            } else {
+                setErrors({ general: result.message || (editData ? "Cập nhật thất bại" : "Tạo sản phẩm thất bại") });
+                toast.error(result.message || (editData ? "Cập nhật thất bại" : "Tạo sản phẩm thất bại"));
             }
-            setServiceAvatar(null);
-            setServicePreview("");
-            onClose();
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const newErrors: any = {};
@@ -187,6 +230,8 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             }
         }
     }
+    
+    
 
     const handleServiceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -406,16 +451,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                             </Popover>
                                         </div>
                                     )}
-                                    <div>
-                                        <label className="block text-sm mb-1">Số lượng</label>
-                                        <input
-                                            name="quantity"
-                                            type="number"
-                                            value={formData.quantity}
-                                            onChange={handleChange}
-                                            className="w-full border rounded px-3 py-2"
-                                        />
-                                    </div>
                                 </div>
                             )}
                         </div>

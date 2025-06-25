@@ -136,7 +136,13 @@ export default function FoodAndBeveragePage() {
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        { header: 'Giá bán / sản phẩm', accessor: (item) => `${item.sellingprice.toLocaleString('vi-VN')} VND` },
+        {
+            header: 'Giá bán / sản phẩm',
+            accessor: (item) => item.sellingprice.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+            })
+        },
         { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
         { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
@@ -178,18 +184,6 @@ export default function FoodAndBeveragePage() {
     };
 
     const handleSubmit = () => {
-        // const newFood: FoodItem = {
-        //     ...formData,
-        //     image: formData.image || '/default.png',
-        // };
-
-        // if (editData) {
-        //     const updated = data.map((item) => item.id === editData.id ? newFood : item);
-        //     setData(updated);
-        // } else {
-        //     const newId = Math.max(0, ...data.map(d => d.id ?? 0)) + 1;
-        //     setData([...data, { ...newFood, id: newId }]);
-        // }
         setEditData(null);
         setOpenModal(false);
         fetchData();
@@ -238,6 +232,7 @@ export default function FoodAndBeveragePage() {
                     onOrder={handleOrder}
                     showMoreOption
                     showHeader
+                    showDelete
                 />
 
                 { totalPages > 1 && (
@@ -261,7 +256,6 @@ export default function FoodAndBeveragePage() {
                     }}
                 />
             )}
-
         </div>
     );
 }

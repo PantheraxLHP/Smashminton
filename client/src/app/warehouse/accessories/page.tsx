@@ -207,6 +207,7 @@ export default function AccessoryPage() {
                     onOrder={handleOrder}
                     showMoreOption
                     showHeader
+                    showDelete
                 />
 
                 {totalPages > 1 && (
