@@ -42,25 +42,6 @@ const numberOfBookingPerTimeChartConfig: ChartConfig = {
     },
 };
 
-const revenuePerZoneChartConfig: ChartConfig = {
-    zoneA: {
-        label: 'Khu vực A',
-        color: 'var(--color-chart-31)',
-    },
-    zoneB: {
-        label: 'Khu vực B',
-        color: 'var(--color-chart-32)',
-    },
-    zoneC: {
-        label: 'Khu vực C',
-        color: 'var(--color-chart-35)',
-    },
-    zoneD: {
-        label: 'Khu vực D',
-        color: 'var(--color-chart-36)',
-    },
-};
-
 const NumberOfProductAndRentalChartConfig: ChartConfig = {
     saleCount: {
         label: 'Tổng số sản phẩm được bán',
@@ -97,7 +78,7 @@ const topColors = [
     'var(--color-chart-18)',
     'var(--color-chart-19)',
     'var(--color-chart-20)',
-]
+];
 
 const zoneColors = [
     'var(--color-chart-31)',
@@ -135,7 +116,6 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
     // Create dynamic zone revenue chart config based on actual zone names from API
     const dynamicZoneRevenueConfig: ChartConfig = {};
     if (dashboardData.zoneRevenue && dashboardData.zoneRevenue.length > 0) {
-
         Object.keys(dashboardData.zoneRevenue[0]).forEach((key, index) => {
             if (key !== 'month') {
                 dynamicZoneRevenueConfig[key] = {
@@ -146,24 +126,11 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
         });
     }
 
-    const newCustomerTabs = ['số lượng', 'tỉ lệ %'];
-
     return (
         <div className="flex h-full min-h-screen w-full flex-col gap-4 bg-gray-200 p-4">
             {/* Stats Cards */}
             <div className="flex h-full w-full gap-2">
-                <div className="flex w-1/4 flex-col justify-center rounded-lg border-2 bg-white p-3">
-                    <div className="flex w-full items-center justify-center gap-1 text-lg">
-                        Tổng doanh thu
-                        <Icon icon="material-symbols:attach-money-rounded" className="size-5" />
-                    </div>
-                    <div className="text-primary flex w-full items-end justify-center gap-2 font-semibold">
-                        <span className="text-4xl">{formatNumber(dashboardData.revenue || 0)}</span>
-                        <span>VND</span>
-                    </div>
-                </div>
-
-                <div className="flex w-1/4 flex-col justify-center rounded-lg border-2 bg-white p-3">
+                <div className="flex w-1/2 flex-col justify-center rounded-lg border-2 bg-white p-3">
                     <div className="flex w-full items-center justify-center gap-1 text-lg">
                         Tổng giờ chơi
                         <Icon icon="mdi:clock-outline" className="size-5" />
@@ -174,8 +141,18 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                         <span>giờ</span>
                     </div>
                 </div>
+                <div className="flex w-1/2 flex-col justify-center rounded-lg border-2 bg-white p-3">
+                    <div className="flex w-full items-center justify-center gap-1 text-lg">
+                        Tổng doanh thu
+                        <Icon icon="material-symbols:attach-money-rounded" className="size-5" />
+                    </div>
+                    <div className="text-primary flex w-full items-end justify-center gap-2 font-semibold">
+                        <span className="text-4xl">{formatNumber(dashboardData.revenue || 0)}</span>
+                        <span>VND</span>
+                    </div>
+                </div>
 
-                <div className="flex w-2/4 justify-center rounded-lg border-2 bg-white p-3">
+                <div className="flex w-1/2 justify-center rounded-lg border-2 bg-white p-3">
                     <div className="flex w-full flex-col items-center gap-1 text-lg">
                         <div className="flex w-full items-center justify-center gap-1">
                             <span>Lượng khách hàng mới</span>

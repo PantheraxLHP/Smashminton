@@ -176,7 +176,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                         <Button
                             variant={
                                 (shiftDataSingle as ShiftAssignment).assignmentstatus === 'approved'
-                                    ? 'default'
+                                    ? 'default_disabled'
                                     : 'outline'
                             }
                             onClick={() => {
@@ -194,29 +194,27 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                 ? 'Đã xác nhận'
                                 : 'Xác nhận'}
                         </Button>
-                        {role === 'employee' && (
-                            <Button
-                                variant={
+                        <Button
+                            variant={
+                                (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                                    ? 'destructive_disabled'
+                                    : 'outline_destructive'
+                            }
+                            onClick={() => {
+                                handleUpdateShiftAssignment(
                                     (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
-                                        ? 'destructive'
-                                        : 'outline_destructive'
-                                }
-                                onClick={() => {
-                                    handleUpdateShiftAssignment(
-                                        (shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
-                                            ? 'approved'
-                                            : 'refused',
-                                        shiftDataSingle as ShiftAssignment,
-                                        onDataChanged,
-                                    );
-                                }}
-                            >
-                                <Icon icon="lucide:user-round-x" />
-                                {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
-                                    ? 'Đã từ chối'
-                                    : 'Từ chối'}
-                            </Button>
-                        )}
+                                        ? 'approved'
+                                        : 'refused',
+                                    shiftDataSingle as ShiftAssignment,
+                                    onDataChanged,
+                                );
+                            }}
+                        >
+                            <Icon icon="lucide:user-round-x" />
+                            {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                                ? 'Đã xin nghỉ'
+                                : 'Xin nghỉ'}
+                        </Button>
                     </div>
                 )}
                 {type === 'enrollments' && role === 'employee' && selectedRadio === 'assignable' && (
