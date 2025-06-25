@@ -104,18 +104,53 @@ export class SuppliersService {
   }
 
 
-  async update(id: number, updateSupplierDto: UpdateSupplierDto) {
-    const updated = await this.prisma.suppliers.update({
-      where: { supplierid: id },
+  async update(supplierid: number, productid: number, costprice: number, updateSupplierDto: UpdateSupplierDto) {
+    // 1. Cập nhật thông tin supplier
+    const updatedSupplier = await this.prisma.suppliers.update({
+      where: { supplierid },
       data: {
         ...updateSupplierDto,
         updatedat: new Date(),
       },
     });
 
+    // 2. Kiểm tra cặp productid + supplierid trong supply_products
+    const supply = await this.prisma.supply_products.findUnique({
+      where: {
+        productid_supplierid: {
+          productid,
+          supplierid,
+        },
+      },
+    });
+
+    if (supply) {
+      // 2a. Nếu tồn tại thì update costprice
+      await this.prisma.supply_products.update({
+        where: {
+          productid_supplierid: {
+            productid,
+            supplierid,
+          },
+        },
+        data: {
+          costprice,
+        },
+      });
+    } else {
+      // 2b. Nếu chưa có thì tạo mới
+      await this.prisma.supply_products.create({
+        data: {
+          productid,
+          supplierid,
+          costprice,
+        },
+      });
+    }
+
     return {
-      message: 'Cập nhật nhà cung cấp thành công',
-      data: updated,
+      message: 'Cập nhật nhà cung cấp và giá nhập thành công',
+      data: updatedSupplier,
     };
   }
 
