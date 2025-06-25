@@ -51,6 +51,7 @@ export class AccountsService {
                 username: data.username,
                 password: hashPassword,
                 fullname: data.fullname,
+                email: data.email,
                 dob: data.dob,
                 phonenumber: data.phonenumber,
                 address: data.address,
@@ -99,7 +100,7 @@ export class AccountsService {
             await this.cacheService.setStudentCard(data.username, JSON.stringify(urlsObject));
 
             // Trả về danh sách URL dưới dạng object
-            return { account, customer, urls: urlsObject };
+            return { account, customer, studentCard: false };
         }
 
         // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
