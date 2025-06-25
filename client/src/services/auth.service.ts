@@ -63,11 +63,15 @@ export async function handleSignout() {
 }
 
 export async function handleForgotPassword(forgotPasswordData: ForgotPasswordSchema) {
+    const body = {
+        identifier: forgotPasswordData.input,
+    };
+
     try {
         const response = await fetch('/api/auth/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(forgotPasswordData),
+            body: JSON.stringify(body),
             credentials: 'include',
         });
 
@@ -83,12 +87,18 @@ export async function handleForgotPassword(forgotPasswordData: ForgotPasswordSch
     }
 }
 
-export async function handleResetPassword(resetPasswordData: ResetPasswordSchema) {
+export async function handleResetPassword(resetPasswordData: ResetPasswordSchema, token: string) {
+    const body = {
+        token: token,
+        newPassword: resetPasswordData.password,
+        confirmPassword: resetPasswordData.repassword,
+    };
+
     try {
         const response = await fetch('/api/auth/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(resetPasswordData),
+            body: JSON.stringify(body),
             credentials: 'include',
         });
 
