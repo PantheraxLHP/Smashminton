@@ -72,8 +72,8 @@ export default function SigninForm() {
                         )}
                     />
 
-                    <div className="text-right text-sm text-gray-500 underline hover:text-blue-600">
-                        <a href="#">Quên mật khẩu?</a>
+                    <div className="hover:text-primary-600 text-right text-sm text-gray-500 underline">
+                        <Link href="/forgot-password">Quên mật khẩu?</Link>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>

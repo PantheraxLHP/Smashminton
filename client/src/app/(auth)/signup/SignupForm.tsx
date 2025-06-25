@@ -65,23 +65,8 @@ const SignupForm = () => {
     };
 
     return (
-            <div
-                className="
-                    w-[95%] 
-                    max-w-[600px] 
-                    bg-white/90 
-                    rounded-lg 
-                    p-6 sm:p-8 
-                    shadow-lg 
-                    backdrop-blur-sm 
-                    mt-5 mb-5
-
-                    mx-auto 
-                    lg:ml-[-30%] lg:mr-0 
-                "
-            >
-
-            <h2 className="mb-6 text-center text-2xl font-semibold text-primary-600">Đăng ký thành viên</h2>
+        <div className="mx-auto mt-5 mb-5 w-[95%] max-w-[600px] rounded-lg bg-white/90 p-6 shadow-lg backdrop-blur-sm sm:p-8 lg:mr-0 lg:ml-[-30%]">
+            <h2 className="text-primary-600 mb-6 text-center text-2xl font-semibold">Đăng ký thành viên</h2>
 
             <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -89,6 +74,7 @@ const SignupForm = () => {
                         { label: 'Tên đăng nhập*', name: 'username', type: 'text' },
                         { label: 'Mật khẩu*', name: 'password', type: 'password' },
                         { label: 'Xác nhận mật khẩu*', name: 'repassword', type: 'password' },
+                        { label: 'Email*', name: 'email', type: 'email' },
                         { label: 'Họ và Tên', name: 'fullname', type: 'text' },
                         { label: 'Ngày sinh', name: 'dob', type: 'date' },
                         { label: 'Số điện thoại', name: 'phonenumber', type: 'text' },
