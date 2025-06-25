@@ -39,14 +39,17 @@ export class SuppliersController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update supplier' })
+  @ApiOperation({ summary: 'Update supplier & update/insert costprice' })
   // @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'Update supplier data',
+    description: 'Update supplier & update/insert costprice',
     type: UpdateSupplierDto,
   })
-  update(@Param('id') id: number, @Body() updateSupplierDto: UpdateSupplierDto) {
-    return this.suppliersService.update(+id, updateSupplierDto);
+  update(@Param('id') supplierid: number,
+    @Query('productid') productid: number,
+    @Query('costprice') costprice: number,
+    @Body() updateSupplierDto: UpdateSupplierDto,) {
+    return this.suppliersService.update(+supplierid, +productid, +costprice, updateSupplierDto);
   }
 
   @Delete(':id')
