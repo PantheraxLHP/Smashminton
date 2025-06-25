@@ -62,10 +62,34 @@ export class PurchaseOrdersService {
       },
     });
 
-    const total = purchaseOrders.length;
+    const enrichedOrders = await Promise.all(
+      purchaseOrders.map(async (order) => {
+        let costprice: any = null;
+
+        if (order.productid && order.supplierid) {
+          const supply = await this.prisma.supply_products.findUnique({
+            where: {
+              productid_supplierid: {
+                productid: order.productid,
+                supplierid: order.supplierid,
+              },
+            },
+          });
+
+          costprice = supply?.costprice ?? null;
+        }
+
+        return {
+          ...order,
+          costprice,
+        };
+      })
+    );
+
+    const total = enrichedOrders.length;
     const totalPages = Math.ceil(total / limit);
 
-    const paginatedPurchaseOrders = purchaseOrders.slice(skip, skip + limit);
+    const paginatedPurchaseOrders = enrichedOrders.slice(skip, skip + limit);
 
     return {
       data: paginatedPurchaseOrders,
