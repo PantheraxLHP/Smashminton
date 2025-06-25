@@ -36,6 +36,14 @@ export class AccountsService {
             throw new BadRequestException('Username already existed');
         }
 
+        // Kiểm tra email đã tồn tại
+        const email = await this.prisma.accounts.findFirst({
+            where: { email: data.email },
+        });
+        if (email) {
+            throw new BadRequestException('Email already existed');
+        }
+
         // Kiểm tra mật khẩu
         if (data.password !== data.repassword) {
             throw new BadRequestException('Password not match');
@@ -275,5 +283,19 @@ export class AccountsService {
         // Trả về kết quả từ findOne (sẽ bao gồm student card mới)
         const updatedAccountInfo = await this.findOne(accountId);
         return updatedAccountInfo;
+    }
+
+    async findByEmail(email: string) {
+        return this.prisma.accounts.findFirst({
+            where: { email: email },
+        });
+    }
+
+    async updatePassword(accountId: number, newPassword: string) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        return this.prisma.accounts.update({
+            where: { accountid: accountId },
+            data: { password: hashedPassword },
+        });
     }
 }

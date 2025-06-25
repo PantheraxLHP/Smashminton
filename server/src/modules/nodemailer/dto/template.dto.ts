@@ -291,3 +291,102 @@ export const generateSimpleCredentialsTemplate = (username: string, password: st
     </html>
     `;
 };
+
+export const generateResetPasswordTemplate = (resetLink: string): string => {
+    return `
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Đặt lại mật khẩu - Smashminton</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f6f8fa;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 480px;
+                margin: 40px auto;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                padding: 32px 28px 24px 28px;
+                color: #222;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 24px;
+                background: linear-gradient(135deg, #27ae60 0%, #2ecc71 50%, #55a3ff 100%);
+                padding: 32px 0 18px 0;
+                border-radius: 12px 12px 0 0;
+            }
+            .header .logo {
+                font-size: 32px;
+                color: white;
+                font-weight: bold;
+                margin-bottom: 8px;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            .title {
+                font-size: 22px;
+                font-weight: 600;
+                color: #fff !important;
+                margin-bottom: 12px;
+            }
+            .content {
+                font-size: 16px;
+                margin-bottom: 24px;
+                color: #333;
+            }
+            .reset-btn {
+                display: block;
+                width: 100%;
+                background: linear-gradient(90deg, #2ecc71 0%, #27ae60 100%);
+                color: #fff !important;
+                text-align: center;
+                padding: 12px 0;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 18px;
+                transition: background 0.2s;
+                box-shadow: 0 2px 8px rgba(46,204,113,0.12);
+            }
+            .reset-btn:hover {
+                background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            }
+            .footer {
+                text-align: center;
+                font-size: 13px;
+                color: #888;
+                margin-top: 24px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🏸 Smashminton</div>
+                <div class="title">Đặt lại mật khẩu</div>
+            </div>
+            <div class="content">
+                Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản của mình.<br>
+                Nhấn vào nút bên dưới để thực hiện đặt lại mật khẩu:
+            </div>
+            <a href="${resetLink}" class="reset-btn">Đặt lại mật khẩu</a>
+            <div class="content" style="font-size:14px; color:#666;">
+                Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.<br>
+                Liên kết sẽ hết hạn sau 15 phút vì lý do bảo mật.
+            </div>
+            <div class="footer">
+                <div>🏸 Smashminton Management</div>
+                <div>Hệ thống quản lý câu lạc bộ cầu lông chuyên nghiệp</div>
+                <div>📧 support@smashminton.com | 📞 1900-xxxx<br><em>Email tự động - Vui lòng không trả lời</em></div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+};

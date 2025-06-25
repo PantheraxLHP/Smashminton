@@ -4,12 +4,19 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { SigninAuthDto } from './dto/signin-auth.dto';
 import { AuthResponse, SignInData } from '../../interfaces/auth.interface';
+import { isEmail } from 'class-validator';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { ResetPasswordDto } from './dto/forgot-password.dto';
+
 @Injectable()
 export class AuthService {
     constructor(
         private readonly accountService: AccountsService,
         private readonly jwtService: JwtService,
-    ) {}
+        private readonly nodemailerService: NodemailerService,
+        private readonly prisma: PrismaService,
+    ) { }
 
     async validateUser(signinAuthDto: SigninAuthDto): Promise<SignInData | null> {
         const { username, password } = signinAuthDto;
@@ -25,9 +32,9 @@ export class AuthService {
         if (!isMatch) {
             throw new BadRequestException('Password not match');
         }
-        
+
         if (user.accounttype === 'Employee') {
-            const roleEmployee:string = await this.accountService.findRoleByEmployeeId(user.accountid);
+            const roleEmployee: string = await this.accountService.findRoleByEmployeeId(user.accountid);
             return {
                 accountid: user.accountid ?? '',
                 username: user.username ?? '',
@@ -54,7 +61,7 @@ export class AuthService {
                 await this.jwtService.verifyAsync(refreshToken, {
                     secret: process.env.JWT_REFRESH_TOKEN_SECRET, // Sử dụng secret của refresh token
                 });
-    
+
             // Lấy thông tin người dùng từ payload
             const user = {
                 accountid: Number(payload.sub),
@@ -98,5 +105,72 @@ export class AuthService {
             accessToken: access_token,
             refreshToken: refresh_token,
         };
+    }
+
+    async forgotPassword(identifier: string): Promise<any> {
+        let user: any = null;
+        if (isEmail(identifier)) {
+            user = await this.accountService.findByEmail(identifier);
+            if (!user) {
+                throw new BadRequestException('Email not found');
+            }
+        } else {
+            user = await this.accountService.findByUsername(identifier);
+            if (!user) {
+                throw new BadRequestException('Username not found');
+            }
+        }
+        if (!user.email) {
+            throw new BadRequestException('User does not have an email');
+        }
+        // Tạo token jwt chứa accountid, hết hạn 15 phút
+        const token = await this.jwtService.signAsync(
+            { accountid: user.accountid },
+            { expiresIn: '15m' }
+        );
+        // Tạo link reset password
+        const resetLink = `${process.env.CLIENT || 'http://localhost:3000'}/reset-password?token=${token}`;
+        // Gửi email
+        const info = await this.nodemailerService.sendResetPassword({ email: user.email, link: resetLink });
+        if (!info) {
+            throw new BadRequestException('Failed to send reset password link');
+        }
+        return {
+            message: 'Reset password link sent successfully',
+            success: true
+        };
+    }
+
+    async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
+        try {
+
+            if (dto.newPassword !== dto.confirmPassword) {
+                throw new BadRequestException('Password and confirm password do not match');
+            }
+
+            const payload: any = await this.jwtService.verifyAsync(dto.token);
+            const accountid = payload.accountid;
+            if (!accountid) {
+                throw new BadRequestException('Invalid or expired token');
+            }
+
+            // Tìm user theo accountid
+            const user = await this.prisma.accounts.findUnique({
+                where: { accountid: accountid }
+            });
+            if (!user) {
+                throw new BadRequestException('User not found');
+            }
+
+            // Cập nhật mật khẩu
+            const updatedUser = await this.accountService.updatePassword(accountid, dto.newPassword);
+            if (!updatedUser) {
+                throw new BadRequestException('Failed to update password');
+            }
+
+            return { message: 'Password reset successfully' };
+        } catch (err) {
+            throw new BadRequestException('Invalid or expired token');
+        }
     }
 }

@@ -35,6 +35,7 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { SignupAuthDto } from './dto/signup-auth.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/forgot-password.dto';
 @ApiTags('Authorization')
 @UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
@@ -139,5 +140,23 @@ export class AuthController {
     @Roles('hr_manager')
     getUserInfo(@Request() req: { user: SignInData }) {
         return req.user;
+    }
+
+    @Post('forgot-password')
+    @Public()
+    @ApiBody({ type: ForgotPasswordDto })
+    @ApiResponse({ status: 200, description: 'Reset password link sent successfully' })
+    @ApiResponse({ status: 400, description: 'Failed to send reset password link' })
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        return this.authService.forgotPassword(forgotPasswordDto.identifier);
+    }
+
+    @Post('reset-password')
+    @Public()
+    @ApiBody({ type: ResetPasswordDto })
+    @ApiResponse({ status: 200, description: 'Password reset successfully' })
+    @ApiResponse({ status: 400, description: 'Failed to reset password' })
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        return this.authService.resetPassword(resetPasswordDto);
     }
 }

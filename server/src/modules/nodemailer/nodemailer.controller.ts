@@ -1,6 +1,6 @@
 import { Body, Post, Controller } from '@nestjs/common';
 import { NodemailerService } from './nodemailer.service';
-import { SendCredentialsDto, sendEmailDto } from './dto/email.dto';
+import { SendCredentialsDto, sendEmailDto, SendResetPasswordDto } from './dto/email.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('email')
@@ -42,5 +42,22 @@ export class NodemailerController {
         } catch (error) {
             throw new Error(`Failed to send credentials: ${error.message}`);
         }
+    }
+
+    @Post('reset-password')
+    @ApiOperation({
+        summary: 'Gửi link reset password',
+        description: 'Gửi link reset password qua email'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Gửi email thành công'
+    })
+    async sendResetPassword(@Body() dto: SendResetPasswordDto) {
+        await this.nodemailerService.sendResetPassword(dto);
+        return {
+            message: 'Reset password link sent successfully',
+            success: true
+        };
     }
 }

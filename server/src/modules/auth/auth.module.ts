@@ -10,6 +10,8 @@ import { LocalStrategy } from 'src/strategies/local.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guards/role.guard';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { NodemailerService } from '../nodemailer/nodemailer.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
     controllers: [AuthController],
@@ -17,6 +19,8 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
         AuthService,
         LocalStrategy,
         JwtStrategy,
+        NodemailerService,
+        PrismaService,
         // {
         //     provide: APP_GUARD,
         //     useClass: JwtAuthGuard, // Đăng ký JwtAuthGuard trước

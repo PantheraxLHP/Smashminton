@@ -64,3 +64,22 @@ export class SendCredentialsDto {
     @IsNotEmpty()
     password: string;
 }
+
+export class SendResetPasswordDto {
+    @ApiProperty({
+        description: 'Email người nhận',
+        example: 'hdkien21@clc.fitus.edu.vn',
+    })
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+
+    @ApiProperty({
+        description: 'Link reset password',
+        example: 'http://localhost:3000/reset-password?value=123456',
+    })
+    @IsString()
+    @IsNotEmpty()
+    link: string;
+    
+}
