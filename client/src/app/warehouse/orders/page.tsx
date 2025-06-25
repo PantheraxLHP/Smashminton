@@ -1,146 +1,106 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import VerifyOrderModal from './VerifyOrder';
+import { useAuth } from '@/context/AuthContext';
+import { getAllPurchaseOrder } from '@/services/purchaseorder.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
 
 export interface PurchaseOrder {
     orderid: number;
     productid: number;
     productname: string;
+    supplierid: number;
     suppliername: string;
     batchid: string;
-    employeeid: string;
+    employeeid: number;
     price: number;
     quantity: number;
     deliverydate?: string;
     status?: string;
 }
 
-const rawOrderPurchase: PurchaseOrder[] = [
-    {
-        orderid: 1,
-        productid: 1,
-        productname: 'Ống cầu lông VNB',
-        suppliername: 'Đại Hưng Sport',
-        batchid: '1',
-        employeeid: 'NV001',
-        price: 220000,
-        quantity: 5,
-        status: 'Chờ giao hàng',
-    },
-    {
-        orderid: 2,
-        productid: 2,
-        productname: 'Ống cầu lông Taro',
-        suppliername: 'Tuấn Hạnh Sport',
-        batchid: '2',
-        employeeid: 'NV001',
-        price: 240000,
-        quantity: 5,
-        status: 'Chờ giao hàng',
-    },
-    {
-        orderid: 3,
-        productid: 3,
-        productname: 'Revive',
-        suppliername: 'Pepsico',
-        batchid: '1',
-        employeeid: 'NV001',
-        price: 15000,
-        quantity: 50,
-        deliverydate: '2024-06-20',
-        status: 'Đã giao hàng',
-    },
-];
-
 export default function PurchaseOrderPage() {
-    const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
-    const [ordersState, setOrdersState] = useState<PurchaseOrder[]>(rawOrderPurchase);
+    const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'canceled'>('pending');
+    const [ordersState, setOrdersState] = useState<PurchaseOrder[]>([]);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(1);
+    const { user } = useAuth();
 
     const [verifyModalOpen, setVerifyModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+
+    const fetchOrders = async () => {
+        const res = await getAllPurchaseOrder(page, pageSize);
+        if (res.ok) {
+            const { data, pagination } = res.data;
+            console.log('Fetched purchase orders:', data);
+
+            const mapped: PurchaseOrder[] = data.map((po: any) => ({
+                orderid: po.poid,
+                productid: po.productid,
+                productname: po.products?.productname || '',
+                supplierid: po.suppliers?.supplierid || 0,
+                employeeid: user?.accountid || '',
+                suppliername: po.suppliers?.suppliername || '',
+                batchid: String(po.batchid),
+                price: Number(po.products?.sellingprice || 0),
+                quantity: po.quantity,
+                deliverydate: po.deliverydate ? po.deliverydate.split('T')[0] : undefined,
+                status:
+                    po.statusorder === 'pending'
+                        ? 'Chờ giao hàng'
+                        : po.statusorder === 'delivered'
+                            ? 'Đã nhận hàng'
+                            : po.statusorder === 'canceled'
+                                ? 'Đã huỷ'
+                                : po.statusorder || 'Chờ giao hàng',
+
+            }));
+
+            setOrdersState(mapped);
+            setTotalPages(pagination.totalPages);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, [page]);
 
     const handleOpenVerifyModal = (order: PurchaseOrder) => {
         setSelectedOrder(order);
         setVerifyModalOpen(true);
     };
 
-    let nextOrderId = Math.max(...rawOrderPurchase.map(o => o.orderid)) + 1;
-
     const handleVerifySubmit = (data: PurchaseOrder) => {
         const today = new Date().toISOString().split('T')[0];
 
-        setOrdersState((prev) => {
-            const orderIndex = prev.findIndex((order) => order.orderid === data.orderid);
-            if (orderIndex === -1) return prev;
-
-            const order = prev[orderIndex];
-
-            // Nếu giao đủ
-            if (data.quantity >= order.quantity) {
-                const updatedOrder: PurchaseOrder = {
-                    ...order,
-                    status: 'Đã giao hàng',
-                    deliverydate: today,
-                };
-
-                return [
-                    ...prev.slice(0, orderIndex),
-                    updatedOrder,
-                    ...prev.slice(orderIndex + 1),
-                ];
-            }
-
-            if (data.quantity < order.quantity) {
-                const remainingQuantity = order.quantity - data.quantity;
-
-                // Đơn hàng đã giao
-                const deliveredOrder: PurchaseOrder = {
-                    ...order,
-                    quantity: data.quantity,
-                    status: 'Đã giao hàng',
-                    deliverydate: today,
-                };
-
-                // Tạo orderid mới cho đơn pendingOrder
-                const pendingOrder: PurchaseOrder = {
-                    ...order,
-                    orderid: nextOrderId++, // tăng id mới để phân biệt
-                    quantity: remainingQuantity,
-                    status: 'Chờ giao hàng',
-                    deliverydate: undefined,
-                };
-
-                return [
-                    ...prev.slice(0, orderIndex),
-                    deliveredOrder,
-                    pendingOrder,
-                    ...prev.slice(orderIndex + 1),
-                ];
-            }
-            return prev;
-        });
+        setOrdersState((prev) =>
+            prev.map((order) =>
+                order.orderid === data.orderid
+                    ? {
+                        ...order,
+                        status: 'Đã nhận hàng',
+                        deliverydate: today,
+                        quantity: data.quantity,
+                    }
+                    : order
+            )
+        );
     };
-
 
     const handleCancelOrder = (orderId: number) => {
         setOrdersState((prev) =>
-            prev.map((order) => {
-                if (order.orderid === orderId) {
-                    if (order.status === 'Chờ giao hàng') {
-                        return { ...order, status: 'Đã huỷ' };
-                    } else {
-                        alert('Chỉ có thể hủy đơn còn thiếu.');
-                        return order;
-                    }
-                }
-                return order;
-            })
+            prev.map((order) =>
+                order.orderid === orderId && order.status === 'Chờ giao hàng'
+                    ? { ...order, status: 'Đã huỷ' }
+                    : order
+            )
         );
     };
-    
 
     const columns: Column<PurchaseOrder>[] = [
         { header: 'Mã đơn hàng', accessor: 'orderid' },
@@ -150,9 +110,7 @@ export default function PurchaseOrderPage() {
         { header: 'Số lượng', accessor: 'quantity' },
         {
             header: 'Tổng giá',
-            accessor: (item) => (
-                <span>{(item.price * item.quantity).toLocaleString()} đ</span>
-            ),
+            accessor: (item) => <span>{(item.price * item.quantity).toLocaleString()} đ</span>,
         },
         {
             header: 'Trạng thái',
@@ -179,7 +137,7 @@ export default function PurchaseOrderPage() {
         columns.push({
             header: '',
             accessor: (item) =>
-                item.status !== 'Đã giao hàng' && item.status !== 'Đã huỷ' ? (
+                item.status !== 'Đã nhận hàng' && item.status !== 'Đã huỷ' ? (
                     <button
                         className="bg-primary-500 text-white px-3 py-2 rounded hover:bg-primary-600 mr-2 cursor-pointer"
                         onClick={() => handleOpenVerifyModal(item)}
@@ -202,15 +160,20 @@ export default function PurchaseOrderPage() {
         });
     }
 
-    const filteredOrders = ordersState.filter((order) =>
-        activeTab === 'pending'
-            ? order.status !== 'Đã giao hàng'
-            : order.status === 'Đã giao hàng'
-    );
+    const filteredOrders = ordersState.filter((order) => {
+        if (activeTab === 'pending') {
+            return order.status === 'Chờ giao hàng';
+        } else if (activeTab === 'completed') {
+            return order.status === 'Đã nhận hàng';
+        } else if (activeTab === 'canceled') {
+            return order.status === 'Đã huỷ';
+        }
+        return true;
+    });
+    
 
     return (
         <div className="p-4 sm:p-6">
-            {/* Tabs */}
             <div className="w-full max-w-[96%] mx-auto flex space-x-2 p-6">
                 <Button
                     variant={activeTab === 'pending' ? 'default' : 'outline'}
@@ -226,9 +189,15 @@ export default function PurchaseOrderPage() {
                 >
                     Đơn hàng đã hoàn thành
                 </Button>
+                <Button
+                    variant={activeTab === 'canceled' ? 'default' : 'outline'}
+                    onClick={() => setActiveTab('canceled')}
+                    className="flex items-center justify-center flex-1"
+                >
+                    Đơn hàng bị huỷ
+                </Button>
             </div>
 
-            {/* DataTable */}
             <DataTable
                 columns={columns}
                 data={filteredOrders}
@@ -237,15 +206,18 @@ export default function PurchaseOrderPage() {
                 filters={{}}
                 setFilters={() => { }}
                 onEdit={() => { }}
-                onDelete={(index) => {
-                    setOrdersState((prev) => prev.filter((_, i) => i !== index));
-                }}
+                onDelete={() => { }}
                 showOptions={false}
                 showMoreOption={false}
                 showHeader
             />
 
-            {/* Verify Order Modal */}
+            {totalPages > 1 && (
+                <div className="flex justify-center mt-4">
+                    <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />
+                </div>
+            )}
+
             <VerifyOrderModal
                 open={verifyModalOpen}
                 onClose={() => setVerifyModalOpen(false)}

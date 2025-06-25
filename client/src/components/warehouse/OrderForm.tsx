@@ -26,7 +26,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
     onClose,
     item,
 }: PurchaseOrderFormProps<T>) {
-    const { user } = useAuth(); // 👈 lấy user từ context
+    const { user } = useAuth();
     const [supplierList, setSupplierList] = useState<
         { supplierid: number; suppliername: string; costprice: number }[]
     >([]);
