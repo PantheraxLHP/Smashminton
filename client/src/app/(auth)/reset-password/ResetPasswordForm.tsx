@@ -5,6 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { handleResetPassword } from '@/services/auth.service';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { resetPasswordSchema, ResetPasswordSchema } from '../auth.schema';
@@ -15,6 +16,8 @@ const ResetPasswordForm = () => {
         defaultValues: { password: '', repassword: '' },
     });
 
+    const token = useSearchParams().get('token') || '';
+    const router = useRouter();
     const {
         handleSubmit,
         control,
@@ -22,9 +25,10 @@ const ResetPasswordForm = () => {
     } = form;
 
     const onSubmit = async (data: ResetPasswordSchema) => {
-        const response = await handleResetPassword(data);
+        const response = await handleResetPassword(data, token);
         if (response.ok) {
             toast.success('Mật khẩu đã được đặt lại thành công!');
+            router.push('/signin');
         } else {
             toast.error(response.message);
         }
@@ -47,7 +51,7 @@ const ResetPasswordForm = () => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Mật khẩu mới*</FormLabel>
+                                    <FormLabel>Mật khẩu mới</FormLabel>
                                     <FormControl>
                                         <Input type="password" placeholder="Nhập mật khẩu mới" {...field} />
                                     </FormControl>
@@ -60,7 +64,7 @@ const ResetPasswordForm = () => {
                             name="repassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Xác nhận mật khẩu*</FormLabel>
+                                    <FormLabel>Xác nhận mật khẩu</FormLabel>
                                     <FormControl>
                                         <Input type="password" placeholder="Nhập lại mật khẩu mới" {...field} />
                                     </FormControl>
