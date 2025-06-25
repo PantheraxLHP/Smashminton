@@ -31,10 +31,12 @@ import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.
 import { AdminModule } from './modules/admin/admin.module';
 import { MqttModule } from './mqtt/mqtt.module';
 import { PurchaseOrdersModule } from './modules/purchase_orders/purchase_orders.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        ScheduleModule.forRoot(),
         CacheModule,
         PrismaModule,
         ProductsModule,

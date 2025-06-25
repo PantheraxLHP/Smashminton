@@ -82,17 +82,42 @@ function getRandomFloat(min: number, max: number, step = 0.5) {
     return min + step * getRandomInt(0, steps - 1);
 }
 
-function getSaleFactor(month: number) {
-    // Tháng 1-4: tăng, 4-9: giảm, 9-12: tăng, 12-1: giảm
-    if (month >= 0 && month <= 3) return 'high';
-    if (month >= 4 && month <= 8) return 'low';
-    if (month >= 9 && month <= 10) return 'high';
-    if (month === 11) return 'low';
+function getSaleFactor(year: number, month: number): 'high' | 'low' | 'normal' {
+    // 0 = Tháng 1, 11 = Tháng 12
+    if (year === 2024) {
+        if (month >= 0 && month <= 3) return 'high';      // 1-4: tăng
+        if (month >= 4 && month <= 8) return 'low';       // 5-9: giảm
+        if (month >= 9 && month <= 10) return 'high';     // 10-11: tăng
+        if (month === 11) return 'low';                   // 12: giảm
+    }
+    if (year === 2023) {
+        if (month >= 0 && month <= 4) return 'low';       // 1-5: giảm
+        if (month >= 5 && month <= 9) return 'high';      // 6-10: tăng
+        if (month >= 10 && month <= 11) return 'low';     // 11-12: giảm
+    }
+    if (year === 2022) {
+        if (month >= 0 && month <= 2) return 'low';       // 1-3: giảm
+        if (month >= 3 && month <= 5) return 'high';      // 4-6: tăng
+        if (month >= 6 && month <= 11) return 'low';      // 7-12: giảm
+    }
+    if (year === 2021) {
+        if (month >= 0 && month <= 5) return 'high';      // 1-6: tăng
+        if (month >= 6 && month <= 11) return 'low';      // 7-12: giảm
+    }
+    if (year === 2020) {
+        if (month >= 0 && month <= 3) return 'low';       // 1-4: giảm
+        if (month >= 4 && month <= 8) return 'high';      // 5-9: tăng
+        if (month >= 9 && month <= 11) return 'low';      // 10-12: giảm
+    }
+    if (year === 2019) {
+        if (month >= 0 && month <= 8) return 'high';      // 1-9: tăng
+        if (month >= 9 && month <= 11) return 'low';      // 10-12: giảm
+    }
     return 'normal';
 }
 
-function getSaleFactorValue(month: number): number {
-    const factor = getSaleFactor(month);
+function getSaleFactorValue(year: number, month: number): number {
+    const factor = getSaleFactor(year, month);
     if (factor === 'high') return 1.5;
     if (factor === 'low') return 0.7;
     return 1.0;
@@ -186,7 +211,7 @@ async function main() {
         // --- Bắt đầu xử lý từng ngày ---
         console.log(`\n  Đang xử lý ngày ${date.toLocaleDateString()}`);
         const month = date.getMonth();
-        const saleFactor = getSaleFactor(month);
+        const saleFactor = getSaleFactor(currentYear, month);
 
         const numBooking = Math.max(1, getRandomInt(2, 5));
         const numOrder = Math.max(1, getRandomInt(2, 5));
@@ -496,8 +521,8 @@ async function main() {
             const purchaseOrdersToCreate: Omit<PurchaseOrder, 'batchid' | 'poid'>[] = [];
 
             const nextMonth = (currentMonth + 1) % 12;
-            const currentMonthFactor = getSaleFactorValue(currentMonth);
-            const nextMonthFactor = getSaleFactorValue(nextMonth);
+            const currentMonthFactor = getSaleFactorValue(currentYear, currentMonth);
+            const nextMonthFactor = getSaleFactorValue(currentYear, nextMonth);
             const adjustmentFactor = nextMonthFactor / currentMonthFactor;
 
             for (const productIdStr in monthlySoldProducts) {

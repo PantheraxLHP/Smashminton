@@ -198,4 +198,26 @@ export class AdminController {
       year: +year,
     });
   }
+
+  @Get('prediction/train-bestseller-model')
+  @ApiResponse({ status: 200, description: 'Train bestseller models (month & quarter) and return training info' })
+  @ApiResponse({ status: 400, description: 'Failed to train bestseller model' })
+  async trainBestsellerModel() {
+    return this.predictionService.trainBestsellerModel();
+  }
+
+  @Get('prediction/predict-bestseller-by-time')
+  @ApiResponse({ status: 200, description: 'Predict bestseller by time' })
+  @ApiResponse({ status: 400, description: 'Failed to predict bestseller by time' })
+  @ApiQuery({ name: 'filter_type', description: 'Filter type', type: String, required: true, example: 'month' })
+  @ApiQuery({ name: 'value', description: 'Value', type: Number, required: true, example: 1 })
+  async predictBestsellerByTime(@Query('filter_type') filter_type: 'month' | 'quarter', @Query('value') value: number) {
+    if (filter_type === 'month' && (value < 1 || value > 12)) {
+      throw new BadRequestException('For month, value must be between 1 and 12');
+    }
+    if (filter_type === 'quarter' && (value < 1 || value > 4)) {
+      throw new BadRequestException('For quarter, value must be between 1 and 4');
+    }
+    return this.predictionService.predictBestsellerByTime({ filter_type, value });
+  }
 }
