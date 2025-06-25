@@ -1,98 +1,135 @@
-import { Suspense } from 'react';
-import PredictionServer from './PredictionServer';
-import PredictionControls from './PredictionControls';
-import { Skeleton } from '@/components/ui/skeleton';
+'use client';
+import React, { useState } from 'react';
+import { PredictionTableControls, PredictionChartControls } from './PredictionControls';
+import PredictionTable from './PredictionTable';
+import PredictionChart from './PredictionChart';
+import DoubleBarChart from './DoubleBarChart';
+import { getPredictionData } from '@/services/prediction.service';
+import { Button } from '@/components/ui/button';
 
-interface PredictionPageProps {
-    searchParams: {
-        year?: string;
-        timeType?: string;
-        selectedTime?: string;
-        sortOrder?: string;
-        showTable?: string;
+export default function PredictionPage() {
+    // Table control state (local, not from search params)
+    const [tableTimeType, setTableTimeType] = useState<'Tháng' | 'Quý'>('Tháng');
+    const [tableSelectedTime, setTableSelectedTime] = useState('Tháng 1');
+    const [tableShow, setTableShow] = useState(false);
+    const [tableData, setTableData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [tableLoading, setTableLoading] = useState(false);
+
+    // Chart control state (can still use search params or local state as needed)
+    const [chartTimeType, setChartTimeType] = useState<'Tháng' | 'Quý'>('Tháng');
+    const [chartSelectedTime, setChartSelectedTime] = useState('Tháng 1');
+    const [chartSelectedYear, setChartSelectedYear] = useState(2024);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [chartData, setChartData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [purchaseData, setPurchaseData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [doubleBarData, setDoubleBarData] = useState<any[]>([]);
+    const [chartLoading, setChartLoading] = useState(false);
+
+    // Table predict handler
+    const handleTablePredict = async () => {
+        setTableLoading(true);
+        setTableShow(false);
+        try {
+            const type = tableTimeType === 'Tháng' ? 'month' : 'quarter';
+            const filters: any = { type, year: 2024 };
+            if (type === 'month') {
+                filters.month = parseInt(tableSelectedTime.split(' ')[1], 10);
+            } else {
+                filters.quarter = parseInt(tableSelectedTime.split(' ')[1], 10);
+            }
+            const predictionData = await getPredictionData(filters);
+            setTableData(predictionData.soldRatio);
+            setTableShow(true);
+        } catch (e) {
+            setTableData([]);
+            setTableShow(false);
+        } finally {
+            setTableLoading(false);
+        }
     };
-}
 
-function PredictionLoading() {
-    return (
-        <div className="flex h-full min-h-screen w-full flex-col gap-4 bg-gray-200 p-4">
-            {/* Header skeleton */}
-            <div className="flex items-center justify-between p-4">
-                <Skeleton className="h-8 w-64" />
-                <div className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-32" />
-                    <Skeleton className="h-10 w-32" />
-                    <Skeleton className="h-10 w-24" />
-                    <Skeleton className="h-10 w-10" />
-                </div>
-            </div>
-
-            {/* Charts skeleton */}
-            <div className="flex h-80 w-full gap-2">
-                <Skeleton className="h-full w-1/2" />
-                <Skeleton className="h-full w-1/2" />
-            </div>
-
-            {/* Double bar chart skeleton */}
-            <div className="h-80 w-full">
-                <Skeleton className="h-full w-full" />
-            </div>
-
-            {/* Table skeleton */}
-            <div className="h-64 w-full">
-                <Skeleton className="h-full w-full" />
-            </div>
-        </div>
-    );
-}
-
-function PredictionClient({
-    timeType,
-    selectedTime,
-    selectedYear,
-    sortOrder,
-    showTable,
-}: {
-    timeType: 'Tháng' | 'Quý';
-    selectedTime: string;
-    selectedYear: number;
-    sortOrder: 'asc' | 'desc';
-    showTable: boolean;
-}) {
-    return (
-        <PredictionServer
-            timeType={timeType}
-            selectedTime={selectedTime}
-            selectedYear={selectedYear}
-            sortOrder={sortOrder}
-            showTable={showTable}
-        />
-    );
-}
-
-export default async function PredictionPage({ searchParams }: PredictionPageProps) {
-    const selectedYear = Number(searchParams.year) || 2024;
-    const timeType = (searchParams.timeType as 'Tháng' | 'Quý') || 'Tháng';
-    const selectedTime = searchParams.selectedTime || 'Tháng 1';
-    const sortOrder = (searchParams.sortOrder as 'asc' | 'desc') || 'desc';
-    const showTable = searchParams.showTable === 'true';
+    // Chart fetch handler (fetch on control change)
+    React.useEffect(() => {
+        setChartLoading(true);
+        const fetchData = async () => {
+            const type = chartTimeType === 'Tháng' ? 'month' : 'quarter';
+            const filters: any = { type, year: chartSelectedYear };
+            if (type === 'month') {
+                filters.month = parseInt(chartSelectedTime.split(' ')[1], 10);
+            } else {
+                filters.quarter = parseInt(chartSelectedTime.split(' ')[1], 10);
+            }
+            const predictionData = await getPredictionData(filters);
+            setChartData(predictionData.soldRatio);
+            setPurchaseData(predictionData.purchasedRatio);
+            setDoubleBarData(predictionData.salesPurchase);
+            setChartLoading(false);
+        };
+        fetchData();
+    }, [chartTimeType, chartSelectedTime, chartSelectedYear, sortOrder]);
 
     return (
-        <div className="h-full w-full">
-            <PredictionControls timeType={timeType} selectedTime={selectedTime} selectedYear={selectedYear} />
-
-            <Suspense
-                key={`${selectedYear}-${timeType}-${selectedTime}-${sortOrder}-${showTable}`}
-                fallback={<PredictionLoading />}
-            >
-                <PredictionClient
-                    timeType={timeType}
-                    selectedTime={selectedTime}
-                    selectedYear={selectedYear}
-                    sortOrder={sortOrder}
-                    showTable={showTable}
+        <div className="flex h-full w-full flex-col gap-8 bg-gray-200 p-4">
+            {/* Part 1: Table controls and table */}
+            <div>
+                <PredictionTableControls
+                    timeType={tableTimeType}
+                    selectedTime={tableSelectedTime}
+                    onTimeTypeChange={(type) => setTableTimeType(type as 'Tháng' | 'Quý')}
+                    onTimeChange={setTableSelectedTime}
+                    onPredict={handleTablePredict}
                 />
-            </Suspense>
+                {tableLoading && <div>Đang tải dữ liệu...</div>}
+                {tableShow && (
+                    <div className="flex flex-col gap-4 rounded-lg bg-white p-4">
+                        <Button variant="outline" onClick={() => setTableShow(false)}>
+                            Ẩn bảng dự đoán
+                        </Button>
+                        <PredictionTable data={tableData} />
+                    </div>
+                )}
+            </div>
+
+            {/* Part 2: Chart controls and charts grouped in a div */}
+            <div className="flex flex-col gap-4 rounded-lg bg-gray-200">
+                <PredictionChartControls
+                    timeType={chartTimeType}
+                    selectedTime={chartSelectedTime}
+                    selectedYear={chartSelectedYear}
+                    onTimeTypeChange={(type) => setChartTimeType(type as 'Tháng' | 'Quý')}
+                    onTimeChange={setChartSelectedTime}
+                    onYearChange={setChartSelectedYear}
+                />
+                {chartLoading ? (
+                    <div>Đang tải biểu đồ...</div>
+                ) : (
+                    <div className="flex h-full w-full gap-2">
+                        <div className="flex-1 rounded-lg border-2 bg-white p-4">
+                            <PredictionChart
+                                data={chartData}
+                                title={`Tỉ lệ loại sản phẩm bán ra trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                sortOrder={sortOrder}
+                            />
+                        </div>
+                        <div className="flex-1 rounded-lg border-2 bg-white p-4">
+                            <PredictionChart
+                                data={purchaseData}
+                                title={`Tỉ lệ loại sản phẩm mua vào trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                sortOrder={sortOrder}
+                            />
+                        </div>
+                    </div>
+                )}
+                {doubleBarData.length > 0 && (
+                    <div className="h-[80vh] w-full rounded-lg border-2 bg-white p-4">
+                        <DoubleBarChart
+                            data={doubleBarData}
+                            selectedTime={chartSelectedTime}
+                            selectedYear={chartSelectedYear}
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

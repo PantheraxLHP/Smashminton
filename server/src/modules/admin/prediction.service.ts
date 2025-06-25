@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PredictionService {
@@ -329,5 +330,60 @@ export class PredictionService {
         purchase,
       };
     });
+  }
+
+  async trainBestsellerModel() {
+    try {
+      const response = await fetch(`${process.env.DJANGO}/api/train-bestseller-model/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new BadRequestException('Failed to train bestseller model');
+      }
+      //const data = await response.json();
+      return {
+        message: 'Bestseller model trained successfully',
+        status: response.status,
+        success: true,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to train bestseller model');
+    }
+  }
+
+  @Cron('0 23 31 12 *') // 11h pm, 31/12 every year
+  async handleTrainBestsellerModelCron() {
+    Logger.log('Auto training bestseller model at 11PM, 31/12...');
+    await this.trainBestsellerModel();
+    Logger.log('Auto training bestseller model completed!');
+  }
+
+  async predictBestsellerByTime({ filter_type, value }: { filter_type: 'month' | 'quarter', value: number }) {
+    // Validate value range
+    if (filter_type === 'month' && (value < 1 || value > 12)) {
+      throw new BadRequestException('For month, value must be between 1 and 12');
+    }
+    if (filter_type === 'quarter' && (value < 1 || value > 4)) {
+      throw new BadRequestException('For quarter, value must be between 1 and 4');
+    }
+    try {
+      const url = `${process.env.DJANGO}/api/predict-bestseller-by-time/?filter_type=${filter_type}&value=${value}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new BadRequestException('Failed to predict bestseller by time');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw new BadRequestException('Failed to predict bestseller by time');
+    }
   }
 }
