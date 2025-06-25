@@ -13,7 +13,10 @@ import { resetPasswordSchema, ResetPasswordSchema } from '../auth.schema';
 const ResetPasswordForm = () => {
     const form = useForm<ResetPasswordSchema>({
         resolver: zodResolver(resetPasswordSchema),
-        defaultValues: { password: '', repassword: '' },
+        defaultValues: {
+            password: '',
+            repassword: '',
+        },
     });
 
     const token = useSearchParams().get('token') || '';
@@ -30,7 +33,13 @@ const ResetPasswordForm = () => {
             toast.success('Mật khẩu đã được đặt lại thành công!');
             router.push('/signin');
         } else {
-            toast.error(response.message);
+            if (response.message === 'Invalid or expired token') {
+                toast.error('Mã đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu lại mã đặt lại mật khẩu');
+                router.push('/forgot-password');
+            } else {
+                toast.error('Mã đặt lại mật khẩu không hợp lệ. Vui lòng thử lại!');
+                router.push('/forgot-password');
+            }
         }
     };
 

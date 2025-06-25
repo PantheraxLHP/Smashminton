@@ -31,7 +31,7 @@ const SignupForm = () => {
     const form = useForm<SignupSchema>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
-            dob: '1990-01-01T00:00:00Z',
+            dob: '1990-01-01',
             phonenumber: undefined,
         },
     });
@@ -53,14 +53,25 @@ const SignupForm = () => {
                 formData.append('studentCard', file);
             });
         }
-
         const response = await handleSignup(formData);
 
         if (response.ok) {
-            toast.success('Đăng ký thành công!');
-            router.push('/signin');
+            const studentCardStatus = response.data.studentCard;
+            if (studentCardStatus === false) {
+                toast.warning(
+                    'Tạo tài khoản thành công nhưng không quét được thẻ học sinh/sinh viên. Vui lòng đăng nhập để cập nhật thông tin thẻ',
+                );
+                router.push('/signin');
+            } else {
+                toast.success('Đăng ký thành công!');
+                router.push('/signin');
+            }
         } else {
-            toast.error('Đăng ký thất bại, vui lòng thử lại! ');
+            if (response.message === 'Email already existed') {
+                toast.error('Email đã tồn tại, vui lòng thử lại!');
+            } else {
+                toast.error('Đăng ký thất bại, vui lòng thử lại! ');
+            }
         }
     };
 
@@ -117,7 +128,10 @@ const SignupForm = () => {
                     {isStudent && (
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-medium text-black">
-                                TẢI LÊN ẢNH THẺ HỌC SINH - SINH VIÊN ( Mặt trước và mặt sau )
+                                TẢI LÊN ẢNH THẺ HỌC SINH - SINH VIÊN ( Mặt trước và mặt sau ).
+                                <br />
+                                Hiện tại chức năng quét thẻ tự động chỉ hỗ trợ cho thẻ sinh viên của trường Đại học Khoa
+                                học Tự nhiên, ĐHQG-HCM.
                             </label>
                             <div className="flex flex-col gap-4">
                                 <input
@@ -144,6 +158,7 @@ const SignupForm = () => {
                                                     alt={`Ảnh ${index + 1}`}
                                                     width={100}
                                                     height={100}
+                                                    style={{ height: 'auto' }}
                                                     className="rounded-md border border-gray-300 object-contain"
                                                 />
                                                 <button

@@ -3,7 +3,7 @@ import { ApiResponse } from '@/lib/apiResponse';
 export async function POST(req: Request) {
     try {
         const signupFormData = await req.formData();
-        
+
         const res = await fetch(`${process.env.SERVER}/api/v1/auth/signup`, {
             method: 'POST',
             body: signupFormData,
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
             return ApiResponse.error(result.message || 'Đăng ký thất bại');
         }
 
-        return ApiResponse.success('Đăng ký thành công');
+        return ApiResponse.success(result);
     } catch (error) {
         console.error('Server route error:', error);
         return ApiResponse.error('Đăng ký thất bại');
