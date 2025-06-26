@@ -136,7 +136,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });
@@ -180,6 +180,7 @@ export class ProductTypesService {
         sellingprice: product.sellingprice,
         rentalprice: product.rentalprice,
         productimgurl: product.productimgurl,
+        isdeleted: product.isdeleted,
         quantity,
       };
     }));
@@ -233,7 +234,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });
@@ -342,7 +343,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });

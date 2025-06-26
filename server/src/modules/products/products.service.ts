@@ -53,6 +53,9 @@ export class ProductsService {
 
     async findAllBasicProducts() {
         const products = await this.prisma.products.findMany({
+            where: {
+                isdeleted: false,
+            },
             select: {
                 productid: true,
                 productname: true,
@@ -73,6 +76,9 @@ export class ProductsService {
         const skip = (page - 1) * limit;
 
         const findProducts = await this.prisma.products.findMany({
+            where: {
+                isdeleted: false,
+            },
             include: {
                 purchase_order: {
                     include: {
@@ -121,7 +127,7 @@ export class ProductsService {
 
     findOneForCache(id: number) {
         return this.prisma.products.findUnique({
-            where: { productid: id },
+            where: { productid: id , isdeleted: false },
             select: {
                 productid: true,
                 productname: true,
