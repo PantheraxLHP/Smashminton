@@ -49,6 +49,12 @@ export class PurchaseOrdersController {
     return this.purchaseOrdersService.confirmDelivery(+poid, body.realityQuantity, new Date(body.realityExpiryDate));
   }
 
+  @Patch('cancel-purchaseOrder/:poid')
+  @ApiOperation({ summary: 'Cancel purchase-order' })
+  cancelPurchaseOrder(@Param('poid') poid: number) {
+    return this.purchaseOrdersService.cancelPurchaseOrder(+poid);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.purchaseOrdersService.remove(+id);

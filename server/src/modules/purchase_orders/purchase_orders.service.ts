@@ -119,7 +119,7 @@ export class PurchaseOrdersService {
     await this.prisma.purchase_order.update({
       where: { poid },
       data: {
-        statusorder: 'Đã nhận hàng',
+        statusorder: 'delivered',
         deliverydate: new Date(),
         updatedat: new Date(),
       },
@@ -137,6 +137,31 @@ export class PurchaseOrdersService {
 
     return {
       message: 'Cập nhật đơn nhập và lô hàng thành công',
+    };
+  }
+
+  async cancelPurchaseOrder(poid: number) {
+    // Kiểm tra đơn đặt hàng có tồn tại không
+    const foundOrder = await this.prisma.purchase_order.findUnique({
+      where: { poid },
+    });
+
+    if (!foundOrder) {
+      throw new NotFoundException(`Không tìm thấy đơn đặt hàng với poid = ${poid}`);
+    }
+
+    // Cập nhật trạng thái đơn
+    const updated = await this.prisma.purchase_order.update({
+      where: { poid },
+      data: {
+        statusorder: 'canceled',
+        updatedat: new Date(),
+      },
+    });
+
+    return {
+      message: 'Hủy đơn hàng thành công',
+      data: updated,
     };
   }
 
