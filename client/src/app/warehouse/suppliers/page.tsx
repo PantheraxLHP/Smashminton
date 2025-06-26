@@ -143,11 +143,10 @@ export default function SupplierManagementPage() {
 
     const handleDelete = async (index: number) => {
         const supplier = filteredData[index];
-        const confirmed = window.confirm(`Xác nhận xóa nhà cung cấp: ${supplier.name}?`);
-        if (!confirmed || !supplier.supplierid) return;
+        if (!supplier.supplierid) return;
 
         const result = await deleteSupplier(supplier.supplierid);
-
+        console.log(supplier.supplierid);
         if (result.ok) {
             toast.success('Xoá nhà cung cấp thành công!');
             await fetchSuppliers();

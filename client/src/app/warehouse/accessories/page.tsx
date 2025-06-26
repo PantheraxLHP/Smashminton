@@ -6,8 +6,9 @@ import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AccessoryModal from './AddAccessories';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { getProducts3 } from '@/services/products.service';
+import { getProducts3, deleteProduct } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { toast } from 'sonner';
 
 export interface Accessory {
     id: number;
@@ -149,13 +150,20 @@ export default function AccessoryPage() {
         setOpenModal(true);
     };
 
-    const handleDelete = (index: number) => {
-        const item = filteredData[index];
-        if (window.confirm(`Xác nhận xóa phụ kiện: ${item.name}?`)) {
-            const newData = data.filter((d) => d.id !== item.id);
-            setData(newData);
+    const handleDelete = async (index: number) => {
+        const productid = filteredData[index].id;
+        const res = await deleteProduct(productid);
+
+        if (res.ok) {
+            setData((prev) => prev.filter((item) => item.id !== productid));
+            setFilteredData((prev) => prev.filter((item) => item.id !== productid));
+            toast.success('Xóa sản phẩm thành công!');
+        } else {
+            toast.error(`Không thể xóa sản phẩm: ${res.message}`);
         }
-    };
+
+        fetchData();
+    };    
 
     const handleOrder = (index: number) => {
         setSelectedOrderItem(filteredData[index]);

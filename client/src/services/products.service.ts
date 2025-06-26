@@ -447,3 +447,33 @@ export const updateService = async (formData: FormData, id: string) => {
         };
     }
 };
+
+export const deleteProduct = async (productid: number) => {
+    try {
+        const response = await fetch(`/api/products/delete-product?productid=${productid}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                ok: false,
+                message: result.message || 'Không thể xóa vật phẩm',
+            };
+        }
+
+        return {
+            ok: true,
+            message: result.message,
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            message: error instanceof Error ? error.message : 'Có lỗi xảy ra',
+        };
+    }
+};
