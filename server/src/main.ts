@@ -7,8 +7,8 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     // Create the main HTTP application
-    const app = await NestFactory.create(AppModule);    
-    
+    const app = await NestFactory.create(AppModule);
+
     // Add microservice capabilities to the same app instance
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.MQTT,
@@ -22,7 +22,7 @@ async function bootstrap() {
     });
 
     app.enableCors({
-        origin: '*',
+        origin: process.env.CLIENT || 'http://localhost:3000',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true, // Cho phép gửi cookies
     });
@@ -48,7 +48,8 @@ async function bootstrap() {
 
     // Start the HTTP server
     const port = process.env.PORT ?? 8000;
-    await app.listen(port); console.log(`HTTP Server is running on http://localhost:${port}`);
+    await app.listen(port);
+    console.log(`HTTP Server is running on http://localhost:${port}`);
     console.log(`MQTT Microservice is running on mqtt://localhost:1883`);
 }
 bootstrap().catch((err) => console.error(err));
