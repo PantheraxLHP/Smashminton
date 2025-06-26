@@ -7,6 +7,9 @@ import VerifyOrderModal from './VerifyOrder';
 import { useAuth } from '@/context/AuthContext';
 import { getAllPurchaseOrder } from '@/services/purchaseorder.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { cancelPurchaseOrder } from '@/services/purchaseorder.service';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/warehouse/ConfirmDialog';
 
 export interface PurchaseOrder {
     orderid: number;
@@ -37,7 +40,6 @@ export default function PurchaseOrderPage() {
         const res = await getAllPurchaseOrder(page, pageSize);
         if (res.ok) {
             const { data, pagination } = res.data;
-            console.log("Data: ", data);
             const mapped: PurchaseOrder[] = data.map((po: any) => ({
                 orderid: po.poid,
                 productid: po.productid,
@@ -46,7 +48,7 @@ export default function PurchaseOrderPage() {
                 employeeid: user?.accountid || '',
                 suppliername: po.suppliers?.suppliername || '',
                 batchid: String(po.batchid),
-                price: Number(po.products?.sellingprice || 0),
+                price: Number(po.costprice || 0),
                 quantity: po.quantity,
                 deliverydate: po.deliverydate ? po.deliverydate.split('T')[0] : undefined,
                 status:
@@ -91,15 +93,24 @@ export default function PurchaseOrderPage() {
         );
     };
 
-    const handleCancelOrder = (orderId: number) => {
-        setOrdersState((prev) =>
-            prev.map((order) =>
-                order.orderid === orderId && order.status === 'Chờ giao hàng'
-                    ? { ...order, status: 'Đã huỷ' }
-                    : order
-            )
-        );
+    const handleCancelOrder = async (orderId: number) => {
+        const res = await cancelPurchaseOrder(orderId);
+
+        if (res.ok) {
+            setOrdersState((prev) =>
+                prev.map((order) =>
+                    order.orderid === orderId
+                        ? { ...order, status: 'Đã huỷ' }
+                        : order
+                )
+            );
+            toast.success('Huỷ đơn hàng thành công');
+        } else {
+            toast.error(`Không thể huỷ đơn hàng: ${res.message}`);
+        }
+        fetchOrders();
     };
+
 
     const columns: Column<PurchaseOrder>[] = [
         { header: 'Mã đơn hàng', accessor: 'orderid', align: 'center' },
@@ -161,14 +172,20 @@ export default function PurchaseOrderPage() {
             header: '',
             accessor: (item) =>
                 item.status === 'Chờ giao hàng' ? (
-                    <button
-                        className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer"
-                        onClick={() => handleCancelOrder(item.orderid)}
-                    >
-                        Huỷ đơn
-                    </button>
-                ) : null, align: 'center'
-        });
+                    <ConfirmDialog
+                        title="Huỷ đơn hàng"
+                        description="Bạn có chắc muốn huỷ đơn hàng này không?"
+                        onConfirm={() => handleCancelOrder(item.orderid)}
+                        trigger={
+                            <button className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer">
+                                Huỷ đơn
+                            </button>
+                        }
+                    />
+                ) : null,
+            align: 'center'
+        }
+        );
     }
 
     const filteredOrders = ordersState.filter((order) => {

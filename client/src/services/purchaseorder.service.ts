@@ -95,3 +95,33 @@ export const updatePurchaseOrder = async (id: number, payload: { realityQuantity
         };
     }
 };
+
+export const cancelPurchaseOrder = async (poid: number) => {
+    try {
+        const response = await fetch(`/api/purchase-order/cancel-order?poid=${poid}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return {
+                ok: false,
+                message: result.message || 'Không thể hủy đơn hàng',
+            };
+        }
+
+        return {
+            ok: true,
+            message: result.message,
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            message: error instanceof Error ? error.message : 'Có lỗi xảy ra',
+        };
+    }
+};

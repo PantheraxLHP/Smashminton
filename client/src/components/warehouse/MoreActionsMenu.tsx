@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface Props {
     position: { x: number; y: number };
@@ -37,15 +38,19 @@ export default function MoreActionsMenu({ position, onClose, onEdit, onDelete, s
                     Sửa
                 </li>
                 {showDelete && (
-                    <li
-                        className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
+                    <ConfirmDialog
+                        title="Xoá sản phẩm"
+                        description="Bạn có chắc muốn xoá sản phẩm này không?"
+                        onConfirm={() => {
                             onDelete();
                             onClose();
                         }}
-                    >
-                        Xoá
-                    </li>
+                        trigger={
+                            <li className="px-2 py-2 hover:bg-gray-100 cursor-pointer">
+                                Xoá
+                            </li>
+                        }
+                    />
                 )}
 
                 {showOptions && (<li className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
