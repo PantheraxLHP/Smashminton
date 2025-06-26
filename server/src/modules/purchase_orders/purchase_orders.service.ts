@@ -48,8 +48,6 @@ export class PurchaseOrdersService {
     const now = new Date();
     const skip = (page - 1) * limit;
 
-
-
     const purchaseOrders = await this.prisma.purchase_order.findMany({
       orderBy: {
         poid: 'asc',
