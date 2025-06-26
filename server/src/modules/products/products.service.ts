@@ -237,7 +237,26 @@ export class ProductsService {
         };
     }
 
-    remove(id: number) {
-        return this.prisma.products.delete({ where: { productid: id } });
+    async deleteProduct(productid: number) {
+        const product = await this.prisma.products.findUnique({
+            where: { productid },
+        });
+
+        if (!product) {
+            throw new NotFoundException(`Không tìm thấy sản phẩm với productid = ${productid}`);
+        }
+
+        const deleted = await this.prisma.products.update({
+            where: { productid },
+            data: {
+                isdeleted: true,
+                updatedat: new Date(),
+            },
+        });
+
+        return {
+            message: 'Xóa sản phẩm thành công (isdeleted = true)',
+            data: deleted,
+        };
     }
 }

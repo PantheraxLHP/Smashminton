@@ -145,4 +145,10 @@ export class ProductsController {
     ) {
         return this.productsService.updateFoodAccessoryWithoutBatch(+productid, body, file);
     }
+
+    @Patch('delete-product/:productid')
+    @ApiOperation({ summary: 'Delete produtc (set isdeleted=true)' })
+    deleteProduct(@Param('productid') productid: number) {
+        return this.productsService.deleteProduct(+productid);
+    }
 }
