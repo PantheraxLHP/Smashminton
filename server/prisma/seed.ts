@@ -665,7 +665,7 @@ async function main() {
                 courtname: 'Court A2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 4.5,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
@@ -673,7 +673,7 @@ async function main() {
                 courtname: 'Court A3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 2.0,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
@@ -689,7 +689,7 @@ async function main() {
                 courtname: 'Court A5',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 3.5,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
@@ -705,7 +705,7 @@ async function main() {
                 courtname: 'Court A7',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_7_ptadlq.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 4.5,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
@@ -713,7 +713,7 @@ async function main() {
                 courtname: 'Court A8',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 3.0,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 1,
             },
@@ -745,7 +745,7 @@ async function main() {
                 courtname: 'Court C1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C1_h8yho8.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 3.0,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
@@ -753,7 +753,7 @@ async function main() {
                 courtname: 'Court C2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C2_nd5cgp.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 2.5,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
@@ -761,12 +761,38 @@ async function main() {
                 courtname: 'Court C3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669812/C3_w4danq.jpg',
                 statuscourt: 'Active',
-                avgrating: 5.0,
+                avgrating: 4.0,
                 timecalculateavg: new Date('2025-09-19'),
                 zoneid: 3,
             },
         ],
     });
+
+    const zones = await prisma.zones.findMany({
+        include: {
+            courts: true,
+        },
+    });
+
+    for (const zone of zones) {
+        const ratings = zone.courts
+            .map((court) => court.avgrating)
+            .filter((r) => r !== null && r !== undefined);
+
+        const avg =
+            ratings.length > 0
+                ? Number(
+                    (
+                        ratings.reduce((sum, r) => sum + Number(r), 0) / ratings.length
+                    ).toFixed(1)
+                )
+                : 0;
+
+        await prisma.zones.update({
+            where: { zoneid: zone.zoneid },
+            data: { avgzonerating: avg },
+        });
+    }
 
     await prisma.products.createMany({
         data: [

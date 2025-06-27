@@ -362,6 +362,7 @@ model zones {
   zonetype        String?
   zoneimgurl      String?
   zonedescription String?
+  avgzonerating   Decimal?        @db.Decimal
   courts          courts[]
   zone_prices     zone_prices[]
 }
