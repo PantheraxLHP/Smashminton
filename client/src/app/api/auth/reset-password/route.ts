@@ -1,13 +1,20 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
     try {
         const resetPasswordData = await request.json();
 
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const res = await fetch(`${process.env.SERVER}/api/v1/auth/reset-password`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             body: JSON.stringify(resetPasswordData),
             credentials: 'include',
         });
