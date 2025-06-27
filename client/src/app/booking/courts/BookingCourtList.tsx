@@ -13,7 +13,7 @@ import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { useState } from 'react';
 import { SelectedCourts } from './page';
-import { Tooltip, TooltipContent, TooltipRoot, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/react/dist/iconify.js';
 import { Switch } from '@/components/ui/switch';
 
@@ -98,27 +98,25 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
             <div className="mb-4 flex items-center justify-end">
                 <span className="text-gray-600">Đặt sân cố định:</span>
                 {/* Tooltip icon */}
-                <Tooltip>
-                    <TooltipRoot open={tooltipOpen} onOpenChange={setTooltipOpen}>
-                        <TooltipTrigger>
-                            <button
-                                aria-label="Thông tin đặt sân cố định"
-                                className="bg-primary-500 mr-2 ml-2 flex items-center justify-center rounded-full p-1 text-white"
-                                onClick={() => setTooltipOpen(!tooltipOpen)}
-                            >
-                                <Icon icon="mdi:information-outline" className="text-lg text-white" />
-                            </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="z-1000 max-w-xs rounded-md bg-white p-2 text-sm shadow-md">
-                            <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
-                            <ul className="list-disc pl-4">
-                                <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>
-                                <li>Sau khi kiểm tra, hệ thống sẽ hiển thị các sân phù hợp.</li>
-                                <li>Nếu không tìm thấy, hãy chọn khung giờ hoặc thời lượng chơi khác.</li>
-                                <li>Nếu không có sân nào, hệ thống sẽ tắt chức năng này và thử đặt thủ công.</li>
-                            </ul>
-                        </TooltipContent>
-                    </TooltipRoot>
+                <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+                    <TooltipTrigger>
+                        <div
+                            aria-label="Thông tin đặt sân cố định"
+                            className="bg-primary-500 mr-2 ml-2 flex items-center justify-center rounded-full p-1 text-white"
+                            onClick={() => setTooltipOpen(!tooltipOpen)}
+                        >
+                            <Icon icon="mdi:information-outline" className="text-lg text-white" />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="z-1000 max-w-xs rounded-md bg-white p-2 text-sm text-black shadow-md shadow-gray-300">
+                        <strong className="block">CÁCH ĐẶT SÂN CỐ ĐỊNH</strong>
+                        <ul className="list-disc pl-4">
+                            <li>Hệ thống hỗ trợ đặt sân cố định bằng cách đặt giúp bạn 4 buổi đánh...</li>
+                            <li>Sau khi kiểm tra, hệ thống sẽ hiển thị các sân phù hợp.</li>
+                            <li>Nếu không tìm thấy, hãy chọn khung giờ hoặc thời lượng chơi khác.</li>
+                            <li>Nếu không có sân nào, hệ thống sẽ tắt chức năng này và thử đặt thủ công.</li>
+                        </ul>
+                    </TooltipContent>
                 </Tooltip>
                 {/* Switch from shadcn/ui */}
                 <Switch
@@ -148,13 +146,18 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
 
                     return (
                         <div key={court.courtid} className="flex h-full w-full flex-col rounded-lg border shadow-lg">
-                            <Image
-                                src={court.courtimgurl || 'default-court.png'}
-                                alt={court.courtname || 'Hình ảnh sân'}
-                                width={200}
-                                height={400}
-                                className="!h-[350px] w-full rounded-t-lg object-cover"
-                            />
+                            <div className="relative overflow-hidden">
+                                <Image
+                                    src={court.courtimgurl || 'default-court.png'}
+                                    alt={court.courtname || 'Hình ảnh sân'}
+                                    width={200}
+                                    height={400}
+                                    className="!h-[350px] w-full rounded-t-lg object-cover"
+                                />
+                                <div className="text-primary-600 absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium backdrop-blur-sm">
+                                    ⭐ {court.avgrating || 0}
+                                </div>
+                            </div>
                             <div className="p-4 text-left">
                                 <h3 className="text-lg font-semibold">{court.courtname}</h3>
                                 <p className="text-primary-500 py-1 text-lg font-semibold">
