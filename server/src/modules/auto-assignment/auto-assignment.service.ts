@@ -97,11 +97,20 @@ export class AutoAssignmentService {
             });
 
             if (nextWeekFullimeAssignments.length > 0) {
-                return {
-                    message: "There are already assignments for full-time shifts in the next week.",
-                    status: 200,
-                    success: true
-                };
+                // Xoá tất cả phân công ca làm việc full-time trong tuần tới để phân công lại
+                await this.prisma.shift_assignment.deleteMany({
+                    where: {
+                        shiftdate: {
+                            gte: nextWeekStart,
+                            lte: nextWeekEnd,
+                        },
+                        shift_date: {
+                            shift: {
+                                shifttype: "Full-time",
+                            },
+                        }
+                    }
+                });
             }
 
             const nextWeekShifts = await this.prisma.shift_date.findMany({

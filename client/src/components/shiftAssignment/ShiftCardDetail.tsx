@@ -208,21 +208,21 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
             </div>
             {/* Phần hiển thị danh sách nhân viên và phân công */}
             <div className="flex h-full gap-5">
-                <div className="relative flex h-full w-full flex-col gap-2 border-b-2 border-b-gray-500">
-                    {/* Overlay thể hiện vị trí drop khi đang kéo thả nhân viên */}
-                    <div
-                        className={`absolute top-6 left-0 h-[365px] w-full ${isDraggingEmployee ? 'bg-gray-500/50' : 'hidden bg-transparent'} pointer-events-none flex items-center justify-center rounded-md text-white`}
-                    >
-                        Thả nhân viên vào đây để thực hiện phân công
-                    </div>
+                <div className="flex h-full w-full flex-col gap-2 border-b-2 border-b-gray-500">
                     <span className="text-xs font-semibold">Danh sách nhân viên được phân công</span>
                     {/*Danh sách nhân viên đã được phân công cho ca làm này*/}
                     <div
                         ref={(node) => {
                             dropRef(node);
                         }}
-                        className={`rounded-md border-2 transition-colors ${isOver ? 'bg-primary-100/20 border-primary border-dashed' : 'border-transparent'} h-full`}
+                        className={`relative rounded-md border-2 transition-colors ${isOver ? 'bg-primary-100/20 border-primary border-dashed' : 'border-transparent'} h-full`}
                     >
+                        {/* Overlay thể hiện vị trí drop khi đang kéo thả nhân viên */}
+                        <div
+                            className={`absolute top-0 h-full w-full ${isDraggingEmployee ? 'bg-gray-500/50' : 'hidden bg-transparent'} pointer-events-none flex items-center justify-center rounded-md text-white`}
+                        >
+                            Thả nhân viên vào đây để thực hiện phân công
+                        </div>
                         {(
                             shiftDataSingle.shift_assignment?.filter(
                                 (shiftAssignment) => shiftAssignment.employees?.employeeid !== undefined,

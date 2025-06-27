@@ -216,6 +216,20 @@ export class MqttService {
         }
     }
 
+    async deleteDeviceFingerprint(deviceId: string, fingerprintID: number) {
+        try {
+            await this.sendCommand(deviceId, 'delete_finger', {
+                fingerID: fingerprintID,
+            });
+
+            this.logger.log(`🔄 Fingerprint deletion command sent for ID ${fingerprintID} on device ${deviceId}`);
+            return { success: true, message: `Fingerprint deletion command sent for ID ${fingerprintID}` };
+        } catch (error) {
+            this.logger.error(`❌ Failed to delete fingerprint ${fingerprintID} on device ${deviceId}:`, error);
+            throw error;
+        }
+    }
+
     async handleDeleteFingerprint(deviceId: string, employeeID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
@@ -349,13 +363,17 @@ export class MqttService {
 
     async getEmployeeAssignments(employeeID: number, shiftdate: Date) {
         try {
-            const assignments = await this.prisma.assignments.findMany({
+            const assignments = await this.prisma.shift_assignment.findMany({
                 where: {
                     employeeid: employeeID,
                     shiftdate: shiftdate,
                 },
                 include: {
-                    shift: true
+                    shift_date: {
+                        include: {
+                            shift: true
+                        }
+                    }
                 },
                 orderBy: {
                     shiftid: 'asc'
@@ -447,7 +465,7 @@ export class MqttService {
             const assignments = await this.getEmployeeAssignments(employee.employeeid, currentDate);
 
             if (assignments.length === 0) {
-                this.logger.warn(`⚠️ No assignments found for employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
+                this.logger.warn(`⚠️  No assignments found for employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
                 return {
                     success: false,
                     error: `No shift assignments found for today`,
@@ -491,7 +509,7 @@ export class MqttService {
                 });
 
                 if (!existingTimesheet) {
-                    const late = assignment.shift?.shiftstarthour ? isLate(assignment.shift.shiftstarthour, scanTime) : false;
+                    const late = assignment.shift_date?.shift?.shiftstarthour ? isLate(assignment.shift_date.shift.shiftstarthour, scanTime) : false;
                     if (late) {
                         // Nếu đi trễ thì ghi lại vi phạm
                         await this.addEmployeeLatePenaltyRecord(assignment.employeeid, scanTime);
