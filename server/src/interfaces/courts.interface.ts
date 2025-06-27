@@ -10,5 +10,6 @@ export interface CourtPrices {
   endtime: string;
   duration: number;
   price: number;
+  avgrating?: number | null;
   weekNumber?: number;
 }

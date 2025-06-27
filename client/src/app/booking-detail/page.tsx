@@ -20,7 +20,7 @@ const BookingDetailPage = () => {
         }));
     };
     return (
-        <div className="flex w-full flex-col items-center gap-4 p-4 sm:flex-row sm:items-start">
+        <div className="flex h-full min-h-screen w-full flex-col items-center gap-4 p-4 sm:flex-row sm:items-start">
             <BookingDetailFilter handleFilterChange={handleFilterChange} />
             <BookingDetailCourtList filters={filters} />
         </div>

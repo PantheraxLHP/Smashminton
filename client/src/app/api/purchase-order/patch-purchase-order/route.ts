@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
         if (!id) {
@@ -11,16 +15,14 @@ export async function PATCH(request: NextRequest) {
 
         const body = await request.json();
 
-        const response = await fetch(
-            `${process.env.SERVER}/api/v1/purchase-orders/successful-delivery/${id}`,
-            {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            }
-        );
+        const response = await fetch(`${process.env.SERVER}/api/v1/purchase-orders/successful-delivery/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+            body: JSON.stringify(body),
+        });
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -31,8 +33,6 @@ export async function PATCH(request: NextRequest) {
         return ApiResponse.success(result);
     } catch (error) {
         console.error('/api/v1/purchase-orders/successful-delivery error:', error);
-        return ApiResponse.error(
-            error instanceof Error ? error.message : 'Lỗi không xác định'
-        );
+        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi không xác định');
     }
 }

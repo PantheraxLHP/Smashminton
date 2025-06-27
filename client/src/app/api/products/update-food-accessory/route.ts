@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const productid = url.searchParams.get('productid');
         const batchid = url.searchParams.get('batchid');
@@ -20,8 +24,11 @@ export async function PATCH(request: NextRequest) {
             {
                 method: 'PATCH',
                 body: formData,
-            }
-        );        
+                headers: {
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
+            },
+        );
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -32,8 +39,6 @@ export async function PATCH(request: NextRequest) {
         return ApiResponse.success(result);
     } catch (error) {
         console.error('PATCH /api/products/update-food-accessory error:', error);
-        return ApiResponse.error(
-            error instanceof Error ? error.message : 'Lỗi không xác định'
-        );
+        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi không xác định');
     }
 }

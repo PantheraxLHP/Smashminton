@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const { searchParams } = new URL(request.url);
         const productid = Number(searchParams.get('productid'));
 
@@ -10,13 +14,13 @@ export async function GET(request: NextRequest) {
             return ApiResponse.error('Thiếu hoặc sai định dạng `productid`');
         }
 
-        const response = await fetch(
-            `${process.env.SERVER}/api/v1/suppliers/${productid}/suppliers`,
-            {
-                method: 'GET',
-                credentials: 'include',
-            }
-        );
+        const response = await fetch(`${process.env.SERVER}/api/v1/suppliers/${productid}/suppliers`, {
+            method: 'GET',
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+            credentials: 'include',
+        });
 
         const result = await response.json();
 

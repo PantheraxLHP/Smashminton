@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const searchParams = request.nextUrl.searchParams;
         const employeeid = searchParams.get('employeeid');
         const dayfrom = searchParams.get('dayfrom');
@@ -12,6 +16,7 @@ export async function GET(request: NextRequest) {
             {
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
                 },
                 credentials: 'include',
             },

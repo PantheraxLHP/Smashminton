@@ -323,6 +323,7 @@ export interface Zones {
     zonetype?: string;
     zoneimgurl?: string;
     zonedescription?: string;
+    avgzonerating?: number;
     courts?: Courts[];
     zone_prices?: ZonePrices[];
 }

@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const productfiltervalueid = url.searchParams.get('productfiltervalueid');
         if (!productfiltervalueid) {
@@ -16,7 +20,10 @@ export async function POST(request: NextRequest) {
             {
                 method: 'POST',
                 body: formData,
-            }
+                headers: {
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
+            },
         );
 
         if (!response.ok) {
@@ -28,8 +35,6 @@ export async function POST(request: NextRequest) {
         return ApiResponse.success(result);
     } catch (error) {
         console.error('POST /api/products/post-products error:', error);
-        return ApiResponse.error(
-            error instanceof Error ? error.message : 'Lỗi không xác định'
-        );
+        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi không xác định');
     }
 }

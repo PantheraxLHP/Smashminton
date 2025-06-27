@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
         if (!id) {
@@ -11,13 +15,13 @@ export async function PATCH(request: NextRequest) {
 
         const formData = await request.formData();
 
-        const backendRes = await fetch(
-            `${process.env.SERVER}/api/v1/products/${id}/update-services`,
-            {
-                method: 'PATCH',
-                body: formData,
-            }
-        );
+        const backendRes = await fetch(`${process.env.SERVER}/api/v1/products/${id}/update-services`, {
+            method: 'PATCH',
+            body: formData,
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+        });
 
         if (!backendRes.ok) {
             const text = await backendRes.text();
@@ -28,8 +32,6 @@ export async function PATCH(request: NextRequest) {
         return ApiResponse.success(data);
     } catch (err) {
         console.error('PATCH /api/products/update-service error:', err);
-        return ApiResponse.error(
-            err instanceof Error ? err.message : 'Lỗi không xác định'
-        );
+        return ApiResponse.error(err instanceof Error ? err.message : 'Lỗi không xác định');
     }
 }

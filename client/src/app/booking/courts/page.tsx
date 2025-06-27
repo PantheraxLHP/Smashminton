@@ -27,6 +27,7 @@ export interface SelectedCourts {
     endtime: string;
     duration: number;
     price: number;
+    avgrating?: number | null;
 }
 
 export interface SelectedProducts extends Products {

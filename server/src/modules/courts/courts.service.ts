@@ -11,7 +11,10 @@ import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 @Injectable()
 export class CourtsService {
-    constructor(private prisma: PrismaService, private cloudinaryService: CloudinaryService) { }
+    constructor(
+        private prisma: PrismaService,
+        private cloudinaryService: CloudinaryService,
+    ) {}
 
     async createCourt(createCourtDto: CreateCourtDto, file: Express.Multer.File) {
         let imageUrl = '';
@@ -120,7 +123,7 @@ export class CourtsService {
             },
         });
 
-        const filteredCourtIDByDayFromToWithoutZones = filteredCourtByDayFromTo.map(court => court.courtid);
+        const filteredCourtIDByDayFromToWithoutZones = filteredCourtByDayFromTo.map((court) => court.courtid);
 
         return filteredCourtIDByDayFromToWithoutZones;
     }
@@ -156,6 +159,7 @@ export class CourtsService {
                 courtid: true,
                 courtname: true,
                 courtimgurl: true,
+                avgrating: true,
                 zones: {
                     select: {
                         zone_prices: {
@@ -177,31 +181,36 @@ export class CourtsService {
         });
 
         // Gộp tất cả zone_prices vào một mảng duy nhất
-        const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
-            court.zones?.zone_prices.map((zonePrice) => ({
-                zoneid: court.zoneid,
-                courtid: court.courtid,
-                courtname: court.courtname,
-                courtimgurl: court.courtimgurl,
-                dayfrom: zonePrice.dayfrom,
-                dayto: zonePrice.dayto,
-                starttime: zonePrice.starttime,
-                endtime: zonePrice.endtime,
-                price: zonePrice.price,
-            })) || []
+        const allZonePrices = zonePricesByAllCourts.flatMap(
+            (court) =>
+                court.zones?.zone_prices.map((zonePrice) => ({
+                    zoneid: court.zoneid,
+                    courtid: court.courtid,
+                    courtname: court.courtname,
+                    courtimgurl: court.courtimgurl,
+                    avgrating: court.avgrating,
+                    dayfrom: zonePrice.dayfrom,
+                    dayto: zonePrice.dayto,
+                    starttime: zonePrice.starttime,
+                    endtime: zonePrice.endtime,
+                    price: zonePrice.price,
+                })) || [],
         );
 
         // Sử dụng Map để nhóm kết quả theo courtid
-        const courtResults = new Map<number, {
-            zoneid: number;
-            courtid: number;
-            courtname: string;
-            courtimgurl: string;
-            totalPrice: number;
-            dayfrom: string;
-            dayto: string
-        }>();
-
+        const courtResults = new Map<
+            number,
+            {
+                zoneid: number;
+                courtid: number;
+                courtname: string;
+                courtimgurl: string;
+                avgrating: number;
+                totalPrice: number;
+                dayfrom: string;
+                dayto: string;
+            }
+        >();
 
         for (const zone of allZonePrices) {
             const zoneStart = dayjs(zone.starttime, 'HH:mm');
@@ -227,6 +236,7 @@ export class CourtsService {
                         courtid: zone.courtid,
                         courtname: zone.courtname ?? '',
                         courtimgurl: zone.courtimgurl ?? '',
+                        avgrating: zone.avgrating ? Number(zone.avgrating) : 0,
                         totalPrice: priceForZone,
                         dayfrom: zone.dayfrom ?? '',
                         dayto: zone.dayto ?? '',
@@ -240,6 +250,7 @@ export class CourtsService {
             courtid: court.courtid,
             courtname: court.courtname,
             courtimgurl: court.courtimgurl,
+            avgrating: court.avgrating,
             date: date,
             duration: Number(duration),
             starttime: starttime,
@@ -302,16 +313,17 @@ export class CourtsService {
         });
 
         // Gộp tất cả zone_prices vào một mảng duy nhất
-        const allZonePrices = zonePricesByAllCourts.flatMap((court) =>
-            court.zones?.zone_prices.map((zonePrice) => ({
-                zoneid: court.zoneid,
-                courtid: court.courtid,
-                courtname: court.courtname,
-                courtimgurl: court.courtimgurl,
-                starttime: zonePrice.starttime,
-                endtime: zonePrice.endtime,
-                price: zonePrice.price,
-            })) || []
+        const allZonePrices = zonePricesByAllCourts.flatMap(
+            (court) =>
+                court.zones?.zone_prices.map((zonePrice) => ({
+                    zoneid: court.zoneid,
+                    courtid: court.courtid,
+                    courtname: court.courtname,
+                    courtimgurl: court.courtimgurl,
+                    starttime: zonePrice.starttime,
+                    endtime: zonePrice.endtime,
+                    price: zonePrice.price,
+                })) || [],
         );
 
         const separatedPrices: CourtPrices[] = [];
@@ -350,7 +362,9 @@ export class CourtsService {
         // Tạo danh sách 4 ngày đặt sân, mỗi ngày cách nhau 7 ngày
         const bookingDates: string[] = [];
         for (let i = 0; i < 4; i++) {
-            const bookingDate = dayjs(date).add(i * 7, 'day').format('YYYY-MM-DD');
+            const bookingDate = dayjs(date)
+                .add(i * 7, 'day')
+                .format('YYYY-MM-DD');
             bookingDates.push(bookingDate);
         }
 
@@ -363,14 +377,14 @@ export class CourtsService {
             // Tạo DTO cho ngày hiện tại
             const currentCourtBookingDTO: courtBookingDto = {
                 ...CourtBookingDTO,
-                date: currentDate
+                date: currentDate,
             };
 
             // Gọi hàm separateCourtPrice cho ngày hiện tại
             const separatedPricesForDate = await this.separateCourtPrice(currentCourtBookingDTO);
 
             // Thêm thông tin tuần vào mỗi price object
-            const pricesWithWeekInfo = separatedPricesForDate.map(price => ({
+            const pricesWithWeekInfo = separatedPricesForDate.map((price) => ({
                 ...price,
                 date: currentDate,
             }));

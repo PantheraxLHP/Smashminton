@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const poid = url.searchParams.get('poid');
 
@@ -10,15 +14,13 @@ export async function PATCH(request: NextRequest) {
             return ApiResponse.error('Thiếu poid trong query string');
         }
 
-        const response = await fetch(
-            `${process.env.SERVER}/api/v1/purchase-orders/cancel-purchaseOrder/${poid}`,
-            {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        const response = await fetch(`${process.env.SERVER}/api/v1/purchase-orders/cancel-purchaseOrder/${poid}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+        });
 
         if (!response.ok) {
             const errorMessage = await response.text();
@@ -29,8 +31,6 @@ export async function PATCH(request: NextRequest) {
         return ApiResponse.success(result);
     } catch (error) {
         console.error('/api/v1/purchase-orders/cancel-purchaseOrder error:', error);
-        return ApiResponse.error(
-            error instanceof Error ? error.message : 'Lỗi không xác định'
-        );
+        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi không xác định');
     }
 }
