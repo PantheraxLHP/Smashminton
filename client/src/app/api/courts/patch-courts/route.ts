@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const formData = await request.formData();
 
         console.log('[DEBUG] PATCH formData received:');
@@ -35,6 +39,9 @@ export async function PATCH(request: NextRequest) {
         const response = await fetch(`${process.env.SERVER}/api/v1/courts/${courtid}`, {
             method: 'PATCH',
             body: uploadData,
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             credentials: 'include',
         });
 
@@ -47,7 +54,6 @@ export async function PATCH(request: NextRequest) {
 
         console.log('[DEBUG] Backend PATCH response:', result);
         return ApiResponse.success(result);
-
     } catch (error) {
         console.error('[ERROR] PATCH route exception:', error);
         return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi khi cập nhật sân');
