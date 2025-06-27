@@ -1,11 +1,21 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const body = await req.json();
-        const { suppliername, contactname, phonenumber, email, address, supplies,}
-            : {
+        const {
+            suppliername,
+            contactname,
+            phonenumber,
+            email,
+            address,
+            supplies,
+        }: {
             suppliername: string;
             contactname: string;
             phonenumber: string;
@@ -24,6 +34,7 @@ export async function POST(req: NextRequest) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
             },
             credentials: 'include',
             body: JSON.stringify({ suppliername, contactname, phonenumber, email, address, supplies }),

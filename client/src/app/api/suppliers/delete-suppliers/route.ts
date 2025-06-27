@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function DELETE(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const body = await request.json();
         const supplierid = Number(body.supplierid);
 
@@ -13,6 +17,9 @@ export async function DELETE(request: NextRequest) {
         // Gửi DELETE tới server backend (Spring/Express/whatever)
         const response = await fetch(`${process.env.SERVER}/api/v1/suppliers/${supplierid}`, {
             method: 'DELETE',
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             credentials: 'include',
         });
 
