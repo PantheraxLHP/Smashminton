@@ -1,4 +1,5 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { cookies } from 'next/headers';
 
 export async function PUT(request: Request) {
     try {
@@ -11,9 +12,15 @@ export async function PUT(request: Request) {
 
         const formData = await request.formData();
 
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const response = await fetch(`${process.env.SERVER}/api/v1/accounts/${accountId}`, {
             method: 'PUT',
             body: formData,
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             // Don't set Content-Type header - let the browser set it with the boundary
         });
 
