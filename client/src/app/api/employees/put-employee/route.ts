@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PUT(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const formData = await request.formData();
         const employeeId = formData.get('employeeId');
 
@@ -21,6 +25,9 @@ export async function PUT(request: NextRequest) {
         const response = await fetch(`${process.env.SERVER}/api/v1/employees/${employeeId}`, {
             method: 'PUT',
             body: backendFormData,
+            headers: {
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
             credentials: 'include',
         });
 
