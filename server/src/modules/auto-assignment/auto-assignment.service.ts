@@ -485,10 +485,10 @@ export class AutoAssignmentService {
         const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
         const nextWeekStart = new Date(today);
         nextWeekStart.setDate(today.getDate() + dayToMonday);
-        nextWeekStart.setUTCHours(0, 0, 0, 0);
+        nextWeekStart.setHours(0, 0, 0, 0);
         const nextWeekEnd = new Date(nextWeekStart);
         nextWeekEnd.setDate(nextWeekStart.getDate() + 7);
-        nextWeekEnd.setUTCHours(0, 0, 0, 0);
+        nextWeekEnd.setHours(0, 0, 0, 0);
 
         // Lấy tất cả shift_assignment tuần sau
         const assignments = await this.prisma.shift_assignment.findMany({

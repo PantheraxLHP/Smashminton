@@ -514,7 +514,7 @@ async function main() {
     for (const shift of shifts) {
         for (let i = 0; i < 14; i++) {
             const shiftDate = new Date(startOfWeek);
-            shiftDate.setUTCHours(0, 0, 0, 0);
+            shiftDate.setHours(0, 0, 0, 0);
             shiftDate.setDate(startOfWeek.getDate() + i);
             await prisma.shift_date.createMany({
                 data: [
@@ -1480,7 +1480,7 @@ async function main() {
 
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setUTCHours(23, 59, 59, 999);
+    endOfWeek.setHours(23, 59, 59, 999);
 
     const shiftdates = await prisma.shift_date.findMany({
         where: {
