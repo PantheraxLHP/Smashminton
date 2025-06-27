@@ -1,7 +1,11 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+        
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
 
@@ -12,6 +16,7 @@ export async function GET(request: Request) {
         const response = await fetch(`${process.env.SERVER}/api/v1/product-filter/${id}`, {
             headers: {
                 'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
             },
             credentials: 'include',
         });
