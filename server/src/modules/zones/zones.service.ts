@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Zones } from 'src/interfaces/zones.interface';
 import { Accounts } from 'src/interfaces/accounts.interface';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ZonesService {
@@ -17,8 +18,8 @@ export class ZonesService {
   async getZonesWithCourts(page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
-    
-    const fineZones = await this.prisma.zones.findMany({
+
+    const findZones = await this.prisma.zones.findMany({
       include: {
         courts: true,
       },
@@ -27,12 +28,52 @@ export class ZonesService {
       },
     });
 
-    const zones = await fineZones.map(zone => ({
+    // // Tính avgzonerating cho từng zone và update
+    // for (const zone of ) {
+    //   const validRatings = zone.courts
+    //     .map(c => c.avgrating)
+    //     .filter(r => r !== null && r !== undefined) as number[];
+
+    //   const avg = validRatings.length
+    //     ? Number((validRatings.reduce((a, b) => a + +b, 0) / validRatings.length).toFixed(1))
+    //     : 0;
+
+    //   await this.prisma.zones.update({
+    //     where: { zoneid: zone.zoneid },
+    //     data: { avgzonerating: avg },
+    //   });
+
+    //   zones.avgzonerating = avg;
+    // }
+
+    for (const zone of findZones) {
+        const ratings = zone.courts
+            .map((court) => court.avgrating)
+            .filter((r) => r !== null && r !== undefined);
+
+        const avg =
+            ratings.length > 0
+                ? Number(
+                    (
+                        ratings.reduce((sum, r) => sum + Number(r), 0) / ratings.length
+                    ).toFixed(1)
+                )
+                : 0;
+
+        await this.prisma.zones.update({
+            where: { zoneid: zone.zoneid },
+            data: { avgzonerating: avg },
+        });
+      zone.avgzonerating = new Prisma.Decimal(avg);;
+    }
+
+    const zones = await findZones.map(zone => ({
       zoneid: zone.zoneid,
       zonename: zone.zonename,
       zonetype: zone.zonetype,
       zoneimgurl: zone.zoneimgurl,
       zonedescription: zone.zonedescription,
+      avgzonerating: zone.avgzonerating,
       courts: zone.courts.map(court => ({
         courtid: court.courtid,
         courtname: court.courtname,

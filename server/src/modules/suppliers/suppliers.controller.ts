@@ -38,23 +38,21 @@ export class SuppliersController {
     return this.suppliersService.findSuppliersByProduct(+productid);
   }
 
-  @Patch(':id')
+  @Patch(':supplierid')
   @ApiOperation({ summary: 'Update supplier & update/insert costprice' })
   // @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Update supplier & update/insert costprice',
     type: UpdateSupplierDto,
   })
-  update(@Param('id') supplierid: number,
-    @Query('productid') productid: number,
-    @Query('costprice') costprice: number,
+  update(@Param('supplierid') supplierid: number,
     @Body() updateSupplierDto: UpdateSupplierDto,) {
-    return this.suppliersService.update(+supplierid, +productid, +costprice, updateSupplierDto);
+    return this.suppliersService.update(+supplierid, updateSupplierDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Xoá supplier theo ID' })
-  remove(@Param('id') id: string) {
-    return this.suppliersService.remove(+id);
+  @Patch('delete-supplier/:supplierid')
+  @ApiOperation({ summary: 'Delete supplier (set isdeleted=true)' })
+  deleteProduct(@Param('supplierid') supplierid: number) {
+    return this.suppliersService.deleteSupplier(+supplierid);
   }
 }

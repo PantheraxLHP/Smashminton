@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -44,6 +44,7 @@ export class SuppliersService {
     const skip = (page - 1) * limit;
 
     const findSuppliers = await this.prisma.suppliers.findMany({
+      where: { isdeleted: false },
       include: {
         supply_products: {
           include: {
@@ -104,48 +105,52 @@ export class SuppliersService {
   }
 
 
-  async update(supplierid: number, productid: number, costprice: number, updateSupplierDto: UpdateSupplierDto) {
+  async update(supplierid: number, updateSupplierDto: UpdateSupplierDto) {
+    const { products_costs, ...supplierData } = updateSupplierDto;
+
     // 1. Cập nhật thông tin supplier
     const updatedSupplier = await this.prisma.suppliers.update({
       where: { supplierid },
       data: {
-        ...updateSupplierDto,
+        ...supplierData,
         updatedat: new Date(),
       },
     });
 
-    // 2. Kiểm tra cặp productid + supplierid trong supply_products
-    const supply = await this.prisma.supply_products.findUnique({
-      where: {
-        productid_supplierid: {
-          productid,
-          supplierid,
-        },
-      },
-    });
-
-    if (supply) {
-      // 2a. Nếu tồn tại thì update costprice
-      await this.prisma.supply_products.update({
-        where: {
-          productid_supplierid: {
-            productid,
-            supplierid,
+    // 2. Nếu có mảng product_costs thì update từng cái
+    if (products_costs && products_costs.length > 0) {
+      for (const item of products_costs) {
+        const existing = await this.prisma.supply_products.findUnique({
+          where: {
+            productid_supplierid: {
+              productid: item.productid,
+              supplierid: supplierid,
+            },
           },
-        },
-        data: {
-          costprice,
-        },
-      });
-    } else {
-      // 2b. Nếu chưa có thì tạo mới
-      await this.prisma.supply_products.create({
-        data: {
-          productid,
-          supplierid,
-          costprice,
-        },
-      });
+        });
+
+        if (existing) {
+          await this.prisma.supply_products.update({
+            where: {
+              productid_supplierid: {
+                productid: item.productid,
+                supplierid: supplierid,
+              },
+            },
+            data: {
+              costprice: item.costprice,
+            },
+          });
+        } else {
+          await this.prisma.supply_products.create({
+            data: {
+              productid: item.productid,
+              supplierid: supplierid,
+              costprice: item.costprice,
+            },
+          });
+        }
+      }
     }
 
     return {
@@ -154,23 +159,25 @@ export class SuppliersService {
     };
   }
 
-  async remove(id: number) {
-    // Xoá liên kết supply_products trước (vì có foreign key constraint)
-    await this.prisma.supply_products.deleteMany({
-      where: {
-        supplierid: id,
-      },
+  async deleteSupplier(supplierid: number) {
+    const suppliers = await this.prisma.suppliers.findUnique({
+      where: { supplierid },
     });
 
-    // Xoá supplier
-    const deleted = await this.prisma.suppliers.delete({
-      where: {
-        supplierid: id,
+    if (!suppliers) {
+      throw new NotFoundException(`Không tìm thấy supplierid = ${supplierid}`);
+    }
+
+    const deleted = await this.prisma.suppliers.update({
+      where: { supplierid },
+      data: {
+        isdeleted: true,
+        updatedat: new Date(),
       },
     });
 
     return {
-      message: 'Xoá nhà cung cấp thành công',
+      message: 'Xóa supplier thành công (isdeleted = true)',
       data: deleted,
     };
   }

@@ -103,6 +103,60 @@ export class AutoAssignmentController {
         }
     }
 
+    @Patch('update-nextweek-enrollment')
+    @ApiOperation({ summary: 'Update all shift_enrollment in next week to assigned if shift_assignment exists (auto, no params)' })
+    @ApiResponse({ status: 200, description: 'Update next week enrollmentstatus successfully' })
+    async updateNextWeekEnrollment() {
+        return this.autoAssignmentService.updateNextWeekEnrollment();
+    }
+
+    @Get()
+    @ApiOperation({
+        summary: 'Get auto assignment settings',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Auto assignment settings retrieved successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean' },
+                message: { type: 'string' },
+                data: { type: 'object' }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 500,
+        description: 'Internal server error',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean', example: false },
+                message: { type: 'string' },
+                error: { type: 'string' }
+            }
+        }
+    })
+    async getAutoAssignmentSettings() {
+        try {
+            const settings = await this.autoAssignmentService.getAutoAssignmentSettings();
+            return {
+                status: 200,
+                success: true,
+                message: 'Auto assignment settings retrieved successfully',
+                data: settings,
+            };
+        } catch (error) {
+            console.error('Controller error in getAutoAssignmentSettings:', error);
+            throw new InternalServerErrorException({
+                success: false,
+                message: 'Failed to retrieve auto assignment settings',
+                error: error.message
+            });
+        }
+    }
+
     @Put()
     @ApiOperation({
         summary: 'Update auto assignment settings',
@@ -177,59 +231,5 @@ export class AutoAssignmentController {
                 error: errorMsg
             };
         }
-    }
-
-    @Get()
-    @ApiOperation({
-        summary: 'Get auto assignment settings',
-    })
-    @ApiResponse({
-        status: 200,
-        description: 'Auto assignment settings retrieved successfully',
-        schema: {
-            type: 'object',
-            properties: {
-                success: { type: 'boolean' },
-                message: { type: 'string' },
-                data: { type: 'object' }
-            }
-        }
-    })
-    @ApiResponse({
-        status: 500,
-        description: 'Internal server error',
-        schema: {
-            type: 'object',
-            properties: {
-                success: { type: 'boolean', example: false },
-                message: { type: 'string' },
-                error: { type: 'string' }
-            }
-        }
-    })
-    async getAutoAssignmentSettings() {
-        try {
-            const settings = await this.autoAssignmentService.getAutoAssignmentSettings();
-            return {
-                status: 200,
-                success: true,
-                message: 'Auto assignment settings retrieved successfully',
-                data: settings,
-            };
-        } catch (error) {
-            console.error('Controller error in getAutoAssignmentSettings:', error);
-            throw new InternalServerErrorException({
-                success: false,
-                message: 'Failed to retrieve auto assignment settings',
-                error: error.message
-            });
-        }
-    }
-    
-    @Patch('update-nextweek-enrollment')
-    @ApiOperation({ summary: 'Update all shift_enrollment in next week to assigned if shift_assignment exists (auto, no params)' })
-    @ApiResponse({ status: 200, description: 'Update next week enrollmentstatus successfully' })
-    async updateNextWeekEnrollment() {
-        return this.autoAssignmentService.updateNextWeekEnrollment();
     }
 }

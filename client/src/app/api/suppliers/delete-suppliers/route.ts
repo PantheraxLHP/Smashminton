@@ -1,39 +1,35 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
 
-export async function DELETE(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const accessToken = cookieStore.get('accessToken')?.value;
+        const url = new URL(request.url);
+        const supplierid = url.searchParams.get('supplierid');
 
-        const body = await request.json();
-        const supplierid = Number(body.supplierid);
-
-        if (!supplierid || isNaN(supplierid)) {
+        if (!supplierid || isNaN(Number(supplierid))) {
             return ApiResponse.error('Thiếu hoặc sai định dạng `supplierid`');
         }
 
-        // Gửi DELETE tới server backend (Spring/Express/whatever)
-        const response = await fetch(`${process.env.SERVER}/api/v1/suppliers/${supplierid}`, {
-            method: 'DELETE',
-            headers: {
-                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-            },
-            credentials: 'include',
-        });
+        const response = await fetch(
+            `${process.env.SERVER}/api/v1/suppliers/delete-supplier/${supplierid}`,
+            {
+                method: 'PATCH',
+                credentials: 'include',
+            }
+        );
 
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] Backend delete failed:', result);
+            console.error('[ERROR] Backend error response:', result);
             return ApiResponse.error(result.message || 'Lỗi khi xoá nhà cung cấp');
         }
 
-        console.log('[DEBUG] delete supplier backend success:', result);
-        return ApiResponse.success(result.data || 'Xoá nhà cung cấp thành công');
+        return ApiResponse.success(result.data || 'Xoá thành công');
     } catch (error) {
         console.error('[ERROR] DELETE supplier route exception:', error);
-        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi server khi xoá nhà cung cấp');
+        return ApiResponse.error(
+            error instanceof Error ? error.message : 'Lỗi khi xoá nhà cung cấp'
+        );
     }
 }

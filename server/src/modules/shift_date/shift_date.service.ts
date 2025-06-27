@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateShiftDateDto } from './dto/create-shift_date.dto';
 import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ShiftDateService {
@@ -464,5 +465,148 @@ export class ShiftDateService {
                 },
             },
         });
+    }
+
+    // Chạy mỗi thứ 2 hằng tuần lúc 00:00
+    @Cron("0 0 * * 1")
+    async weeklyCreateNextWeekShiftDate() {
+        try {
+            const today = new Date();
+            const currentDay = today.getDay();
+            const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
+            const nextWeekStart = new Date(today);
+            nextWeekStart.setDate(today.getDate() + dayToMonday);
+            nextWeekStart.setHours(0, 0, 0, 0);
+            const nextWeekEnd = new Date(nextWeekStart);
+            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+            nextWeekEnd.setHours(23, 59, 59, 999);
+
+            const existingShiftDates = await this.prisma.shift_date.findMany({
+                where: {
+                    shiftdate: {
+                        gte: nextWeekStart,
+                        lt: nextWeekEnd
+                    }
+                },
+            });
+
+            if (existingShiftDates.length > 0) {
+                Logger.log(`Found existing shift dates for next week (${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}). No new shift dates created.`);
+            } else {
+                const shifts = await this.prisma.shifts.findMany();
+                const shiftdateData: any[] = [];
+                for (let i = 0; i < 7; i++) {
+                    for (const shift of shifts) {
+                        const shiftDate = new Date(nextWeekStart);
+                        shiftDate.setDate(shiftDate.getDate() + i);
+                        shiftdateData.push({
+                            shiftid: shift.shiftid,
+                            shiftdate: shiftDate,
+                        });
+                    }
+                }
+
+                await this.prisma.shift_date.createMany({
+                    data: shiftdateData,
+                });
+                Logger.log(`Created shift dates for next week (${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}).`);
+            }
+        } catch (error) {
+            console.error("Error in createNextWeekShiftDate:", error);
+            throw error;
+        }
+    }
+
+    // Chạy mỗi ngày vào cuối ngày sau giờ làm việc (23:00)
+    @Cron("0 23 * * *")
+    async dailyTimesheetCheck() {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Lấy tất cả shift_assignment cho ngày hôm nay
+            const shiftAssignments = await this.prisma.shift_assignment.findMany({
+                where: {
+                    shiftdate: today,
+                    assignmentstatus: "approved",
+                    OR: [
+                        {
+                            timesheet: {
+                                none: {}
+                            }
+                        },
+                        {
+                            timesheet: {
+                                some: {
+                                    OR: [
+                                        { checkin_time: null },
+                                        { checkout_time: null }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+            });
+
+            const absenceRule = await this.prisma.penalty_rules.findFirst({
+                where: {
+                    penaltyname: "Unauthorized absence"
+                },
+            });
+
+            const absentRecords: any[] = [];
+
+            for (const assignment of shiftAssignments) {
+                let finalPenaltyAmount: number | null = null;
+                if (absenceRule) {
+                    const currentMonthStart = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth(), 1);
+                    currentMonthStart.setHours(0, 0, 0, 0);
+                    const currentMonthEnd = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth() + 1, 0);
+                    currentMonthEnd.setHours(23, 59, 59, 999);
+                    const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
+                        where: {
+                            penaltyruleid: absenceRule.penaltyruleid,
+                            employeeid: assignment.employeeid,
+                            violationdate: {
+                                gte: currentMonthStart,
+                                lte: currentMonthEnd
+                            }
+                        },
+                    });
+                    if (absenceRule.basepenalty !== null && absenceRule.incrementalpenalty !== null && absenceRule.maxiumpenalty !== null) {
+                        const basePenalty = Number(absenceRule.basepenalty);
+                        const incrementalPenalty = Number(absenceRule.incrementalpenalty);
+                        const maxPenalty = Number(absenceRule.maxiumpenalty);
+
+                        if (currentMonthAbsenceCount > 1) {
+                            const tmp = basePenalty + incrementalPenalty * currentMonthAbsenceCount;
+                            if (tmp > maxPenalty) {
+                                finalPenaltyAmount = maxPenalty;
+                            } else {
+                                finalPenaltyAmount = tmp;
+                            }
+                        } else {
+                            finalPenaltyAmount = basePenalty;
+                        }
+                    }
+
+                    absentRecords.push({
+                        penaltyruleid: absenceRule.penaltyruleid,
+                        employeeid: assignment.employeeid,
+                        violationdate: assignment.shiftdate,
+                        finalpenaltyamount: finalPenaltyAmount
+                    })
+                }
+            }
+
+            await this.prisma.penalty_records.createMany({
+                data: absentRecords,
+            });
+
+        } catch (error) {
+            console.error("Error in dailyTimesheetCheck:", error);
+            throw error;
+        }
     }
 }

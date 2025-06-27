@@ -506,7 +506,7 @@ void publishFingerprintEvent(const String& eventType, uint16_t fingerID, uint16_
 // ===== MQTT COMMAND HANDLERS FOR FINGERPRINT =====
 
 void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId) {
-  uint8_t employeeID = doc["employeeID"] | 1;
+  uint8_t employeeID = doc["employeeID"] | 0;
   uint8_t fingerID = doc["fingerID"] | 1;
 
   Serial.printf("🔐 Starting fingerprint enrollment for employee ID: %d with finger ID: %d\n", employeeID, fingerID);
@@ -549,7 +549,7 @@ void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId)
 }
 
 void handleDeleteFingerCommand(const JsonDocument& doc, const String& requestId) {
-  uint8_t employeeID = doc["employeeID"] | 1;
+  uint8_t employeeID = doc["employeeID"] | 0;
   uint8_t fingerID = doc["fingerID"] | 1;
 
   Serial.printf("🗑️ Deleting fingerprint ID: %d\n", fingerID);

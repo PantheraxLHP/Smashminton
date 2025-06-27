@@ -143,6 +143,40 @@ export class DeviceController {
         }
     }
 
+    @Delete(':deviceId/fingerprint/simple-delete')
+    @ApiOperation({ summary: 'Delete fingerprint by FingerprintID from ESP8266' })
+    @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)', example: 'esp01' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                fingerprintID: { type: 'number', example: 1, description: 'Fingerprint ID to be deleted' }
+            }
+        }
+    })
+    async simpleDeleteFingerprint(
+        @Param('deviceId') deviceId: string,
+        @Body() body: { fingerprintID: number }
+    ) {
+        try {
+            await this.mqttService.deleteDeviceFingerprint(deviceId, body.fingerprintID);
+            return {
+                success: true,
+                message: `Fingerprint ID ${body.fingerprintID} deletion requested on ${deviceId}`,
+                fingerprintID: body.fingerprintID,
+                note: 'Command sent, check MQTT logs for confirmation',
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: `Failed to delete fingerprint ID ${body.fingerprintID}`,
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
+    }
+
     @Get(':deviceId/fingerprint/count')
     @ApiOperation({ summary: 'Get enrolled fingerprint count from ESP8266 device' })
     @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)', example: 'esp01' })
