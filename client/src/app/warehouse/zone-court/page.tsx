@@ -330,15 +330,13 @@ export default function ZoneCourtManager() {
             </div>
             <div className="flex flex-1 flex-col">
                 <div className="flex flex-row gap-4 justify-end mb-2">
-                    <div className="mb-2 hidden justify-end lg:flex">
+                    <div className="mb-2 flex justify-end">
                         <button
                             onClick={() => setIsAddZoneModalOpen(true)}
-                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"
+                            className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer mr-2"
                         >
-                            Thêm Zone
+                            Thêm khu vực
                         </button>
-                    </div>
-                    <div className="mb-2 hidden justify-end lg:flex">
                         <button
                             onClick={() => setIsAddCourtModalOpen(true)}
                             className="rounded bg-primary-500 px-4 py-2 text-white text-sm hover:bg-primary-600 cursor-pointer"

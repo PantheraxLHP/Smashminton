@@ -33,7 +33,6 @@ export default function SupplierManagementPage() {
     const [openModal, setOpenModal] = useState(false);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [editData, setEditData] = useState<Supplier | null>(null);
-    const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
     const [page, setPage] = useState(1);
     const [pageSize] = useState(4);
@@ -168,7 +167,7 @@ export default function SupplierManagementPage() {
         setEditData(null);
         fetchSuppliers();
     };
-    
+
 
 
     return (
@@ -184,7 +183,7 @@ export default function SupplierManagementPage() {
                 editData={editData}
             />
 
-            <div className={`w-full shrink-0 lg:w-[280px] ${showMobileFilter ? 'block' : 'hidden'} lg:block`}>
+            <div className={`w-full shrink-0 lg:w-[280px]`}>
                 <Filter
                     filters={filtersConfig}
                     values={filters}
@@ -193,7 +192,7 @@ export default function SupplierManagementPage() {
             </div>
 
             <div className="flex flex-1 flex-col">
-                <div className="mb-2 hidden justify-end lg:flex">
+                <div className="mb-2 flex justify-end">
                     <button
                         onClick={() => setOpenModal(true)}
                         className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"

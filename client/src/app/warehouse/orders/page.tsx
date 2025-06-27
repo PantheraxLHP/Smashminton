@@ -71,12 +71,12 @@ export default function PurchaseOrderPage() {
             setTotalPages(pagination.totalPages);
         }
     };
-    
+
 
     useEffect(() => {
         fetchOrders();
     }, [page, activeTab]);
-    
+
     const handleOpenVerifyModal = (order: PurchaseOrder) => {
         setSelectedOrder(order);
         setVerifyModalOpen(true);
@@ -208,7 +208,7 @@ export default function PurchaseOrderPage() {
 
     return (
         <div className="p-4 sm:p-6">
-            <div className="w-full max-w-[96%] mx-auto flex space-x-2 p-6">
+            <div className="w-full max-w-[96%] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2 p-4 sm:p-6">
                 <Button
                     variant={activeTab === 'pending' ? 'default' : 'outline'}
                     onClick={() => setActiveTab('pending')}
