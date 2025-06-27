@@ -1,10 +1,15 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { cookies } from 'next/headers';
 
 export async function GET() {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const response = await fetch(`${process.env.SERVER}/api/v1/reward-records/reward-rules`, {
             headers: {
                 'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
             },
         });
 
