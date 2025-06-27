@@ -143,15 +143,12 @@ export default function AddSupplierModal({
 
     const handleSubmit = async () => {
         try {
-            // Validate form data with schema
-            supplierSchema.parse({
-                ...formData,
-            });
-
+            // Validate dữ liệu đầu vào
+            supplierSchema.parse({ ...formData });
             setLoading(true);
 
-            // Validate product data
-            const productsPayload = formData.products.map(p => {
+            // Chuyển đổi danh sách sản phẩm
+            const products = formData.products.map(p => {
                 const productid = Number(p.productid);
                 const costprice = Number(p.costprice);
 
@@ -160,43 +157,59 @@ export default function AddSupplierModal({
                     throw new Error("Thông tin sản phẩm không hợp lệ");
                 }
 
-                return {
-                    productid,
-                    costprice,
-                };
+                return { productid, costprice };
             });
 
-            const payload = {
+            console.log("Products: ",products);
+
+            const payloadBase = {
                 suppliername: formData.name,
                 contactname: formData.contactname,
                 phonenumber: formData.phone,
                 email: formData.email,
                 address: formData.address,
-                products: productsPayload,
             };
 
-            console.log('[DEBUG] Sending postSuppliers with JSON payload:', payload);
+            let result;
 
-            const result = await postSuppliers(payload);
+            if (editData) {
+                if (!editData.supplierid) return;
+                result = await patchSuppliers(editData.supplierid, {
+                    ...payloadBase,
+                    products_costs: products,
+                });
+            } else {
+                result = await postSuppliers({
+                    ...payloadBase,
+                    products,
+                });
+            }
 
             if (result.ok) {
-                onSubmit({ ...formData, supplierid: result.data?.supplierid }, false);
+                onSubmit({ ...formData, supplierid: result.data?.supplierid }, !!editData);
                 onClose();
             } else {
-                toast.error('Không thể thêm nhà cung cấp: ' + (result.message || ''));
+                toast.error(
+                    (editData ? 'Không thể cập nhật' : 'Không thể thêm') +
+                    ' nhà cung cấp: ' + (result.message || '')
+                );
             }
 
             setLoading(false);
         } catch (error) {
+            setLoading(false);
             if (error instanceof z.ZodError) {
                 const newErrors: any = {};
                 error.errors.forEach((err) => {
                     newErrors[err.path[0]] = err.message;
                 });
                 setErrors(newErrors);
+            } else {
+                toast.error(error instanceof Error ? error.message : 'Đã xảy ra lỗi');
             }
         }
-    };    
+    };
+    
     
 
     useEffect(() => {
