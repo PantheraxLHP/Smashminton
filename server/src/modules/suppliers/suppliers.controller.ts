@@ -50,9 +50,9 @@ export class SuppliersController {
     return this.suppliersService.update(+supplierid, updateSupplierDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Xoá supplier theo ID' })
-  remove(@Param('id') id: string) {
-    return this.suppliersService.remove(+id);
+  @Patch('delete-supplier/:supplierid')
+  @ApiOperation({ summary: 'Delete supplier (set isdeleted=true)' })
+  deleteProduct(@Param('supplierid') supplierid: number) {
+    return this.suppliersService.deleteSupplier(+supplierid);
   }
 }

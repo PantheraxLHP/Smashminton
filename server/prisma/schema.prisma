@@ -302,6 +302,7 @@ model suppliers {
   phonenumber     String?
   email           String?
   address         String?
+  isdeleted       Boolean?             @default(false)
   createdat       DateTime?         @default(now()) @db.Timestamptz(6)
   updatedat       DateTime?         @default(now()) @db.Timestamptz(6)
   supply_products supply_products[]

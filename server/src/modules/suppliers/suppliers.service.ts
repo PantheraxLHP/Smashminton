@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -44,6 +44,7 @@ export class SuppliersService {
     const skip = (page - 1) * limit;
 
     const findSuppliers = await this.prisma.suppliers.findMany({
+      where: { isdeleted: false },
       include: {
         supply_products: {
           include: {
@@ -158,23 +159,25 @@ export class SuppliersService {
     };
   }
 
-  async remove(id: number) {
-    // Xoá liên kết supply_products trước (vì có foreign key constraint)
-    await this.prisma.supply_products.deleteMany({
-      where: {
-        supplierid: id,
-      },
+  async deleteSupplier(supplierid: number) {
+    const suppliers = await this.prisma.suppliers.findUnique({
+      where: { supplierid },
     });
 
-    // Xoá supplier
-    const deleted = await this.prisma.suppliers.delete({
-      where: {
-        supplierid: id,
+    if (!suppliers) {
+      throw new NotFoundException(`Không tìm thấy supplierid = ${supplierid}`);
+    }
+
+    const deleted = await this.prisma.suppliers.update({
+      where: { supplierid },
+      data: {
+        isdeleted: true,
+        updatedat: new Date(),
       },
     });
 
     return {
-      message: 'Xoá nhà cung cấp thành công',
+      message: 'Xóa supplier thành công (isdeleted = true)',
       data: deleted,
     };
   }
