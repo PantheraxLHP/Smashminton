@@ -33,11 +33,12 @@ export const createPurchaseOrder = async (orderData: {
     }
 };
   
-export const getAllPurchaseOrder = async (page: number, pageSize: number) => {
+export const getAllPurchaseOrder = async (page: number, pageSize: number, statusOrder: string) => {
     try {
         const queryParams = new URLSearchParams({
             page: page.toString(),
             pageSize: pageSize.toString(),
+            statusOrder,
         });
 
         const response = await fetch(`/api/purchase-order/get-all-purchase-order?${queryParams}`, {
@@ -64,6 +65,8 @@ export const getAllPurchaseOrder = async (page: number, pageSize: number) => {
         );
     }
 };
+
+
 
 export const updatePurchaseOrder = async (id: number, payload: { realityQuantity: number; realityExpiryDate: string }) => {
     try {

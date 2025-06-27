@@ -29,7 +29,7 @@ export default function PurchaseOrderPage() {
     const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'canceled'>('pending');
     const [ordersState, setOrdersState] = useState<PurchaseOrder[]>([]);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(12);
+    const [pageSize] = useState(8);
     const [totalPages, setTotalPages] = useState(1);
     const { user } = useAuth();
 
@@ -37,7 +37,13 @@ export default function PurchaseOrderPage() {
     const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
 
     const fetchOrders = async () => {
-        const res = await getAllPurchaseOrder(page, pageSize);
+        const statusOrderMap = {
+            pending: 'pending',
+            completed: 'delivered',
+            canceled: 'canceled',
+        };
+
+        const res = await getAllPurchaseOrder(page, pageSize, statusOrderMap[activeTab]);
         if (res.ok) {
             const { data, pagination } = res.data;
             const mapped: PurchaseOrder[] = data.map((po: any) => ({
@@ -59,18 +65,18 @@ export default function PurchaseOrderPage() {
                             : po.statusorder === 'canceled'
                                 ? 'Đã huỷ'
                                 : po.statusorder || 'Chờ giao hàng',
-
             }));
 
             setOrdersState(mapped);
             setTotalPages(pagination.totalPages);
         }
     };
+    
 
     useEffect(() => {
         fetchOrders();
-    }, [page]);
-
+    }, [page, activeTab]);
+    
     const handleOpenVerifyModal = (order: PurchaseOrder) => {
         setSelectedOrder(order);
         setVerifyModalOpen(true);
@@ -84,7 +90,7 @@ export default function PurchaseOrderPage() {
                 order.orderid === data.orderid
                     ? {
                         ...order,
-                        status: 'Đã nhận hàng',
+                        status: 'Delivered',
                         deliverydate: today,
                         quantity: data.quantity,
                     }
