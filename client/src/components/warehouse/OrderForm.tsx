@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { findSupplier } from '@/services/products.service';
 import { useAuth } from '@/context/AuthContext';
 import { createPurchaseOrder } from '@/services/purchaseorder.service';
@@ -27,6 +27,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
     item,
 }: PurchaseOrderFormProps<T>) {
     const { user } = useAuth();
+    const modalRef = useRef<HTMLDivElement>(null);
     const [supplierList, setSupplierList] = useState<
         { supplierid: number; suppliername: string; costprice: number }[]
     >([]);
@@ -65,6 +66,23 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
             });
         }
     }, [item]);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        }
+
+        if (open) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [open, onClose]);
+    
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -110,7 +128,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 border border-gray-200">
+            <div ref={modalRef} className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 border border-gray-200">
                 <h2 className="text-xl font-semibold text-center mb-6">Phiếu đặt hàng</h2>
 
                 <div className="space-y-4">
@@ -186,7 +204,7 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition"
+                        className="px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition"
                     >
                         Tạo
                     </button>
