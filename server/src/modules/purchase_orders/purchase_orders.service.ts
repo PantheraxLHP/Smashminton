@@ -44,11 +44,12 @@ export class PurchaseOrdersService {
   }
 
 
-  async findAllPurchaseOrders(page: number = 1, limit: number = 12) {
+  async findAllPurchaseOrders(page: number = 1, limit: number = 12, statusOrder?: string) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
     const purchaseOrders = await this.prisma.purchase_order.findMany({
+      where: statusOrder ? { statusorder: statusOrder } : undefined,
       orderBy: {
         poid: 'asc',
       },

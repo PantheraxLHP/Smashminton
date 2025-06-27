@@ -20,8 +20,10 @@ export class PurchaseOrdersController {
 
   @Get('all-purchase-orders')
   @ApiOperation({ summary: 'Get all purchase_order' })
-  findAllPurchaseOrders(@Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '12') {
+  findAllPurchaseOrders(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '12',
+    @Query('statusOrder') statusOrder?: string) {
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
     // Validation
@@ -31,7 +33,7 @@ export class PurchaseOrdersController {
     if (pageSizeNumber < 1 || pageSizeNumber > 100) {
       throw new Error('Page size must be between 1 and 100');
     }
-    return this.purchaseOrdersService.findAllPurchaseOrders(pageNumber, pageSizeNumber);
+    return this.purchaseOrdersService.findAllPurchaseOrders(pageNumber, pageSizeNumber, statusOrder);
   }
 
   @Get(':id')
