@@ -70,11 +70,6 @@ export async function postSuppliers(data: {
     }
 }
 
-
-
-
-
-
 export const patchSuppliers = async (
     supplierid: number,
     data: {
@@ -83,23 +78,17 @@ export const patchSuppliers = async (
         phonenumber: string;
         email: string;
         address: string;
+        products_costs?: { productid: number; costprice: number }[];
     }
 ) => {
     try {
-        const payload = {
-            supplierid,
-            ...data,
-        };
-
-        console.log('[DEBUG] Sending patchSuppliers with JSON payload:', payload);
-
-        const response = await fetch(`/api/suppliers/patch-suppliers`, {
+        const response = await fetch(`/api/suppliers/patch-suppliers?supplierid=${supplierid}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify(payload),
+            body: JSON.stringify(data),
         });
 
         const result = await response.json();
@@ -109,7 +98,6 @@ export const patchSuppliers = async (
             return ServiceResponse.error(result.message || 'Không thể cập nhật nhà cung cấp');
         }
 
-        console.log('[DEBUG] patchSuppliers success:', result);
         return ServiceResponse.success(result.data);
     } catch (error) {
         console.error('[ERROR] patchSuppliers exception:', error);
@@ -119,15 +107,12 @@ export const patchSuppliers = async (
     }
 };
 
+
 export const deleteSupplier = async (supplierid: number) => {
     try {
-        const response = await fetch(`/api/suppliers/delete-suppliers`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const response = await fetch(`/api/suppliers/delete-suppliers?supplierid=${supplierid}`, {
+            method: 'PATCH',
             credentials: 'include',
-            body: JSON.stringify({ supplierid }),
         });
 
         const result = await response.json();
@@ -137,10 +122,12 @@ export const deleteSupplier = async (supplierid: number) => {
             return ServiceResponse.error(result.message || 'Không thể xoá nhà cung cấp');
         }
 
-        console.log('[DEBUG] deleteSupplier success:', result);
         return ServiceResponse.success(result.data);
     } catch (error) {
         console.error('[ERROR] deleteSupplier exception:', error);
-        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể xoá nhà cung cấp');
+        return ServiceResponse.error(
+            error instanceof Error ? error.message : 'Không thể xoá nhà cung cấp'
+        );
     }
 };
+

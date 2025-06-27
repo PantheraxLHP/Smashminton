@@ -156,25 +156,19 @@ export default function SupplierManagementPage() {
     };
 
 
-    const handleSubmit = (formData: Supplier, isEdit: boolean) => {
-        if (isEdit && formData.supplierid !== undefined) {
-            const realIndex = suppliers.findIndex(s => s.supplierid === formData.supplierid);
-            if (realIndex !== -1) {
-                const updated = [...suppliers];
-                updated[realIndex] = { ...formData };
-                setSuppliers(updated);
-                toast.success('Cập nhật nhà cung cấp thành công!');
-            }
+    const handleSubmit = async (formData: Supplier, isEdit: boolean) => {
+        if (isEdit) {
+            toast.success('Cập nhật nhà cung cấp thành công!');
         } else {
-            const { supplierid, ...newSupplierData } = formData;
-            setSuppliers([...suppliers, newSupplierData as Supplier]);
             toast.success('Thêm nhà cung cấp thành công!');
         }
 
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);
+        fetchSuppliers();
     };
+    
 
 
     return (
