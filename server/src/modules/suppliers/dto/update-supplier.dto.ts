@@ -1,6 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateSupplierWithProductsDto } from './create-supplier.dto';
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateSupplierDto {
     @IsOptional()
@@ -27,4 +28,23 @@ export class UpdateSupplierDto {
     @ApiProperty({ type: String, description: 'Địa chỉ nhà cung cấp', required: false })
     @IsString()
     address?: string;
+    @IsOptional()
+    @ApiProperty({
+        description: 'Danh sách các sản phẩm và giá nhập tương ứng',
+        example: [
+            { productid: 1, costprice: 50000 },
+            { productid: 2, costprice: 40000 },
+        ],
+    })
+    @ValidateNested({ each: true })
+    @Type(() => ProductCostDto)
+    products_costs?: ProductCostDto[];
+}
+
+export class ProductCostDto {
+    @IsNumber()
+    productid: number;
+
+    @IsNumber()
+    costprice: number;
 }

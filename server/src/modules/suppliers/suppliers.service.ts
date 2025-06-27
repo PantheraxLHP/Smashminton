@@ -104,48 +104,52 @@ export class SuppliersService {
   }
 
 
-  async update(supplierid: number, productid: number, costprice: number, updateSupplierDto: UpdateSupplierDto) {
+  async update(supplierid: number, updateSupplierDto: UpdateSupplierDto) {
+    const { products_costs, ...supplierData } = updateSupplierDto;
+
     // 1. Cập nhật thông tin supplier
     const updatedSupplier = await this.prisma.suppliers.update({
       where: { supplierid },
       data: {
-        ...updateSupplierDto,
+        ...supplierData,
         updatedat: new Date(),
       },
     });
 
-    // 2. Kiểm tra cặp productid + supplierid trong supply_products
-    const supply = await this.prisma.supply_products.findUnique({
-      where: {
-        productid_supplierid: {
-          productid,
-          supplierid,
-        },
-      },
-    });
-
-    if (supply) {
-      // 2a. Nếu tồn tại thì update costprice
-      await this.prisma.supply_products.update({
-        where: {
-          productid_supplierid: {
-            productid,
-            supplierid,
+    // 2. Nếu có mảng product_costs thì update từng cái
+    if (products_costs && products_costs.length > 0) {
+      for (const item of products_costs) {
+        const existing = await this.prisma.supply_products.findUnique({
+          where: {
+            productid_supplierid: {
+              productid: item.productid,
+              supplierid: supplierid,
+            },
           },
-        },
-        data: {
-          costprice,
-        },
-      });
-    } else {
-      // 2b. Nếu chưa có thì tạo mới
-      await this.prisma.supply_products.create({
-        data: {
-          productid,
-          supplierid,
-          costprice,
-        },
-      });
+        });
+
+        if (existing) {
+          await this.prisma.supply_products.update({
+            where: {
+              productid_supplierid: {
+                productid: item.productid,
+                supplierid: supplierid,
+              },
+            },
+            data: {
+              costprice: item.costprice,
+            },
+          });
+        } else {
+          await this.prisma.supply_products.create({
+            data: {
+              productid: item.productid,
+              supplierid: supplierid,
+              costprice: item.costprice,
+            },
+          });
+        }
+      }
     }
 
     return {
