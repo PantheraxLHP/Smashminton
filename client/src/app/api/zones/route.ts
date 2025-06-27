@@ -1,10 +1,15 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { cookies } from 'next/headers';
 
 export async function GET() {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const response = await fetch(`${process.env.SERVER}/api/v1/zones`, {
             headers: {
                 'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
             },
         });
 
@@ -18,4 +23,3 @@ export async function GET() {
         return ApiResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách khu vực');
     }
 }
-
