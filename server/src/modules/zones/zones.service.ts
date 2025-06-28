@@ -40,7 +40,7 @@ export class ZonesService {
                 data: { avgzonerating: avg },
             });
 
-            zone.avgzonerating = new Prisma.Decimal(avg);
+            // zone.avgzonerating = new Prisma.Decimal(avg);
         }
 
         const zones = await findZones.map((zone) => ({
