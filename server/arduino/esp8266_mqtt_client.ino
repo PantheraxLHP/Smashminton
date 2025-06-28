@@ -560,7 +560,7 @@ void handleDeleteFingerCommand(const JsonDocument& doc, const String& requestId)
   response["employeeID"] = employeeID;
   response["fingerID"] = fingerID;
 
-  if (employeeID <= 0) {
+  if (employeeID < 0) {
     response["status"] = "error";
     response["message"] = "Invalid employee ID";
     sendResponse(response);

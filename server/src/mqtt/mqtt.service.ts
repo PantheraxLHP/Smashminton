@@ -561,7 +561,7 @@ export class MqttService {
                     };
                 } else {
                     // Trường hợp đã có bảng chấm công và đã check-out, thông báo và không cập nhật lại
-                    this.logger.warn(`⚠️ Full-time employee ${employee.employeeid} has already completed attendance for today`);
+                    this.logger.warn(`⚠️  Full-time employee ${employee.employeeid} has already completed attendance for today`);
                     return {
                         success: false,
                         error: `Already checked out for today`,
@@ -593,7 +593,7 @@ export class MqttService {
                 });
                 // Trường hợp đã hoàn thành chấm công tất cả các ca làm việc trong ngày
                 if (availableAssignments.length === 0) {
-                    this.logger.warn(`⚠️ All shifts completed for part-time employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
+                    this.logger.warn(`⚠️  All shifts completed for part-time employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
                     return {
                         success: false,
                         error: `All shifts for today are already completed`,

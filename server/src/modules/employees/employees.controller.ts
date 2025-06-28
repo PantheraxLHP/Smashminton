@@ -151,7 +151,7 @@ export class EmployeesController {
   @Delete()
   @ApiOperation({
     summary: 'Deactivate multiple employees',
-    description: 'Set status to Inactive for multiple employees by their account IDs'
+    description: 'Set status to Inactive for multiple employees by their account IDs and remove their fingerprints.'
   })
   @ApiBody({
     description: 'Array of employee account IDs to deactivate',

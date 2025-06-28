@@ -39,10 +39,7 @@ const handleUpdateShiftAssignment = async (
     onDataChanged?: () => void,
 ) => {
     const response = await updateShiftAssignment({
-        shiftdate:
-            shiftDataSingle.shiftdate instanceof Date
-                ? shiftDataSingle.shiftdate.toISOString()
-                : shiftDataSingle.shiftdate,
+        shiftdate: new Date(shiftDataSingle.shiftdate).toISOString(),
         shiftid: shiftDataSingle.shiftid,
         employeeid: shiftDataSingle.employeeid,
         assignmentstatus: assignmentstatus,
@@ -77,12 +74,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
             return;
         }
 
-        const shiftDateStr =
-            shiftDataSingle.shiftdate instanceof Date
-                ? shiftDataSingle.shiftdate.toISOString().split('T')[0]
-                : new Date(shiftDataSingle.shiftdate).toISOString().split('T')[0];
-
-        const response = await createShiftEnrollment(user.accountid, shiftDataSingle.shiftid, shiftDateStr);
+        const response = await createShiftEnrollment(user.accountid, shiftDataSingle.shiftid, new Date(shiftDataSingle.shiftdate).toISOString());
 
         if (response.ok) {
             toast.success('Đăng ký ca làm việc thành công');
@@ -98,12 +90,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
             return;
         }
 
-        const shiftDateStr =
-            shiftDataSingle.shiftdate instanceof Date
-                ? shiftDataSingle.shiftdate.toISOString().split('T')[0]
-                : new Date(shiftDataSingle.shiftdate).toISOString().split('T')[0];
-
-        const response = await deleteShiftEnrollment(user.accountid, shiftDataSingle.shiftid, shiftDateStr);
+        const response = await deleteShiftEnrollment(user.accountid, shiftDataSingle.shiftid, new Date(shiftDataSingle.shiftdate).toISOString());
 
         if (response.ok) {
             toast.success('Hủy đăng ký ca làm việc thành công');
@@ -211,9 +198,12 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                             }}
                         >
                             <Icon icon="lucide:user-round-x" />
-                            {(shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                            {role === 'wh_manager' && ((shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
                                 ? 'Đã xin nghỉ'
-                                : 'Xin nghỉ'}
+                                : 'Xin nghỉ')}
+                            {role === 'employee' && ((shiftDataSingle as ShiftAssignment).assignmentstatus === 'refused'
+                                ? 'Đã từ chối'
+                                : 'Từ chối')}
                         </Button>
                     </div>
                 )}

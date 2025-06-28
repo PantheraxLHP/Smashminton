@@ -8,6 +8,7 @@ import { Employee } from 'src/interfaces/employees.interface';
 import * as bcrypt from 'bcryptjs';
 import { NodemailerService } from '../nodemailer/nodemailer.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { MqttService } from 'src/mqtt/mqtt.service';
 
 @Injectable()
 export class EmployeesService {
@@ -15,6 +16,7 @@ export class EmployeesService {
 		private prisma: PrismaService,
 		private nodemailerService: NodemailerService,
 		private cloudinaryService: CloudinaryService,
+		private mqttService: MqttService,
 	) { }
 
 	async getAllEmployees(
@@ -310,15 +312,23 @@ export class EmployeesService {
 		return { updatedAccount, updatedEmployee };
 	}
 
-	remove(ids: number[]) {
-		return this.prisma.accounts.updateMany({
-			where: {
-				accountid: {
-					in: ids
-				}
-			},
-			data: { status: 'Inactive' }
-		});
+	async remove(ids: number[]) {
+		try {
+			for (const id of ids) {
+				await this.mqttService.handleDeleteFingerprint("esp01", id);
+			}
+
+			return await this.prisma.accounts.updateMany({
+				where: {
+					accountid: {
+						in: ids
+					}
+				},
+				data: { status: 'Inactive' }
+			});
+		} catch (error) {
+			throw error;
+		}
 	}
 
 	async addEmployee(addEmployeeDto: AddEmployeeDto) {

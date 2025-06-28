@@ -47,7 +47,7 @@ export class MqttController {
 
                     const hasPendingDeletion = await this.mqttService.handleEsp8266DeletionConfirmation(data.employeeID, true);
 
-                    if (!hasPendingDeletion) {
+                    if (!hasPendingDeletion && data.employeeID > 0) {
                         await this.mqttService.deleteEmployeeFingerprint(data.employeeID);
                     }
                 } else {

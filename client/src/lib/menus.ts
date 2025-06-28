@@ -34,7 +34,7 @@ export const menus = {
     ],
     wh_manager: [
         {
-            label: 'Phân công công việc',
+            label: 'Xem phân công công việc',
             link: '/assignments',
         },
         {

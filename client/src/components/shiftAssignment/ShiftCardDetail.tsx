@@ -166,7 +166,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
         drop: async (item: DragItem, monitor) => {
             if (item.type === EMPLOYEE_TYPE && item.employee.employeeid !== undefined) {
                 const response = await addAssignment({
-                    shiftdate: formatDateString(shiftDataSingle.shiftdate),
+                    shiftdate: new Date(shiftDataSingle.shiftdate).toISOString(),
                     shiftid: shiftDataSingle.shiftid,
                     employeeid: item.employee.employeeid,
                 });
@@ -185,7 +185,7 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
 
     const removeAssignment = async (employeeId: number) => {
         const response = await deleteAssignment({
-            shiftdate: formatDateString(shiftDataSingle.shiftdate),
+            shiftdate: new Date(shiftDataSingle.shiftdate).toISOString(),
             shiftid: shiftDataSingle.shiftid,
             employeeid: employeeId,
         });

@@ -549,61 +549,59 @@ export class ShiftDateService {
                 },
             });
 
-            const absenceRule = await this.prisma.penalty_rules.findFirst({
+            const absentRule = await this.prisma.penalty_rules.findFirst({
                 where: {
                     penaltyname: "Unauthorized absence"
                 },
             });
 
-            const absentRecords: any[] = [];
+            if (!absentRule || !absentRule.basepenalty || !absentRule.incrementalpenalty || !absentRule.maxiumpenalty) {
+                Logger.log("No absence rule found or not valid, skipping penalty record creation.");
+                return;
+            }
+
+            const basePenalty = Number(absentRule.basepenalty);
+            const incrementalPenalty = Number(absentRule.incrementalpenalty);
+            const maxPenalty = Number(absentRule.maxiumpenalty);
 
             for (const assignment of shiftAssignments) {
                 let finalPenaltyAmount: number | null = null;
-                if (absenceRule) {
-                    const currentMonthStart = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth(), 1);
-                    currentMonthStart.setHours(0, 0, 0, 0);
-                    const currentMonthEnd = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth() + 1, 0);
-                    currentMonthEnd.setHours(23, 59, 59, 999);
-                    const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
-                        where: {
-                            penaltyruleid: absenceRule.penaltyruleid,
-                            employeeid: assignment.employeeid,
-                            violationdate: {
-                                gte: currentMonthStart,
-                                lte: currentMonthEnd
-                            }
-                        },
-                    });
-                    if (absenceRule.basepenalty !== null && absenceRule.incrementalpenalty !== null && absenceRule.maxiumpenalty !== null) {
-                        const basePenalty = Number(absenceRule.basepenalty);
-                        const incrementalPenalty = Number(absenceRule.incrementalpenalty);
-                        const maxPenalty = Number(absenceRule.maxiumpenalty);
 
-                        if (currentMonthAbsenceCount > 1) {
-                            const tmp = basePenalty + incrementalPenalty * currentMonthAbsenceCount;
-                            if (tmp > maxPenalty) {
-                                finalPenaltyAmount = maxPenalty;
-                            } else {
-                                finalPenaltyAmount = tmp;
-                            }
-                        } else {
-                            finalPenaltyAmount = basePenalty;
+                const currentMonthStart = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth(), 1);
+                currentMonthStart.setHours(0, 0, 0, 0);
+                const currentMonthEnd = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth() + 1, 0);
+                currentMonthEnd.setHours(23, 59, 59, 999);
+                const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
+                    where: {
+                        penaltyruleid: absentRule.penaltyruleid,
+                        employeeid: assignment.employeeid,
+                        violationdate: {
+                            gte: currentMonthStart,
+                            lte: currentMonthEnd
                         }
-                    }
+                    },
+                });
 
-                    absentRecords.push({
-                        penaltyruleid: absenceRule.penaltyruleid,
+                if (currentMonthAbsenceCount > 1) {
+                    const tmp = basePenalty + incrementalPenalty * currentMonthAbsenceCount;
+                    if (tmp > maxPenalty) {
+                        finalPenaltyAmount = maxPenalty;
+                    } else {
+                        finalPenaltyAmount = tmp;
+                    }
+                } else {
+                    finalPenaltyAmount = basePenalty;
+                }
+
+                await this.prisma.penalty_records.create({
+                    data: {
+                        penaltyruleid: absentRule.penaltyruleid,
                         employeeid: assignment.employeeid,
                         violationdate: assignment.shiftdate,
                         finalpenaltyamount: finalPenaltyAmount
-                    })
-                }
+                    }
+                });
             }
-
-            await this.prisma.penalty_records.createMany({
-                data: absentRecords,
-            });
-
         } catch (error) {
             console.error("Error in dailyTimesheetCheck:", error);
             throw error;
