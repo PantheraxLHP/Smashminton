@@ -169,10 +169,10 @@ export class ZonesService {
                 data: { avgzonerating: avg },
             });
 
-            zone.avgzonerating = new Prisma.Decimal(avg);
+            // zone.avgzonerating = new Prisma.Decimal(avg);
         }
 
-        const getAllZones = this.prisma.zones.findMany({
+        const getAllZones = await this.prisma.zones.findMany({
             select: {
                 zoneid: true,
                 zonename: true,
