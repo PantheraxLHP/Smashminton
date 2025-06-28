@@ -12,7 +12,7 @@ export class ZonesService {
     constructor(
         private prisma: PrismaService,
         private cloudinaryService: CloudinaryService,
-    ) {}
+    ) { }
 
     async getZonesWithCourts(page: number = 1, limit: number = 12) {
         const now = new Date();
@@ -27,24 +27,6 @@ export class ZonesService {
             },
         });
 
-        // // Tính avgzonerating cho từng zone và update
-        // for (const zone of ) {
-        //   const validRatings = zone.courts
-        //     .map(c => c.avgrating)
-        //     .filter(r => r !== null && r !== undefined) as number[];
-
-        //   const avg = validRatings.length
-        //     ? Number((validRatings.reduce((a, b) => a + +b, 0) / validRatings.length).toFixed(1))
-        //     : 0;
-
-        //   await this.prisma.zones.update({
-        //     where: { zoneid: zone.zoneid },
-        //     data: { avgzonerating: avg },
-        //   });
-
-        //   zones.avgzonerating = avg;
-        // }
-
         for (const zone of findZones) {
             const ratings = zone.courts.map((court) => court.avgrating).filter((r) => r !== null && r !== undefined);
 
@@ -57,6 +39,8 @@ export class ZonesService {
                 where: { zoneid: zone.zoneid },
                 data: { avgzonerating: avg },
             });
+
+            zone.avgzonerating = new Prisma.Decimal(avg);
         }
 
         const zones = await findZones.map((zone) => ({
@@ -162,7 +146,32 @@ export class ZonesService {
         };
     }
 
-    findAll(): Promise<Zones[]> {
+    async findAll(): Promise<Zones[]> {
+        const findZones = await this.prisma.zones.findMany({
+            include: {
+                courts: true,
+            },
+            orderBy: {
+                zoneid: 'asc',
+            },
+        });
+
+        for (const zone of findZones) {
+            const ratings = zone.courts.map((court) => court.avgrating).filter((r) => r !== null && r !== undefined);
+
+            const avg =
+                ratings.length > 0
+                    ? Number((ratings.reduce((sum, r) => sum + Number(r), 0) / ratings.length).toFixed(1))
+                    : 0;
+
+            await this.prisma.zones.update({
+                where: { zoneid: zone.zoneid },
+                data: { avgzonerating: avg },
+            });
+
+            zone.avgzonerating = new Prisma.Decimal(avg);
+        }
+
         const getAllZones = this.prisma.zones.findMany({
             select: {
                 zoneid: true,

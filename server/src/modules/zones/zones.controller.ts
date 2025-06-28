@@ -73,6 +73,9 @@ export class ZonesController {
     }
 
     @Public()
+    @ApiOperation({
+        summary: 'find all zones',
+    })
     @Get()
     findAll() {
         return this.zonesService.findAll();
