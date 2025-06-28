@@ -131,6 +131,7 @@ export class PurchaseOrdersService {
       data: {
         stockquantity: realityQuantity,
         expirydate: realityExpiryDate,
+        statusbatch: 'available',
         updatedat: new Date(),
       },
     });
