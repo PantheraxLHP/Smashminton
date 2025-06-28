@@ -120,6 +120,7 @@ export class PurchaseOrdersService {
       data: {
         statusorder: 'delivered',
         deliverydate: new Date(),
+        quantity: realityQuantity,
         updatedat: new Date(),
       },
     });
