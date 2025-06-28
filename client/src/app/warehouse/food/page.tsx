@@ -149,15 +149,30 @@ export default function FoodAndBeveragePage() {
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
         {
             header: 'Tình trạng',
-            accessor: (item) => item.status || '',
+            accessor: (item) => {
+                switch (item.status) {
+                    case 'available':
+                        return 'Mới';
+                    case 'expiringsoon':
+                        return 'Sắp hết hạn';
+                    case 'expired':
+                        return 'Hết hạn';
+                    default:
+                        return '';
+                }
+            },
             align: 'center',
-            className: (item) =>
-                item.status === 'Sắp hết hạn'
-                    ? 'text-yellow-600'
-                    : item.status === 'Hết hạn'
-                        ? 'text-red-600'
-                        : 'text-primary-600',
-        },
+            className: (item) => {
+                switch (item.status) {
+                    case 'expiringsoon':
+                        return 'text-yellow-600';
+                    case 'expired':
+                        return 'text-red-600';
+                    default:
+                        return 'text-primary-600';
+                }
+            },
+        },        
         {
             header: 'Giảm giá',
             accessor: (item) => item.discount ? `${(item.discount).toFixed(0)}%` : '0',
