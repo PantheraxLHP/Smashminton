@@ -96,7 +96,7 @@ export class ProductBatchService {
 
       const Z = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 
-      console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
+      // console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
 
       let statusbatch = '';
       if (Z < 0) statusbatch = 'expired';
