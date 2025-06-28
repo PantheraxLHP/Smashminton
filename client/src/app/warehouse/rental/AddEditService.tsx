@@ -9,7 +9,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Service } from "./page";
 import { getRentalFilters } from "@/services/products.service";
 import { FaPen } from "react-icons/fa";
-import { serviceSchema } from "../price-management.schema";
+import { serviceSchema } from "../../price-management/price-management.schema";
 import { z } from "zod";
 import { createProducts, updateService } from "@/services/products.service";
 import { toast } from "sonner";

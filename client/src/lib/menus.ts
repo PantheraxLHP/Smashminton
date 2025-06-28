@@ -38,12 +38,8 @@ export const menus = {
             link: '/assignments',
         },
         {
-            label: 'Giá thuê sân, dịch vụ',
-            link: '/price-management',
-            subMenu: [
-                { label: 'Quản lý giá sân', link: '/price-management/court-price' },
-                { label: 'Quản lý giá dịch vụ', link: '/price-management/rental-price' },
-            ],
+            label: 'Quản lý giá sân',
+            link: '/price-management/court-price',
         },
         {
             label: 'Kho hàng',
@@ -52,6 +48,7 @@ export const menus = {
                 { label: 'Khu vực/Sân', link: '/warehouse/zone-court' },
                 { label: 'Đồ ăn thức uống', link: '/warehouse/food' },
                 { label: 'Phụ kiện cầu lông', link: '/warehouse/accessories' },
+                { label: 'Giày, vợt cho thuê', link: '/warehouse/rental' },
                 { label: 'Nhà cung cấp', link: '/warehouse/suppliers' },
                 { label: 'Đơn đặt hàng', link: '/warehouse/orders' },
             ],

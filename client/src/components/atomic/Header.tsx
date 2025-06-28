@@ -145,7 +145,11 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                     openMenu === item.label && (
                         <div key={index} className="hidden justify-center gap-50 bg-gray-100 p-2 shadow-md md:flex">
                             {item.subMenu.map((sub, i) => (
-                                <Link key={i} href={sub.link || '#'} className="hover:text-primary-600">
+                                <Link
+                                    key={i}
+                                    href={sub.link || '#'}
+                                    className={`hover:text-primary flex cursor-pointer items-center gap-1 ${pathname === sub.link ? 'text-primary' : ''}`}
+                                >
                                     {sub.label}
                                 </Link>
                             ))}
