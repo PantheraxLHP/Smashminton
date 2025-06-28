@@ -2970,7 +2970,7 @@ async function main() {
         }
     }
     // Update tất cả statusbatch thành 'Mới'
-    await prisma.product_batch.updateMany({ data: { statusbatch: 'Mới' } });
+    await prisma.product_batch.updateMany({ data: { statusbatch: 'available' } });
 
     await prisma.purchase_order.updateMany({
         data: {

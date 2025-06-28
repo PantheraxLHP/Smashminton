@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProductBatchDto } from './dto/create-product_batch.dto';
 import { UpdateProductBatchDto } from './dto/update-product_batch.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ProductBatchService {
@@ -90,8 +91,8 @@ export class ProductBatchService {
       let Y: number;
       if (X < 30) Y = Math.ceil(X * 0.2);
       else if (X < 180) Y = Math.ceil(X * 0.15);
-      else Y = Math.ceil(X * 0.1);
-      // else Y = Math.ceil(X);
+      else if (X < 365) Y = Math.ceil(X * 0.1);
+      else Y = Math.ceil(X* 0.05);
 
       const Z = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -121,5 +122,11 @@ export class ProductBatchService {
       totalUpdated: updatedResults.length,
       results: updatedResults,
     };
+  }
+
+  @Cron('0 0 * * *')
+  async handleBatchStatusUpdate() {
+    console.log('⏰ Running batch status update at 0h');
+    await this.updateAllBatchStatus();
   }
 }
