@@ -200,13 +200,11 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                             <div className="flex h-14 items-center justify-center border-b-2 border-gray-200 py-2 text-sm">
                                 <Button
                                     variant={employee.fingerprintid ? 'default' : 'outline_destructive'}
-                                    className={`w-full ${employee.fingerprintid ? 'cursor-default' : ''}`}
+                                    className={`w-full`}
                                     onClick={() => {
-                                        if (!employee.fingerprintid) {
-                                            router.push(
-                                                `/fingerprint?employeeid=${employee.employeeid}&fullname=${encodeURIComponent(employee.fullname || '')}`,
-                                            );
-                                        }
+                                        router.push(
+                                            `/fingerprint?employeeid=${employee.employeeid}&fullname=${encodeURIComponent(employee.fullname || '')}`,
+                                        );
                                     }}
                                 >
                                     {employee.fingerprintid ? 'Đã thêm' : 'Chưa thêm'}
