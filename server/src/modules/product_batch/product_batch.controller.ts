@@ -27,4 +27,11 @@ export class ProductBatchController {
     const { productid, quantity } = body;
     return this.productBatchService.decreaseStockQuantity(productid, quantity);
   }
+
+  @Patch('batch/update-all-status')
+  @ApiOperation({ summary: 'Quét toàn bộ batch và cập nhật statusbatch' })
+  updateAllBatchStatus() {
+    return this.productBatchService.updateAllBatchStatus();
+  }
+
 }

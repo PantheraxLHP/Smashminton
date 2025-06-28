@@ -30,7 +30,7 @@ export class PurchaseOrdersService {
         employeeid: dto.employeeid,
         supplierid: dto.supplierid,
         quantity: dto.quantity,
-        statusorder: 'Chờ giao hàng',
+        statusorder: 'pending',
         batchid: newBatch.batchid,
         deliverydate: null,
       },
