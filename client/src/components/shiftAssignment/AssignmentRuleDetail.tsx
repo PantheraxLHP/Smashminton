@@ -23,10 +23,12 @@ const AssignmentRuleDetail = ({
     AssignmentRule,
     ruleList,
     setRuleList,
+    setIsDialogOpen,
 }: {
     AssignmentRule?: AssignmentRule;
     ruleList: AssignmentRule[];
     setRuleList: (ruleList: AssignmentRule[]) => void;
+    setIsDialogOpen?: (open: boolean) => void;
 }) => {
     const getAvailableConditionsByType = (assignmentType: string) => {
         switch (assignmentType) {
@@ -145,7 +147,6 @@ const AssignmentRuleDetail = ({
             ),
         );
         setRuleActions(AssignmentRule?.actions || []);
-        setSelectedTab(tabs[0]);
     };
 
     const updateConditionValue = (index: number, newValue: string) => {
@@ -220,6 +221,41 @@ const AssignmentRuleDetail = ({
             toast.error(response.message || 'Lưu quy tắc thất bại');
         }
     };
+
+    const checkChanged = () => {
+        if (!AssignmentRule) {
+            for (const condition of ruleConditions) {
+                if (condition.conditionName && condition.conditionValue !== '') {
+                    return true;
+                }
+            }
+            for (const action of ruleActions) {
+                if (action.actionName && action.actionValue !== '') {
+                    return true;
+                }
+            }
+        }
+        else if (
+            ruleName !== AssignmentRule.ruleName ||
+            ruleDescription !== AssignmentRule.ruleDescription ||
+            ruleType !== AssignmentRule.ruleType ||
+            !ruleConditions.every(
+                (condition, index) =>
+                    condition.conditionName === AssignmentRule.conditions[index]?.conditionName &&
+                    condition.conditionValue === AssignmentRule.conditions[index]?.conditionValue,
+            ) ||
+            !ruleActions.every(
+                (action, index) =>
+                    action.actionName === AssignmentRule.actions[index]?.actionName &&
+                    action.actionValue === AssignmentRule.actions[index]?.actionValue,
+            )
+        ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
     return (
         <div className="flex h-[60vh] w-full flex-col">
             <div className="flex items-center">
@@ -526,11 +562,23 @@ const AssignmentRuleDetail = ({
                 )}
             </div>
             <div className="mt-4 flex w-full justify-end gap-2">
-                <Button variant="secondary" onClick={resetFormData}>
+                <Button variant="secondary" onClick={() => setIsDialogOpen?.(false)}>
                     <Icon icon="material-symbols:arrow-back-rounded" />
                     Quay về
                 </Button>
-                <Button onClick={saveRule}>Lưu</Button>
+                <Button
+                    variant="secondary"
+                    onClick={resetFormData}
+                    className={`${checkChanged() ? '' : 'hidden'}`}
+                >
+                    <Icon icon="bx:reset" />
+                    Hủy thay đổi
+                </Button>
+                <Button
+                    onClick={saveRule}
+                    disabled={!checkChanged()}
+                >
+                    Lưu thay đổi</Button>
             </div>
         </div>
     );

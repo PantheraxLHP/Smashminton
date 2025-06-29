@@ -63,6 +63,16 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     setPartTimeOption,
 }) => {
     const [ruleList, setRuleList] = useState<AssignmentRule[]>([]);
+    const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+    const [editDialogStates, setEditDialogStates] = useState<{ [key: string]: boolean }>({});
+
+    const openEditDialog = (ruleName: string) => {
+        setEditDialogStates(prev => ({ ...prev, [ruleName]: true }));
+    };
+
+    const closeEditDialog = (ruleName: string) => {
+        setEditDialogStates(prev => ({ ...prev, [ruleName]: false }));
+    };
 
     useEffect(() => {
         const fetchAutoAssignment = async () => {
@@ -92,7 +102,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     return (
         <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-end gap-4">
-                <Dialog>
+                <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline">
                             <Icon icon="ic:baseline-plus" className="" />
@@ -107,7 +117,11 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                             <DialogTitle>Thêm quy tắc phân công mới</DialogTitle>
                             <DialogDescription></DialogDescription>
                         </DialogHeader>
-                        <AssignmentRuleDetail ruleList={ruleList} setRuleList={setRuleList} />
+                        <AssignmentRuleDetail
+                            ruleList={ruleList}
+                            setRuleList={setRuleList}
+                            setIsDialogOpen={setIsNewDialogOpen}
+                        />
                     </DialogContent>
                 </Dialog>
                 <Button variant="outline">
@@ -138,7 +152,10 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                     {rule.ruleDescription}
                                 </div>
                                 <div className="flex h-full w-full flex-wrap items-center justify-center gap-2 border-b p-2">
-                                    <Dialog>
+                                    <Dialog
+                                        open={editDialogStates[rule.ruleName] || false}
+                                        onOpenChange={(open) => open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)}
+                                    >
                                         <DialogTrigger asChild>
                                             <Button variant="outline" className="group w-full">
                                                 <Icon
@@ -160,6 +177,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 AssignmentRule={rule}
                                                 ruleList={ruleList}
                                                 setRuleList={setRuleList}
+                                                setIsDialogOpen={(open) => open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)}
                                             />
                                         </DialogContent>
                                     </Dialog>

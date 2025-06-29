@@ -398,13 +398,13 @@ export class ExcelManipulationService {
                         break;
                     case 'employee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
-                        data.cols.splice(2, 0, ["-", "-"]);
+                        data.cols.splice(2, 0, "-", "-");
                         data.cols.push("");
                         data.cols.push("EmployeeRule");
                         break;
                     case 'enrollmentemployee':
                         ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
-                        data.cols.splice(2, 0, ["-", "-"]);
+                        data.cols.splice(2, 0, "-", "-");
                         data.cols.push("");
                         data.cols.push("EnrollmentEmployeeRule");
                         break;
