@@ -361,6 +361,11 @@ export class MqttService {
         return true;
     }
 
+    stringTimeToMinutes(timeString: string): number {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
     async getEmployeeAssignments(employeeID: number, shiftdate: Date) {
         try {
             const assignments = await this.prisma.shift_assignment.findMany({
@@ -373,7 +378,8 @@ export class MqttService {
                         include: {
                             shift: true
                         }
-                    }
+                    },
+                    timesheet: true
                 },
                 orderBy: {
                     shiftid: 'asc'
@@ -385,6 +391,20 @@ export class MqttService {
             this.logger.error(`❌ Failed to get assignments for employee ${employeeID} on ${shiftdate.toLocaleDateString("vi-VN")}:`, error);
             throw error;
         }
+    }
+
+    async getEmployeeNearAssignments(assignments: any[], scanTime: Date, timeBuffer: number = 30) {
+        let nearAssignment: any[] = [];
+        for (const assignment of assignments) {
+            const shiftStartMinutes = this.stringTimeToMinutes(assignment.shift_date?.shift?.shiftstarthour);
+            const shiftEndMinutes = this.stringTimeToMinutes(assignment.shift_date?.shift?.shiftendhour);
+            const scanTimeMinutes = scanTime.getHours() * 60 + scanTime.getMinutes();
+
+            if (scanTimeMinutes >= shiftStartMinutes - timeBuffer && scanTimeMinutes <= shiftEndMinutes + timeBuffer) {
+                nearAssignment.push(assignment);
+            }
+        }
+        return nearAssignment;
     }
 
     async addEmployeeLatePenaltyRecord(employeeID: number, lateTime: Date) {
@@ -575,36 +595,20 @@ export class MqttService {
             }
             // Trường hợp nhân viên là nhân viên bán thời gian
             else if (employee.employee_type?.toLowerCase() === "part-time") {
-                // Lấy tất cả các ca làm việc mà chưa có chấm công hoặc chấm công ra và sắp xếp theo shiftid
-                const availableAssignments = await this.prisma.shift_assignment.findMany({
-                    where: {
-                        employeeid: employee.employeeid,
-                        shiftdate: currentDate,
-                        OR: [
-                            { timesheet: { none: {} } },
-                            { timesheet: { some: { checkout_time: null } } }
-                        ]
-                    },
-                    include: {
-                        timesheet: true,
-                        shift_date: { include: { shift: true } }
-                    },
-                    orderBy: { shiftid: 'asc' }
-                });
-                // Trường hợp đã hoàn thành chấm công tất cả các ca làm việc trong ngày
-                if (availableAssignments.length === 0) {
-                    this.logger.warn(`⚠️  All shifts completed for part-time employee ${employee.employeeid} on ${scanTime.toLocaleDateString("vi-VN")}`);
+                const nearAssignment = await this.getEmployeeNearAssignments(assignments, scanTime);
+
+                if (nearAssignment.length === 0) {
+                    this.logger.warn(`⚠️  No current assignments found for employee ${employee.employeeid} to check in/out at this time (${scanTime.toLocaleTimeString("vi-VN")})`);
                     return {
                         success: false,
-                        error: `All shifts for today are already completed`,
+                        error: `No current shift assignments found to check in/out at this time`,
                         action: 'none',
-                        employeeId: employee.employeeid,
-                        employeeName: employee.accounts?.fullname || 'Unknown'
+                        employeeId: employee.employeeid
                     };
                 }
 
                 // Lấy ca làm việc đầu tiên trong danh sách có thể chấm công
-                const nextAssignment = availableAssignments[0];
+                const nextAssignment = nearAssignment[0];
                 const existingTimesheet = nextAssignment.timesheet?.[0];
 
                 if (!existingTimesheet) {
@@ -621,7 +625,7 @@ export class MqttService {
                             employeeid: nextAssignment.employeeid,
                             shiftid: nextAssignment.shiftid,
                             shiftdate: nextAssignment.shiftdate,
-                            checkin_time: scanTime
+                            checkin_time: scanTime,
                         }
                     });
                     this.logger.log(`🟢 Check-in recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
@@ -646,7 +650,8 @@ export class MqttService {
                             }
                         },
                         data: {
-                            checkout_time: scanTime
+                            checkout_time: scanTime,
+                            updatedat: new Date()
                         }
                     });
 
@@ -659,6 +664,18 @@ export class MqttService {
                         shiftId: nextAssignment.shiftid,
                         time: scanTime,
                         message: `Check-out successful for Shift ${nextAssignment.shiftid}`
+                    };
+                } else {
+                    // Trường hợp đã có bảng chấm công và đã check-out, thông báo và không cập nhật lại
+                    this.logger.warn(`⚠️  Part-time employee ${employee.employeeid} has already completed attendance for to day current shift (Shift ${nextAssignment.shiftid})`);
+                    return {
+                        success: false,
+                        error: `Already checked out for today (Shift ${nextAssignment.shiftid})`,
+                        action: 'none',
+                        employeeId: employee.employeeid,
+                        employeeName: employee.accounts?.fullname || 'Unknown',
+                        checkInTime: existingTimesheet.checkin_time,
+                        checkOutTime: existingTimesheet.checkout_time
                     };
                 }
             }
