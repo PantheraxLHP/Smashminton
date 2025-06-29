@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssignmentRule, RuleCondition, RuleAction } from './AssignmentRuleList';
-import { formatConditionName, formatConditionValue, formatActionName } from './utils';
+import {
+    formatConditionName,
+    formatConditionValue,
+    formatActionName,
+    getFalseActionValue,
+    getTrueActionValue,
+} from './utils';
 import { updateAutoAssignment } from '@/services/shiftdate.service';
 import { toast } from 'sonner';
 
@@ -63,6 +69,33 @@ const AssignmentRuleDetail = ({
         }
     };
 
+    const getAvailableActionsByType = (assignmentType: string) => {
+        switch (assignmentType) {
+            case 'employee':
+                return [
+                    { actionName: 'setEligible', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'enrollmentEmployee':
+                return [
+                    { actionName: 'setEligible', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'shift':
+                return [
+                    { actionName: 'setAssignable', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'enrollmentShift':
+                return [
+                    { actionName: 'setAssignable', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            default:
+                return [{ actionName: '', defaultValue: '' }];
+        }
+    };
+
     // Function to initialize conditions with all available conditions for the rule type
     const initializeConditionsForRuleType = (
         ruleType: string,
@@ -108,6 +141,45 @@ const AssignmentRuleDetail = ({
         });
     };
 
+    const initializeActionsForRuleType = (
+        ruleType: string,
+        existingActions?: RuleAction[],
+        isNewRule: boolean = false,
+    ) => {
+        const availableActions = getAvailableActionsByType(ruleType);
+        const existingActionsMap = new Map<string, RuleAction>();
+
+        existingActions?.forEach((action) => {
+            if (action.actionName) {
+                existingActionsMap.set(action.actionName, action);
+            }
+        });
+
+        return availableActions.map((availableAction) => {
+            const existingAction = existingActionsMap.get(availableAction.actionName);
+            if (existingAction) {
+                return {
+                    actionName: existingAction.actionName,
+                    actionValue: existingAction.actionValue,
+                };
+            } else {
+                if (isNewRule) {
+                    return {
+                        actionName: availableAction.actionName,
+                        actionValue: availableAction.defaultValue,
+                    };
+                } else {
+                    return {
+                        actionName: '',
+                        actionValue: '',
+                        _availableActionName: availableAction.actionName,
+                        _defaultValue: availableAction.defaultValue,
+                    };
+                }
+            }
+        });
+    };
+
     const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -122,18 +194,31 @@ const AssignmentRuleDetail = ({
             !AssignmentRule,
         ),
     );
-    const [ruleActions, setRuleActions] = useState<RuleAction[]>(AssignmentRule?.actions || []);
+    const [ruleActions, setRuleActions] = useState<RuleAction[]>(
+        initializeActionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.actions, !AssignmentRule),
+    );
 
     // Reset conditions when assignment type changes
     useEffect(() => {
         if (!AssignmentRule) {
             // Only reset for new rules, not when editing existing rules
             setRuleConditions(initializeConditionsForRuleType(ruleType, undefined, true));
+            setRuleActions(initializeActionsForRuleType(ruleType, undefined, true));
         } else {
-            // For existing rules, reinitialize with the new rule type but keep existing data
-            setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions, false));
+            // Check if rule type has changed from the original
+            const ruleTypeChanged = ruleType !== AssignmentRule.ruleType;
+
+            if (ruleTypeChanged) {
+                // If rule type changed during editing, reset with default conditions for new type
+                setRuleConditions(initializeConditionsForRuleType(ruleType, undefined, true));
+                setRuleActions(initializeActionsForRuleType(ruleType, undefined, true));
+            } else {
+                // For existing rules with same type, reinitialize with existing data
+                setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions, false));
+                setRuleActions(initializeActionsForRuleType(ruleType, AssignmentRule.actions, false));
+            }
         }
-    }, [ruleType, AssignmentRule]);
+    }, [ruleType, setRuleType, setRuleConditions, AssignmentRule]);
 
     const resetFormData = () => {
         setRuleName(AssignmentRule?.ruleName || '');
@@ -146,7 +231,13 @@ const AssignmentRuleDetail = ({
                 !AssignmentRule,
             ),
         );
-        setRuleActions(AssignmentRule?.actions || []);
+        setRuleActions(
+            initializeActionsForRuleType(
+                AssignmentRule?.ruleType || 'employee',
+                AssignmentRule?.actions,
+                !AssignmentRule,
+            ),
+        );
     };
 
     const updateConditionValue = (index: number, newValue: string) => {
@@ -234,8 +325,7 @@ const AssignmentRuleDetail = ({
                     return true;
                 }
             }
-        }
-        else if (
+        } else if (
             ruleName !== AssignmentRule.ruleName ||
             ruleDescription !== AssignmentRule.ruleDescription ||
             ruleType !== AssignmentRule.ruleType ||
@@ -251,11 +341,10 @@ const AssignmentRuleDetail = ({
             )
         ) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
-    }
+    };
     return (
         <div className="flex h-[60vh] w-full flex-col">
             <div className="flex items-center">
@@ -536,7 +625,11 @@ const AssignmentRuleDetail = ({
                                         </div>
                                         <div className="w-full p-2">
                                             <Select
-                                                value={ruleActions[0].actionValue || 'true'}
+                                                value={
+                                                    ruleActions[0].actionValue === getTrueActionValue(ruleType)
+                                                        ? getTrueActionValue(ruleType)
+                                                        : getFalseActionValue(ruleType)
+                                                }
                                                 onValueChange={(value) =>
                                                     updateActionValue(ruleActions[0].actionName, value)
                                                 }
@@ -545,15 +638,37 @@ const AssignmentRuleDetail = ({
                                                     <SelectValue placeholder={'Giá trị'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={'setAssignable(true)'}>{'Có'}</SelectItem>
-                                                    <SelectItem value={'setAssignable(false)'}>{'Không'}</SelectItem>
+                                                    <SelectItem value={getTrueActionValue(ruleType)}>{'Có'}</SelectItem>
+                                                    <SelectItem value={getFalseActionValue(ruleType)}>
+                                                        {'Không'}
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex w-full items-center">
-                                        <div className="w-full p-2">Chưa có hành động nào</div>
+                                    <div className="flex h-full w-full items-center border-b">
+                                        <div className="w-full p-2 text-sm">{formatActionName('setAssignable')}</div>
+                                        <div className="w-full p-2">
+                                            <Select
+                                                value={getTrueActionValue(ruleType)}
+                                                onValueChange={(value) =>
+                                                    setRuleActions([
+                                                        { actionName: 'setAssignable', actionValue: value },
+                                                    ])
+                                                }
+                                            >
+                                                <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                    <SelectValue placeholder={'Chưa chọn'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value={getTrueActionValue(ruleType)}>{'Có'}</SelectItem>
+                                                    <SelectItem value={getFalseActionValue(ruleType)}>
+                                                        {'Không'}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -566,19 +681,13 @@ const AssignmentRuleDetail = ({
                     <Icon icon="material-symbols:arrow-back-rounded" />
                     Quay về
                 </Button>
-                <Button
-                    variant="secondary"
-                    onClick={resetFormData}
-                    className={`${checkChanged() ? '' : 'hidden'}`}
-                >
+                <Button variant="secondary" onClick={resetFormData} className={`${checkChanged() ? '' : 'hidden'}`}>
                     <Icon icon="bx:reset" />
                     Hủy thay đổi
                 </Button>
-                <Button
-                    onClick={saveRule}
-                    disabled={!checkChanged()}
-                >
-                    Lưu thay đổi</Button>
+                <Button onClick={saveRule} disabled={!checkChanged()}>
+                    Lưu thay đổi
+                </Button>
             </div>
         </div>
     );
