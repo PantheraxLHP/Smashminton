@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { useState, Fragment, useEffect } from 'react';
 import AssignmentRuleDetail from './AssignmentRuleDetail';
-import { getAutoAssignment, updateAutoAssignment } from '@/services/shiftdate.service';
+import { exportAutoAssignmentFile, getAutoAssignment, updateAutoAssignment } from '@/services/shiftdate.service';
 import { toast } from 'sonner';
 
 export interface RuleCondition {
@@ -67,11 +67,11 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     const [editDialogStates, setEditDialogStates] = useState<{ [key: string]: boolean }>({});
 
     const openEditDialog = (ruleName: string) => {
-        setEditDialogStates(prev => ({ ...prev, [ruleName]: true }));
+        setEditDialogStates((prev) => ({ ...prev, [ruleName]: true }));
     };
 
     const closeEditDialog = (ruleName: string) => {
-        setEditDialogStates(prev => ({ ...prev, [ruleName]: false }));
+        setEditDialogStates((prev) => ({ ...prev, [ruleName]: false }));
     };
 
     useEffect(() => {
@@ -99,6 +99,27 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
             toast.error(response.message || 'Xóa quy tắc thất bại');
         }
     };
+
+    const handleExportExcel = async () => {
+        const res = await exportAutoAssignmentFile();
+        if (res.ok) {
+            // Create a temporary link and trigger download
+            const link = document.createElement('a');
+            link.href = res.data.url;
+            link.download = 'drools_decisiontable.drl.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the URL object
+            window.URL.revokeObjectURL(res.data.url);
+
+            toast.success('File đã được tải xuống thành công');
+        } else {
+            toast.error(res.message || 'Không thể xuất file phân công');
+        }
+    };
+
     return (
         <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-end gap-4">
@@ -124,7 +145,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                         />
                     </DialogContent>
                 </Dialog>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExportExcel}>
                     <Icon icon="vscode-icons:file-type-excel2" className="" />
                     {'Xuất file Excel (.drl.xlsx)'}
                 </Button>
@@ -154,7 +175,9 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                 <div className="flex h-full w-full flex-wrap items-center justify-center gap-2 border-b p-2">
                                     <Dialog
                                         open={editDialogStates[rule.ruleName] || false}
-                                        onOpenChange={(open) => open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)}
+                                        onOpenChange={(open) =>
+                                            open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)
+                                        }
                                     >
                                         <DialogTrigger asChild>
                                             <Button variant="outline" className="group w-full">
@@ -177,7 +200,11 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                                                 AssignmentRule={rule}
                                                 ruleList={ruleList}
                                                 setRuleList={setRuleList}
-                                                setIsDialogOpen={(open) => open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)}
+                                                setIsDialogOpen={(open) =>
+                                                    open
+                                                        ? openEditDialog(rule.ruleName)
+                                                        : closeEditDialog(rule.ruleName)
+                                                }
                                             />
                                         </DialogContent>
                                     </Dialog>

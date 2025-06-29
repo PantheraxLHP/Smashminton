@@ -284,3 +284,24 @@ export const updateAutoAssignment = async (ruleList: AssignmentRule[]) => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật quy tắc phân công');
     }
 };
+
+export const exportAutoAssignmentFile = async () => {
+    try {
+        const response = await fetch('/api/download', {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            return ServiceResponse.error('Không thể xuất file phân công');
+        }
+
+        // Get the file blob and create a download URL
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        return ServiceResponse.success({ url, blob });
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể xuất file phân công');
+    }
+};
