@@ -508,6 +508,7 @@ async function main() {
     const currentDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - currentDay);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     const shifts = await prisma.shift.findMany({});
 

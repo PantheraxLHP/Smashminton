@@ -32,8 +32,6 @@ export class AutoAssignmentService {
                 };
             }
 
-            console.log("Part-time shifts assigned successfully");
-
             const responseData = await response.json();
             return {
                 message: "Auto assignment for part-time shifts completed successfully.",
@@ -347,8 +345,8 @@ export class AutoAssignmentService {
             let count = 0;
             for (const shift of morningShifts) {
                 let assignmentCount = 0;
-                while (assignmentCount < maxEmpPerShift) {
-                    if (count < 5) {
+                while (assignmentCount < maxEmpPerShift && count < morningShifts.length) {
+                    if (count < 5 && morningEmployees.length > 0) {
                         for (const [empId, _] of morningEmployees) {
                             assignments.push({
                                 employeeid: empId,
@@ -361,7 +359,7 @@ export class AutoAssignmentService {
                                 break;
                         }
                     }
-                    else {
+                    else if (count >= 5 && mixEmployees.length > 0) {
                         for (const [empId, _] of mixEmployees) {
                             assignments.push({
                                 employeeid: empId,
@@ -378,13 +376,12 @@ export class AutoAssignmentService {
                 }
             }
 
-
             // Phân công ca chiều cho nhân viên Evening và Mix
             count = 0;
             for (const shift of eveningShifts) {
                 let assignmentCount = 0;
-                while (assignmentCount < maxEmpPerShift) {
-                    if (count < 5) {
+                while (assignmentCount < maxEmpPerShift && count < eveningShifts.length) {
+                    if (count < 5 && eveningEmployees.length > 0) {
                         for (const [empId, _] of eveningEmployees) {
                             assignments.push({
                                 employeeid: empId,
@@ -397,7 +394,7 @@ export class AutoAssignmentService {
                                 break;
                         }
                     }
-                    else {
+                    else if (count >= 5 && mixEmployees.length > 0) {
                         for (const [empId, _] of mixEmployees) {
                             assignments.push({
                                 employeeid: empId,
@@ -412,7 +409,10 @@ export class AutoAssignmentService {
                     }
                     count++;
                 }
-            } if (assignments.length === 0) {
+            } 
+
+            
+            if (assignments.length === 0) {
                 throw new Error("No assignments for the next week, check last week shift type, something went wrong.");
             }
 
