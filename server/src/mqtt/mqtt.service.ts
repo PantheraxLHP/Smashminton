@@ -400,8 +400,25 @@ export class MqttService {
             const shiftEndMinutes = this.stringTimeToMinutes(assignment.shift_date?.shift?.shiftendhour);
             const scanTimeMinutes = scanTime.getHours() * 60 + scanTime.getMinutes();
 
-            if (scanTimeMinutes >= shiftStartMinutes - timeBuffer && scanTimeMinutes <= shiftEndMinutes + timeBuffer) {
+            // Trong khoảng thời gian có thể check-in/check-out
+            const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - timeBuffer &&
+                scanTimeMinutes <= shiftEndMinutes + timeBuffer;
+
+            if (!isWithinTimeBuffer) {
+                continue;
+            }
+
+            const hasNoTimesheet = !assignment.timesheet?.length;
+
+            if (hasNoTimesheet) {
                 nearAssignment.push(assignment);
+            } else if (assignment.timesheet.length > 0) {
+                const timesheet = assignment.timesheet[0];
+                if (!timesheet.checkin_time) {
+                    nearAssignment.push(assignment);
+                } else if (timesheet.checkin_time && !timesheet.checkout_time) {
+                    nearAssignment.push(assignment);
+                }
             }
         }
         return nearAssignment;
@@ -434,15 +451,16 @@ export class MqttService {
                 const incrementalPenalty = Number(lateRule.incrementalpenalty);
                 const maxPenalty = Number(lateRule.maxiumpenalty);
 
-                if (currentMonthLateCount > 1) {
-                    const tmp = basePenalty + incrementalPenalty * currentMonthLateCount;
-                    if (tmp > maxPenalty) {
-                        finalPenaltyAmount = maxPenalty;
-                    } else {
-                        finalPenaltyAmount = tmp;
-                    }
-                } else {
+                // + 1 Cho lần vi phạm hiện tại
+                const totalLateCount = currentMonthLateCount + 1;
+
+                if (totalLateCount === 1) {
                     finalPenaltyAmount = basePenalty;
+                } else {
+                    // - 1 để bớt đi lần tính base penalty
+                    const tmp = basePenalty + incrementalPenalty * (totalLateCount - 1);
+                    // Giới hạn không vượt quá max penalty
+                    finalPenaltyAmount = tmp > maxPenalty ? maxPenalty : tmp;
                 }
 
                 await this.prisma.penalty_records.create({
@@ -536,14 +554,23 @@ export class MqttService {
                     }
 
                     // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
-                    await this.prisma.timesheet.create({
-                        data: {
+                    await this.prisma.timesheet.upsert({
+                        where: {
+                            employeeid_shiftid_shiftdate: {
+                                employeeid: assignment.employeeid,
+                                shiftid: assignment.shiftid,
+                                shiftdate: assignment.shiftdate,
+                            }
+                        },
+                        update: {},
+                        create: {
                             employeeid: assignment.employeeid,
                             shiftid: assignment.shiftid,
                             shiftdate: assignment.shiftdate,
                             checkin_time: scanTime
                         }
                     });
+
                     this.logger.log(`🟢 Check-in recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
                     return {
                         success: true,
@@ -569,6 +596,7 @@ export class MqttService {
                             checkout_time: scanTime
                         }
                     });
+
                     this.logger.log(`🔵 Check-out recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
                     return {
                         success: true,
@@ -579,19 +607,7 @@ export class MqttService {
                         time: scanTime,
                         message: `Check-out successful`
                     };
-                } else {
-                    // Trường hợp đã có bảng chấm công và đã check-out, thông báo và không cập nhật lại
-                    this.logger.warn(`⚠️  Full-time employee ${employee.employeeid} has already completed attendance for today`);
-                    return {
-                        success: false,
-                        error: `Already checked out for today`,
-                        action: 'none',
-                        employeeId: employee.employeeid,
-                        employeeName: employee.accounts?.fullname || 'Unknown',
-                        checkInTime: existingTimesheet.checkin_time,
-                        checkOutTime: existingTimesheet.checkout_time
-                    };
-                }
+                } 
             }
             // Trường hợp nhân viên là nhân viên bán thời gian
             else if (employee.employee_type?.toLowerCase() === "part-time") {
@@ -620,14 +636,23 @@ export class MqttService {
                     }
 
                     // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
-                    await this.prisma.timesheet.create({
-                        data: {
+                    await this.prisma.timesheet.upsert({
+                        where: {
+                            employeeid_shiftid_shiftdate: {
+                                employeeid: nextAssignment.employeeid,
+                                shiftid: nextAssignment.shiftid,
+                                shiftdate: nextAssignment.shiftdate,
+                            }
+                        },
+                        update: {},
+                        create: {
                             employeeid: nextAssignment.employeeid,
                             shiftid: nextAssignment.shiftid,
                             shiftdate: nextAssignment.shiftdate,
-                            checkin_time: scanTime,
+                            checkin_time: scanTime
                         }
                     });
+
                     this.logger.log(`🟢 Check-in recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
                     return {
                         success: true,
