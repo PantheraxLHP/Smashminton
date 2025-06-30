@@ -372,7 +372,6 @@ model product_attributes {
   productfiltervalueid  Int
   product_filter_values product_filter_values @relation(fields: [productfiltervalueid], references: [productfiltervalueid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_productfiltervalues")
   products              products              @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_products")
-
   @@id([productid, productfiltervalueid], map: "pk_productattributes")
 }
 

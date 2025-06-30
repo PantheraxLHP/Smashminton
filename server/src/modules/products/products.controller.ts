@@ -18,7 +18,7 @@ export class ProductsController {
     ) { }
 
     @Post('new-product')
-    @ApiOperation({ summary: 'Create new product with productfiltervalueid' })
+    @ApiOperation({ summary: 'Create new product with value + productfilterid' })
     @UseInterceptors(
         FileInterceptor('productimgurl', {
             limits: {
@@ -43,11 +43,12 @@ export class ProductsController {
     })
     async create(
         @Body() createProductDto: CreateProductDto,
-        @Query('productfiltervalueid') productfiltervalueid: string,
+        @Query('value') _value: string,
+        @Query('productfilterid') productfilterid: string,
         @UploadedFile() file: Express.Multer.File
     ) {
-        const _productfiltervalueid = +productfiltervalueid; // Ép kiểu number
-        return this.productsService.create(createProductDto, file, _productfiltervalueid);
+        const _productfilterid = +productfilterid; // Ép kiểu number
+        return this.productsService.create(createProductDto, file, _value, _productfilterid);
     }
 
     @Get('all-products')

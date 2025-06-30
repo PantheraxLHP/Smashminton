@@ -18,8 +18,8 @@ export class ProductsService {
     }
 
     // CRUD operations
-    async create(createProductDto: CreateProductDto, file: Express.Multer.File, productfiltervalueid: number) {
-        let imageUrl = '';
+    async create(createProductDto: CreateProductDto, file: Express.Multer.File, value: string, productfilterid: number) {
+        let imageUrl = createProductDto.productimgurl || '';
 
         if (file) {
             // If files are provided, upload them to Cloudinary
@@ -30,18 +30,35 @@ export class ProductsService {
             }
         }
 
-        createProductDto.productimgurl = imageUrl;
+        // createProductDto.productimgurl = imageUrl;
 
         const newProduct = await this.prisma.products.create({
             data: {
-                ...createProductDto
+                ...createProductDto,
+                productimgurl: imageUrl,
             },
         });
+
+        let filterValue = await this.prisma.product_filter_values.findFirst({
+            where: {
+                value: value,
+                // productfilterid: productfilterid,
+            },
+        });
+
+        if (!filterValue) {
+            filterValue = await this.prisma.product_filter_values.create({
+                data: {
+                    value: value,
+                    productfilterid: productfilterid,
+                },
+            });
+        }
 
         await this.prisma.product_attributes.create({
             data: {
                 productid: newProduct.productid,
-                productfiltervalueid: productfiltervalueid,
+                productfiltervalueid: filterValue.productfiltervalueid,
             },
         });
 
@@ -127,7 +144,7 @@ export class ProductsService {
 
     findOneForCache(id: number) {
         return this.prisma.products.findUnique({
-            where: { productid: id , isdeleted: false },
+            where: { productid: id, isdeleted: false },
             select: {
                 productid: true,
                 productname: true,
