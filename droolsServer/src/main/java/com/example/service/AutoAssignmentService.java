@@ -296,21 +296,36 @@ public class AutoAssignmentService {
                 break;
             }
 
-            // Set current shift context
-            if (assignableShifts.getSize() > 0) {
+            if (assignableShifts.getSize() <= 0) {
+                System.out.println("Breaking from enrollment loop - no assignable shifts");
+                break;
+            }
+
+            int iter = 0;
+            do {
+                // Set current shift context
                 synchronized (assignableShifts) {
-                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(0));
+                    autoAssignmentContext.setCurrentShift(assignableShifts.getShifts().get(iter));
                 }
                 FactHandle contextHandle = kieSession.getFactHandle(autoAssignmentContext);
                 kieSession.update(contextHandle, autoAssignmentContext);
-            }
 
-            // Execute EnrollmentEmployeeRule
-            kieSession.getAgenda().getAgendaGroup("EnrollmentEmployeeRule").setFocus();
-            kieSession.fireAllRules();
+                // Execute EmployeeRule
+                kieSession.getAgenda().getAgendaGroup("EnrollmentEmployeeRule").setFocus();
+                kieSession.fireAllRules();
 
-            // Update eligible employees
-            updateEligibleEmployees(kieSession, employees, eligibleEmployees, shiftEnrollments);
+                // Update eligible employees
+                updateEligibleEmployees(kieSession, employees, eligibleEmployees, shiftEnrollments);
+
+                if (eligibleEmployees.getSize() > 0) {
+                    System.out.println(
+                            "Found at least one assignable enrollment shift with eligible employees to be assigned"
+                                    + " at " + autoAssignmentContext.getCurrentShift());
+                    break;
+                }
+
+                iter++;
+            } while (iter < assignableShifts.getSize());
 
             if (eligibleEmployees.getSize() <= 0) {
                 System.out.println("Breaking from enrollment loop - no eligible employees");
@@ -405,7 +420,7 @@ public class AutoAssignmentService {
 
                 if (eligibleEmployees.getSize() > 0) {
                     System.out.println(
-                            "Found at least one remaining assignable shift with eligible employees to be assigned"
+                            "Found at least one assignable remaining shift with eligible employees to be assigned"
                                     + " at " + autoAssignmentContext.getCurrentShift());
                     break;
                 }

@@ -32,8 +32,6 @@ export class AutoAssignmentService {
                 };
             }
 
-            console.log("Part-time shifts assigned successfully");
-
             const responseData = await response.json();
             return {
                 message: "Auto assignment for part-time shifts completed successfully.",
@@ -68,13 +66,16 @@ export class AutoAssignmentService {
                 },
             });
 
+            if (fullTimeEmployees.length === 0) {
+                throw new Error("No full-time employees found");
+            }
+
             const nextWeekStart = new Date();
             const currentDay = nextWeekStart.getDay();
             const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
             nextWeekStart.setDate(nextWeekStart.getDate() + dayToMonday);
             nextWeekStart.setHours(0, 0, 0, 0);
-
-            const nextWeekEnd = new Date();
+            const nextWeekEnd = new Date(nextWeekStart);
             nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
             nextWeekEnd.setHours(23, 59, 59, 999);
 
@@ -132,10 +133,6 @@ export class AutoAssignmentService {
                 ],
             });
 
-            if (fullTimeEmployees.length === 0) {
-                throw new Error("No full-time employees found");
-            }
-
             if (nextWeekShifts.length === 0) {
                 throw new Error("No shifts to be assigned for the next week");
             }
@@ -175,10 +172,10 @@ export class AutoAssignmentService {
 
     async assignSameShift(nextWeekStart) {
         const assignments: any[] = [];
-        const currentWeekStart = new Date();
+        const currentWeekStart = new Date(nextWeekStart);
         currentWeekStart.setDate(nextWeekStart.getDate() - 7);
         currentWeekStart.setHours(0, 0, 0, 0);
-        const currentWeekEnd = new Date();
+        const currentWeekEnd = new Date(nextWeekStart);
         currentWeekEnd.setDate(nextWeekStart.getDate() - 1);
         currentWeekEnd.setHours(23, 59, 59, 999);
         try {
@@ -207,13 +204,13 @@ export class AutoAssignmentService {
 
             // Phân công ca làm việc cho tuần tới dựa trên ca làm việc của tuần trước
             for (const assignment of currentWeekAssignments) {
-                const nextWeekShiftDate = new Date();
+                const nextWeekShiftDate = new Date(assignment.shiftdate);
                 nextWeekShiftDate.setDate(assignment.shiftdate.getDate() + 7);
                 assignments.push({
                     employeeid: assignment.employeeid,
                     shiftid: assignment.shiftid,
                     shiftdate: nextWeekShiftDate,
-                    assignmentstatus: "confirmed",
+                    assignmentstatus: "approved",
                 })
             }
 
@@ -228,7 +225,7 @@ export class AutoAssignmentService {
 
         } catch (error) {
             console.error("Error in assignSameShift:", error);
-            throw error; // Re-throw to be caught by the calling function
+            throw error;
         }
     }
 
@@ -275,7 +272,7 @@ export class AutoAssignmentService {
                             employeeid: employee.employeeid,
                             shiftid: shift.shiftid,
                             shiftdate: shift.shiftdate,
-                            assignmentstatus: "confirmed",
+                            assignmentstatus: "approved",
                         });
                         assignedShifts.set(employee.employeeid, (assignedShifts.get(employee.employeeid) || 0) + 1);
                         count++;
@@ -348,27 +345,27 @@ export class AutoAssignmentService {
             let count = 0;
             for (const shift of morningShifts) {
                 let assignmentCount = 0;
-                while (assignmentCount < maxEmpPerShift) {
-                    if (count < 5) {
+                while (assignmentCount < maxEmpPerShift && count < morningShifts.length) {
+                    if (count < 5 && morningEmployees.length > 0) {
                         for (const [empId, _] of morningEmployees) {
                             assignments.push({
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
-                                assignmentstatus: "confirmed",
+                                assignmentstatus: "approved",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
                                 break;
                         }
                     }
-                    else {
+                    else if (count >= 5 && mixEmployees.length > 0) {
                         for (const [empId, _] of mixEmployees) {
                             assignments.push({
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
-                                assignmentstatus: "confirmed",
+                                assignmentstatus: "approved",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -379,32 +376,31 @@ export class AutoAssignmentService {
                 }
             }
 
-
             // Phân công ca chiều cho nhân viên Evening và Mix
             count = 0;
             for (const shift of eveningShifts) {
                 let assignmentCount = 0;
-                while (assignmentCount < maxEmpPerShift) {
-                    if (count < 5) {
+                while (assignmentCount < maxEmpPerShift && count < eveningShifts.length) {
+                    if (count < 5 && eveningEmployees.length > 0) {
                         for (const [empId, _] of eveningEmployees) {
                             assignments.push({
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
-                                assignmentstatus: "confirmed",
+                                assignmentstatus: "approved",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
                                 break;
                         }
                     }
-                    else {
+                    else if (count >= 5 && mixEmployees.length > 0) {
                         for (const [empId, _] of mixEmployees) {
                             assignments.push({
                                 employeeid: empId,
                                 shiftid: shift.shiftid,
                                 shiftdate: shift.shiftdate,
-                                assignmentstatus: "confirmed",
+                                assignmentstatus: "approved",
                             });
                             assignmentCount++;
                             if (assignmentCount >= maxEmpPerShift)
@@ -413,7 +409,10 @@ export class AutoAssignmentService {
                     }
                     count++;
                 }
-            } if (assignments.length === 0) {
+            } 
+
+            
+            if (assignments.length === 0) {
                 throw new Error("No assignments for the next week, check last week shift type, something went wrong.");
             }
 
