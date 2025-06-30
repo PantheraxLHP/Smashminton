@@ -1,14 +1,16 @@
+// Updated AccessoryPage with dynamic product_filter_values integration
 'use client';
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AccessoryModal from './AddAccessories';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { getProducts3, deleteProduct } from '@/services/products.service';
+import { getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { toast } from 'sonner';
+import { ProductTypes } from '@/types/types';
 
 export interface Accessory {
     id: number;
@@ -23,10 +25,6 @@ export interface Accessory {
     discount?: number;
 }
 
-const getUniqueOptions = (data: Accessory[], key: keyof Accessory) => {
-    return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
-};
-
 export default function AccessoryPage() {
     const [data, setData] = useState<Accessory[]>([]);
     const [filteredData, setFilteredData] = useState<Accessory[]>([]);
@@ -37,24 +35,19 @@ export default function AccessoryPage() {
     const [page, setPage] = useState(1);
     const [pageSize] = useState(12);
     const [totalPages, setTotalPages] = useState(1);
-    const [filtervalueid] = useState<number[]>([]);
+    const [filtervalueid, setFiltervalueid] = useState<number[]>([]);
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
-        category: [],
+        productFilterValues: [],
         price: [0, 1500000],
     });
+    const [filtersConfig, setFiltersConfig] = useState<FilterConfig[]>([]);
 
     const fetchData = async () => {
         try {
             const response = await getProducts3(2, page, pageSize, filtervalueid);
             if (response.ok) {
                 const products = response.data?.data;
-                if (!Array.isArray(products)) {
-                    console.error('API trả về không hợp lệ:', response.data);
-                    setData([]);
-                    return;
-                }
-
                 const apiData: Accessory[] = [];
 
                 products.forEach((product: any) => {
@@ -100,47 +93,68 @@ export default function AccessoryPage() {
 
     useEffect(() => {
         fetchData();
-    }, [page]);
+    }, [page, filtervalueid]);
 
     useEffect(() => {
-        const hasFilters = filters.name || (Array.isArray(filters.category) && filters.category.length > 0) || (Array.isArray(filters.price) && filters.price.length > 0);
-        const result = hasFilters
-            ? data.filter((item) => {
-                const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-                const matchesCategory = (Array.isArray(filters.category) && filters.category.length === 0) || (Array.isArray(filters.category) && filters.category.includes(item.category));
-                const matchesPrice =
-                    Array.isArray(filters.price) &&
-                    filters.price.length === 2 &&
-                    item.sellingprice >= filters.price[0] &&
-                    item.sellingprice <= filters.price[1];
+        const fetchFilters = async () => {
+            const response = await getProductFilters();
+            if (response.ok) {
+                const productTypes: ProductTypes[] = response.data;
+                const selectedProductType = productTypes.find(type => type.producttypeid === 2);
+                const filterValues = selectedProductType?.product_filter?.[0]?.product_filter_values || [];
 
-                return matchesName && matchesCategory && matchesPrice;
-            })
-            : data;
+                const dynamicFilter: FilterConfig = {
+                    filterid: 'productFilterValues',
+                    filterlabel: selectedProductType?.product_filter?.[0]?.productfiltername || 'Loại',
+                    filtertype: 'checkbox',
+                    filteroptions: filterValues.map(value => ({
+                        optionlabel: value.value || '',
+                        optionvalue: value.productfiltervalueid,
+                    })),
+                };
+
+                setFiltersConfig([
+                    { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+                    { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                    dynamicFilter,
+                    { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
+                ]);
+            }
+        };
+
+        fetchFilters();
+    }, []);
+
+    useEffect(() => {
+        if (Array.isArray(filters.productFilterValues)) {
+            setFiltervalueid(filters.productFilterValues);
+        } else {
+            setFiltervalueid([]);
+        }
+    }, [filters.productFilterValues]);
+
+    useEffect(() => {
+        const result = data.filter((item) => {
+            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+            const matchesPrice = Array.isArray(filters.price) && filters.price.length === 2 &&
+                item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1];
+            return matchesName && matchesPrice;
+        });
         setFilteredData(result);
     }, [filters, data]);
-
-    const categoryOptions: FilterOption[] = getUniqueOptions(data, 'category').map((option) => ({
-        optionlabel: option,
-        optionvalue: option,
-    }));
-
-    const filtersConfig: FilterConfig[] = [
-        { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
-        { filterid: 'category', filterlabel: 'LOẠI', filtertype: 'checkbox', filteroptions: categoryOptions },
-        { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
-    ];
 
     const columns: Column<Accessory>[] = [
         { header: 'Tên phụ kiện', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
         { header: 'Lô', accessor: 'batchid', align: 'center' },
         {
-            header: 'Giá bán', accessor: (item) => `${Number(item.sellingprice).toLocaleString('vi-VN', {
-                                    style: 'currency',
-                                    currency: 'VND',
-                                })}`, align: 'center' },
+            header: 'Giá bán',
+            accessor: (item) => `${Number(item.sellingprice).toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+            })}`,
+            align: 'center',
+        },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
     ];
 
@@ -161,9 +175,8 @@ export default function AccessoryPage() {
         } else {
             toast.error(`Không thể xóa sản phẩm: ${res.message}`);
         }
-
         fetchData();
-    };    
+    };
 
     const handleOrder = (index: number) => {
         setSelectedOrderItem(filteredData[index]);

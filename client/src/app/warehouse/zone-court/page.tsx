@@ -208,12 +208,12 @@ export default function ZoneCourtManager() {
 
                     // Cập nhật UI
                     const updatedCourts = courtState.map((c) =>
-                        c.courtname === item.courtname ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
+                        c.courtid === item.courtid ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
                     );
                     setCourtState(updatedCourts);
                     setAllCourts(prev =>
                         prev.map((c) =>
-                            c.courtname === item.courtname ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
+                            c.courtid === item.courtid ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
                         )
                     );
                 }

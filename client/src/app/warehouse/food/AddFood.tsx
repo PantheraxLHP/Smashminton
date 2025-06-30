@@ -113,7 +113,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             const selectedCategory = predefinedCategories.find(
                 (cat) => cat.value === formData.category
             );
-            if (!selectedCategory && !editData) {
+            if (!selectedCategory && !editData && !formData.category.trim()) {
                 setErrors({ category: 'Vui lòng chọn một loại hợp lệ' });
                 toast.error('Vui lòng chọn một loại hợp lệ');
                 return;
