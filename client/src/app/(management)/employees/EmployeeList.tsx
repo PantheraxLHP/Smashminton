@@ -114,6 +114,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
             toast.success('Xóa nhân viên thành công');
             fetchEmployees();
             setIsDeleteDialogOpen(false);
+            setSelectedEmployees([]);
         } else {
             toast.error(result.message || 'Xóa nhân viên thất bại');
             setIsDeleteDialogOpen(false);
