@@ -283,10 +283,15 @@ export const updateProductPrice = async (
     }
 };
 
-export const createProducts = async (formData: FormData, productfiltervalueid: string) => {
+export const createProducts = async (
+    formData: FormData,
+    productfilterid: string,
+    value: string
+) => {
     try {
         const queryParams = new URLSearchParams();
-        queryParams.set('productfiltervalueid', productfiltervalueid);
+        queryParams.set('productfilterid', productfilterid);
+        queryParams.set('value', value);
 
         const response = await fetch(
             `/api/products/post-products?${queryParams.toString()}`,

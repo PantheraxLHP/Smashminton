@@ -28,6 +28,7 @@ function formatPrice(price: string): string {
 
 export default function ServiceModal({ open, onClose, onSubmit, editData }: ServiceModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(false);
     const shoePopoverRef = useRef<HTMLDivElement>(null);
     const racketPopoverRef = useRef<HTMLDivElement>(null);
     const [racketOpen, setRacketOpen] = useState(false);
@@ -154,6 +155,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
     async function handleSubmit() {
         setErrors({});
+        setLoading(true);
         try {
             serviceSchema.parse({
                 ...formData,
@@ -164,6 +166,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             const typeId = formData.servicetype === "Thuê vợt" ? 3
                 : formData.servicetype === "Thuê giày" ? 4
                     : null;
+
             if (!typeId) {
                 setErrors({ servicetype: "Vui lòng chọn loại dịch vụ hợp lệ" });
                 return;
@@ -171,18 +174,11 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
 
             const selectedValue = formData.servicetype === "Thuê giày" ? shoeSize : racketWeight;
 
-            const filterItem = filterData
-                .find((f) => f.producttypeid === typeId)
-                ?.product_filter[0]
-                ?.product_filter_values
-                .find((val: any) => val.value === selectedValue);
-
-            if (!filterItem) {
-                setErrors({ value: "Giá trị không hợp lệ. Vui lòng chọn từ danh sách hoặc nhập mới đã được hỗ trợ." });
+            if (!selectedValue || !selectedValue.trim()) {
+                setErrors({ value: "Vui lòng nhập hoặc chọn một giá trị hợp lệ." });
+                toast.error("Vui lòng nhập hoặc chọn một giá trị hợp lệ.");
                 return;
             }
-
-            const productfiltervalueid = filterItem.productfiltervalueid;
 
             const formDataObj = new FormData();
             formDataObj.append("productname", formData.productname);
@@ -199,8 +195,8 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             if (editData?.productid != null) {
                 result = await updateService(formDataObj, editData.productid.toString());
             } else {
-                result = await createProducts(formDataObj, productfiltervalueid);
-            }            
+                result = await createProducts(formDataObj, typeId.toString(), selectedValue);
+            }
 
             if (result.status === "success") {
                 if (onSubmit) {
@@ -208,7 +204,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                         ...formData,
                         image: serviceAvatar ? URL.createObjectURL(serviceAvatar) : formData.image,
                         value: selectedValue,
-                        productfiltervalueid,
                     });
                 }
 
@@ -229,9 +224,10 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                 setErrors(newErrors);
             }
         }
-    }
-    
-    
+        finally {
+            setLoading(false);
+        }
+    }    
 
     const handleServiceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -347,7 +343,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                                 </PopoverTrigger>
                                                 <PopoverContent ref={shoePopoverRef} className="w-full p-0">
                                                     <Command
-                                                        shouldFilter={false}
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter") {
                                                                 e.preventDefault();
@@ -408,7 +403,6 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                                 </PopoverTrigger>
                                                 <PopoverContent ref={racketPopoverRef} className="w-full p-0">
                                                     <Command
-                                                        shouldFilter={false}
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter") {
                                                                 e.preventDefault();
@@ -467,7 +461,13 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                             onClick={handleSubmit}
                             className="border border-primary-600 text-primary-600 px-4 py-2 rounded hover:bg-primary-100"
                         >
-                            {editData ? "Lưu thay đổi" : "Tạo"}
+                            {loading
+                                ? editData
+                                    ? 'Đang lưu...'
+                                    : 'Đang tạo...'
+                                : editData
+                                    ? 'Lưu'
+                                    : 'Tạo'}
                         </button>
                     </div>
                 </div>

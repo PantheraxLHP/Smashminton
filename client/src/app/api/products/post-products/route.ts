@@ -8,15 +8,17 @@ export async function POST(request: NextRequest) {
         const accessToken = cookieStore.get('accessToken')?.value;
 
         const url = new URL(request.url);
-        const productfiltervalueid = url.searchParams.get('productfiltervalueid');
-        if (!productfiltervalueid) {
-            return ApiResponse.error('Thiếu productfiltervalueid trong query string');
+        const productfilterid = url.searchParams.get('productfilterid');
+        const value = url.searchParams.get('value');
+
+        if (!productfilterid || !value) {
+            return ApiResponse.error('Thiếu productfilterid hoặc value trong query string');
         }
 
         const formData = await request.formData();
 
         const response = await fetch(
-            `${process.env.SERVER}/api/v1/products/new-product?productfiltervalueid=${productfiltervalueid}`,
+            `${process.env.SERVER}/api/v1/products/new-product?productfilterid=${productfilterid}&value=${encodeURIComponent(value)}`,
             {
                 method: 'POST',
                 body: formData,

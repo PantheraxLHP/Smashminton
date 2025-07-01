@@ -110,12 +110,9 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
         try {
             productSchema.parse({ ...formData });
 
-            const selectedCategory = predefinedCategories.find(
-                (cat) => cat.value === formData.category
-            );
-            if (!selectedCategory && !editData && !formData.category.trim()) {
-                setErrors({ category: 'Vui lòng chọn một loại hợp lệ' });
-                toast.error('Vui lòng chọn một loại hợp lệ');
+            if (!editData && !formData.category.trim()) {
+                setErrors({ category: 'Vui lòng nhập hoặc chọn loại sản phẩm' });
+                toast.error('Vui lòng nhập hoặc chọn loại sản phẩm');
                 return;
             }
 
@@ -125,9 +122,11 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             formDataObj.append('productname', formData.name);
             formDataObj.append('sellingprice', formData.sellingprice.toString());
             formDataObj.append('rentalprice', '0');
+
             if (editData) {
                 formDataObj.append('discount', (formData.discount ?? 0).toString());
-            } 
+            }
+
             if (foodAvatar) {
                 formDataObj.append('productimgurl', foodAvatar);
             } else {
@@ -137,6 +136,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
             let result;
 
             if (editData) {
+                // Cập nhật sản phẩm (có hoặc không có batch)
                 if (!editData.batchid?.trim()) {
                     result = await updateProductsWithoutBatch(
                         formDataObj,
@@ -146,14 +146,15 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                     result = await updateProducts(
                         formDataObj,
                         editData.id.toString(),
-                        editData.batchid,
+                        editData.batchid
                     );
                 }
             } else {
-                result = await createProducts(
-                    formDataObj,
-                    selectedCategory!.productfiltervalueid
-                );
+                // Thêm mới sản phẩm
+                const value = formData.category.trim();
+                const productfilterid = '1';
+
+                result = await createProducts(formDataObj, productfilterid, value);
             }
 
             if (result.status === 'success') {
@@ -176,8 +177,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
         } finally {
             setLoading(false);
         }
-    }
-
+    }    
 
     const handleFoodImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -276,11 +276,10 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                         </PopoverTrigger>
                                         <PopoverContent className="w-full p-0" ref={popoverRef}>
                                             <Command
-                                                shouldFilter={false}
                                                 onKeyDown={(e) => {
                                                     if (e.key === "Enter") {
                                                         e.preventDefault();
-                                                        setCategoryOpen(false); // đóng popover
+                                                        setCategoryOpen(false);
                                                     }
                                                 }}
                                             >
