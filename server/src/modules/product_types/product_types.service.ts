@@ -354,7 +354,72 @@ export class ProductTypesService {
     const uniqueProducts = Array.from(productMap.values());
 
     // Lấy stock quantity cho từng productid
-    const enrichedProducts = await Promise.all(uniqueProducts.map(async (product) => {
+    // const enrichedProducts = await Promise.all(uniqueProducts.map(async (product) => {
+    //   const purchaseOrders = await this.prisma.purchase_order.findMany({
+    //     where: {
+    //       productid: product.productid,
+    //     },
+    //     include: {
+    //       product_batch: true,
+    //     },
+    //   });
+
+    //   // // 👉 Lấy thông tin batches từ purchaseOrders
+    //   // const batches = purchaseOrders
+    //   //   .map(po => po.product_batch)
+    //   //   .filter((b): b is NonNullable<typeof b> => b !== null)
+    //   //   .map(b => ({
+    //   //     batchid: b.batchid,
+    //   //     batchname: b.batchname,
+    //   //     expirydate: b.expirydate,
+    //   //     stockquantity: b.stockquantity,
+    //   //     status: b.statusbatch,
+    //   //     discount: b.discount,
+    //   //   }));
+
+    //   // 👉 Lấy productfiltervalue từ product_attributes
+    //   const productAttr = await this.prisma.product_attributes.findFirst({
+    //     where: { productid: product.productid },
+    //     include: {
+    //       product_filter_values: true,
+    //     },
+    //   });
+
+    //   // return {
+    //   //   productid: product.productid,
+    //   //   productname: product.productname,
+    //   //   sellingprice: product.sellingprice,
+    //   //   rentalprice: product.rentalprice,
+    //   //   productimgurl: product.productimgurl,
+    //   //   productfiltervalueid: productAttr?.productfiltervalueid || null,
+    //   //   value: productAttr?.product_filter_values?.value || null,
+    //   //   batches: batches,
+    //   // };
+
+    //   // map từng batch thành từng bản ghi
+    //   const flatRecords = purchaseOrders
+    //     .map(po => po.product_batch)
+    //     .filter((b): b is NonNullable<typeof b> => b !== null)
+    //     .map(b => ({
+    //       productid: product.productid,
+    //       productname: product.productname,
+    //       sellingprice: product.sellingprice,
+    //       rentalprice: product.rentalprice,
+    //       productimgurl: product.productimgurl,
+    //       productfiltervalueid: productAttr?.productfiltervalueid || null,
+    //       value: productAttr?.product_filter_values?.value || null,
+    //       batchid: b.batchid,
+    //       batchname: b.batchname,
+    //       expirydate: b.expirydate,
+    //       stockquantity: b.stockquantity,
+    //       status: b.statusbatch,
+    //       discount: b.discount,
+    //     }));
+
+    //   return flatRecords;
+    // }));
+
+    const enrichedProducts = (await Promise.all(uniqueProducts.map(async (product) => {
       const purchaseOrders = await this.prisma.purchase_order.findMany({
         where: {
           productid: product.productid,
@@ -364,11 +429,25 @@ export class ProductTypesService {
         },
       });
 
-      // 👉 Lấy thông tin batches từ purchaseOrders
-      const batches = purchaseOrders
+      const productAttr = await this.prisma.product_attributes.findFirst({
+        where: { productid: product.productid },
+        include: {
+          product_filter_values: true,
+        },
+      });
+
+      // map từng batch thành từng bản ghi
+      const flatRecords = purchaseOrders
         .map(po => po.product_batch)
         .filter((b): b is NonNullable<typeof b> => b !== null)
         .map(b => ({
+          productid: product.productid,
+          productname: product.productname,
+          sellingprice: product.sellingprice,
+          rentalprice: product.rentalprice,
+          productimgurl: product.productimgurl,
+          productfiltervalueid: productAttr?.productfiltervalueid || null,
+          value: productAttr?.product_filter_values?.value || null,
           batchid: b.batchid,
           batchname: b.batchname,
           expirydate: b.expirydate,
@@ -377,25 +456,9 @@ export class ProductTypesService {
           discount: b.discount,
         }));
 
-      // 👉 Lấy productfiltervalue từ product_attributes
-      const productAttr = await this.prisma.product_attributes.findFirst({
-        where: { productid: product.productid },
-        include: {
-          product_filter_values: true,
-        },
-      });
+      return flatRecords;
+    }))).flat(); // flatten mảng con thành 1 mảng
 
-      return {
-        productid: product.productid,
-        productname: product.productname,
-        sellingprice: product.sellingprice,
-        rentalprice: product.rentalprice,
-        productimgurl: product.productimgurl,
-        productfiltervalueid: productAttr?.productfiltervalueid || null,
-        value: productAttr?.product_filter_values?.value || null,
-        batches: batches,
-      };
-    }));
 
     const total = enrichedProducts.length;
     const totalPages = Math.ceil(total / limit);
