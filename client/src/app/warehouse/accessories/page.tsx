@@ -119,8 +119,9 @@ export default function AccessoryPage() {
     useEffect(() => {
         const result = data.filter((item) => {
             const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-            const matchesPrice = Array.isArray(filters.price) && filters.price.length === 2 &&
-                item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1];
+            const matchesPrice = !filters.price ||
+                filters.price.length === 0 ||
+                (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
             return matchesName && matchesPrice;
         });
         setFilteredData(result);

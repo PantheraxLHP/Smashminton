@@ -51,15 +51,15 @@ export default function FoodAndBeveragePage() {
 
                 products.forEach((item: any) => {
                     apiData.push({
-                        id: item.productid,
-                        name: item.productname,
-                        sellingprice: parseInt(item.sellingprice),
-                        category: item.value,
-                        image: item.productimgurl || '/default.png',
-                        batchid: item.batchid?.toString() || '',
-                        expiry: item.expirydate || '',
-                        stock: item.stockquantity || 0,
-                        status: item.status || '',
+                        id: item.productid ?? '',
+                        name: item.productname ?? '',
+                        sellingprice: item.sellingprice ? parseInt(item.sellingprice) : 0,
+                        category: item.value ?? '',
+                        image: item.productimgurl ?? '/default.png',
+                        batchid: item.batchid ? item.batchid.toString() : '',
+                        expiry: item.expirydate ?? '',
+                        stock: item.stockquantity ?? 0,
+                        status: item.status ?? '',
                         discount: item.discount ? parseFloat(item.discount) : 0,
                     });
                 });
@@ -71,7 +71,7 @@ export default function FoodAndBeveragePage() {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    }    
+    }
 
     useEffect(() => {
         fetchData();
@@ -137,7 +137,14 @@ export default function FoodAndBeveragePage() {
             })
         },
         { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
-        { header: 'Ngày hết hạn', accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'), align: 'center' },
+        {
+            header: 'Ngày hết hạn',
+            accessor: (item) =>
+                item.expiry
+                    ? new Date(item.expiry).toLocaleDateString('vi-VN')
+                    : '',
+            align: 'center',
+        },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
         {
             header: 'Tình trạng',
