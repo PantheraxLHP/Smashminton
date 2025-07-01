@@ -50,36 +50,19 @@ export default function AccessoryPage() {
                 const products = response.data?.data;
                 const apiData: Accessory[] = [];
 
-                products.forEach((product: any) => {
-                    const base = {
-                        id: product.productid,
-                        name: product.productname,
-                        sellingprice: parseInt(product.sellingprice),
-                        category: product.value,
-                        image: product.productimgurl || '/default.png',
-                    };
-
-                    if (Array.isArray(product.batches) && product.batches.length > 0) {
-                        product.batches.forEach((batch: any) => {
-                            apiData.push({
-                                ...base,
-                                batchid: batch.batchid?.toString() || '',
-                                expiry: batch.expirydate || '',
-                                stock: batch.stockquantity || 0,
-                                status: batch.status || '',
-                                discount: batch.discount ? parseFloat(batch.discount) : 0,
-                            });
-                        });
-                    } else {
-                        apiData.push({
-                            ...base,
-                            batchid: '',
-                            expiry: '1/1/2025',
-                            stock: product.quantity || 0,
-                            status: '',
-                            discount: 0,
-                        });
-                    }
+                products.forEach((item: any) => {
+                    apiData.push({
+                        id: item.productid,
+                        name: item.productname,
+                        sellingprice: parseInt(item.sellingprice),
+                        category: item.value,
+                        image: item.productimgurl || '/default.png',
+                        batchid: item.batchid?.toString() || '',
+                        expiry: item.expirydate || '',
+                        stock: item.stockquantity || 0,
+                        status: item.status || '',
+                        discount: item.discount ? parseFloat(item.discount) : 0,
+                    });
                 });
 
                 setData(apiData);
@@ -89,39 +72,39 @@ export default function AccessoryPage() {
         } catch (error) {
             console.error('Lỗi fetch phụ kiện:', error);
         }
-    };
+    };    
 
     useEffect(() => {
         fetchData();
     }, [page, filtervalueid]);
 
+    const fetchFilters = async () => {
+        const response = await getProductFilters();
+        if (response.ok) {
+            const productTypes: ProductTypes[] = response.data;
+            const selectedProductType = productTypes.find(type => type.producttypeid === 2);
+            const filterValues = selectedProductType?.product_filter?.[0]?.product_filter_values || [];
+
+            const dynamicFilter: FilterConfig = {
+                filterid: 'productFilterValues',
+                filterlabel: selectedProductType?.product_filter?.[0]?.productfiltername || 'Loại',
+                filtertype: 'checkbox',
+                filteroptions: filterValues.map(value => ({
+                    optionlabel: value.value || '',
+                    optionvalue: value.productfiltervalueid,
+                })),
+            };
+
+            setFiltersConfig([
+                { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+                { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                dynamicFilter,
+                { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
+            ]);
+        }
+    };
+
     useEffect(() => {
-        const fetchFilters = async () => {
-            const response = await getProductFilters();
-            if (response.ok) {
-                const productTypes: ProductTypes[] = response.data;
-                const selectedProductType = productTypes.find(type => type.producttypeid === 2);
-                const filterValues = selectedProductType?.product_filter?.[0]?.product_filter_values || [];
-
-                const dynamicFilter: FilterConfig = {
-                    filterid: 'productFilterValues',
-                    filterlabel: selectedProductType?.product_filter?.[0]?.productfiltername || 'Loại',
-                    filtertype: 'checkbox',
-                    filteroptions: filterValues.map(value => ({
-                        optionlabel: value.value || '',
-                        optionvalue: value.productfiltervalueid,
-                    })),
-                };
-
-                setFiltersConfig([
-                    { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-                    { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
-                    dynamicFilter,
-                    { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
-                ]);
-            }
-        };
-
         fetchFilters();
     }, []);
 
@@ -187,6 +170,7 @@ export default function AccessoryPage() {
         setEditData(null);
         setOpenModal(false);
         fetchData();
+        fetchFilters();
     };
 
     return (

@@ -40,22 +40,23 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
     const modalRef = useRef<HTMLDivElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
 
+    const fetchCategories = async () => {
+        try {
+            const res = await getSingleProductFilterValue(2);
+            if (res.ok) {
+                const mapped = res.data.product_filter_values.map((item: any) => ({
+                    value: item.value,
+                    productfiltervalueid: item.productfiltervalueid,
+                }));
+                setPredefinedCategories(mapped);
+            }
+        } catch (err) {
+            console.error('Lỗi khi lấy loại phụ kiện:', err);
+        }
+    };
+
     useEffect(() => {
         if (open) {
-            const fetchCategories = async () => {
-                try {
-                    const res = await getSingleProductFilterValue(2);
-                    if (res.ok) {
-                        const mapped = res.data.product_filter_values.map((item: any) => ({
-                            value: item.value,
-                            productfiltervalueid: item.productfiltervalueid,
-                        }));
-                        setPredefinedCategories(mapped);
-                    }
-                } catch (err) {
-                    console.error('Lỗi khi lấy loại phụ kiện:', err);
-                }
-            };
             fetchCategories();
         }
     }, [open]);
@@ -116,10 +117,11 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
         setErrors({});
         try {
             accessorySchema.parse({ ...formData });
-            const selectedCategory = predefinedCategories.find(cat => cat.value === formData.category);
-            if (!selectedCategory && !editData) {
-                setErrors({ category: 'Vui lòng chọn một loại hợp lệ' });
-                toast.error('Vui lòng chọn một loại hợp lệ');
+
+            const categoryValue = formData.category?.trim();
+            if (!categoryValue && !editData) {
+                setErrors({ category: 'Vui lòng nhập hoặc chọn một loại phụ kiện' });
+                toast.error('Vui lòng nhập hoặc chọn một loại phụ kiện');
                 return;
             }
 
@@ -129,12 +131,15 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
             formDataObj.append('productname', formData.name);
             formDataObj.append('sellingprice', formData.sellingprice.toString());
             formDataObj.append('rentalprice', '0');
+
             if (accessoryAvatar) {
                 formDataObj.append('productimgurl', accessoryAvatar);
             } else {
                 formDataObj.append('productimgurl', formData.image || '/default.png');
             }
+
             let result;
+
             if (editData) {
                 if (!editData.batchid?.trim()) {
                     result = await updateProductsWithoutBatch(formDataObj, editData.id.toString());
@@ -142,7 +147,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
                     result = await updateProducts(formDataObj, editData.id.toString(), editData.batchid);
                 }
             } else {
-                result = await createProducts(formDataObj, selectedCategory!.productfiltervalueid);
+                result = await createProducts(formDataObj, '2', categoryValue);
             }
 
             if (result.status === 'success') {
@@ -164,7 +169,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
         } finally {
             setLoading(false);
         }
-    };
+    };    
 
     useEffect(() => {
             if (!open) {
@@ -237,6 +242,12 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
                                                     placeholder="Nhập loại mới hoặc chọn..."
                                                     value={formData.category}
                                                     onValueChange={(input) => setFormData((prev) => ({ ...prev, category: input }))}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && formData.category.trim()) {
+                                                            e.preventDefault();
+                                                            setCategoryOpen(false);
+                                                        }
+                                                    }}
                                                 />
                                                 <CommandEmpty>
                                                     <div className="p-2 text-sm text-muted-foreground">
