@@ -12,6 +12,10 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { createProducts, getSingleProductFilterValue, updateProducts, updateProductsWithoutBatch } from "@/services/products.service";
 import { Accessory } from './page';
+import { getSuppliers, patchSuppliers } from '@/services/suppliers.service';
+import { Supplier } from '../suppliers/page'; // hoặc đúng path bạn có định nghĩa
+import { findSupplier } from '@/services/products.service';
+
 
 interface AccessoryModalProps {
     open: boolean;
@@ -26,6 +30,12 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
     const [categoryOpen, setCategoryOpen] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [loading, setLoading] = useState(false);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [supplierList, setSupplierList] = useState<{ supplierid: number; suppliername: string; costprice: number }[]>([]);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number>(0);
+    const [costPrice, setCostPrice] = useState<number>(0);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(99);
     const [predefinedCategories, setPredefinedCategories] = useState<{ value: string, productfiltervalueid: string }[]>([]);
     const [formData, setFormData] = useState<Accessory>({
         id: 0,
@@ -61,23 +71,71 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
         }
     }, [open]);
 
+    // Lấy danh sách nhà cung cấp khi modal mở
     useEffect(() => {
-        if (editData) {
-            setFormData(editData);
-            setAccessoryPreview(editData.image);
-        } else {
-            setFormData({
-                id: 0,
-                name: '',
-                batchid: '',
-                sellingprice: 0,
-                category: '',
-                stock: 0,
-                image: '/default.png',
+        if (open) {
+            getSuppliers(page, pageSize).then((res) => {
+                if (res.ok) {
+                    const { data } = res.data;
+                    const mapped: Supplier[] = data.map((s: any) => ({
+                        supplierid: s.supplierid,
+                        name: s.suppliername || '',
+                        phone: s.phonenumber || '',
+                        email: s.email || '',
+                        contactname: s.contactname || '',
+                        address: s.address || '',
+                        products: (s.products || []).map((p: any) => ({
+                            productid: p.productid,
+                            productname: p.productname,
+                            costprice: p.costprice || 0,
+                        })),
+                    }));
+                    setSuppliers(mapped);
+                }
             });
-            setAccessoryPreview('');
         }
-    }, [editData, open]);
+    }, [open, page, pageSize]);
+
+    // Cập nhật form và supplierList khi mở modal
+    useEffect(() => {
+        if (open) {
+            if (editData) {
+                setFormData(editData);
+                setAccessoryPreview(editData.image || "");
+                setSupplierList([]);
+
+                findSupplier(editData.id).then((res) => {
+                    if (res.ok && Array.isArray(res.data)) {
+                        const suppliers = res.data.map((s: any) => ({
+                            supplierid: s.supplierid,
+                            suppliername: s.suppliername,
+                            costprice: parseInt(s.costprice),
+                        }));
+                        setSupplierList(suppliers);
+                    }
+                });
+            } else {
+                // Reset nếu tạo mới
+                setFormData({
+                    id: 0,
+                    name: '',
+                    sellingprice: 0,
+                    category: '',
+                    stock: 0,
+                    batchid: '',
+                    image: '/default.png',
+                });
+                setAccessoryAvatar(null);
+                setAccessoryPreview('');
+                setSupplierList([]);
+            }
+
+            setSelectedSupplierId(0);
+            setCostPrice(0);
+            setErrors({});
+        }
+    }, [open, editData]);
+
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -152,6 +210,8 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
 
             if (result.status === 'success') {
                 toast.success(editData ? 'Cập nhật thành công' : 'Thêm phụ kiện mới thành công');
+                const productId = editData ? editData.id : (result as any).product.productid;
+                await updateSupplier(productId);
                 if (onSubmit) onSubmit(formData);
                 onClose();
             } else {
@@ -168,6 +228,30 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
             }
         } finally {
             setLoading(false);
+        }
+    };    
+
+    const updateSupplier = async (productId: number) => {
+        if (supplierList.length === 0) return;
+
+        try {
+            for (const s of supplierList) {
+                const supplierInfo = suppliers.find(sup => sup.supplierid === s.supplierid);
+                if (!supplierInfo) continue;
+
+                const payload = {
+                    suppliername: supplierInfo.name,
+                    contactname: supplierInfo.contactname || '',
+                    phonenumber: supplierInfo.phone || '',
+                    email: supplierInfo.email || '',
+                    address: supplierInfo.address || '',
+                    products_costs: [{ productid: productId, costprice: s.costprice }],
+                };
+
+                await patchSuppliers(s.supplierid, payload);
+            }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật nhà cung cấp:", error);
         }
     };    
 
@@ -275,8 +359,93 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
                                     {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
                                 </div>
                             )}
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium mb-1">Chọn nhà cung cấp</label>
+                                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                    <select
+                                        value={selectedSupplierId}
+                                        onChange={(e) => setSelectedSupplierId(Number(e.target.value))}
+                                        className="flex-1 border rounded px-3 py-2"
+                                    >
+                                        <option value={0}>Chọn nhà cung cấp</option>
+                                        {suppliers.map((s) => (
+                                            <option key={s.supplierid} value={s.supplierid}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!selectedSupplierId || !costPrice) {
+                                                toast.error("Chưa chọn nhà cung cấp hoặc giá nhập không hợp lệ");
+                                                return;
+                                            }
+
+                                            const exists = supplierList.some(s => s.supplierid === selectedSupplierId);
+                                            if (exists) {
+                                                toast.warning("Nhà cung cấp này đã được thêm");
+                                                return;
+                                            }
+
+                                            const selectedSupplier = suppliers.find(s => s.supplierid === selectedSupplierId);
+
+                                            if (!selectedSupplier) {
+                                                toast.error("Không tìm thấy nhà cung cấp");
+                                                return;
+                                            }
+
+                                            const supplierid = Number(selectedSupplier.supplierid);
+                                            if (isNaN(supplierid)) {
+                                                toast.error("ID nhà cung cấp không hợp lệ");
+                                                return;
+                                            }
+
+                                            const newSupplier = {
+                                                supplierid,
+                                                suppliername: selectedSupplier.name ?? "",
+                                                costprice: costPrice,
+                                            };
+
+                                            setSupplierList(prev => [...prev, newSupplier]);
+
+                                            setSelectedSupplierId(0);
+                                            setCostPrice(0);
+                                        }}                                        
+                                        className="w-full sm:w-auto px-3 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
+                                    >
+                                        Thêm
+                                    </button>
+                                </div>
+
+                                {selectedSupplierId > 0 && (
+                                    <div className="mt-2">
+                                        <label className="block text-sm mb-1">Giá nhập</label>
+                                        <input
+                                            type="number"
+                                            value={costPrice}
+                                            onChange={(e) => setCostPrice(Number(e.target.value))}
+                                            className="w-full border rounded px-3 py-2"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+
+                    {supplierList.length > 0 && (
+                        <div className="mt-4 mb-4">
+                            <label className="block text-md font-medium mb-1">Nhà cung cấp</label>
+                            <div className="flex flex-wrap gap-2">
+                                {supplierList.map((s) => (
+                                    <span key={s.supplierid} className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded">
+                                        {s.suppliername} - {s.costprice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
 
                     <div className="flex justify-end gap-2">
                         <button
