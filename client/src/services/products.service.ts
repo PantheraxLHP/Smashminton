@@ -313,8 +313,8 @@ export const createProducts = async (
 
         return {
             status: 'success',
-            data: result.product,
-        };
+            product: result.data.product,
+          };
     } catch (error) {
         return {
             status: 'error',
