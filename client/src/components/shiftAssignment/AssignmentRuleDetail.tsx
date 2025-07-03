@@ -293,14 +293,14 @@ const AssignmentRuleDetail = ({
         };
 
         let updatedRuleList: AssignmentRule[] = [];
+        //check unique rule name
+        if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
+            toast.error('Tên quy tắc đã tồn tại');
+            return;
+        }
         if (AssignmentRule) {
             updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
         } else {
-            //check unique rule name
-            if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
-                toast.error('Tên quy tắc đã tồn tại');
-                return;
-            }
             updatedRuleList = [...ruleList, updatedRule];
         }
 
