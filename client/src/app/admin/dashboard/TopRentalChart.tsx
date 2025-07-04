@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 export interface TopRentalChartProps {
@@ -37,8 +37,7 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                             layout="vertical"
                             margin={{
                                 right: 20,
-                                bottom: 10,
-                                left: 50,
+                                bottom: 20,
                             }}
                         >
                             <CartesianGrid strokeDasharray={'3 3'} stroke="var(--color-gray-300)" horizontal={false} />
@@ -48,14 +47,19 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                                 tickMargin={10}
                                 tickLine={false}
                                 axisLine={false}
+                                label={{
+                                    value: 'Số lượt cho thuê',
+                                    offset: -10,
+                                    position: 'insideBottom',
+                                }}
                             />
                             <YAxis
                                 type="category"
                                 dataKey="rentalName"
-                                tickMargin={30}
+                                tickMargin={20}
                                 tickLine={false}
                                 axisLine={false}
-                                width={200}
+                                width={300}
                             />
                             <ChartTooltip
                                 content={
@@ -66,7 +70,15 @@ const TopRentalChart: React.FC<TopRentalChartProps> = ({
                                     />
                                 }
                             />
-                            <Bar dataKey="rentalCount" radius={5} fill="#3b82f6" />
+                            <Bar dataKey="rentalCount" radius={5} fill="#3b82f6">
+                                <LabelList
+                                    dataKey="rentalCount"
+                                    position="right"
+                                    offset={8}
+                                    fontSize={12}
+                                    fill="black"
+                                />
+                            </Bar>
                         </BarChart>
                     </ChartContainer>
                 </div>

@@ -125,6 +125,7 @@ const UserProfilePage = () => {
                 setBackImage(null);
                 setFrontImagePreview(null);
                 setBackImagePreview(null);
+                window.location.reload();
             } else {
                 toast.error(response.message || 'Có lỗi xảy ra khi cập nhật');
             }
