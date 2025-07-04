@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 export interface TopCourtChartProps {
@@ -37,11 +37,22 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                             layout="vertical"
                             margin={{
                                 right: 20,
-                                left: 50,
+                                left: 30,
+                                bottom: 20,
                             }}
                         >
                             <CartesianGrid strokeDasharray={'3 3'} stroke="#E5E7EB" horizontal={false} />
-                            <XAxis type="number" dataKey="bookingCount" tickLine={false} axisLine={false} />
+                            <XAxis
+                                type="number"
+                                dataKey="bookingCount"
+                                tickLine={false}
+                                axisLine={false}
+                                label={{
+                                    value: 'Số lượng bán',
+                                    offset: -10,
+                                    position: 'insideBottom',
+                                }}
+                            />
                             <YAxis
                                 type="category"
                                 dataKey="courtName"
@@ -58,7 +69,15 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                                     />
                                 }
                             />
-                            <Bar dataKey="bookingCount" radius={5}></Bar>
+                            <Bar dataKey="bookingCount" radius={5}>
+                                <LabelList
+                                    dataKey="bookingCount"
+                                    position="right"
+                                    offset={8}
+                                    fontSize={12}
+                                    fill="black"
+                                />
+                            </Bar>
                         </BarChart>
                     </ChartContainer>
                 </div>

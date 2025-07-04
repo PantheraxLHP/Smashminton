@@ -68,16 +68,16 @@ const topRentalsChartConfig: ChartConfig = {
 };
 
 const topColors = [
-    '#3b82f6', // Blue
-    '#10b981', // Emerald
-    '#f59e0b', // Amber
-    '#ef4444', // Red
-    '#8b5cf6', // Violet
-    '#06b6d4', // Cyan
-    '#f97316', // Orange
-    '#84cc16', // Lime
-    '#ec4899', // Pink
-    '#6366f1', // Indigo
+    'var(--color-chart-11)',
+    'var(--color-chart-12)',
+    'var(--color-chart-13)',
+    'var(--color-chart-14)',
+    'var(--color-chart-15)',
+    'var(--color-chart-16)',
+    'var(--color-chart-17)',
+    'var(--color-chart-18)',
+    'var(--color-chart-19)',
+    'var(--color-chart-20)',
 ];
 
 const zoneColors = [

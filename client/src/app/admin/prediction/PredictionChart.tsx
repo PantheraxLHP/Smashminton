@@ -138,99 +138,37 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, title = 'Tỉ l
                 {stackedBarData.length > 0 && (
                     <div className="relative flex flex-col items-center">
                         {/* Title */}
-                        <div className="mb-4 text-center">
-                            <h3 className="mb-1 text-sm font-semibold text-gray-700">
+                        <div className="mb-2 text-center">
+                            <div className="mb-1 text-sm font-semibold text-gray-700 flex items-center gap-1">
+                                <span
+                                    className="w-4 h-4 rounded-lg"
+                                    style={{
+                                        backgroundColor: 'hsl(173, 58%, 39%)',
+                                    }}
+                                >
+                                </span>
                                 Chi tiết &ldquo;Các loại khác&rdquo;
-                            </h3>
+                            </div>
                             <p className="text-xs text-gray-500">{stackedBarData.length} sản phẩm</p>
                         </div>
 
                         {/* Chart and Labels Container */}
-                        <div className="flex items-center gap-4">
-                            {/* Stacked Bar */}
-                            <div className="relative" style={{ width: '60px', height: '250px' }}>
-                                <ChartContainer config={stackedBarConfig} className="h-full w-full">
-                                    <BarChart
-                                        data={[
-                                            {
-                                                category: 'breakdown',
-                                                ...Object.fromEntries(
-                                                    stackedBarData.map((item) => [item.id, item.percent]),
-                                                ),
-                                            },
-                                        ]}
-                                        margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                                    >
-                                        <YAxis hide />
-                                        <XAxis hide />
-                                        <ChartTooltip
-                                            content={
-                                                <ChartTooltipContent
-                                                    hideIndicator
-                                                    hideLabel
-                                                    labelStyle={{ color: '#374151', fontWeight: 'bold' }}
-                                                    itemStyle={{ color: '#6B7280' }}
-                                                    formatter={(value, name) => {
-                                                        const item = stackedBarData.find((d) => d.id === name);
-                                                        return [`${Number(value).toFixed(1)}%`, item?.name || name];
-                                                    }}
-                                                />
-                                            }
-                                        />
-                                        {stackedBarData.map((item, index) => {
-                                            // Use distinct colors for each segment
-                                            const segmentColor = COLORS[(index + 6) % COLORS.length]; // Start from index 6 to avoid main pie colors
-                                            return (
-                                                <Bar
-                                                    key={item.id}
-                                                    dataKey={item.id}
-                                                    stackId="breakdown"
-                                                    fill={segmentColor}
-                                                    stroke="#ffffff"
-                                                    strokeWidth={2}
-                                                    radius={
-                                                        index === 0
-                                                            ? [0, 0, 6, 6]
-                                                            : index === stackedBarData.length - 1
-                                                              ? [6, 6, 0, 0]
-                                                              : [0, 0, 0, 0]
-                                                    }
-                                                />
-                                            );
-                                        })}
-                                    </BarChart>
-                                </ChartContainer>
-                            </div>
-
-                            {/* Enhanced Labels */}
-                            <div className="flex flex-col gap-2">
-                                {stackedBarData
-                                    .slice()
-                                    .reverse()
-                                    .map((item, index) => {
-                                        // Reverse the index calculation to match the reversed array
-                                        const originalIndex = stackedBarData.length - 1 - index;
-                                        const segmentColor = COLORS[(originalIndex + 6) % COLORS.length]; // Same color logic as the bars
-                                        return (
-                                            <div
-                                                key={item.id}
-                                                className="flex items-center gap-3 rounded-md bg-gray-50 p-2 transition-colors hover:bg-gray-100"
-                                            >
-                                                <div
-                                                    className="h-4 w-4 rounded-sm border border-white shadow-sm"
-                                                    style={{
-                                                        backgroundColor: segmentColor,
-                                                    }}
-                                                />
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm leading-tight font-medium text-gray-700">
-                                                        {item.name}: {item.percent.toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                            </div>
+                        <div className="flex flex-col gap-1 w-full">
+                            {stackedBarData.map((item, index) => {
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="h-6 rounded-sm flex items-center justify-between px-3 shadow-sm bg-gray-100 w-full gap-2"
+                                    >   
+                                        <span className="text-xs font-medium truncate flex-1">
+                                            {item.name}
+                                        </span>
+                                        <span className="text-xs ml-2">
+                                            {item.percent.toFixed(2)}%
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

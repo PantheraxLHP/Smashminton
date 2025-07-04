@@ -43,13 +43,53 @@ export class OrdersService {
         if (!product_order) {
             throw new BadRequestException('Product not found for the given productid');
         }
+
         // Lấy cache của người dùng từ Redis
         const orderUserCache = await this.cacheService.getOrder(username);
 
         let unitprice: number = 0;
+        let discount: number = 0;
+
         // Kiểm tra nếu sản phẩm có giá bán
         if (product_order.sellingprice) {
+            // Lấy discount từ product_batch có expiry_date gần nhất với ngày hiện tại
+            const currentDate = new Date();
+            const productBatches = await this.prisma.product_batch.findMany({
+                where: {
+                    purchase_order: {
+                        some: {
+                            productid: productid
+                        },
+                    },
+                    expirydate: {
+                        not: null
+                    },
+                    stockquantity: {
+                        gt: 0
+                    }
+                }
+            });
+            // Tìm batch có expiry_date gần với current_date nhất
+            let closestBatch: typeof productBatches[0] | null = null;
+            let minTimeDiff = Infinity;
+
+            for (const batch of productBatches) {
+                if (batch.expirydate) {
+                    const timeDiff = Math.abs(batch.expirydate.getTime() - currentDate.getTime());
+                    if (timeDiff < minTimeDiff) {
+                        minTimeDiff = timeDiff;
+                        closestBatch = batch;
+                    }
+                }
+            }
+            // Chỉ áp dụng discount nếu batch gần nhất có discount
+            discount = (closestBatch?.discount && closestBatch.discount > 0) ? closestBatch.discount : 0;
             unitprice = product_order.sellingprice ? product_order.sellingprice.toNumber() : 0;
+
+            // Áp dụng discount nếu có
+            if (discount > 0) {
+                unitprice = unitprice * (100 - discount / 100);
+            }
         }
         else {
             unitprice = product_order.rentalprice ? product_order.rentalprice.toNumber() : 0;
@@ -222,7 +262,7 @@ export class OrdersService {
         if (!product_orders) {
             throw new BadRequestException('Failed to create product orders');
         }
-        
+
         // Sau khi đã tạo order và productOrders
         for (const product of productOrders) {
             await this.productBatchService.decreaseStockQuantity(product.productid, product.quantity);
