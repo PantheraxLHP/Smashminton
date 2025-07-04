@@ -26,7 +26,7 @@ export default function PaymentPage() {
     const [timeLeft, setTimeLeft] = useState(TTL);
 
     let totalCourtPriceWithDiscount = totalCourtPrice;
-    if (userProfile?.isStudent) {
+    if (userProfile?.studentCard?.studentcardid) {
         totalCourtPriceWithDiscount = totalCourtPrice * 0.9;
     }
 
@@ -177,15 +177,17 @@ export default function PaymentPage() {
                                     <span>Học sinh / Sinh viên</span>
                                     <Checkbox
                                         disabled
-                                        checked={!!userProfile?.isStudent}
-                                        className="disabled:opacity-100 disabled:cursor-default size-5"
+                                        checked={!!userProfile?.studentCard?.studentcardid}
+                                        className="size-5 disabled:cursor-default disabled:opacity-100"
                                     />
                                     - 10% giá sân
                                 </div>
                             </div>
                             <div className="flex items-center gap-32 pr-16">
                                 <div className="flex items-center gap-2">
-                                    <span className='text-orange-500'>Giảm giá  - { formatPrice(totalCourtPrice - totalWithDiscount)}</span>
+                                    <span className="text-orange-500">
+                                        Giảm giá - {formatPrice(total - totalWithDiscount)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
