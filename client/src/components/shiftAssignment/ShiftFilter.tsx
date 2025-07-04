@@ -26,6 +26,7 @@ interface ShiftFilterProps extends WeekPickerProps {
     setFullTimeOption?: (value: string) => void;
     partTimeOption?: string;
     setPartTimeOption?: (value: string) => void;
+    onSuccess?: () => void;
 }
 
 const ShiftFilter: React.FC<ShiftFilterProps> = ({
@@ -43,11 +44,13 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
     setFullTimeOption,
     partTimeOption,
     setPartTimeOption,
+    onSuccess,
 }) => {
     const handleAutoAssign = async () => {
         const response = await autoAssignShift(fullTimeOption || '', partTimeOption || '');
         if (response.ok) {
             toast.success('Phân công tự động thành công');
+            onSuccess?.();
         } else {
             toast.error(response.message || 'Phân công tự động thất bại');
         }

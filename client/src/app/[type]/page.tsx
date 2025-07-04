@@ -156,7 +156,15 @@ const ShiftAssignmentPage = () => {
             }
         }
     };
-
+    const handleSuccess = () => {
+        if (user?.role === 'hr_manager') {
+            fetchShiftDate();
+        } else if (type === 'enrollments') {
+            fetchPartTimeShiftEnrollment();
+        } else {
+            fetchShiftDateEmployee();
+        }
+    };
     useEffect(() => {
         if (user?.role === 'hr_manager') {
             fetchShiftDate();
@@ -188,6 +196,7 @@ const ShiftAssignmentPage = () => {
                     setFullTimeOption={setFullTimeOption}
                     partTimeOption={partTimeOption}
                     setPartTimeOption={setPartTimeOption}
+                    onSuccess={handleSuccess}
                 />
                 <PersonalShift
                     role={user?.role}
