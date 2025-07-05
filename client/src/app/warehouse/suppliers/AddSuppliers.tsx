@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { Supplier } from './page';
 import { getAllProducts } from '@/services/products.service';
-import { postSuppliers, patchSuppliers } from '@/services/suppliers.service';
+import { postSuppliers, patchSuppliers, deleteSupplyProduct } from '@/services/suppliers.service';
 import { toast } from 'sonner';
 import { supplierSchema } from '../warehouse.schema';
 import { z } from 'zod';
@@ -39,6 +39,7 @@ export default function AddSupplierModal({
     const modalRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const originalProductIdsRef = useRef<number[]>([]);
     const [formData, setFormData] = useState<Supplier>({
         name: '',
         contactname: '',
@@ -61,6 +62,7 @@ export default function AddSupplierModal({
     useEffect(() => {
         if (open && editData) {
             setFormData(editData);
+            originalProductIdsRef.current = editData.products.map(p => p.productid);
         }
     }, [open, editData]);
 
@@ -143,11 +145,9 @@ export default function AddSupplierModal({
 
     const handleSubmit = async () => {
         try {
-            // Validate dữ liệu đầu vào
             supplierSchema.parse({ ...formData });
             setLoading(true);
 
-            // Chuyển đổi danh sách sản phẩm
             const products = formData.products.map(p => {
                 const productid = Number(p.productid);
                 const costprice = Number(p.costprice);
@@ -159,8 +159,6 @@ export default function AddSupplierModal({
 
                 return { productid, costprice };
             });
-
-            console.log("Products: ",products);
 
             const payloadBase = {
                 suppliername: formData.name,
@@ -174,10 +172,26 @@ export default function AddSupplierModal({
 
             if (editData) {
                 if (!editData.supplierid) return;
+
                 result = await patchSuppliers(editData.supplierid, {
                     ...payloadBase,
                     products_costs: products,
                 });
+
+                if (result.ok) {
+                    // So sánh danh sách sản phẩm và xóa các sản phẩm bị loại bỏ
+                    const currentProductIds = formData.products.map(p => p.productid);
+                    const removedProductIds = originalProductIdsRef.current.filter(
+                        (id) => !currentProductIds.includes(id)
+                    );
+
+                    for (const productid of removedProductIds) {
+                        const delRes = await deleteSupplyProduct(editData.supplierid, productid);
+                        if (!delRes.ok) {
+                            toast.error(`Không thể xóa sản phẩm ID ${productid} khỏi nhà cung cấp`);
+                        }
+                    }
+                }
             } else {
                 result = await postSuppliers({
                     ...payloadBase,
@@ -209,8 +223,6 @@ export default function AddSupplierModal({
             }
         }
     };
-    
-    
 
     useEffect(() => {
         if (!open) {
@@ -308,7 +320,6 @@ export default function AddSupplierModal({
                                 </button>
                             </div>
 
-                            {/* Đặt phần nhập giá ở dưới chọn sản phẩm */}
                             {selectedProductId > 0 && (
                                 <div className="mt-4 w-full sm:w-auto">
                                     <label className="block text-sm mb-1">Nhập giá cho sản phẩm</label>
