@@ -37,16 +37,6 @@ const unsigned long FINGERPRINT_SCAN_INTERVAL = 1000;  // 1 second
 unsigned long lastEnrollmentTime = 0;
 const unsigned long ENROLLMENT_COOLDOWN = 5000;  // 5 seconds cooldown after enrollment
 
-// Common Fingerprint Error Codes (for reference):
-// FINGERPRINT_OK = 0           - Success
-// FINGERPRINT_NOFINGER = 2     - No finger detected
-// FINGERPRINT_IMAGEFAIL = 3    - Failed to capture image
-// FINGERPRINT_IMAGEMESS = 6    - Image is messy/unclear
-// FINGERPRINT_FEATUREFAIL = 7  - Could not find fingerprint features
-// FINGERPRINT_NOMATCH = 8      - Could not match fingerprint
-// FINGERPRINT_NOTFOUND = 9     - No matching fingerprint found
-// Error 23 = FINGERPRINT_IMAGEMESS (image too messy/unclear)
-
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 SoftwareSerial mySerial(FINGERPRINT_RX, FINGERPRINT_TX);

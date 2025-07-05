@@ -2999,6 +2999,90 @@ async function main() {
             statusorder: 'delivered',
         }]
     });
+
+    // === SEED BOOKINGS MỖI NGÀY TỪ 1/1 ĐẾN 31/12 ===
+    const todaySeed = new Date();
+    const yearSeed = todaySeed.getFullYear();
+    const startDateSeed = new Date(yearSeed, 0, 1); // 1/1
+    const endDateSeed = new Date(yearSeed, 11, 31); // 31/12
+    const bookingsSeed: any[] = [];
+    const courtIdSeed = 1; // court mẫu
+    const customerIdSeed = 16; // customer mẫu
+    for (let d = new Date(startDateSeed); d <= endDateSeed; d.setDate(d.getDate() + 1)) {
+        const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+        const duration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+
+        // Đảm bảo starttime >= 6 giờ và endtime <= 22 giờ
+        const minStartHour = 6;
+        const maxEndHour = 22;
+        const maxStartHour = maxEndHour - duration; // Đảm bảo endtime không vượt quá 22h
+
+        // Validation: Nếu duration quá lớn thì skip
+        if (maxStartHour < minStartHour) {
+            continue; // Skip ngày này nếu duration quá lớn
+        }
+
+        const startHour = Math.floor(Math.random() * (maxStartHour - minStartHour + 1)) + minStartHour;
+        const endHour = startHour + duration;
+
+        // Double check: Đảm bảo startHour >= 6 và endHour <= 22
+        if (startHour < 6 || endHour > 22) {
+            continue; // Skip nếu không đúng điều kiện
+        }
+
+        const bookingDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // Chỉ ngày tháng năm
+        const starttime = new Date(bookingDate);
+        starttime.setUTCHours(startHour, 0, 0, 0);
+        const endtime = new Date(bookingDate);
+        endtime.setUTCHours(endHour, 0, 0, 0);
+        bookingsSeed.push({
+            guestphone: '0987654321',
+            bookingdate: bookingDate,
+            totalprice: 200000,
+            bookingstatus: 'confirmed',
+            createdat: starttime,
+            updatedat: endtime,
+            employeeid: null,
+            customerid: customerIdSeed,
+            voucherid: null,
+        });
+
+        // Tạo bookingDate riêng cho court_booking với múi giờ UTC+7
+        const bookingDateForCourt = new Date(bookingDate);
+        bookingDateForCourt.setTime(bookingDateForCourt.getTime() + 7 * 60 * 60 * 1000); // Cộng 7 tiếng cho UTC+7
+
+        // Tạo court_booking tương ứng
+        await prisma.court_booking.create({
+            data: {
+                date: bookingDateForCourt,
+                starttime,
+                endtime,
+                duration,
+                bookingid: undefined, // sẽ cập nhật sau khi insert booking
+                courtid: courtIdSeed,
+            },
+        });
+    }
+    // Insert bookings
+    await prisma.bookings.createMany({ data: bookingsSeed, skipDuplicates: true });
+    // Lấy lại bookingid để cập nhật court_booking
+    const allBookingsSeed = await prisma.bookings.findMany({
+        where: { customerid: customerIdSeed },
+        orderBy: { bookingdate: 'asc' },
+    });
+    const allCourtBookingsSeed = await prisma.court_booking.findMany({
+        where: { courtid: courtIdSeed },
+        orderBy: { date: 'asc' },
+    });
+    // Cập nhật bookingid cho court_booking
+    for (let i = 0; i < Math.min(allBookingsSeed.length, allCourtBookingsSeed.length); i++) {
+        if (allBookingsSeed[i] && allCourtBookingsSeed[i]) {
+            await prisma.court_booking.update({
+                where: { courtbookingid: allCourtBookingsSeed[i].courtbookingid },
+                data: { bookingid: allBookingsSeed[i].bookingid },
+            });
+        }
+    }
 }
 
 main()
