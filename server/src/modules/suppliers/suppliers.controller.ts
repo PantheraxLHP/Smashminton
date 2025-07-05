@@ -55,4 +55,13 @@ export class SuppliersController {
   deleteProduct(@Param('supplierid') supplierid: number) {
     return this.suppliersService.deleteSupplier(+supplierid);
   }
+
+  @Delete('supply-products')
+  @ApiOperation({ summary: 'Delete supply_products' })
+  async deleteSupplyProduct(
+    @Query('productid') productid: number,
+    @Query('supplierid') supplierid: number
+  ) {
+    return this.suppliersService.deleteSupplyProduct(+productid, +supplierid);
+  }
 }

@@ -182,4 +182,34 @@ export class SuppliersService {
     };
   }
 
+  async deleteSupplyProduct(productid: number, supplierid: number) {
+    const existing = await this.prisma.supply_products.findUnique({
+      where: {
+        productid_supplierid: {
+          productid,
+          supplierid,
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Không tìm thấy supply_products với productid = ${productid} và supplierid = ${supplierid}`);
+    }
+
+    await this.prisma.supply_products.delete({
+      where: {
+        productid_supplierid: {
+          productid,
+          supplierid,
+        },
+      },
+    });
+
+    return {
+      message: 'Xóa supply_products thành công',
+      productid,
+      supplierid,
+    };
+  }
+
 }
