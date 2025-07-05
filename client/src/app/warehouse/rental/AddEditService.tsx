@@ -11,8 +11,10 @@ import { getRentalFilters } from "@/services/products.service";
 import { FaPen } from "react-icons/fa";
 import { serviceSchema } from "../../price-management/price-management.schema";
 import { z } from "zod";
-import { createProducts, updateService } from "@/services/products.service";
+import { createProducts, updateService, findSupplier } from "@/services/products.service";
+import { getSuppliers, patchSuppliers } from '@/services/suppliers.service';
 import { toast } from "sonner";
+import { Supplier } from "../suppliers/page";
 
 interface ServiceModalProps {
     open: boolean;
@@ -38,7 +40,17 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     const [filterData, setFilterData] = useState<any[]>([]);
     const [availableValues, setAvailableValues] = useState<string[]>([]);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(99);
+    const [totalPages, setTotalPages] = useState(2);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number>(0);
+    const [costPrice, setCostPrice] = useState<number>(0);
+    const [supplierList, setSupplierList] = useState<
+        { supplierid: number; suppliername: string; costprice: number }[]
+    >([]);
     const [formData, setFormData] = useState<Service>({
+        productid: 0,
         productname: "",
         price: 0,
         servicetype: "",
@@ -52,33 +64,61 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
     const [racketWeight, setRacketWeight] = useState<string>("");
 
     useEffect(() => {
-        if (editData) {
-            setFormData({
-                ...editData,
-                price: editData.price,
-                image: editData.image || '/default.png',
-                value: editData.value || "",
-            });
-            if (editData.servicetype === "Thuê giày") {
-                setShoeSize(editData.value || "");
-            } else if (editData.servicetype === "Thuê vợt") {
-                setRacketWeight(editData.value || "");
-            }
-            setServicePreview(editData.image || '/default.png');
-            setServiceAvatar(null);
-        } else {
-            setFormData({
-                productname: "",
-                price: 0,
-                servicetype: "",
-                image: '/default.png',
-                quantity: 0,
-            });
-            setShoeSize("");
-            setRacketWeight("");
-        }
-    }, [editData, open]);
+        if (open) {
+            if (editData) {
+                setFormData({
+                    ...editData,
+                    image: editData.image || '/default.png',
+                    value: editData.value || '',
+                });
 
+                setServicePreview(editData.image || '/default.png');
+                setServiceAvatar(null);
+
+                if (editData.servicetype === "Thuê giày") {
+                    setShoeSize(editData.value || "");
+                } else if (editData.servicetype === "Thuê vợt") {
+                    setRacketWeight(editData.value || "");
+                }
+
+                setSupplierList([]);
+                findSupplier(editData.productid).then((res) => {
+                    if (res.ok && Array.isArray(res.data)) {
+                        const suppliers = res.data.map((s: any) => ({
+                            supplierid: s.supplierid,
+                            suppliername: s.suppliername,
+                            costprice: parseInt(s.costprice),
+                        }));
+                        setSupplierList(suppliers);
+                    }
+                });
+            } else {
+                setFormData({
+                    productid: 0,
+                    productname: "",
+                    price: 0,
+                    servicetype: "",
+                    image: '/default.png',
+                    quantity: 0,
+                    productfiltervalueid: 0,
+                    value: "",
+                });
+                setShoeSize("");
+                setRacketWeight("");
+                setServiceAvatar(null);
+                setServicePreview('');
+                setSupplierList([]);
+            }
+
+            setSelectedSupplierId(0);
+            setCostPrice(0);
+            setErrors({});
+
+            fetchSuppliers();
+        }
+    }, [open, editData]);
+    
+    
     useEffect(() => {
         async function fetchFilters() {
             try {
@@ -138,6 +178,49 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         };
     }, [open, onClose]);
 
+    const fetchSuppliers = async () => {
+        const response = await getSuppliers(page, pageSize);
+        if (response.ok) {
+            const { data, pagination } = response.data;
+            const mapped: Supplier[] = data.map((supplier: any) => ({
+                supplierid: supplier.supplierid,
+                name: supplier.suppliername || '',
+                phone: supplier.phonenumber || '',
+                email: supplier.email || '',
+                contactname: supplier.contactname || '',
+                address: supplier.address || '',
+                products: (supplier.products || []).map((p: any) => ({
+                    productid: p.productid,
+                    productname: p.productname,
+                    costprice: p.costprice || 0,
+                })),
+            }));
+
+            setSuppliers(mapped);
+            setTotalPages(pagination.totalPages);
+        }
+    };
+
+    const supplierListRef = useRef(supplierList);
+    useEffect(() => {
+        supplierListRef.current = supplierList;
+    }, [supplierList]);
+
+    useEffect(() => {
+        if (open && editData) {
+            findSupplier(editData.productid).then((res) => {
+                if (res.ok && Array.isArray(res.data)) {
+                    const suppliers = res.data.map((s: any) => ({
+                        supplierid: s.supplierid,
+                        suppliername: s.suppliername,
+                        costprice: parseInt(s.costprice),
+                    }));
+                    setSupplierList(suppliers);
+                }
+            });
+        }
+    }, [open, editData]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -151,7 +234,31 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         }
     };
 
+    const updateSupplier = async (productId: number) => {
+        const suppliersToUpdate = supplierListRef.current;
+        if (suppliersToUpdate.length === 0) return;
 
+        try {
+            for (const s of suppliersToUpdate) {
+                const supplierInfo = suppliers.find(sup => sup.supplierid === s.supplierid);
+
+                if (!supplierInfo) continue;
+
+                const payload = {
+                    suppliername: supplierInfo.name,
+                    contactname: supplierInfo.contactname || '',
+                    phonenumber: supplierInfo.phone || '',
+                    email: supplierInfo.email || '',
+                    address: supplierInfo.address || '',
+                    products_costs: [{ productid: productId, costprice: s.costprice }],
+                };
+
+                await patchSuppliers(s.supplierid, payload);
+            }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật nhà cung cấp:", error);
+        }
+    };      
 
     async function handleSubmit() {
         setErrors({});
@@ -199,6 +306,11 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
             }
 
             if (result.status === "success") {
+                const createdProductId = editData ? editData.productid : (result as any).product.productid;
+                if (supplierListRef.current.length > 0) {
+                    await updateSupplier(createdProductId);
+                }
+
                 if (onSubmit) {
                     onSubmit({
                         ...formData,
@@ -227,7 +339,7 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
         finally {
             setLoading(false);
         }
-    }    
+    }
 
     const handleServiceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -447,8 +559,100 @@ export default function ServiceModal({ open, onClose, onSubmit, editData }: Serv
                                     )}
                                 </div>
                             )}
+                            <div className="">
+                                <label className="block text-sm font-medium mb-1">Chọn nhà cung cấp cho sản phẩm</label>
+                                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                    <select
+                                        value={selectedSupplierId}
+                                        onChange={(e) => setSelectedSupplierId(Number(e.target.value))}
+                                        className="flex-1 border rounded px-3 py-2"
+                                    >
+                                        <option value={0}>Chọn nhà cung cấp</option>
+                                        {suppliers.map((s) => (
+                                            <option key={s.supplierid} value={s.supplierid}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!selectedSupplierId || !costPrice) {
+                                                toast.error("Chưa chọn nhà cung cấp hoặc giá nhập không hợp lệ");
+                                                return;
+                                            }
+
+                                            const exists = supplierList.some(s => s.supplierid === selectedSupplierId);
+                                            if (exists) {
+                                                toast.warning("Nhà cung cấp này đã được thêm");
+                                                return;
+                                            }
+
+                                            const selectedSupplier = suppliers.find(s => s.supplierid === selectedSupplierId);
+
+                                            if (!selectedSupplier) {
+                                                toast.error("Không tìm thấy nhà cung cấp");
+                                                return;
+                                            }
+
+                                            const supplierid = Number(selectedSupplier.supplierid);
+                                            if (isNaN(supplierid)) {
+                                                toast.error("ID nhà cung cấp không hợp lệ");
+                                                return;
+                                            }
+
+                                            const newSupplier = {
+                                                supplierid,
+                                                suppliername: selectedSupplier.name ?? "",
+                                                costprice: costPrice,
+                                            };
+
+                                            setSupplierList(prev => [...prev, newSupplier]);
+
+                                            setSelectedSupplierId(0);
+                                            setCostPrice(0);
+                                        }}
+                                        className="w-full sm:w-auto px-3 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
+                                    >
+                                        Thêm
+                                    </button>
+                                </div>
+
+                                {selectedSupplierId > 0 && (
+                                    <div className="mt-4 w-full sm:w-auto">
+                                        <label className="block text-sm font-medium mb-1">Giá nhập</label>
+                                        <input
+                                            type="number"
+                                            value={costPrice ?? ''}
+                                            onChange={(e) => setCostPrice(Number(e.target.value))}
+                                            className="w-full border rounded px-3 py-2"
+                                            placeholder="Nhập giá nhập"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    {supplierList.length > 0 && (
+                        <div className="mt-6 mb-6">
+                            <label className="block text-md font-medium mb-1 text-black">
+                                Nhà cung cấp
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {supplierList.map((s) => (
+                                    <span
+                                        key={s.supplierid}
+                                        className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded"
+                                    >
+                                        {s.suppliername} - {s.costprice.toLocaleString('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND',
+                                        })}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-2">
                         <button

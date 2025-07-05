@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
 
 export interface Service {
-    productid?: number;
+    productid: number;
     productname: string;
     servicetype: string;
     price: number;

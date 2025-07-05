@@ -189,7 +189,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
             formDataObj.append('productname', formData.name);
             formDataObj.append('sellingprice', formData.sellingprice.toString());
             formDataObj.append('rentalprice', '0');
-
+            
             if (accessoryAvatar) {
                 formDataObj.append('productimgurl', accessoryAvatar);
             } else {
@@ -202,6 +202,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
                 if (!editData.batchid?.trim()) {
                     result = await updateProductsWithoutBatch(formDataObj, editData.id.toString());
                 } else {
+                    formDataObj.append('discount', '0');
                     result = await updateProducts(formDataObj, editData.id.toString(), editData.batchid);
                 }
             } else {
