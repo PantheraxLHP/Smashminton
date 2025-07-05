@@ -1,4 +1,3 @@
-
 import PredictionChart from './PredictionChart';
 import PredictionTable from './PredictionTable';
 import DoubleBarChart from './DoubleBarChart';
@@ -30,8 +29,8 @@ function createApiFilters(timeType: 'Tháng' | 'Quý', selectedTime: string, sel
 }
 
 // Helper function to sort data
-function sortData(data: { id: string; name: string; quantity: number }[], order: 'asc' | 'desc') {
-    return [...data].sort((a, b) => (order === 'asc' ? a.quantity - b.quantity : b.quantity - a.quantity));
+function sortData(data: { id: string; name: string; ratio: number }[], order: 'asc' | 'desc') {
+    return [...data].sort((a, b) => (order === 'asc' ? a.ratio - b.ratio : b.ratio - a.ratio));
 }
 
 export default async function PredictionServer({

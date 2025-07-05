@@ -3,7 +3,7 @@ const API_BASE = process.env.SERVER || 'http://localhost:8000';
 export interface PredictionRatioItem {
     id: string;
     name: string;
-    quantity: number;
+    ratio: number;
 }
 
 export interface SalesPurchaseItem {
@@ -84,14 +84,14 @@ export async function getPredictionData(filters: PredictionFilters): Promise<Pre
             data[0]?.map((item: any, index: number) => ({
                 id: String(item.productfilter_value_id ?? index),
                 name: item.productfilter_value_name || '',
-                quantity: typeof item.ratio === 'number' ? item.ratio : 0,
+                ratio: typeof item.ratio === 'number' ? item.ratio : 0,
             })) || [];
 
         const transformedPurchasedRatio = Array.isArray(data[1])
             ? data[1].map((item: any, index: number) => ({
                   id: String(item.productfilter_value_id ?? index),
                   name: item.productfilter_value_name || '',
-                  quantity: Number.isFinite(item.ratio) ? item.ratio : 0,
+                  ratio: typeof item.ratio === 'number' ? item.ratio : 0,
               }))
             : [];
 
@@ -138,7 +138,6 @@ export async function getPredictionDataTable(filters: PredictionTableFilters): P
         if (filters.type === 'quarter' && filters.quarter) {
             params.append('value', filters.quarter.toString());
         }
-        console.log(params.toString());
 
         const response = await fetch(`${API_BASE}/api/v1/admin/prediction/predict-bestseller-by-time?${params}`, {
             next: { revalidate: 300 },

@@ -143,7 +143,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                 (item, index) =>
                     item.subMenu &&
                     openMenu === item.label && (
-                        <div key={index} className="hidden justify-center gap-50 bg-gray-100 p-2 shadow-md md:flex">
+                        <div key={index} className="flex flex-row justify-between bg-gray-100 p-2 px-16 shadow-md">
                             {item.subMenu.map((sub, i) => (
                                 <Link
                                     key={i}
