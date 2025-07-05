@@ -2,10 +2,10 @@
 
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import React from 'react';
-import { Bar, BarChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
+import { Cell, Pie, PieChart } from 'recharts';
 
 interface PredictionChartProps {
-    data: { id: string; name: string; quantity: number }[];
+    data: { id: string; name: string; ratio: number }[];
     sortOrder: 'asc' | 'desc';
     title?: string;
 }
@@ -13,7 +13,7 @@ interface PredictionChartProps {
 interface ChartDataItem {
     id: string;
     name: string;
-    quantity: number;
+    ratio: number;
     percent: number;
     fill: string;
 }
@@ -29,51 +29,51 @@ const COLORS = [
 ];
 
 const PredictionChart: React.FC<PredictionChartProps> = ({ data, title = 'Tỉ lệ phần trăm sản phẩm bán ra' }) => {
-    const totalQuantity = data.reduce((acc, item) => acc + item.quantity, 0);
+    const totalQuantity = data.reduce((acc, item) => acc + item.ratio, 0);
 
     // Sort data by quantity in descending order
-    const sortedData = [...data].sort((a, b) => b.quantity - a.quantity);
+    const sortedData = [...data].sort((a, b) => b.ratio - a.ratio);
 
-    // Limit to 6 pieces for main pie, merge rest into 'Other'
+    // Limit to 7 pieces for main pie, merge rest into 'Other'
     let mainPieData: ChartDataItem[] = [];
     let stackedBarData: ChartDataItem[] = [];
 
-    if (sortedData.length > 6) {
-        const topFive = sortedData.slice(0, 5);
-        const otherItems = sortedData.slice(5);
-        const otherQuantity = otherItems.reduce((acc, item) => acc + item.quantity, 0);
+    if (sortedData.length > 7) {
+        const topSix = sortedData.slice(0, 6);
+        const otherItems = sortedData.slice(6);
+        const otherQuantity = otherItems.reduce((acc, item) => acc + item.ratio, 0);
 
         mainPieData = [
-            ...topFive.map((item, index) => ({
+            ...topSix.map((item, index) => ({
                 ...item,
                 id: item.id && item.id !== '' ? item.id : `item-${index}`,
                 name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 1}`,
-                percent: totalQuantity === 0 ? 0 : (item.quantity / totalQuantity) * 100,
+                percent: totalQuantity === 0 ? 0 : (item.ratio / totalQuantity) * 100,
                 fill: COLORS[index % COLORS.length],
             })),
             {
                 id: 'other',
                 name: 'Các loại khác',
-                quantity: otherQuantity,
+                ratio: otherQuantity,
                 percent: totalQuantity === 0 ? 0 : (otherQuantity / totalQuantity) * 100,
-                fill: COLORS[5 % COLORS.length],
+                fill: COLORS[6 % COLORS.length],
             },
         ];
 
-        // Stacked bar data shows breakdown of "Other" category only
+        // Stacked bar data shows breakdown of "Other" category with original percentages
         stackedBarData = otherItems.map((item, index) => ({
             ...item,
             id: item.id && item.id !== '' ? item.id : `other-item-${index}`,
-            name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 6}`,
-            percent: otherQuantity === 0 ? 0 : (item.quantity / otherQuantity) * 100,
-            fill: COLORS[5 % COLORS.length], // Same color as "Other" slice
+            name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 7}`,
+            percent: totalQuantity === 0 ? 0 : (item.ratio / totalQuantity) * 100,
+            fill: COLORS[6 % COLORS.length], // Same color as "Other" slice
         }));
     } else {
         mainPieData = sortedData.map((item, index) => ({
             ...item,
             id: item.id && item.id !== '' ? item.id : `item-${index}`,
             name: item.name && item.name !== '' ? item.name : `Sản phẩm ${index + 1}`,
-            percent: totalQuantity === 0 ? 0 : (item.quantity / totalQuantity) * 100,
+            percent: totalQuantity === 0 ? 0 : (item.ratio / totalQuantity) * 100,
             fill: COLORS[index % COLORS.length],
         }));
     }
@@ -92,7 +92,7 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, title = 'Tỉ l
     stackedBarData.forEach((item, index) => {
         stackedBarConfig[item.id] = {
             label: item.name,
-            color: COLORS[5 % COLORS.length], // Same color as "Other" slice
+            color: COLORS[6 % COLORS.length], // Same color as "Other" slice
         };
     });
 
@@ -139,33 +139,28 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, title = 'Tỉ l
                     <div className="relative flex flex-col items-center">
                         {/* Title */}
                         <div className="mb-2 text-center">
-                            <div className="mb-1 text-sm font-semibold text-gray-700 flex items-center gap-1">
+                            <div className="mb-1 flex items-center gap-1 text-sm font-semibold text-gray-700">
                                 <span
-                                    className="w-4 h-4 rounded-lg"
+                                    className="h-4 w-4 rounded-lg"
                                     style={{
-                                        backgroundColor: 'hsl(173, 58%, 39%)',
+                                        backgroundColor: 'hsl(27, 87%, 67%)',
                                     }}
-                                >
-                                </span>
+                                ></span>
                                 Chi tiết &ldquo;Các loại khác&rdquo;
                             </div>
                             <p className="text-xs text-gray-500">{stackedBarData.length} sản phẩm</p>
                         </div>
 
                         {/* Chart and Labels Container */}
-                        <div className="flex flex-col gap-1 w-full">
+                        <div className="flex w-full flex-col gap-1">
                             {stackedBarData.map((item, index) => {
                                 return (
                                     <div
                                         key={item.id}
-                                        className="h-6 rounded-sm flex items-center justify-between px-3 shadow-sm bg-gray-100 w-full gap-2"
-                                    >   
-                                        <span className="text-xs font-medium truncate flex-1">
-                                            {item.name}
-                                        </span>
-                                        <span className="text-xs ml-2">
-                                            {item.percent.toFixed(2)}%
-                                        </span>
+                                        className="flex h-6 w-full items-center justify-between gap-2 rounded-sm bg-gray-100 px-3 shadow-sm"
+                                    >
+                                        <span className="flex-1 truncate text-xs font-medium">{item.name}</span>
+                                        <span className="ml-2 text-xs">{item.percent.toFixed(2)}%</span>
                                     </div>
                                 );
                             })}

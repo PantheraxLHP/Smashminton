@@ -24,8 +24,8 @@ export default function PredictionPage() {
     const [chartSelectedTime, setChartSelectedTime] = useState('Tháng 1');
     const [chartSelectedYear, setChartSelectedYear] = useState(2024);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-    const [chartData, setChartData] = useState<{ id: string; name: string; quantity: number }[]>([]);
-    const [purchaseData, setPurchaseData] = useState<{ id: string; name: string; quantity: number }[]>([]);
+    const [chartData, setChartData] = useState<{ id: string; name: string; ratio: number }[]>([]);
+    const [purchaseData, setPurchaseData] = useState<{ id: string; name: string; ratio: number }[]>([]);
     const [doubleBarData, setDoubleBarData] = useState<any[]>([]);
     const [chartLoading, setChartLoading] = useState(false);
 
@@ -95,35 +95,39 @@ export default function PredictionPage() {
             </div>
 
             {/* Part 2: Chart controls and charts grouped in a div */}
-            <div className="flex flex-col gap-4 rounded-lg bg-gray-200">
-                <PredictionChartControls
-                    timeType={chartTimeType}
-                    selectedTime={chartSelectedTime}
-                    selectedYear={chartSelectedYear}
-                    onTimeTypeChange={(type) => setChartTimeType(type as 'Tháng' | 'Quý')}
-                    onTimeChange={setChartSelectedTime}
-                    onYearChange={setChartSelectedYear}
-                />
-                {chartLoading ? (
-                    <div>Đang tải biểu đồ...</div>
-                ) : (
-                    <div className="flex h-full w-full gap-2">
-                        <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                            <PredictionChart
-                                data={chartData}
-                                title={`Tỉ lệ loại sản phẩm bán ra trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
-                                sortOrder={sortOrder}
-                            />
+            <div className="flex h-full w-full flex-col gap-4 rounded-lg bg-gray-200">
+                {/* Wrap PredictionChartControls and charts in a flex container */}
+                <div className="flex flex-col gap-4">
+                    <PredictionChartControls
+                        timeType={chartTimeType}
+                        selectedTime={chartSelectedTime}
+                        selectedYear={chartSelectedYear}
+                        onTimeTypeChange={(type) => setChartTimeType(type as 'Tháng' | 'Quý')}
+                        onTimeChange={setChartSelectedTime}
+                        onYearChange={setChartSelectedYear}
+                    />
+                    {chartLoading ? (
+                        <div>Đang tải biểu đồ...</div>
+                    ) : (
+                        <div className="flex h-full w-full gap-2">
+                            <div className="h-[60vh] max-w-[50vw] flex-1 rounded-lg border-2 bg-white p-4">
+                                <PredictionChart
+                                    data={chartData}
+                                    title={`Tỉ lệ loại sản phẩm bán ra trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                    sortOrder={sortOrder}
+                                />
+                            </div>
+                            <div className="h-[60vh] max-w-[50vw] flex-1 rounded-lg border-2 bg-white p-4">
+                                <PredictionChart
+                                    data={purchaseData}
+                                    title={`Tỉ lệ loại sản phẩm mua vào trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                    sortOrder={sortOrder}
+                                />
+                            </div>
                         </div>
-                        <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                            <PredictionChart
-                                data={purchaseData}
-                                title={`Tỉ lệ loại sản phẩm mua vào trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
-                                sortOrder={sortOrder}
-                            />
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
+                {/* DoubleBarChart remains separate */}
                 {doubleBarData.length > 0 && (
                     <div className="h-[80vh] w-full rounded-lg border-2 bg-white p-4">
                         <DoubleBarChart

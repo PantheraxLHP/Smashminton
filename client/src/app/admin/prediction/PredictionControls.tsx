@@ -61,10 +61,12 @@ export function PredictionTableControls({
     return (
         <div className="flex flex-col justify-end gap-4 rounded-lg bg-white p-4">
             <div className="flex items-center justify-center">
-                <span className="text-2xl font-semibold">Dự đoán các loại sản phẩm bán chạy theo tháng/quý</span>
+                <span className="bg-white text-2xl font-semibold">
+                    Dự đoán các loại sản phẩm bán chạy theo tháng/quý
+                </span>
             </div>
 
-            <div className="flex items-center gap-4 mt-4">
+            <div className="mt-4 flex items-center gap-4">
                 <span>Chọn thời gian dự đoán</span>
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium">Chọn loại thời gian:</label>
@@ -158,7 +160,7 @@ export function PredictionChartControls({
     };
 
     return (
-        <div className="flex flex-col gap-4 rounded-lg bg-white">
+        <div className="flex flex-col gap-4 rounded-lg bg-gray-200">
             <div className="flex items-center justify-center p-4">
                 <span className="text-2xl font-semibold">Biểu đồ</span>
             </div>
