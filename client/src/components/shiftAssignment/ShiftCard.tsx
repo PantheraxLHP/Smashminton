@@ -242,7 +242,12 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                     </div>
                                 </>
                             )}
-                        <Button variant="destructive" size="sm" onClick={handleUnenrollShift}>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            className={`${(shiftDataSingle as ShiftDate).shift_enrollment?.[0]?.enrollmentstatus ? 'hidden' : ''}`}
+                            onClick={handleUnenrollShift}
+                        >
                             <Icon icon="material-symbols:cancel-outline-rounded" />
                             Hủy đăng ký
                         </Button>

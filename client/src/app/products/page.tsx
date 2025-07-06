@@ -19,7 +19,7 @@ const ProductsPage = () => {
     const router = useRouter();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const [pageSize, setPageSize] = useState(12);
+    const [pageSize, setPageSize] = useState(10);
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productTypes, setProductTypes] = useState<ProductTypes[]>([]);
     const [filters, setFilters] = useState<FilterConfig[]>([]);
