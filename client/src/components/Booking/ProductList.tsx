@@ -91,7 +91,7 @@ const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProduc
             </div>
             <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {getSortedProducts().map((product) => (
-                    <div key={product.productid} className="">
+                    <div key={product.productid} className="flex h-full min-h-[350px] flex-col">
                         <Image
                             src={product.productimgurl || '/default-image.jpg'}
                             alt={product.productname || 'Hình ảnh sản phẩm'}
@@ -99,37 +99,45 @@ const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProduc
                             height={200}
                             className="!h-[200px] w-full object-scale-down"
                         />
-                        <h3 className="text-md font-semibold">{product.productname}</h3>
-                        <div className="flex items-center justify-between gap-2">
-                            <p className="text-primary-600 font-bold">{formatPrice(product.sellingprice || 0)}</p>
-                            <div className="flex items-center">
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleQuantityChange(product.productid, -1)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-minus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
-                                <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleQuantityChange(product.productid, 1)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-plus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
+                        <div className="flex flex-1 flex-col justify-between pt-2">
+                            <h3 className="text-md line-clamp-3 font-semibold break-words" title={product.productname}>
+                                {product.productname}
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-primary-600 font-bold">
+                                        {formatPrice(product.sellingprice || 0)}
+                                    </p>
+                                    <div className="flex items-center">
+                                        <button
+                                            type="button"
+                                            className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                            onClick={() => handleQuantityChange(product.productid, -1)}
+                                        >
+                                            <Icon
+                                                icon="ic:baseline-minus"
+                                                className="text-lg text-gray-500 group-hover:text-white"
+                                            />
+                                        </button>
+                                        <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
+                                        <button
+                                            type="button"
+                                            className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                            onClick={() => handleQuantityChange(product.productid, 1)}
+                                        >
+                                            <Icon
+                                                icon="ic:baseline-plus"
+                                                className="text-lg text-gray-500 group-hover:text-white"
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                                {/* show stock quantity */}
+                                <div className="flex items-end gap-1 text-sm text-gray-500">
+                                    <span>Số lượng: {product.quantity}</span>
+                                    <Icon icon="mdi:racket" className="h-5 w-5" />
+                                </div>
                             </div>
-                        </div>
-                        {/* show stock quantity */}
-                        <div className="flex items-end gap-1 text-sm text-gray-500">
-                            <span>Số lượng: {product.quantity}</span>
-                            <Icon icon="mdi:racket" className="h-5 w-5" />
                         </div>
                     </div>
                 ))}
