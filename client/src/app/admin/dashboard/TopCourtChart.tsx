@@ -59,6 +59,7 @@ const TopCourtChart: React.FC<TopCourtChartProps> = ({
                                 tickMargin={10}
                                 tickLine={false}
                                 axisLine={false}
+                                width={70}
                             />
                             <ChartTooltip
                                 content={

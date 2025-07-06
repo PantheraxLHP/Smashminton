@@ -100,7 +100,7 @@ const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProduc
                             className="!h-[200px] w-full object-scale-down"
                         />
                         <h3 className="text-md font-semibold">{product.productname}</h3>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                             <p className="text-primary-600 font-bold">{formatPrice(product.sellingprice || 0)}</p>
                             <div className="flex items-center">
                                 <button

@@ -34,23 +34,14 @@ const BookingStepper: React.FC<BookingStepperProps> = ({ currentStep, disableNav
 
     return (
         <div className="flex w-full items-center justify-between py-2">
-            <div className="flex gap-2">
+            <div className="flex w-fit justify-between gap-2">
                 <Button
                     variant={'secondary'}
                     size={'xs'}
                     onClick={handleBackButtonClick}
-                    className={`${currentStep === 1 ? 'pointer-events-none opacity-0' : ''}`}
+                    className={`${currentStep === 1 ? 'hidden' : ''}`}
                 >
                     ← Quay lại
-                </Button>
-
-                <Button
-                    variant={'default'}
-                    size={'xs'}
-                    onClick={handleNextButtonClick}
-                    className={`${currentStep === steps.length ? 'pointer-events-none opacity-0' : ''}`}
-                >
-                    Tiếp theo →
                 </Button>
             </div>
             {/* Stepper */}
@@ -85,6 +76,16 @@ const BookingStepper: React.FC<BookingStepperProps> = ({ currentStep, disableNav
                         </div>
                     </div>
                 ))}
+            </div>
+            <div className="flex w-fit justify-between gap-2">
+                <Button
+                    variant={'default'}
+                    size={'xs'}
+                    onClick={handleNextButtonClick}
+                    className={`${currentStep === steps.length ? 'hidden' : ''}`}
+                >
+                    Tiếp theo →
+                </Button>
             </div>
         </div>
     );

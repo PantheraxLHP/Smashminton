@@ -68,16 +68,16 @@ const topRentalsChartConfig: ChartConfig = {
 };
 
 const topColors = [
-    'var(--color-chart-11)',
-    'var(--color-chart-12)',
-    'var(--color-chart-13)',
-    'var(--color-chart-14)',
-    'var(--color-chart-15)',
-    'var(--color-chart-16)',
-    'var(--color-chart-17)',
-    'var(--color-chart-18)',
-    'var(--color-chart-19)',
-    'var(--color-chart-20)',
+    'var(--color-chart-1)',
+    'var(--color-chart-2)',
+    'var(--color-chart-3)',
+    'var(--color-chart-4)',
+    'var(--color-chart-5)',
+    'var(--color-chart-6)',
+    'var(--color-chart-7)',
+    'var(--color-chart-8)',
+    'var(--color-chart-9)',
+    'var(--color-chart-10)',
 ];
 
 const zoneColors = [
