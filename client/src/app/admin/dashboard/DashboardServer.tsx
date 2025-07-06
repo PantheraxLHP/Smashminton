@@ -99,16 +99,27 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
             fill: topColors[index],
         })) || [];
 
+    const sportBrand = ['Yonex', 'Lining', 'Mizuno', 'Victor', 'Kamito', 'Taro'];
+
+    const formatProductName = (name: string) => {
+        const brand = sportBrand.find((brand) => name.includes(brand));
+        if (brand) {
+            const brandIndex = name.indexOf(brand);
+            return name.substring(brandIndex);
+        }
+        return name;
+    };
+
     const topProductsData =
         dashboardData.topProducts?.map((product, index) => ({
-            productName: product.productname,
+            productName: formatProductName(product.productname),
             saleCount: product.totalSold,
             fill: topColors[index],
         })) || [];
 
     const topRentalsData =
         dashboardData.topRentedProducts?.map((rental, index) => ({
-            rentalName: rental.productname,
+            rentalName: formatProductName(rental.productname),
             rentalCount: rental.totalRented,
             fill: topColors[index],
         })) || [];

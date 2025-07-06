@@ -59,7 +59,7 @@ const TopProductChart: React.FC<TopProductChartProps> = ({
                                 tickMargin={20}
                                 tickLine={false}
                                 axisLine={false}
-                                width={300}
+                                width={250}
                             />
                             <ChartTooltip
                                 content={
