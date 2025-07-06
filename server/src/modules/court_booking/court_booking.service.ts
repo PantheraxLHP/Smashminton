@@ -7,12 +7,16 @@ import { CourtsService } from '../courts/courts.service';
 import { AvailableCourts } from 'src/interfaces/court_booking.interface';
 import { CacheService } from '../cache/cache.service';
 import { courtBookingDto } from '../bookings/dto/create-cache-booking.dto';
+import { Cron } from '@nestjs/schedule';
+import { AppGateway } from 'src/mqtt/app.gateway';
+
 @Injectable()
 export class CourtBookingService {
     constructor(
         private prisma: PrismaService,
         private courtsService: CourtsService, // Inject CourtsService
         private cacheService: CacheService, // Inject CacheService
+        private appGateway: AppGateway,
     ) {}
 
     private readonly allStartTimes: string[] = [
@@ -480,4 +484,62 @@ export class CourtBookingService {
     findAll() {
         return this.prisma.court_booking.findMany();
     }
+
+    @Cron('0 */15 * * * *') // Chạy mỗi 15 phút 
+    async regularCourtBookingNotify() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+        const courtBookings = await this.prisma.court_booking.findMany({
+            where: {
+                date: today,
+                starttime: {
+                    lte: now,
+                },
+                endtime: {
+                    gte: now,
+                },
+            },
+            include: {
+                courts: {
+                    include: {
+                        zones: true,
+                    }
+                }
+            }
+        });
+
+        if (!courtBookings || courtBookings.length === 0) {
+            return;
+        }
+
+        const zoneCourt = new Map<string, string[]>();
+        for (const booking of courtBookings) {
+            if ((booking?.endtime?.getTime() || 0) - 15 * 60 * 1000 > now.getTime()) {
+                continue; // Chỉ thông báo nếu còn 15 phút nữa đến giờ kết thúc
+            }
+
+            const zoneName = booking?.courts?.zones?.zonename || 'Unknown Zone';
+            if (!zoneCourt.has(zoneName)) {
+                zoneCourt.set(zoneName, []);
+            }
+            zoneCourt.get(zoneName)?.push(booking?.courts?.courtname || 'Unknown Court');
+        }
+
+        if (zoneCourt.size === 0) {
+            return;
+        }
+
+        this.appGateway.regularCourtBookingCheck(zoneCourt);
+    }
+
+    // @Cron('*/10 * * * * *')
+    // async testNotification() {
+    //     this.appGateway.testNotification("TEST GLOBAL ");
+    // }
+
+    // @Cron('*/10 * * * * *')
+    // async testNotificationAllEmployee() {
+    //     this.appGateway.testNotificationAllEmployee("TEST ALL EMPLOYEES");
+    // }
 }

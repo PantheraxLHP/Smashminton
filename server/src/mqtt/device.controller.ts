@@ -1,14 +1,12 @@
 import { Controller, Post, Body, Param, Get, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { MqttService } from './mqtt.service';
-import { FingerprintGateway } from './fingerprint.gateway';
 
 @ApiTags('ESP8266 Device Control')
 @Controller('devices')
 export class DeviceController {
     constructor(
         private readonly mqttService: MqttService,
-        private readonly fingerprintGateway: FingerprintGateway
     ) { }
 
     @Post(':deviceId/ping')

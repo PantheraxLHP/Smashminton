@@ -2,26 +2,25 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { useWebSocketContext } from '@/context/WebSocketContext';
 import { Button } from '@/components/ui/button';
 import { postEnrollFingerprint } from '@/services/fingerprint_enrollment.service';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 type STATUS_VALUE = 'start' | 'loading' | 'success' | 'fail' | 'press_again';
 
 const FingerprintPage = () => {
     const searchParams = useSearchParams();
+    const { user } = useAuth();
     const employeeID = searchParams.get('employeeid') || '0';
     const employeeName = searchParams.get('fullname') || '';
     const [status, setStatus] = useState<STATUS_VALUE>('start');
     const [fingerprintId, setFingerprintId] = useState<number | null>(null);
 
-    // WebSocket connection for real-time updates
-    const wsNamespace = '/fingerprint';
-    const server = process.env.NEXT_PUBLIC_SERVER || 'http://localhost:8000';
-    const { isConnected, lastMessage, sendMessage } = useWebSocket(server, wsNamespace);
+    const { isConnected, lastMessage, sendMessage } = useWebSocketContext();
 
-    // Handle real-time messages from backend
+    // Handle fingerprint-specific messages only
     useEffect(() => {
         if (!lastMessage) {
             return;
@@ -63,14 +62,16 @@ const FingerprintPage = () => {
                     }, 5000);
                 }
                 break;
+            default:
+                break;
         }
     }, [lastMessage, employeeID]);
 
     useEffect(() => {
-        if (isConnected && sendMessage && employeeID) {
-            sendMessage('subscribe_employee', { employeeID: parseInt(employeeID) });
+        if (isConnected && sendMessage && user && user.role && user.accountid) {
+            sendMessage('subscribe_employee', { employeeID: user.accountid });
         }
-    }, [isConnected, sendMessage, employeeID]);
+    }, [isConnected, sendMessage, user]);
 
     // Start fingerprint enrollmentsssss
     const startEnrollment = async () => {

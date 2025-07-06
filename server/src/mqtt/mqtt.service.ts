@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClientProxy, Client, Transport } from '@nestjs/microservices';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { FingerprintGateway } from './fingerprint.gateway';
+import { AppGateway } from './app.gateway';
 
 @Injectable()
 export class MqttService {
@@ -14,7 +14,7 @@ export class MqttService {
 
     constructor(
         private readonly prisma: PrismaService,
-        private readonly fingerprintGateway: FingerprintGateway
+        private readonly appGateway: AppGateway
     ) { }
 
     @Client({
@@ -173,7 +173,7 @@ export class MqttService {
             const nextFingerprintId = await this.getNextAvailableFingerprintId();
 
             // Send command to ESP8266 to start enrollment
-            this.fingerprintGateway.enrollmentStarted(employeeID, nextFingerprintId);
+            this.appGateway.enrollmentStarted(employeeID, nextFingerprintId);
             await this.sendCommand(deviceId, 'enroll_finger', {
                 employeeID: employeeID,
                 fingerID: nextFingerprintId,
@@ -402,7 +402,7 @@ export class MqttService {
 
             // Trong khoảng thời gian có thể check-in/check-out
             const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - timeBuffer &&
-                scanTimeMinutes <= shiftEndMinutes + timeBuffer;
+                scanTimeMinutes <= shiftEndMinutes;
 
             if (!isWithinTimeBuffer) {
                 continue;
@@ -414,9 +414,7 @@ export class MqttService {
                 nearAssignment.push(assignment);
             } else if (assignment.timesheet.length > 0) {
                 const timesheet = assignment.timesheet[0];
-                if (!timesheet.checkin_time) {
-                    nearAssignment.push(assignment);
-                } else if (timesheet.checkin_time && !timesheet.checkout_time) {
+                if (timesheet.checkin_time && !timesheet.checkout_time) {
                     nearAssignment.push(assignment);
                 }
             }
@@ -430,6 +428,7 @@ export class MqttService {
                 penaltyname: 'Late for work',
             },
         });
+
         if (lateRule) {
             const currentMonthStart = new Date(lateTime.getFullYear(), lateTime.getMonth(), 1);
             currentMonthStart.setHours(0, 0, 0, 0);
@@ -472,7 +471,6 @@ export class MqttService {
                     }
                 });
             }
-
         }
     }
 
@@ -520,6 +518,13 @@ export class MqttService {
                 return checkin > shiftStartDate;
             };
 
+            const isTooLate = (shiftStart: string, checkin: Date, timeBuffer: number = 120) => {
+                const [h, m] = shiftStart.split(":").map(Number);
+                const shiftStartDate = new Date(checkin);
+                shiftStartDate.setHours(h, m + timeBuffer, 0, 0);
+                return checkin > shiftStartDate;
+            }
+
             // Trường hợp nhân viên là nhân viên toàn thời gian
             if (employee.employee_type?.toLowerCase() === "full-time") {
                 // Chỉ có tối đa 1 ca làm việc trong ngày
@@ -548,9 +553,42 @@ export class MqttService {
 
                 if (!existingTimesheet) {
                     const late = assignment.shift_date?.shift?.shiftstarthour ? isLate(assignment.shift_date.shift.shiftstarthour, scanTime) : false;
-                    if (late) {
+                    const tooLate = assignment.shift_date?.shift?.shiftstarthour ? isTooLate(assignment.shift_date.shift.shiftstarthour, scanTime) : false;
+                    
+                    if (late && !tooLate) {
                         // Nếu đi trễ thì ghi lại vi phạm
                         await this.addEmployeeLatePenaltyRecord(assignment.employeeid, scanTime);
+                    }
+
+                    if (tooLate) {
+                        this.logger.warn(`⚠️  Full-time Employee ${employee.employeeid} is too late to check in at ${scanTime.toLocaleTimeString("vi-VN")}`);
+
+                        await this.prisma.timesheet.upsert({
+                            where: {
+                                employeeid_shiftid_shiftdate: {
+                                    employeeid: assignment.employeeid,
+                                    shiftid: assignment.shiftid,
+                                    shiftdate: assignment.shiftdate,
+                                }
+                            },
+                            update: {},
+                            create: {
+                                employeeid: assignment.employeeid,
+                                shiftid: assignment.shiftid,
+                                shiftdate: assignment.shiftdate,
+                            }
+                        });
+
+                        return {
+                            success: false,
+                            error: `Employee ${employee.employeeid} checks in too late`,
+                            action: 'none',
+                            employeeId: employee.employeeid,
+                            employeeName: employee.accounts?.fullname || 'Unknown',
+                            shiftId: assignment.shiftid,
+                            time: scanTime,
+                            tooLate: true,
+                        };
                     }
 
                     // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
@@ -582,8 +620,8 @@ export class MqttService {
                         late: late,
                         message: late ? `Check-in successful (LATE)` : `Check-in successful`
                     };
-                } else if (!existingTimesheet.checkout_time) {
-                    // Nếu đã có bảng chấm công nhưng chưa check-out thì ghi giờ chấm công ra
+                } else if (existingTimesheet.checkin_time && !existingTimesheet.checkout_time) {
+                    // Nếu đã có bảng chấm công và đã check-in nhưng chưa check-out thì ghi giờ chấm công ra
                     await this.prisma.timesheet.update({
                         where: {
                             employeeid_shiftid_shiftdate: {
@@ -629,10 +667,42 @@ export class MqttService {
 
                 if (!existingTimesheet) {
                     const late = nextAssignment.shift_date?.shift?.shiftstarthour ? isLate(nextAssignment.shift_date.shift.shiftstarthour, scanTime) : false;
+                    const tooLate = nextAssignment.shift_date?.shift?.shiftstarthour ? isTooLate(nextAssignment.shift_date.shift.shiftstarthour, scanTime) : false;
 
-                    if (late) {
+                    if (late && !tooLate) {
                         // Nếu đi trễ thì ghi lại vi phạm
                         await this.addEmployeeLatePenaltyRecord(nextAssignment.employeeid, scanTime);
+                    }
+
+                    if (tooLate) {
+                        this.logger.warn(`⚠️  Part-time Employee ${employee.employeeid} is too late to check in Shift ${nextAssignment.shiftid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
+
+                        await this.prisma.timesheet.upsert({
+                            where: {
+                                employeeid_shiftid_shiftdate: {
+                                    employeeid: nextAssignment.employeeid,
+                                    shiftid: nextAssignment.shiftid,
+                                    shiftdate: nextAssignment.shiftdate,
+                                }
+                            },
+                            update: {},
+                            create: {
+                                employeeid: nextAssignment.employeeid,
+                                shiftid: nextAssignment.shiftid,
+                                shiftdate: nextAssignment.shiftdate,
+                            }
+                        });
+
+                        return {
+                            success: false,
+                            error: `Employee ${employee.employeeid} checks in too late`,
+                            action: 'none',
+                            employeeId: employee.employeeid,
+                            employeeName: employee.accounts?.fullname || 'Unknown',
+                            shiftId: nextAssignment.shiftid,
+                            time: scanTime,
+                            tooLate: true,
+                        };
                     }
 
                     // Nếu chưa có bảng chấm công thì tạo mới và ghi giờ chấm công vào
@@ -664,8 +734,8 @@ export class MqttService {
                         late: late,
                         message: late ? `Check-in successful (LATE) for Shift ${nextAssignment.shiftid}` : `Check-in successful for Shift ${nextAssignment.shiftid}`
                     };
-                } else if (!existingTimesheet.checkout_time) {
-                    // Nếu đã có bảng chấm công nhưng chưa check-out thì ghi giờ chấm công ra
+                } else if (existingTimesheet.checkin_time && !existingTimesheet.checkout_time) {
+                    // Nếu đã có bảng chấm công và đã check-in nhưng chưa check-out thì ghi giờ chấm công ra
                     await this.prisma.timesheet.update({
                         where: {
                             employeeid_shiftid_shiftdate: {
