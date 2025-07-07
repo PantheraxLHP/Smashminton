@@ -57,22 +57,44 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
         const formatObjectToJSX = (obj: any): React.ReactNode => {
             if (!obj || typeof obj !== 'object') {
-                return String(obj);
+                return <span className="text-gray-700">{String(obj)}</span>;
             }
 
-            const lines = Object.entries(obj)
-                .map(([zone, courts]) => {
-                    if (Array.isArray(courts)) {
-                        return courts.map((court) => `${zone}: ${court}`);
-                    }
-                    return [`${zone}: ${courts}`];
-                })
-                .flat();
+            const entries = Object.entries(obj);
+            if (entries.length === 0) {
+                return <span className="text-gray-500 italic">Không có dữ liệu</span>;
+            }
 
             return (
-                <div style={{ whiteSpace: 'pre-line' }}>
-                    {lines.join('\n')}
-                    {lines.length > 0 && '\nSắp hết giờ, hỏi khách hàng có muốn gia hạn không'}
+                <div className="space-y-2">
+                    {entries.map(([zone, courts], index) => (
+                        <div key={index} className="flex flex-col space-y-1">
+                            <div className="font-semibold text-blue-600">📍 {zone}:</div>
+                            <div className="ml-4 space-y-1">
+                                {Array.isArray(courts) ? (
+                                    courts.map((court, courtIndex) => (
+                                        <div key={courtIndex} className="text-gray-700 flex items-center">
+                                            <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                                            {court}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-gray-700 flex items-center">
+                                        <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                                        {String(courts)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    <div className="mt-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
+                        <div className="flex items-center">
+                            <span className="text-yellow-600 mr-2">⏰</span>
+                            <span className="text-yellow-800 font-medium">
+                                Sắp hết giờ, hỏi khách hàng có muốn gia hạn không
+                            </span>
+                        </div>
+                    </div>
                 </div>
             );
         };
@@ -85,28 +107,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
                     duration: 30000,
                     actionButtonStyle: { backgroundColor: 'transparent' },
                     action: {
-                        label: <div className="bg-primary hover:bg-primary-600 rounded-md px-2 py-1">Xem chi tiết</div>,
+                        label: (
+                            <div className="bg-primary hover:bg-primary-700 text-white rounded-md px-3 py-1.5 transition-colors">
+                                📋 Xem chi tiết
+                            </div>
+                        ),
                         onClick: () => {
                             window.location.href = '/booking-detail';
                         },
                     },
-                });
-                break;
-            case 'test_notification_global':
-                toast.info(data.message, {
-                    duration: 5000,
-                });
-                break;
-            case 'test_notification_all_employee':
-                toast.warning(formatObjectToJSX(data.zoneCourtObj), {
-                    duration: 5000,
-                    actionButtonStyle: { backgroundColor: 'transparent' },
-                    action: {
-                        label: <div className="bg-primary hover:bg-primary-600 rounded-md px-2 py-1">Xem chi tiết</div>,
-                        onClick: () => {
-                            window.location.href = '/booking-detail';
-                        },
-                    },
+                    position: 'bottom-left',
                 });
                 break;
             default:
