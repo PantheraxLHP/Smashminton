@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 
 // Define role permissions based on the menu structure from menus.ts
 const ROLE_PERMISSIONS = {
-    guest: ['/booking', '/products', '/rentals'],
     customer: ['/booking', '/products', '/rentals'],
     employee: ['/booking', '/booking-detail', '/assignments', '/enrollments'],
     hr_manager: ['/employees', '/approvals', '/assignments', '/fingerprint'],
@@ -34,6 +33,7 @@ const PUBLIC_ROUTES = [
     '/faq',
     '/products',
     '/rentals',
+    '/payment'
 ] as const;
 
 // Common authenticated routes accessible to all logged-in users
@@ -46,7 +46,6 @@ const ROLE_REDIRECTS = {
     wh_manager: '/price-management',
     employee: '/booking',
     customer: '/booking',
-    guest: '/booking',
 } as const;
 
 function isPublicRoute(pathname: string): boolean {
