@@ -35,11 +35,13 @@ export default function FoodAndBeveragePage() {
     const [pageSize] = useState(12);
     const [totalPages, setTotalPages] = useState(2);
     const [filtervalueid, setfiltervalueid] = useState<number[]>([]);
-    const [filters, setFilters] = useState<Record<string, any>>({
+    const defaultFilters = {
         name: '',
         productFilterValues: [],
         type: [0],
-    });
+        price: undefined,
+    };
+    const [filters, setFilters] = useState<Record<string, any>>(defaultFilters);
     const [filtersConfig, setFiltersConfig] = useState<FilterConfig[]>([]);
     const showDiscount = filters.type?.[0] === 0;
 
@@ -140,7 +142,7 @@ export default function FoodAndBeveragePage() {
     useEffect(() => {
         setPage(1);
         fetchData();
-    }, [filters.type]);
+    }, [filters.type, filtervalueid]);
 
     useEffect(() => {
         if (Array.isArray(filters.productFilterValues)) {
@@ -255,12 +257,21 @@ export default function FoodAndBeveragePage() {
                 updated[filterid] = value;
             } else if (type === 'radio') {
                 let resolvedValue = value;
-                if (isNaN(value)) {
-                    const options = filtersConfig.find((f) => f.filterid === filterid)?.filteroptions || [];
-                    resolvedValue = options[0]?.optionvalue || '';
+
+                if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
+                    resolvedValue = 0;
                 }
+
+                if (isNaN(resolvedValue)) {
+                    const options = filtersConfig.find((f) => f.filterid === filterid)?.filteroptions || [];
+                    resolvedValue = options[0]?.optionvalue ?? 0;
+                }
+
                 updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
-                if (filterid === 'type') setPage(1);
+
+                if (filterid === 'type') {
+                    setPage(1);
+                }
             } else if (type === 'checkbox') {
                 const current = Array.isArray(prev[filterid]) ? prev[filterid] : [];
                 if (current.includes(value)) {
@@ -270,9 +281,10 @@ export default function FoodAndBeveragePage() {
                 }
                 setPage(1);
             }
+
             return updated;
         });
-    };
+    };    
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -291,11 +303,20 @@ export default function FoodAndBeveragePage() {
                 <Filter
                     filters={filtersConfig}
                     values={filters}
-                    setFilterValues={setFilters}
+                    setFilterValues={(newFilters) => {
+                        const resolvedFilters = { ...(typeof newFilters === 'function' ? newFilters(filters) : newFilters) };
+                        if (!resolvedFilters.type || resolvedFilters.type.length === 0) {
+                            resolvedFilters.type = [0];
+                        }
+                        setFilters(resolvedFilters);
+                    }}                    
                     onFilterChange={handleFilterChange}
+                    onRemoveAllFilters={() => {
+                        setFilters(defaultFilters);
+                        setPage(1);
+                    }}                    
                 />
             </div>
-
             <div className="flex flex-1 flex-col">
                 <div className="mb-2 flex justify-end">
                     <button
