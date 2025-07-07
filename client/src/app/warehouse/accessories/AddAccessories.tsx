@@ -22,9 +22,10 @@ interface AccessoryModalProps {
     onClose: () => void;
     onSubmit?: (data: Accessory) => void;
     editData?: Accessory | null;
+    showBatch: boolean;
 }
 
-export default function AccessoryModal({ open, onClose, onSubmit, editData }: AccessoryModalProps) {
+export default function AccessoryModal({ open, onClose, onSubmit, editData, showBatch }: AccessoryModalProps) {
     const [accessoryAvatar, setAccessoryAvatar] = useState<File | null>(null);
     const [accessoryPreview, setAccessoryPreview] = useState<string>("");
     const [categoryOpen, setCategoryOpen] = useState(false);
@@ -201,7 +202,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
             let result;
 
             if (editData) {
-                if (!editData.batchid?.trim()) {
+                if (!editData.batchid?.trim() || !showBatch) {
                     result = await updateProductsWithoutBatch(formDataObj, editData.id.toString());
                 } else {
                     formDataObj.append('discount', '0');

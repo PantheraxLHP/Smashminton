@@ -7,7 +7,7 @@ import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import AccessoryModal from './AddAccessories';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
+import { getProducts2, getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { toast } from 'sonner';
 import { ProductTypes } from '@/types/types';
@@ -36,47 +36,74 @@ export default function AccessoryPage() {
     const [pageSize] = useState(12);
     const [totalPages, setTotalPages] = useState(1);
     const [filtervalueid, setFiltervalueid] = useState<number[]>([]);
-    const [filters, setFilters] = useState<Record<string, any>>({
+    const defaultFilters = {
         name: '',
         productFilterValues: [],
-        price: [0, 1500000],
-    });
+        type: [0],
+    };
+    const [filters, setFilters] = useState<Record<string, any>>(defaultFilters);
     const [filtersConfig, setFiltersConfig] = useState<FilterConfig[]>([]);
+    const showBatchInfo = filters.type?.[0] === 0;
 
     const fetchData = async () => {
         try {
-            const response = await getProducts3(2, page, pageSize, filtervalueid);
-            if (response.ok) {
-                const products = response.data?.data;
-                const apiData: Accessory[] = [];
+            let response;
+            const apiData: Accessory[] = [];
 
-                products.forEach((item: any) => {
-                    apiData.push({
-                        id: item.productid,
-                        name: item.productname,
-                        sellingprice: parseInt(item.sellingprice),
-                        category: item.value,
-                        image: item.productimgurl || '/default.png',
-                        batchid: item.batchid?.toString() || '',
-                        expiry: item.expirydate || '',
-                        stock: item.stockquantity || 0,
-                        status: item.status || '',
-                        discount: item.discount ? parseFloat(item.discount) : 0,
+            if (filters.type?.[0] === 1) {
+                response = await getProducts2(2, page, pageSize, filtervalueid);
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid,
+                            name: item.productname,
+                            sellingprice: parseInt(item.sellingprice || '0'),
+                            category: item.value || '',
+                            image: item.productimgurl || '/default.png',
+                            batchid: '-',
+                            expiry: '',
+                            stock: item.quantity || 0,
+                            status: 'available',
+                            discount: 0,
+                        });
                     });
-                });
-
-                setData(apiData);
-                setFilteredData(apiData);
-                setTotalPages(response.data.pagination.totalPages);
+                }
+            } else {
+                response = await getProducts3(2, page, pageSize, filtervalueid);
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid,
+                            name: item.productname,
+                            sellingprice: parseInt(item.sellingprice),
+                            category: item.value,
+                            image: item.productimgurl || '/default.png',
+                            batchid: item.batchid?.toString() || '',
+                            expiry: item.expirydate || '',
+                            stock: item.stockquantity || 0,
+                            status: item.status || '',
+                            discount: item.discount ? parseFloat(item.discount) : 0,
+                        });
+                    });
+                }
             }
+
+            setData(apiData);
+            setFilteredData(apiData);
+            setTotalPages(response.data.pagination.totalPages);
         } catch (error) {
             console.error('Lỗi fetch phụ kiện:', error);
         }
-    };    
+    };
 
     useEffect(() => {
         fetchData();
-    }, [page, filtervalueid]);
+    }, [page, filtervalueid, filters.type?.[0]]);
+
+    useEffect(() => {
+        setPage(1);
+        fetchData();
+    }, [filters.type, filtervalueid]);
 
     const fetchFilters = async () => {
         const response = await getProductFilters();
@@ -98,8 +125,16 @@ export default function AccessoryPage() {
             setFiltersConfig([
                 { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
                 { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                {
+                    filterid: 'type',
+                    filtertype: 'radio',
+                    filterlabel: 'Loại hiển thị',
+                    filteroptions: [
+                        { optionlabel: 'Theo lô', optionvalue: 0 },
+                        { optionlabel: 'Tất cả phụ kiện', optionvalue: 1 },
+                    ],
+                },
                 dynamicFilter,
-                { filterid: 'price', filterlabel: 'Khoảng giá', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
             ]);
         }
     };
@@ -110,7 +145,7 @@ export default function AccessoryPage() {
 
     useEffect(() => {
         if (Array.isArray(filters.productFilterValues)) {
-            setFiltervalueid(filters.productFilterValues);
+            setFiltervalueid(filters.productFilterValues.length > 0 ? filters.productFilterValues : []);
         } else {
             setFiltervalueid([]);
         }
@@ -131,7 +166,6 @@ export default function AccessoryPage() {
     const columns: Column<Accessory>[] = [
         { header: 'Tên phụ kiện', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
-        { header: 'Lô', accessor: 'batchid', align: 'center' },
         {
             header: 'Giá bán',
             accessor: (item) => `${Number(item.sellingprice).toLocaleString('vi-VN', {
@@ -142,6 +176,12 @@ export default function AccessoryPage() {
         },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
     ];
+
+    if (showBatchInfo) {
+        columns.push(
+            { header: 'Lô', accessor: 'batchid', align: 'center' },
+        );
+    }
 
     const handleEdit = (index: number) => {
         const item = filteredData[index];
@@ -162,6 +202,40 @@ export default function AccessoryPage() {
         }
         fetchData();
     };
+
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filtersConfig.find((f) => f.filterid === filterid)?.filtertype;
+
+        setFilters((prev) => {
+            const updated = { ...prev };
+
+            if (type === 'search') {
+                updated[filterid] = value;
+            } else if (type === 'radio') {
+                let resolvedValue = value;
+                if (!resolvedValue || (Array.isArray(resolvedValue) && resolvedValue.length === 0)) {
+                    resolvedValue = 0;
+                }
+                updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+                if (filterid === 'type') setPage(1);
+            } else if (type === 'checkbox') {
+                if (Array.isArray(value)) {
+                    updated[filterid] = value;
+                } else {
+                    const current = Array.isArray(prev[filterid]) ? prev[filterid] : [];
+                    if (current.includes(value)) {
+                        updated[filterid] = current.filter((v: any) => v !== value);
+                    } else {
+                        updated[filterid] = [...current, value];
+                    }
+                }
+                setPage(1);
+            }
+
+            return updated;
+        });
+    };
+
 
     const handleOrder = (index: number) => {
         setSelectedOrderItem(filteredData[index]);
@@ -185,10 +259,28 @@ export default function AccessoryPage() {
                 }}
                 onSubmit={handleSubmit}
                 editData={editData}
+                showBatch={showBatchInfo}
             />
 
             <div className="w-full shrink-0 lg:w-[280px]">
-                <Filter filters={filtersConfig} values={filters} setFilterValues={setFilters} />
+                <Filter
+                    filters={filtersConfig}
+                    values={filters}
+                    setFilterValues={(newFilters) => {
+                        const resolvedFilters = {
+                            ...(typeof newFilters === 'function' ? newFilters(filters) : newFilters),
+                        };
+                        if (!resolvedFilters.type || resolvedFilters.type.length === 0) {
+                            resolvedFilters.type = [0];
+                        }
+                        setFilters(resolvedFilters);
+                    }}
+                    onFilterChange={handleFilterChange}
+                    onRemoveAllFilters={() => {
+                        setFilters(defaultFilters);
+                        setPage(1);
+                    }}
+                />
             </div>
 
             <div className="flex flex-1 flex-col">

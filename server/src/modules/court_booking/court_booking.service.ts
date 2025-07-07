@@ -528,4 +528,14 @@ export class CourtBookingService {
 
         this.appGateway.regularCourtBookingCheck(zoneCourt);
     }
+
+    // @Cron('*/10 * * * * *')
+    // async testNotification() {
+    //     this.appGateway.testNotification('TEST GLOBAL ');
+    // }
+
+    // @Cron('*/10 * * * * *')
+    // async testNotificationAllEmployee() {
+    //     this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
+    // }
 }
