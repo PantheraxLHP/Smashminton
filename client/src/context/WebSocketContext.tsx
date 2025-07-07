@@ -47,7 +47,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             });
             sendMessage(`subscribe_all_${user.role}`, {
                 userRole: user.role,
-            })
+            });
         }
     }, [isConnected, sendMessage, user]);
 
@@ -55,44 +55,41 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     useEffect(() => {
         if (!lastMessage) return;
 
-        const formatObjectToString = (obj: any): string => {
+        const formatObjectToJSX = (obj: any): React.ReactNode => {
             if (!obj || typeof obj !== 'object') {
                 return String(obj);
             }
 
-            let resultString = Object.entries(obj)
+            const lines = Object.entries(obj)
                 .map(([zone, courts]) => {
                     if (Array.isArray(courts)) {
-                        return `${zone}: ${courts.join(', ')}`;
+                        return courts.map((court) => `${zone}: ${court}`);
                     }
-                    return `${zone}: ${courts}`;
+                    return [`${zone}: ${courts}`];
                 })
-                .join(' | ');
+                .flat();
 
-            if (resultString) {
-                return resultString + ' | sắp hết giờ, hỏi khách hàng có muốn gia hạn không';
-            }
-            return resultString;
+            return (
+                <div style={{ whiteSpace: 'pre-line' }}>
+                    {lines.join('\n')}
+                    {lines.length > 0 && '\nSắp hết giờ, hỏi khách hàng có muốn gia hạn không'}
+                </div>
+            );
         };
-
 
         const { type, data } = lastMessage;
 
         switch (type) {
             case 'regular_court_booking_check':
-                toast.warning(formatObjectToString(data.zoneCourtObj), {
+                toast.warning(formatObjectToJSX(data.zoneCourtObj), {
                     duration: 30000,
                     actionButtonStyle: { backgroundColor: 'transparent' },
                     action: {
-                        label: (
-                            <div className="bg-primary rounded-lg px-2 py-1 hover:bg-primary-600">
-                                Xem chi tiết
-                            </div>
-                        ),
+                        label: <div className="bg-primary hover:bg-primary-600 rounded-md px-2 py-1">Xem chi tiết</div>,
                         onClick: () => {
                             window.location.href = '/booking-detail';
                         },
-                    }
+                    },
                 });
                 break;
             case 'test_notification_global':
@@ -101,19 +98,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
                 });
                 break;
             case 'test_notification_all_employee':
-                toast.warning(formatObjectToString(data.zoneCourtObj), {
+                toast.warning(formatObjectToJSX(data.zoneCourtObj), {
                     duration: 5000,
                     actionButtonStyle: { backgroundColor: 'transparent' },
                     action: {
-                        label: (
-                            <div className="bg-primary rounded-lg px-2 py-1 hover:bg-primary-600">
-                                Xem chi tiết
-                            </div>
-                        ),
+                        label: <div className="bg-primary hover:bg-primary-600 rounded-md px-2 py-1">Xem chi tiết</div>,
                         onClick: () => {
                             window.location.href = '/booking-detail';
                         },
-                    }
+                    },
                 });
                 break;
             default:
@@ -127,9 +120,5 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         sendMessage,
     };
 
-    return (
-        <WebSocketContext.Provider value={value}>
-            {children}
-        </WebSocketContext.Provider>
-    );
+    return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 };

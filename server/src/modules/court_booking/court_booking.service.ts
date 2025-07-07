@@ -485,7 +485,7 @@ export class CourtBookingService {
         return this.prisma.court_booking.findMany();
     }
 
-    @Cron('0 */15 * * * *') // Chạy mỗi 15 phút 
+    @Cron('0 */15 * * * *') // Chạy mỗi 15 phút
     async regularCourtBookingNotify() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -504,9 +504,9 @@ export class CourtBookingService {
                 courts: {
                     include: {
                         zones: true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
 
         if (!courtBookings || courtBookings.length === 0) {
@@ -533,13 +533,13 @@ export class CourtBookingService {
         this.appGateway.regularCourtBookingCheck(zoneCourt);
     }
 
-    // @Cron('*/10 * * * * *')
-    // async testNotification() {
-    //     this.appGateway.testNotification("TEST GLOBAL ");
-    // }
+    @Cron('*/10 * * * * *')
+    async testNotification() {
+        this.appGateway.testNotification('TEST GLOBAL ');
+    }
 
-    // @Cron('*/10 * * * * *')
-    // async testNotificationAllEmployee() {
-    //     this.appGateway.testNotificationAllEmployee("TEST ALL EMPLOYEES");
-    // }
+    @Cron('*/10 * * * * *')
+    async testNotificationAllEmployee() {
+        this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
+    }
 }
