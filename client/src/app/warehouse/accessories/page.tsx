@@ -99,7 +99,7 @@ export default function AccessoryPage() {
                 { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
                 { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
                 dynamicFilter,
-                { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
+                { filterid: 'price', filterlabel: 'Khoảng giá', filtertype: 'range', rangemin: 0, rangemax: 1500000 },
             ]);
         }
     };
@@ -114,6 +114,7 @@ export default function AccessoryPage() {
         } else {
             setFiltervalueid([]);
         }
+        setPage(1);
     }, [filters.productFilterValues]);
 
     useEffect(() => {

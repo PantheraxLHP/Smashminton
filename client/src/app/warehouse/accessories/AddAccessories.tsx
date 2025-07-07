@@ -28,6 +28,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
     const [accessoryAvatar, setAccessoryAvatar] = useState<File | null>(null);
     const [accessoryPreview, setAccessoryPreview] = useState<string>("");
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const originalSupplierIdsRef = useRef<number[]>([]);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [loading, setLoading] = useState(false);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -91,6 +92,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData }: Ac
                         })),
                     }));
                     setSuppliers(mapped);
+                    // originalSupplierIdsRef.current = suppliers.map(s => s.supplierid);
                 }
             });
         }

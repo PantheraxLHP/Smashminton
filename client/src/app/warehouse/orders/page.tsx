@@ -207,25 +207,34 @@ export default function PurchaseOrderPage() {
 
 
     return (
-        <div className="p-4 sm:p-6">
+        <div className="p-4 sm:p-6 min-h-[80vh]">
             <div className="w-full max-w-[96%] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2 p-4 sm:p-6">
                 <Button
                     variant={activeTab === 'pending' ? 'default' : 'outline'}
-                    onClick={() => setActiveTab('pending')}
+                    onClick={() => {
+                        setActiveTab('pending');
+                        setPage(1);
+                    }}
                     className="flex items-center justify-center flex-1"
                 >
                     Đơn hàng chưa giao
                 </Button>
                 <Button
                     variant={activeTab === 'completed' ? 'default' : 'outline'}
-                    onClick={() => setActiveTab('completed')}
+                    onClick={() => {
+                        setActiveTab('completed');
+                        setPage(1);
+                    }}
                     className="flex items-center justify-center flex-1"
                 >
                     Đơn hàng đã hoàn thành
                 </Button>
                 <Button
                     variant={activeTab === 'canceled' ? 'default' : 'outline'}
-                    onClick={() => setActiveTab('canceled')}
+                    onClick={() => {
+                        setActiveTab('canceled');
+                        setPage(1);
+                    }}
                     className="flex items-center justify-center flex-1"
                 >
                     Đơn hàng bị huỷ
