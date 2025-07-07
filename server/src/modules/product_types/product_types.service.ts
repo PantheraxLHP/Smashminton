@@ -309,7 +309,7 @@ export class ProductTypesService {
     }
   }
 
-  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
@@ -343,7 +343,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !product.isdeleted && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && (!q || product.productname?.toLowerCase().includes(q.toLowerCase())) && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });

@@ -92,11 +92,13 @@ export class ProductTypesController {
     type: String,
     description: 'Comma-separated list of productfiltervalue IDs',
   })
+  @ApiQuery({ name: 'q', required: false, type: String, description: 'Search keyword for productname' })
   @ApiOperation({ summary: 'Get products from product type + filtervalueid, value + batches info' })
   findAllProductsFromProductType_V3(@Param('id') id: number,
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '12',
-    @Query('productfiltervalue') productFilterValueQuery?: string) {
+    @Query('productfiltervalue') productFilterValueQuery?: string,
+    @Query('q') q?: string) {
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
     // Validation
@@ -110,7 +112,7 @@ export class ProductTypesController {
     const filterValues: number[] | undefined = productFilterValueQuery
       ? productFilterValueQuery.split(',').map((v) => +v)
       : undefined;
-    return this.productTypesService.findAllProductsFromProductType_V3(+id, filterValues, pageNumber, pageSizeNumber);
+    return this.productTypesService.findAllProductsFromProductType_V3(+id, filterValues, q, pageNumber, pageSizeNumber);
   }
 
 
