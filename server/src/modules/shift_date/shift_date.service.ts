@@ -6,13 +6,14 @@ import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 import { Cron } from '@nestjs/schedule';
+import { parentPort } from 'worker_threads';
 
 @Injectable()
 export class ShiftDateService {
     constructor(
         private prisma: PrismaService,
         private employeesService: EmployeesService,
-    ) {}
+    ) { }
     getShiftDateByDayFromDayTo(dayfrom: string, dayto: string, employee_type: string) {
         const dayFromDate = new Date(dayfrom + 'T00:00:00');
         const dayToDate = new Date(dayto + 'T23:59:59');
@@ -328,12 +329,16 @@ export class ShiftDateService {
             }
         }
 
+        // Đếm tổng số kết quả
+        const total = await this.prisma.employees.count({ where });
+        const totalPages = Math.ceil(total / pageSize);
+        if (page > totalPages && totalPages >= 0) {
+            page = 1;
+        }
+
         // Phân trang
         const skip = (page - 1) * pageSize;
         const take = pageSize;
-
-        // Đếm tổng số kết quả
-        const total = await this.prisma.employees.count({ where });
 
         // Lấy kết quả phân trang
         const employees = await this.prisma.employees.findMany({
@@ -352,8 +357,6 @@ export class ShiftDateService {
             skip,
             take,
         });
-
-        const totalPages = Math.ceil(total / pageSize);
 
         return {
             data: employees,
