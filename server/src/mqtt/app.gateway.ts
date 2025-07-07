@@ -162,10 +162,6 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(`📤 Emitted ${event} global notification:`, data);
     }
 
-    testNotification(message: string) {
-        this.emitToGlobal('test_notification_global', { message });
-    }
-
     emitToAllEmployee(event: string, data: any) {
         const room = `employee_notifications`;
         this.server.to(room).emit(event, {
@@ -179,13 +175,5 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     regularCourtBookingCheck(zoneCourt: Map<string, string[]>) {
         const zoneCourtObj = Object.fromEntries(zoneCourt);
         this.emitToAllEmployee('regular_court_booking_check', { zoneCourtObj });
-    }
-
-    testNotificationAllEmployee(message: string) {
-        const zonecourt = new Map<string, string[]>();
-        zonecourt.set('test_zone', ['test_court_1', 'test_court_2']);
-        zonecourt.set('test_zone_2', ['test_court_3', 'test_court_4']);
-        const zoneCourtObj = Object.fromEntries(zonecourt);
-        this.emitToAllEmployee('test_notification_all_employee', { zoneCourtObj });
     }
 }

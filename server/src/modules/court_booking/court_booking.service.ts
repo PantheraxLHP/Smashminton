@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { convertUTCToVNTime } from 'src/utilities/date.utilities';
@@ -485,14 +485,12 @@ export class CourtBookingService {
         return this.prisma.court_booking.findMany();
     }
 
-    @Cron('0 */15 * * * *') // Chạy mỗi 15 phút
+    @Cron('* */15 6-22 * * *') // Chạy mỗi 15 phút
     async regularCourtBookingNotify() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        Logger.debug('Regular court booking check started');
         const now = new Date();
         const courtBookings = await this.prisma.court_booking.findMany({
             where: {
-                date: today,
                 starttime: {
                     lte: now,
                 },
@@ -531,15 +529,5 @@ export class CourtBookingService {
         }
 
         this.appGateway.regularCourtBookingCheck(zoneCourt);
-    }
-
-    @Cron('*/10 * * * * *')
-    async testNotification() {
-        this.appGateway.testNotification('TEST GLOBAL ');
-    }
-
-    @Cron('*/10 * * * * *')
-    async testNotificationAllEmployee() {
-        this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
     }
 }
