@@ -51,7 +51,9 @@ export class PurchaseOrdersService {
     const purchaseOrders = await this.prisma.purchase_order.findMany({
       where: statusOrder ? { statusorder: statusOrder } : undefined,
       orderBy: {
-        poid: 'asc',
+        product_batch: {
+          batchid: 'desc', // 👉 sắp xếp theo batchid giảm dần
+        },
       },
       include: {
         products: true,
