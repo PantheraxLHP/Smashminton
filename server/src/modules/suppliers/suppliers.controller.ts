@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestExc
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @Controller('suppliers')
 export class SuppliersController {
@@ -16,8 +16,14 @@ export class SuppliersController {
 
   @Get('all-suppliers')
   @ApiOperation({ summary: 'Get all suppliers' })
-  findAll(@Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '12',) {
+  @ApiQuery({ name: 'q1', required: false, type: String, description: 'Search keyword for suppliername' })
+  @ApiQuery({ name: 'q2', required: false, type: String, description: 'Search keyword for productname' })
+
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '12',
+    @Query('q1') q1?: string,
+    @Query('q2') q2?: string,) {
 
     const pageNumber = parseInt(page) || 1;
     const pageSizeNumber = parseInt(pageSize) || 12;
@@ -29,7 +35,7 @@ export class SuppliersController {
       throw new Error('Page size must be between 1 and 100');
     }
 
-    return this.suppliersService.findAll(pageNumber, pageSizeNumber);
+    return this.suppliersService.findAll(pageNumber, pageSizeNumber, q1 || '', q2 || '');
   }
 
   @Get(':productid/suppliers')

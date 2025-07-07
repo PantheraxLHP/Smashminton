@@ -114,8 +114,8 @@ const PredictionChart: React.FC<PredictionChartProps> = ({ data, title = 'Tỉ l
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={120}
-                                startAngle={90}
-                                endAngle={480}
+                                startAngle={65}
+                                endAngle={425}
                             >
                                 {mainPieData.map((item) => (
                                     <Cell key={`cell-${item.id}`} fill={item.fill} />

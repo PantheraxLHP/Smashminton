@@ -39,44 +39,37 @@ export class SuppliersService {
   }
 
 
-  async findAll(page: number = 1, limit: number = 12) {
+  async findAll(page: number = 1, limit: number = 12, q1: string, q2: string) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
-    const findSuppliers = await this.prisma.suppliers.findMany({
-      where: { isdeleted: false },
+    const allSuppliers = await this.prisma.suppliers.findMany({
+      where: {
+        isdeleted: false,
+        ...(q1 && { suppliername: { contains: q1, mode: 'insensitive' } }),
+      },
       include: {
         supply_products: {
-          include: {
-            products: true,
-          },
-        },
+          where: q2
+            ? {
+              products: {
+                productname: {
+                  contains: q2,
+                  mode: 'insensitive'
+                }
+              }
+            }
+            : undefined,
+          include: { products: true }
+        }
       },
-      orderBy: {
-        supplierid: 'asc',
-      },
+      orderBy: { supplierid: 'asc' }
     });
 
-    const suplliers = await findSuppliers.map(supplier => ({
-      supplierid: supplier.supplierid,
-      suppliername: supplier.suppliername,
-      contactname: supplier.contactname,
-      phonenumber: supplier.phonenumber,
-      email: supplier.email,
-      address: supplier.address,
-      products: supplier.supply_products
-        .filter(sp => sp.products !== null)
-        .map(sp => ({
-          productid: sp.products!.productid,
-          productname: sp.products!.productname,
-          costprice: Number(sp.costprice),
-        })),
-    }));
-
-    const total = suplliers.length;
+    const total = allSuppliers.length;
     const totalPages = Math.ceil(total / limit);
 
-    const paginatedSuppliers = suplliers.slice(skip, skip + limit);
+    const paginatedSuppliers = allSuppliers.slice(skip, skip + limit);
 
     return {
       data: paginatedSuppliers,

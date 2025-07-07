@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { convertUTCToVNTime } from 'src/utilities/date.utilities';
 import dayjs from 'dayjs';
@@ -485,14 +484,11 @@ export class CourtBookingService {
         return this.prisma.court_booking.findMany();
     }
 
-    @Cron('0 */15 * * * *') // Chạy mỗi 15 phút 
+    @Cron('* */15 6-22 * * *') // Chạy mỗi 15 phút
     async regularCourtBookingNotify() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         const now = new Date();
         const courtBookings = await this.prisma.court_booking.findMany({
             where: {
-                date: today,
                 starttime: {
                     lte: now,
                 },
@@ -504,9 +500,9 @@ export class CourtBookingService {
                 courts: {
                     include: {
                         zones: true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
 
         if (!courtBookings || courtBookings.length === 0) {
@@ -535,11 +531,11 @@ export class CourtBookingService {
 
     // @Cron('*/10 * * * * *')
     // async testNotification() {
-    //     this.appGateway.testNotification("TEST GLOBAL ");
+    //     this.appGateway.testNotification('TEST GLOBAL ');
     // }
 
     // @Cron('*/10 * * * * *')
     // async testNotificationAllEmployee() {
-    //     this.appGateway.testNotificationAllEmployee("TEST ALL EMPLOYEES");
+    //     this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
     // }
 }

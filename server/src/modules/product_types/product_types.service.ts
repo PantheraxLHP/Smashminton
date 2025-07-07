@@ -200,7 +200,7 @@ export class ProductTypesService {
     }
   }
 
-  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
@@ -234,7 +234,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !product.isdeleted && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && (!q || product.productname?.toLowerCase().includes(q.toLowerCase())) && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });
@@ -309,7 +309,7 @@ export class ProductTypesService {
     }
   }
 
-  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
@@ -343,7 +343,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !product.isdeleted && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && (!q || product.productname?.toLowerCase().includes(q.toLowerCase())) && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });
@@ -352,46 +352,6 @@ export class ProductTypesService {
 
     // Lấy danh sách productid duy nhất
     const uniqueProducts = Array.from(productMap.values());
-
-    // const enrichedProducts = (await Promise.all(uniqueProducts.map(async (product) => {
-    //   const purchaseOrders = await this.prisma.purchase_order.findMany({
-    //     where: {
-    //       productid: product.productid,
-    //     },
-    //     include: {
-    //       product_batch: true,
-    //     },
-    //   });
-
-    //   const productAttr = await this.prisma.product_attributes.findFirst({
-    //     where: { productid: product.productid },
-    //     include: {
-    //       product_filter_values: true,
-    //     },
-    //   });
-
-    //   // map từng batch thành từng bản ghi
-    //   const flatRecords = purchaseOrders
-    //     .map(po => po.product_batch)
-    //     .filter((b): b is NonNullable<typeof b> => b !== null)
-    //     .map(b => ({
-    //       productid: product.productid,
-    //       productname: product.productname,
-    //       sellingprice: product.sellingprice,
-    //       rentalprice: product.rentalprice,
-    //       productimgurl: product.productimgurl,
-    //       productfiltervalueid: productAttr?.productfiltervalueid || null,
-    //       value: productAttr?.product_filter_values?.value || null,
-    //       batchid: b.batchid,
-    //       batchname: b.batchname,
-    //       expirydate: b.expirydate,
-    //       stockquantity: b.stockquantity,
-    //       status: b.statusbatch,
-    //       discount: b.discount,
-    //     }));
-
-    //   return flatRecords;
-    // }))).flat(); // flatten mảng con thành 1 mảng
 
     const enrichedProducts = (await Promise.all(uniqueProducts.map(async (product) => {
       const purchaseOrders = await this.prisma.purchase_order.findMany({

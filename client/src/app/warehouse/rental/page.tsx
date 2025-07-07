@@ -148,13 +148,14 @@ export default function RentalPriceManager() {
                 }
 
                 updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+                if (filterid === 'servicetype') {
+                    setPage(1);
+                }
             }
 
             return updated;
         });
     };
-    
-    
 
     const columns: Column<Service>[] = [
         {
