@@ -20,9 +20,10 @@ interface FoodModalProps {
     onClose: () => void;
     onSubmit?: (data: FoodItem) => void;
     editData?: FoodItem | null;
+    openDiscount: boolean;
 }
 
-export default function FoodModal({ open, onClose, onSubmit, editData }: FoodModalProps) {
+export default function FoodModal({ open, onClose, onSubmit, editData, openDiscount }: FoodModalProps) {
     const [loading, setLoading] = useState(false);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [foodAvatar, setFoodAvatar] = useState<File | null>(null);
@@ -178,7 +179,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
 
             if (editData) {
                 // Cập nhật sản phẩm (có hoặc không có batch)
-                if (!editData.batchid?.trim()) {
+                if (!editData.batchid?.trim() || !openDiscount) {
                     result = await updateProductsWithoutBatch(
                         formDataObj,
                         editData.id.toString()
@@ -420,7 +421,7 @@ export default function FoodModal({ open, onClose, onSubmit, editData }: FoodMod
                                     </div>
                                 )}
 
-                                {editData?.batchid?.trim() && (
+                                {openDiscount && editData?.batchid?.trim() && (
                                     <div>
                                         <label className="block text-sm mb-1">Phần trăm giảm giá</label>
                                         <input

@@ -24,6 +24,12 @@ export async function handleSignin(signinData: SigninSchema) {
 
 export async function handleSignup(signupFormData: FormData) {
     try {
+        const dob = signupFormData.get('dob') as string;
+        const dobDate = new Date(dob);
+        dobDate.setHours(0,0,0,0);
+
+        signupFormData.set('dob', dobDate.toISOString());
+
         const response = await fetch('/api/auth/signup', {
             method: 'POST',
             body: signupFormData,

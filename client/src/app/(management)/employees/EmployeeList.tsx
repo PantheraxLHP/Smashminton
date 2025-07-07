@@ -49,11 +49,7 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
         } else {
             setEmployees(result.data.data);
             setTotalPages(result.data.pagination.totalPages);
-            if (result.data.pagination.totalPages < result.data.pagination.page) {
-                setPage(result.data.pagination.totalPages);
-            } else {
-                setPage(result.data.pagination.page);
-            }
+            setPage(result.data.pagination.page);
         }
     };
 

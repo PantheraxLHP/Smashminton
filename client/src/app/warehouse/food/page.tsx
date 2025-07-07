@@ -6,7 +6,7 @@ import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
 import DataTable, { Column } from '../../../components/warehouse/DataTable';
 import FoodModal from './AddFood';
 import PurchaseOrderForm from '@/components/warehouse/OrderForm';
-import { getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
+import { getProducts2, getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
 import PaginationComponent from '@/components/atomic/PaginationComponent';
 import { toast } from 'sonner';
 import { ProductTypes } from '@/types/types';
@@ -38,36 +38,58 @@ export default function FoodAndBeveragePage() {
     const [filters, setFilters] = useState<Record<string, any>>({
         name: '',
         productFilterValues: [],
-        price: [0, 500000],
+        type: [0],
     });
     const [filtersConfig, setFiltersConfig] = useState<FilterConfig[]>([]);
+    const showDiscount = filters.type?.[0] === 0;
 
     async function fetchData() {
         try {
-            const response = await getProducts3(1, page, pageSize, filtervalueid);
-            if (response.ok) {
-                const products = response.data?.data;
-                const apiData: FoodItem[] = [];
+            let response;
+            const apiData: FoodItem[] = [];
+            if (filters.type?.[0] === 1) {
+                response = await getProducts2(1, page, pageSize, filtervalueid);
 
-                products.forEach((item: any) => {
-                    apiData.push({
-                        id: item.productid ?? '',
-                        name: item.productname ?? '',
-                        sellingprice: item.sellingprice ? parseInt(item.sellingprice) : 0,
-                        category: item.value ?? '',
-                        image: item.productimgurl ?? '/default.png',
-                        batchid: item.batchid ? item.batchid.toString() : '',
-                        expiry: item.expirydate ?? '',
-                        stock: item.stockquantity ?? 0,
-                        status: item.status ?? '',
-                        discount: item.discount ? parseFloat(item.discount) : 0,
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid,
+                            name: item.productname,
+                            sellingprice: parseInt(item.sellingprice || '0'),
+                            category: item.value || '',
+                            image: item.productimgurl || '/default.png',
+                            batchid: '-', // Không có lô
+                            expiry: '', // Không có ngày hết hạn
+                            stock: item.quantity || 0,
+                            status: 'available', // Mặc định
+                            discount: 0, // Mặc định
+                        });
                     });
-                });
+                }
+            } else {
+                response = await getProducts3(1, page, pageSize, filtervalueid);
 
-                setData(apiData);
-                setFilteredData(apiData);
-                setTotalPages(response.data.pagination.totalPages);
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid ?? '',
+                            name: item.productname ?? '',
+                            sellingprice: item.sellingprice ? parseInt(item.sellingprice) : 0,
+                            category: item.value ?? '',
+                            image: item.productimgurl ?? '/default.png',
+                            batchid: item.batchid ? item.batchid.toString() : '',
+                            expiry: item.expirydate ?? '',
+                            stock: item.stockquantity ?? 0,
+                            status: item.status ?? '',
+                            discount: item.discount ? parseFloat(item.discount) : 0,
+                        });
+                    });
+                }
             }
+
+            setData(apiData);
+            setFilteredData(apiData);
+            setTotalPages(response.data.pagination.totalPages);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -75,7 +97,7 @@ export default function FoodAndBeveragePage() {
 
     useEffect(() => {
         fetchData();
-    }, [page, filtervalueid]);
+    }, [page, filtervalueid, filters.type?.[0]]);
 
     const fetchFilters = async () => {
         const response = await getProductFilters();
@@ -97,8 +119,16 @@ export default function FoodAndBeveragePage() {
             setFiltersConfig([
                 { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
                 { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                {
+                    filterid: 'type',
+                    filtertype: 'radio',
+                    filterlabel: 'Loại hiển thị',
+                    filteroptions: [
+                        { optionlabel: 'Theo lô', optionvalue: 0 },
+                        { optionlabel: 'Tất cả sản phẩm', optionvalue: 1 },
+                    ],
+                },
                 dynamicFilter,
-                { filterid: 'price', filterlabel: 'KHOẢNG GIÁ', filtertype: 'range', rangemin: 0, rangemax: 500000 },
             ]);
         }
     };
@@ -108,11 +138,17 @@ export default function FoodAndBeveragePage() {
     }, []);
 
     useEffect(() => {
+        setPage(1);
+        fetchData();
+    }, [filters.type]);
+
+    useEffect(() => {
         if (Array.isArray(filters.productFilterValues)) {
             setfiltervalueid(filters.productFilterValues);
         } else {
             setfiltervalueid([]);
         }
+        setPage(1);
     }, [filters.productFilterValues]);
 
     useEffect(() => {
@@ -136,42 +172,47 @@ export default function FoodAndBeveragePage() {
                 currency: 'VND',
             })
         },
-        { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
-        {
-            header: 'Ngày hết hạn',
-            accessor: (item) =>
-                item.expiry
-                    ? new Date(item.expiry).toLocaleDateString('vi-VN')
-                    : '',
-            align: 'center',
-        },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
-        {
-            header: 'Tình trạng',
-            accessor: (item) => {
-                switch (item.status) {
-                    case 'available': return 'Còn hạn';
-                    case 'expiringsoon': return 'Sắp hết hạn';
-                    case 'expired': return 'Hết hạn';
-                    default: return '';
-                }
-            },
-            align: 'center',
-            className: (item) => {
-                switch (item.status) {
-                    case 'expiringsoon': return 'text-yellow-600';
-                    case 'expired': return 'text-red-600';
-                    default: return 'text-primary-600';
-                }
-            },
-        },
-        {
-            header: 'Giảm giá',
-            accessor: (item) => item.discount ? `${item.discount.toFixed(0)}%` : '0%',
-            align: 'center',
-            className: (item) => item.discount && item.discount > 0 ? 'text-red-500' : '',
-        },
     ];
+
+    if (filters.type?.[0] === 0) {
+        columns.push(
+            { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
+            {
+                header: 'Ngày hết hạn',
+                accessor: (item) =>
+                    item.expiry
+                        ? new Date(item.expiry).toLocaleDateString('vi-VN')
+                        : '',
+                align: 'center',
+            },
+            {
+                header: 'Tình trạng',
+                accessor: (item) => {
+                    switch (item.status) {
+                        case 'available': return 'Còn hạn';
+                        case 'expiringsoon': return 'Sắp hết hạn';
+                        case 'expired': return 'Hết hạn';
+                        default: return '';
+                    }
+                },
+                align: 'center',
+                className: (item) => {
+                    switch (item.status) {
+                        case 'expiringsoon': return 'text-yellow-600';
+                        case 'expired': return 'text-red-600';
+                        default: return 'text-primary-600';
+                    }
+                },
+            },
+            {
+                header: 'Giảm giá',
+                accessor: (item) => item.discount ? `${item.discount.toFixed(0)}%` : '0%',
+                align: 'center',
+                className: (item) => item.discount && item.discount > 0 ? 'text-red-500' : '',
+            }
+        );
+    }
 
     const handleEdit = (index: number) => {
         setEditData(filteredData[index]);
@@ -204,6 +245,35 @@ export default function FoodAndBeveragePage() {
         fetchFilters();
     };
 
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filtersConfig.find((f) => f.filterid === filterid)?.filtertype;
+
+        setFilters((prev) => {
+            const updated = { ...prev };
+
+            if (type === 'search') {
+                updated[filterid] = value;
+            } else if (type === 'radio') {
+                let resolvedValue = value;
+                if (isNaN(value)) {
+                    const options = filtersConfig.find((f) => f.filterid === filterid)?.filteroptions || [];
+                    resolvedValue = options[0]?.optionvalue || '';
+                }
+                updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+                if (filterid === 'type') setPage(1);
+            } else if (type === 'checkbox') {
+                const current = Array.isArray(prev[filterid]) ? prev[filterid] : [];
+                if (current.includes(value)) {
+                    updated[filterid] = current.filter((v: any) => v !== value);
+                } else {
+                    updated[filterid] = [...current, value];
+                }
+                setPage(1);
+            }
+            return updated;
+        });
+    };
+
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
             <FoodModal
@@ -214,6 +284,7 @@ export default function FoodAndBeveragePage() {
                 }}
                 onSubmit={handleSubmit}
                 editData={editData}
+                openDiscount={showDiscount}
             />
 
             <div className="w-full shrink-0 lg:w-[280px]">
@@ -221,6 +292,7 @@ export default function FoodAndBeveragePage() {
                     filters={filtersConfig}
                     values={filters}
                     setFilterValues={setFilters}
+                    onFilterChange={handleFilterChange}
                 />
             </div>
 
