@@ -64,7 +64,11 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                 result.data.data.sort((a: RewardRecords, b: RewardRecords) => a.rewardrecordid - b.rewardrecordid),
             );
             setTotalPages(result.data.pagination.totalPages);
-            setPage(result.data.pagination.page);
+            if (result.data.pagination.totalPages < result.data.pagination.page) {
+                setPage(result.data.pagination.totalPages);
+            } else {
+                setPage(result.data.pagination.page);
+            }
         }
     };
 

@@ -153,6 +153,11 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
         if (response.ok) {
             setAvailableEmployees(response.data.data);
             setTotalPages(response.data.pagination.totalPages);
+            if (response.data.pagination.totalPages < response.data.pagination.page) {
+                setPage(response.data.pagination.totalPages);
+            } else {
+                setPage(response.data.pagination.page);
+            }
         }
     };
 
