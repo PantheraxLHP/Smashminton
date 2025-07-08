@@ -1,73 +1,79 @@
-# Use Node.js LTS Alpine as the base image
+# Use Node.js LTS Alpine as the base image for maximum efficiency
 FROM node:18-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
-# Install system dependencies for native modules
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache tini
 WORKDIR /app
 
-# Copy package files
+# Dependencies stage - install only what's needed
+FROM base AS deps
+# Install minimal system dependencies for native modules
+RUN apk add --no-cache --virtual .build-deps \
+    python3 \
+    make \
+    g++ \
+    libc6-compat \
+    && ln -sf python3 /usr/bin/python
+
+# Copy package files for better caching
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies (including devDependencies for build)
-RUN npm ci && npm cache clean --force
+# Install dependencies with optimizations
+RUN npm ci --only=production --ignore-scripts && \
+    npm cache clean --force && \
+    apk del .build-deps
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Install dev dependencies separately for build
+FROM base AS build-deps
+RUN apk add --no-cache --virtual .build-deps \
+    python3 \
+    make \
+    g++ \
+    libc6-compat
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci && \
+    npm cache clean --force && \
+    npx prisma generate && \
+    apk del .build-deps
 
 # Build stage
-FROM base AS builder
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/prisma ./prisma
-
-# Copy source code and configuration files
+# Copy dependencies and source
+COPY --from=build-deps /app/node_modules ./node_modules
+COPY --from=build-deps /app/prisma ./prisma
 COPY . .
 
-# Build the NestJS application
+# Build the application
 ENV NODE_ENV=production
-RUN npm run build
+RUN npm run build && \
+    # Remove source files and dev dependencies
+    rm -rf src test *.ts *.json nest-cli.json .prettier* tsconfig* && \
+    # Keep only essential files
+    find . -name "*.map" -delete && \
+    find . -name "*.d.ts" -delete
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Minimal production image using distroless
+FROM gcr.io/distroless/nodejs18-debian12:nonroot AS runner
 
-# Production stage
-FROM base AS runner
-WORKDIR /app
-
-# Install system dependencies needed at runtime
-RUN apk add --no-cache dumb-init
-
-# Create a non-root user
-RUN addgroup --system --gid 1001 nestjs
-RUN adduser --system --uid 1001 nestjs
+# Copy built application and production dependencies
+COPY --from=deps --chown=nonroot:nonroot /app/node_modules ./node_modules
+COPY --from=builder --chown=nonroot:nonroot /app/dist ./dist
+COPY --from=builder --chown=nonroot:nonroot /app/prisma ./prisma
+COPY --from=builder --chown=nonroot:nonroot /app/package.json ./package.json
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# Copy built application
-COPY --from=builder --chown=nestjs:nestjs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nestjs /app/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nestjs /app/prisma ./prisma
-COPY --from=builder --chown=nestjs:nestjs /app/package*.json ./
-
-# Switch to non-root user
-USER nestjs
-
-# Expose the port
+# Expose port
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
+# Use nonroot user (already set in distroless)
+USER nonroot
 
 # Start the application
-CMD ["node", "dist/src/main.js"] 
+CMD ["dist/src/main.js"] 

@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FeatureZone, getZones } from '@/services/zones.service';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const zones = ['A', 'B', 'C'];
 const durations = ['1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5'];
 const times = [
     '06:00',
@@ -50,6 +50,16 @@ const FastBooking = () => {
     const [duration, setDuration] = useState('');
     const [startTime, setStartTime] = useState('');
     const router = useRouter();
+    const [zones, setZones] = useState<FeatureZone[]>([]);
+    useEffect(() => {
+        const fetchZones = async () => {
+            const response = await getZones();
+            if (response.ok) {
+                setZones(response.data.zones);
+            }
+        };
+        fetchZones();
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,7 +93,9 @@ const FastBooking = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {zones.map((z) => (
-                                        <SelectItem key={z} value={z}>{`Khu vực ${z}`}</SelectItem>
+                                        <SelectItem key={z.zoneid} value={z.zoneid.toString()}>
+                                            {z.zonename}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

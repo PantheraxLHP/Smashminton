@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -12,10 +12,12 @@ import {
     ApiConsumes,
     ApiBody,
     ApiParam,
+    ApiResponse,
 } from '@nestjs/swagger';
 import { CustomerService } from '../customers/customers.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Accounts')
 @Controller('accounts')
@@ -48,20 +50,21 @@ export class AccountsController {
         return this.accountsService.createCustomer(createAccountDto, files);
     }
 
-    // @Post()
-    // @ApiOperation({ summary: 'Create an account employee' })
-    // @ApiCreatedResponse({
-    //     description: 'Account was created',
-    //     type: CreateAccountDto,
-    // })
-    // @ApiBadRequestResponse({ description: 'Invalid input' })
-    // async createAccountEmployee(@Body() createAccountDto: CreateAccountDto) {
-    //     const account = await this.accountsService.create(createAccountDto);
-
-    //     if (account.accounttype === 'Employee') {
-    //         await this.customerService.create(account.accountid);
-    //     }
-    // }
+    @Put(':id/password')
+    @ApiOperation({ summary: 'Change account password' })
+    @ApiBody({
+        description: 'Change account password',
+        type: ChangePasswordDto,
+    })
+    @ApiOkResponse({ description: 'Password was changed successfully' })
+    @ApiBadRequestResponse({ description: 'Invalid input' })
+    @ApiParam({ name: 'id', required: true, description: 'Account ID', example: 15 })
+    async changePassword(@Param('id') id: number, @Body() changePasswordDto: ChangePasswordDto) {
+        if (!changePasswordDto) {
+            throw new BadRequestException('Invalid password data');
+        }
+        return this.accountsService.changePassword(+id, changePasswordDto);
+    }
 
     @Get()
     @ApiOperation({ summary: 'Find all accounts' })
@@ -131,5 +134,50 @@ export class AccountsController {
             throw new NotFoundException('Account not found');
         }
         return this.accountsService.remove(+id);
+    }
+
+    @Put(':id/student-card')
+    @UseInterceptors(FilesInterceptor('files', 2)) // Max 2 files
+    @ApiOperation({
+        summary: 'Update student card with OCR',
+        description: 'Upload 2 student card images to update the student card information.',
+    })
+    @ApiConsumes('multipart/form-data')
+    @ApiParam({
+        name: 'id',
+        description: 'Account ID',
+        type: Number,
+        example: 1
+    })
+    @ApiBody({
+        description: 'Upload 2 student card images',
+        schema: {
+            type: 'object',
+            properties: {
+                files: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        format: 'binary',
+                    },
+                    maxItems: 2,
+                    description: 'Tối đa 2 ảnh student card',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Update student card successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Account not found'
+    })
+    async updateStudentCard(
+        @Param('id', ParseIntPipe) id: number,
+        @UploadedFiles() files?: Express.Multer.File[]
+    ) {
+        return this.accountsService.updateStudentCard(id, files || []);
     }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -32,15 +32,27 @@ export class BookingsController {
   @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
   @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
-  @ApiQuery({ name: 'fixedCourt', type: Boolean, example: true, description: 'Có cố định sân hay không' })
   getAvailableCourtsAndUnavailableStartTime(
     @Query('zoneid') zoneid: number,
     @Query('date') date: string,
     @Query('starttime') starttime: string,
     @Query('duration') duration: number,
-    @Query('fixedCourt') fixedCourt: boolean,
   ) {
-    return this.bookingsService.getAvailableCourtsAndUnavailableStartTime(zoneid, date, starttime, duration, fixedCourt);
+    return this.bookingsService.getAvailableCourtsAndUnavailableStartTime(zoneid, date, starttime, duration);
+  }
+
+  @Get('available-courts-and-unavailable-start-time-fixed-court')
+  @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
+  @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
+  @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
+  getAvailableCourtsAndUnavailableStartTimeForFixedCourt(
+    @Query('zoneid') zoneid: number,
+    @Query('date') date: string,
+    @Query('starttime') starttime: string,
+    @Query('duration') duration: number,
+  ) {
+    return this.bookingsService.getAvailableCourtsAndUnavailableStartTimeForFixedCourt(zoneid, date, starttime, duration);
   }
 
   @Get('cache-booking')
@@ -61,25 +73,17 @@ export class BookingsController {
     return this.bookingsService.removeCourtBookingFromCache(DeleteCourtBookingDto);
   }
 
-
-
-  @Get()
-  findAll() {
-    return this.bookingsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookingsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
-    return this.bookingsService.update(+id, updateBookingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookingsService.remove(+id);
+  @Get('detail')
+  @ApiOperation({ summary: 'Get booking detail for all courts in a zone on a specific date' })
+  @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày cần xem chi tiết (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
+  @ApiResponse({ status: 200, description: 'Booking detail by court' })
+  @ApiResponse({ status: 400, description: 'Missing date or zoneid' })
+  async getBookingDetail(
+    @Query('date') date: string,
+    @Query('zoneid') zoneid: number,
+  ) {
+    if (!date || !zoneid) throw new BadRequestException('Missing date or zoneid');
+    return this.bookingsService.getBookingDetail(date, zoneid);
   }
 }

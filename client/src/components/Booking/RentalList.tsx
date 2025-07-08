@@ -1,36 +1,50 @@
-import { SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
+import { RentalListItem } from '@/app/rentals/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBooking } from '@/context/BookingContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
-import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface RentalListProps {
-    products: Products[];
+    products: RentalListItem[];
     selectedProducts: SelectedProducts[];
+    returnDate: string;
 }
 
-const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, returnDate }) => {
+    const { addRentalItem, removeProduct, selectedCourts } = useBooking();
+    const { user } = useAuth();
     const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
+    const router = useRouter();
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
     };
 
-    const handleIncrement = (productid: number) => {
-        addProduct(productid);
-    };
-
-    const handleDecrement = (productid: number) => {
-        if (getProductQuantity(productid) == 0) {
-            return;
+    const handleQuantityChange = (productId: number, delta: number) => {
+        if (delta > 0) {
+            if (!selectedCourts || selectedCourts.length === 0 || !user) {
+                toast.warning('Bạn phải đặt sân trước khi thuê sản phẩm');
+                router.push('/booking/courts');
+                return;
+            }
+            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
+                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                return;
+            }
+            addRentalItem(productId, returnDate);
+        } else {
+            if (getProductQuantity(productId) == 0) {
+                return;
+            }
+            removeProduct(productId);
         }
-        removeProduct(productid);
     };
 
     const getSortedProducts = () => {
@@ -69,9 +83,12 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) =
                     </Select>
                 </div>
             </div>
-            <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {getSortedProducts().map((product) => (
-                    <div key={product.productid} className="">
+                    <div
+                        key={product.productid}
+                        className="border-gray-200 flex h-full min-h-[350px] flex-col rounded-lg border p-4 transition-colors hover:border-gray-300"
+                    >
                         <Image
                             src={product.productimgurl || '/default-image.jpg'}
                             alt={product.productname || 'Hình ảnh sản phẩm'}
@@ -79,31 +96,44 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts }) =
                             height={200}
                             className="!h-[200px] w-full object-scale-down"
                         />
-                        <h3 className="text-md font-semibold">{product.productname}</h3>
-                        <div className="flex items-center justify-between">
-                            <p className="text-primary-600 font-bold">{formatPrice(product.rentalprice || 0)}</p>
-                            <div className="flex items-center">
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleDecrement(product.productid)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-minus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
-                                <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleIncrement(product.productid)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-plus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
+                        <div className="flex flex-1 flex-col justify-between pt-2">
+                            <h3 className="text-md line-clamp-3 font-semibold break-words" title={product.productname}>
+                                {product.productname}
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-primary-600 font-bold">
+                                        {formatPrice(product.rentalprice || 0)}
+                                    </p>
+                                </div>
+                                <div className="flex items-center">
+                                    <button
+                                        type="button"
+                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        onClick={() => handleQuantityChange(product.productid, -1)}
+                                    >
+                                        <Icon
+                                            icon="ic:baseline-minus"
+                                            className="text-lg text-gray-500 group-hover:text-white"
+                                        />
+                                    </button>
+                                    <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
+                                    <button
+                                        type="button"
+                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        onClick={() => handleQuantityChange(product.productid, 1)}
+                                    >
+                                        <Icon
+                                            icon="ic:baseline-plus"
+                                            className="text-lg text-gray-500 group-hover:text-white"
+                                        />
+                                    </button>
+                                </div>
+                                {/* show stock quantity */}
+                                <div className="flex items-end gap-1 text-sm text-gray-500">
+                                    <span>Số lượng: {product.quantity}</span>
+                                    <Icon icon="mdi:racket" className="h-5 w-5" />
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { getUser } from '@/services/accounts.service';
-import { Accounts } from '@/types/types';
+import { Accounts, StudentCard } from '@/types/types';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 interface UserJWT {
@@ -11,6 +11,7 @@ interface UserJWT {
 
 export interface User extends Accounts {
     role?: string;
+    studentCard?: StudentCard | null;
 }
 
 type AuthContextType = {
@@ -58,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             setUser(userData);
                         }
                     } catch (error) {
-                        console.log(error);
                         setUser(null);
                     }
                 } else {

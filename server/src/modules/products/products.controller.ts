@@ -1,78 +1,155 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Delete, Put, NotFoundException, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import {
-    ApiTags,
-    ApiBadRequestResponse,
-    ApiCreatedResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiNotFoundResponse,
-} from '@nestjs/swagger';
+import { UpdateProductServiceDto } from './dto/update-product.dto';
+import { UpdateFoodAccessoryDto } from './dto/update-product.dto';
+import { UpdateFoodAccessoryWithoutBatchDto } from './dto/update-product.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
 import { Public } from 'src/decorators/public.decorator';
-@ApiTags('Products')
+
 @Controller('products')
+
 export class ProductsController {
     constructor(
         private readonly productsService: ProductsService,
         private readonly cacheService: CacheService,
     ) { }
 
-    @Post()
-    @ApiOperation({ summary: 'Create a product' })
-    @ApiCreatedResponse({
-        description: 'Product was created',
-        type: CreateProductDto,
+    @Post('new-product')
+    @ApiOperation({ summary: 'Create new product with value + productfilterid' })
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    @ApiConsumes('multipart/form-data')
+    @ApiResponse({
+        status: 201,
+        description: 'Product created successfully',
     })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    async create(@Body() createProductDto: CreateProductDto) {
-        return this.productsService.create(createProductDto);
+    @ApiResponse({
+        status: 400,
+        description: 'Bad request - Invalid file or data'
+    })
+    async create(
+        @Body() createProductDto: CreateProductDto,
+        @Query('value') _value: string,
+        @Query('productfilterid') productfilterid: string,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        const _productfilterid = +productfilterid; // Ép kiểu number
+        return this.productsService.create(createProductDto, file, _value, _productfilterid);
     }
 
-    @Get(':id')
-    @Public()
-    @ApiOperation({ summary: 'Find one product' })
-    @ApiOkResponse({ description: 'Found the product' })
-    @ApiBadRequestResponse({ description: 'Invalid ID' })
-    @ApiNotFoundResponse({ description: 'Product not found' })
-    async findOne(@Param('id') id: number) {
-        const product = await this.productsService.findOne(+id);
-        const user = { id: 1, name: 'test' };
-        //await this.cacheService.setStudentCard('test-key', user, 300);
-        console.log('user', await this.cacheService.getTTL('studentCard::studentCard:test-key'));
-        const result = await this.cacheService.getStudentCard('test-key');
-
-        if (!product) {
-            throw new NotFoundException('Product not found');
-        }
-        return product;
+    @Get('all-products')
+    @ApiOperation({ summary: 'Get all products' })
+    getAllBasicProducts() {
+        return this.productsService.findAllBasicProducts();
     }
 
-    @Put(':id')
-    @ApiOperation({ summary: 'Update a product' })
-    @ApiOkResponse({ description: 'Product was updated' })
-    @ApiBadRequestResponse({ description: 'Invalid input' })
-    @ApiNotFoundResponse({ description: 'Product not found' })
-    async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
-        const product = await this.productsService.findOne(+id);
-        if (!product) {
-            throw new NotFoundException('Product not found');
+    @Get('all-products-with-batches')
+    @ApiOperation({ summary: 'Get all products with batches' })
+    getProductsWithBatches(@Query('page') page: string = '1',
+        @Query('pageSize') pageSize: string = '12') {
+        const pageNumber = parseInt(page) || 1;
+        const pageSizeNumber = parseInt(pageSize) || 12;
+        // Validation
+        if (pageNumber < 1) {
+            throw new Error('Page number must be greater than 0');
         }
-        return this.productsService.update(+id, updateProductDto);
+        if (pageSizeNumber < 1 || pageSizeNumber > 100) {
+            throw new Error('Page size must be between 1 and 100');
+        }
+        return this.productsService.getProductsWithBatches(pageNumber, pageSizeNumber);
     }
 
-    @Delete(':id')
-    @ApiOperation({ summary: 'Remove a product' })
-    @ApiOkResponse({ description: 'Product was removed' })
-    @ApiBadRequestResponse({ description: 'Invalid ID' })
-    @ApiNotFoundResponse({ description: 'Product not found' })
-    async remove(@Param('id') id: string) {
-        const product = await this.productsService.findOne(+id);
-        if (!product) {
-            throw new NotFoundException('Product not found');
-        }
-        return this.productsService.remove(+id);
+    @Patch(':id/update-services')
+    @ApiOperation({ summary: 'Update product-services' })
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    updateProductService(
+        @Param('id') productid: string,
+        @Body() body: UpdateProductServiceDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.productsService.updateProductService(+productid, body, file);
+    }
+
+
+    @Patch('update-food-acccessory/:productid/:batchid')
+    @ApiOperation({ summary: 'Update food and accessory with discount (optional)'})
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    updateFoodAccessory(
+        @Param('productid') productid: string,
+        @Param('batchid') batchid: string,
+        @Body() body: UpdateFoodAccessoryDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.productsService.updateFoodAccessory(+productid, +batchid, body, file);
+    }
+
+    @Patch('update-food-acccessory-without-batch/:productid')
+    @ApiOperation({ summary: 'Update food and accessory without batch' })
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(
+        FileInterceptor('productimgurl', {
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    updateFoodAccessoryWithoutBatch(
+        @Param('productid') productid: string,
+        @Body() body: UpdateFoodAccessoryWithoutBatchDto,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.productsService.updateFoodAccessoryWithoutBatch(+productid, body, file);
+    }
+
+    @Patch('delete-product/:productid')
+    @ApiOperation({ summary: 'Delete product (set isdeleted=true)' })
+    deleteProduct(@Param('productid') productid: number) {
+        return this.productsService.deleteProduct(+productid);
     }
 }

@@ -23,10 +23,20 @@ import { ShiftDateModule } from './modules/shift_date/shift_date.module';
 import { VoucherModule } from './modules/voucher/voucher.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
+import { NodemailerModule } from './modules/nodemailer/nodemailer.module';
+import { BankDetailModule } from './modules/bank_detail/bank_detail.module';
+import { RewardRecordsModule } from './modules/reward_records/reward_records.module';
+import { ProductBatchModule } from './modules/product_batch/product_batch.module';
+import { AutoAssignmentModule } from './modules/auto-assignment/auto-assignment.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { MqttModule } from './mqtt/mqtt.module';
+import { PurchaseOrdersModule } from './modules/purchase_orders/purchase_orders.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        ScheduleModule.forRoot(),
         CacheModule,
         PrismaModule,
         ProductsModule,
@@ -48,7 +58,14 @@ import { ZonePricesModule } from './modules/zone_prices/zone_prices.module';
         ShiftDateModule,
         VoucherModule,
         SuppliersModule,
-        ZonePricesModule
+        ZonePricesModule,
+        NodemailerModule,
+        BankDetailModule,
+        RewardRecordsModule, ProductBatchModule,
+        AutoAssignmentModule,
+        AdminModule,
+        MqttModule,
+        PurchaseOrdersModule,
     ],
     controllers: [AppController],
     providers: [AppService],

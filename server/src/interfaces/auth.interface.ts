@@ -9,6 +9,7 @@ export interface SignInData {
     accounttype: string;
     role?: string;
     avatarurl?: string;
+    isStudent?: boolean;
 }
 
 export interface AuthResponse {

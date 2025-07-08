@@ -1,16 +1,18 @@
 'use client';
 
-import RentalsPage from '@/app/rentals/page';
+import RentalPage from '@/app/rentals/page';
 import BookingStepper from '../_components/BookingStepper';
 
-const BookingProductPage = () => {
+const BookingRentalPage = () => {
     return (
         <div>
-            <BookingStepper currentStep={3} />
+            <div className="p-4">
+                <BookingStepper currentStep={3} />
+            </div>
 
-            <RentalsPage />
+            <RentalPage />
         </div>
     );
 };
 
-export default BookingProductPage;
+export default BookingRentalPage;

@@ -3,6 +3,17 @@ import PayOS from '@payos/node';
 import { cacheOrderDTO } from '../orders/dto/create-cache-order.dto';
 import { ConfigService } from '@nestjs/config';
 import crypto from 'crypto';
+import { paymentData } from 'src/interfaces/payment.interface';
+import { OrdersService } from '../orders/orders.service';
+import { BookingsService } from '../bookings/bookings.service';
+import { CreateBookingDto } from '../bookings/dto/create-booking.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateOrderDto } from '../orders/dto/create-order.dto';
+import { CacheService } from '../cache/cache.service';
+import { CreateReceiptDto } from './dto/create-receipt.dto';
+import { Booking } from 'src/interfaces/bookings.interface';
+import { Order } from 'src/interfaces/orders.interface';
+import { query } from 'express';
 
 @Injectable()
 export class PaymentService {
@@ -10,6 +21,10 @@ export class PaymentService {
 
     constructor(
         private readonly configService: ConfigService,
+        private ordersService: OrdersService,
+        private bookingsService: BookingsService,
+        private prisma: PrismaService,
+        private cacheService: CacheService,
     ) {
         // Khởi tạo PayOS với các thông tin từ biến môi trường
         this.payOS = new PayOS(
@@ -18,17 +33,25 @@ export class PaymentService {
             this.configService.get<string>('PAYOS_CHECKSUM_KEY', ''),
         );
     }
-    async createMomoPaymentLink(amount: number): Promise<any> {
+    async createMomoPaymentLink(paymentData: paymentData): Promise<any> {
         const accessKey = this.configService.get<string>('MOMO_ACCESS_KEY', '');
         const secretKey = this.configService.get<string>('MOMO_SECRET_KEY', '');
         const partnerCode = this.configService.get<string>('MOMO_PARTNER_CODE', 'MOMO');
 
-        const client_domain = this.configService.get<string>('CLIENT', '');
-        const redirectUrl = `${client_domain}/handlepayment`;
+        const DOMAIN = this.configService.get<string>('CLIENT', '');
+        const queryParams = new URLSearchParams({
+            userId: paymentData.userId || '',
+            userName: paymentData.userName || '',
+            paymentMethod: paymentData.paymentMethod || '',
+            ...(paymentData.guestPhoneNumber && { guestPhoneNumber: paymentData.guestPhoneNumber }),
+            ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
+            totalAmount: paymentData.totalAmount ? String(paymentData.totalAmount) : '0',
+        });
+        const redirectUrl = `${DOMAIN}/payment/success?${queryParams.toString()}`;
 
         const server_domain = this.configService.get<string>('SERVER', '');
-        const ipnUrl = 
-        //'https://1dea-2402-800-6371-704a-c58d-5fa5-218d-ef39.ngrok-free.app/api/v1/payment/momo/ipn';  
+        const ipnUrl =
+            'https://c904-2402-800-6371-704a-89ef-92be-7d07-74e2.ngrok-free.app/api/v1/payment/momo/ipn';
         `${server_domain}/api/v1/payment/momo/ipn`; // URL nhận thông báo từ MoMo
 
         const orderId = partnerCode + new Date().getTime();
@@ -39,7 +62,7 @@ export class PaymentService {
         const autoCapture = true;
         const lang = 'vi';
 
-        const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
+        const rawSignature = `accessKey=${accessKey}&amount=${paymentData.totalAmount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
         const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
         const requestBody = {
@@ -47,7 +70,7 @@ export class PaymentService {
             partnerName: 'Test',
             storeId: 'MomoTestStore',
             requestId,
-            amount,
+            amount: paymentData.totalAmount,
             orderId,
             orderInfo,
             redirectUrl,
@@ -73,7 +96,8 @@ export class PaymentService {
             }
 
             const data = await response.json();
-            return data;
+            const payUrl = data.payUrl;
+            return payUrl;
         } catch (error) {
             console.error('Error creating MoMo payment link:', error);
             throw new Error('Failed to create MoMo payment link');
@@ -145,22 +169,229 @@ export class PaymentService {
         }
     }
 
-    async createPayOSPaymentLink(description: string, amount: number): Promise<string> {
+    async createPayOSPaymentLink(paymentData: paymentData): Promise<string> {
         const DOMAIN = this.configService.get<string>('CLIENT', '');
+        // Tạo query parameters từ paymentData
+        const queryParams = new URLSearchParams({
+            userId: paymentData.userId || '',
+            userName: paymentData.userName || '',
+            paymentMethod: paymentData.paymentMethod || '',
+            ...(paymentData.guestPhoneNumber && { guestPhoneNumber: paymentData.guestPhoneNumber }),
+            ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
+            totalAmount: paymentData.totalAmount ? String(paymentData.totalAmount) : '0',
+        });
         const body = {
             orderCode: Number(String(Date.now()).slice(-6)),
-            amount: amount,
-            description: description,
-            returnUrl: `${DOMAIN}?success=true`,
-            cancelUrl: `${DOMAIN}?canceled=true`,
+            description: `Payment for ${paymentData.userName}`,
+            amount: (paymentData.totalAmount ?? 0) / 100,
+            returnUrl: `${DOMAIN}/payment/success?${queryParams.toString()}`,
+            cancelUrl: `${DOMAIN}/payment/fail`,
         };
 
         try {
             const paymentLinkResponse = await this.payOS.createPaymentLink(body);
+            console.log(queryParams.toString());
             return paymentLinkResponse.checkoutUrl; // Trả về URL thanh toán
         } catch (error) {
             console.error('Error creating payment link:', error);
             throw new Error('Failed to create payment link');
         }
+    }
+
+    async createReciept(createReceiptDto: CreateReceiptDto): Promise<any> {
+        const { paymentmethod, totalamount, orderid, bookingid } = createReceiptDto;
+
+        // Kiểm tra các trường bắt buộc
+        if (!paymentmethod || !totalamount) {
+            throw new Error('Payment method and total amount are required');
+        }
+
+        // Tạo đối tượng biên lai
+        const receipt = {
+            paymentmethod,
+            totalamount,
+            orderid: orderid ? Number(orderid) : null,
+            bookingid: bookingid ? Number(bookingid) : null,
+        };
+
+        return this.prisma.receipts.create({
+            data: receipt,
+        });
+    }
+
+    async handleSuccessfulPayment(
+        paymentData: paymentData
+    ): Promise<any> {
+        const account = await this.prisma.accounts.findUnique({
+            where: { accountid: Number(paymentData.userId) },
+        });
+        if (!account) {
+            throw new Error('Account not found');
+        }
+        const accounttype = account?.accounttype || '';
+
+        let bookingTotalPrice = 0;
+        let orderTotalPrice = 0;
+
+        const bookingCache = await this.cacheService.getBooking(paymentData.userName);
+        if (bookingCache)
+            bookingTotalPrice = bookingCache?.totalprice || 0;
+
+        const orderCache = await this.cacheService.getOrder(paymentData.userName);
+        if (orderCache)
+            orderTotalPrice = orderCache?.totalprice || 0;
+
+        // Explicitly type booking and order to avoid 'never' type errors
+        let booking: Booking | null = null;
+        let order: Order | null = null;
+        if (accounttype === 'Customer') {
+            // Xử lý booking
+            if (bookingTotalPrice > 0) {
+                const createBookingDto: CreateBookingDto = {
+                    totalprice: bookingTotalPrice,
+                    customerid: Number(paymentData.userId),
+                    voucherid: paymentData.voucherId ? Number(paymentData.voucherId) : undefined,
+                };
+                booking = await this.bookingsService.addBookingToDatabase(createBookingDto);
+                await this.cacheService.deleteBooking(paymentData.userName);
+            }
+            // Xử lý order
+            if (orderTotalPrice > 0) {
+                const createOrderDto: CreateOrderDto = {
+                    totalprice: orderTotalPrice,
+                    customerid: Number(paymentData.userId),
+                };
+                order = await this.ordersService.addOrderToDatabase(createOrderDto);
+                await this.cacheService.deleteOrder(paymentData.userName);
+            }
+        } else if (accounttype === 'Employee') {
+            // Xử lý booking
+            if (bookingTotalPrice > 0) {
+                const createBookingDto: CreateBookingDto = {
+                    totalprice: bookingTotalPrice,
+                    employeeid: Number(paymentData.userId),
+                    voucherid: paymentData.voucherId ? Number(paymentData.voucherId) : undefined,
+                };
+                booking = await this.bookingsService.addBookingToDatabase(createBookingDto);
+                await this.cacheService.deleteBooking(paymentData.userName);
+            }
+            // Xử lý order
+            if (orderTotalPrice > 0) {
+                const createOrderDto: CreateOrderDto = {
+                    totalprice: orderTotalPrice,
+                    employeeid: Number(paymentData.userId),
+                };
+                order = await this.ordersService.addOrderToDatabase(createOrderDto);
+                await this.cacheService.deleteOrder(paymentData.userName);
+            }
+        }
+        if (!booking && !order) {
+            throw new Error('No booking or order created');
+        }
+
+        // Tạo biên lai
+        const createReceiptDto: CreateReceiptDto = {
+            paymentmethod: paymentData.paymentMethod || '',
+            totalamount: paymentData.totalAmount || 0,
+            orderid: order ? order.orderid : undefined,
+            bookingid: booking ? booking.bookingid : undefined,
+        };
+
+        return this.createReciept(createReceiptDto);
+    }
+
+    async getReceiptDetailByEmployeeOrCustomer(employeeid: number | null, customerid: number | null) {
+        const receipts = await this.prisma.receipts.findMany({
+            where: {
+                OR: [
+                    {
+                        bookings: employeeid
+                            ? { employeeid }
+                            : customerid
+                                ? { customerid }
+                                : undefined,
+                    },
+                    {
+                        orders: employeeid
+                            ? { employeeid }
+                            : customerid
+                                ? { customerid }
+                                : undefined,
+                    },
+                ],
+            },
+            select: {
+                receiptid: true,
+                paymentmethod: true,
+                totalamount: true,
+                bookings: {
+                    select: {
+                        bookingid: true,
+                        guestphone: true,
+                        court_booking: {
+                            select: {
+                                starttime: true,
+                                endtime: true,
+                                duration: true,
+                                date: true,
+                                courts: {
+                                    select: {
+                                        zones: { select: { zonename: true } },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                orders: {
+                    select: {
+                        orderid: true,
+                        order_product: {
+                            select: {
+                                productid: true,
+                                quantity: true,
+                                returndate: true,
+                                products: { select: { productname: true } },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return receipts.map((r) => {
+            const courts = (r.bookings?.court_booking || []).map((cb) => {
+                let products: any[] = [];
+                let rentals: any[] = [];
+                if (r.orders) {
+                    for (const op of r.orders.order_product) {
+                        const prod = {
+                            productid: op.productid,
+                            productname: op.products.productname,
+                            quantity: op.quantity,
+                        };
+                        if (op.returndate) rentals.push({ ...prod, rentaldate: op.returndate });
+                        else products.push(prod);
+                    }
+                }
+                return {
+                    starttime: cb.starttime,
+                    endtime: cb.endtime,
+                    duration: cb.duration,
+                    date: cb.date,
+                    zone: cb.courts?.zones?.zonename || '',
+                    guestphone: r.bookings?.guestphone,
+                    totalamount: r.totalamount,
+                    products,
+                    rentals,
+                };
+            });
+            return {
+                receiptid: r.receiptid,
+                paymentmethod: r.paymentmethod,
+                totalamount: r.totalamount,
+                courts,
+            };
+        });
     }
 }

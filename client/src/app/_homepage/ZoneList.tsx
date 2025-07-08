@@ -45,7 +45,7 @@ export default function ZoneList() {
                 >
                     <div className="relative h-56 overflow-hidden">
                         <Image
-                            src={zone.zoneimgurl || '/placeholder-court.jpg'}
+                            src={zone.zoneimgurl || '/default.png'}
                             alt={zone.zonename || 'Sân cầu lông'}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -56,7 +56,7 @@ export default function ZoneList() {
                             }}
                         />
                         <div className="text-primary-600 absolute top-3 right-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium backdrop-blur-sm">
-                            ⭐ {'4.5'}
+                            ⭐ {zone.avgzonerating}
                         </div>
                     </div>
                     <div className="p-5">

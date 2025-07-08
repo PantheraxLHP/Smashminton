@@ -28,34 +28,14 @@ model accounts {
   employees   employees?
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model autoassignment_rules {
-  aaruleid        Int       @id @default(autoincrement())
-  rulename        String?
-  ruledescription String?
-  rulestatus      String?
-  ruleforemptype  String?
-  rulevalue       String?
-  ruleappliedfor  String?
-  ruletype        String?
-  rulesql         String?
-  columnname      String?
-  ctename         String?
-  canbecollided   Boolean?  @default(false)
-  condition       String?
-  createdat       DateTime? @default(now()) @db.Timestamptz(6)
-  updatedat       DateTime? @default(now()) @db.Timestamptz(6)
-}
-
 model bank_detail {
-  bankdetailid      Int        @id @default(autoincrement())
-  bankname          String?
-  banknumber        String?
-  bankholder        String?
-  bankbranch        String?
-  linkedphonenumber String?
-  employeeid        Int?
-  employees         employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_bankdetail_employeeid")
+  bankdetailid Int        @id @default(autoincrement())
+  bankname     String?
+  banknumber   String?
+  bankholder   String?
+  active       Boolean?   @default(false)
+  employeeid   Int?
+  employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_bankdetail_employeeid")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -93,6 +73,7 @@ model courts {
   courtid          Int             @id @default(autoincrement())
   courtname        String?
   courtimgurl      String?
+  statuscourt      String?
   avgrating        Decimal?        @db.Decimal
   timecalculateavg DateTime?       @db.Timestamptz(6)
   zoneid           Int?
@@ -112,10 +93,14 @@ model customers {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model employees {
   employeeid           Int                @id
-  fingerprintid        Int?
+  fingerprintid        Int?               @unique
   last_week_shift_type String?
   employee_type        String?
   role                 String?
+  cccd                 String?
+  expiry_cccd          DateTime?          @db.Timestamptz(6)
+  taxcode              String?
+  salary               Decimal?           @db.Decimal
   bank_detail          bank_detail[]
   bookings             bookings[]
   accounts             accounts           @relation(fields: [employeeid], references: [accountid], onDelete: NoAction, onUpdate: NoAction, map: "fk_employees_accounts")
@@ -125,16 +110,15 @@ model employees {
   reward_records       reward_records[]
   shift_assignment     shift_assignment[]
   shift_enrollment     shift_enrollment[]
-  timesheet            timesheet[]
 }
 
 model order_product {
-  orderid   Int
-  productid Int
-  returndate DateTime?       @db.Timestamptz(6)
-  quantity  Int?
-  orders    orders   @relation(fields: [orderid], references: [orderid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_orders")
-  products  products @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_products")
+  orderid    Int
+  productid  Int
+  returndate DateTime? @db.Timestamptz(6)
+  quantity   Int?
+  orders     orders    @relation(fields: [orderid], references: [orderid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_orders")
+  products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_orderproduct_products")
 
   @@id([orderid, productid], map: "pk_orderproduct")
 }
@@ -186,43 +170,45 @@ model product_types {
 model products {
   productid          Int                  @id @default(autoincrement())
   productname        String?
-  status             String?
   sellingprice       Decimal?             @db.Decimal
   rentalprice        Decimal?             @db.Decimal
-  costprice          Decimal?             @db.Decimal
   productimgurl      String?
+  isdeleted          Boolean?             @default(false)
   createdat          DateTime?            @default(now()) @db.Timestamptz(6)
   updatedat          DateTime?            @default(now()) @db.Timestamptz(6)
   order_product      order_product[]
   product_attributes product_attributes[]
   purchase_order     purchase_order[]
+  supply_products    supply_products[]
 }
 
 model product_batch {
-  batchid          Int                  @id @default(autoincrement())
-  batchname        String?
-  expirydate       DateTime?            @default(now()) @db.Timestamptz(6)
-  stockquantity    Int?
-  status           String?
-  createdat        DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat        DateTime?  @default(now()) @db.Timestamptz(6)
-  purchase_order   purchase_order[]
+  batchid        Int              @id @default(autoincrement())
+  batchname      String?
+  expirydate     DateTime?
+  stockquantity  Int?
+  statusbatch    String?
+  discount       Int?
+  createdat      DateTime?        @default(now()) @db.Timestamptz(6)
+  updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
+  purchase_order purchase_order[]
 }
 
 model purchase_order {
-  poid         Int        @id @default(autoincrement())
-  quantity     Int?
-  deliverydate DateTime?  @db.Timestamptz(6)
-  createdat    DateTime?  @default(now()) @db.Timestamptz(6)
-  updatedat    DateTime?  @default(now()) @db.Timestamptz(6)
-  productid    Int?
-  employeeid   Int?
-  supplierid   Int?
-  batchid      Int?
-  product_batch    product_batch? @relation(fields: [batchid], references: [batchid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_productbatch")
-  employees    employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
-  products     products?  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
-  suppliers    suppliers? @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
+  poid          Int            @id @default(autoincrement())
+  quantity      Int?
+  statusorder   String?
+  deliverydate  DateTime?      @db.Timestamptz(6)
+  createdat     DateTime?      @default(now()) @db.Timestamptz(6)
+  updatedat     DateTime?      @default(now()) @db.Timestamptz(6)
+  productid     Int?
+  employeeid    Int?
+  supplierid    Int?
+  batchid       Int?
+  product_batch product_batch? @relation(fields: [batchid], references: [batchid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_productbatch")
+  employees     employees?     @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_employees")
+  products      products?      @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_products")
+  suppliers     suppliers?     @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_purchaseorder_suppliers")
 }
 
 model receipts {
@@ -238,14 +224,16 @@ model receipts {
 }
 
 model reward_records {
-  rewardrecordid    Int           @id @default(autoincrement())
-  rewarddate        DateTime?     @db.Timestamptz(6)
-  finalrewardamount Decimal?      @db.Decimal
-  rewardapplieddate DateTime?     @db.Timestamptz(6)
-  rewardruleid      Int?
-  employeeid        Int?
-  employees         employees?    @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_employees")
-  reward_rules      reward_rules? @relation(fields: [rewardruleid], references: [rewardruleid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_rewardrules")
+  rewardrecordid     Int           @id @default(autoincrement())
+  rewarddate         DateTime?     @db.Timestamptz(6)
+  finalrewardamount  Decimal?      @db.Decimal
+  rewardnote         String?
+  rewardrecordstatus String?
+  rewardapplieddate  DateTime?     @db.Timestamptz(6)
+  rewardruleid       Int?
+  employeeid         Int?
+  employees          employees?    @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_employees")
+  reward_rules       reward_rules? @relation(fields: [rewardruleid], references: [rewardruleid], onDelete: NoAction, onUpdate: NoAction, map: "fk_rewardrecords_rewardrules")
 }
 
 model reward_rules {
@@ -266,12 +254,13 @@ model shift {
 }
 
 model shift_assignment {
-  employeeid Int
-  shiftid    Int
-  shiftdate  DateTime   @db.Timestamptz(6)
+  employeeid       Int
+  shiftid          Int
+  shiftdate        DateTime    @db.Timestamptz(6)
   assignmentstatus String?
-  employees  employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
-  shift_date shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
+  employees        employees   @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_employees")
+  shift_date       shift_date  @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftassignment_shiftdate")
+  timesheet        timesheet[]
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftassignment")
 }
@@ -282,17 +271,18 @@ model shift_date {
   shift_assignment shift_assignment[]
   shift            shift              @relation(fields: [shiftid], references: [shiftid], onDelete: Cascade, onUpdate: NoAction, map: "fk_shiftdate_shift")
   shift_enrollment shift_enrollment[]
-  
+
   @@id([shiftid, shiftdate], map: "pk_shiftdate")
 }
 
 model shift_enrollment {
-  employeeid     Int
-  shiftid        Int
-  shiftdate      DateTime   @db.Timestamptz(6)
-  enrollmentdate DateTime?  @default(now()) @db.Timestamptz(6)
-  employees      employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_employees")
-  shift_date     shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_shiftdate")
+  employeeid       Int
+  shiftid          Int
+  shiftdate        DateTime   @db.Timestamptz(6)
+  enrollmentdate   DateTime?  @default(now()) @db.Timestamptz(6)
+  enrollmentstatus String?
+  employees        employees  @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_employees")
+  shift_date       shift_date @relation(fields: [shiftid, shiftdate], references: [shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_shiftenrollment_shiftdate")
 
   @@id([employeeid, shiftid, shiftdate], map: "pk_shiftenrollment")
 }
@@ -306,24 +296,41 @@ model student_card {
 }
 
 model suppliers {
-  supplierid     Int              @id @default(autoincrement())
-  suppliername   String?
-  contactname    String?
-  phonenumber    String?
-  email          String?
-  address        String?
-  createdat      DateTime?        @default(now()) @db.Timestamptz(6)
-  updatedat      DateTime?        @default(now()) @db.Timestamptz(6)
-  purchase_order purchase_order[]
+  supplierid      Int               @id @default(autoincrement())
+  suppliername    String?
+  contactname     String?
+  phonenumber     String?
+  email           String?
+  address         String?
+  isdeleted       Boolean?             @default(false)
+  createdat       DateTime?         @default(now()) @db.Timestamptz(6)
+  updatedat       DateTime?         @default(now()) @db.Timestamptz(6)
+  supply_products supply_products[]
+  purchase_order  purchase_order[]
+}
+
+model supply_products {
+  productid  Int
+  supplierid Int
+  costprice  Decimal?  @db.Decimal
+  suppliers  suppliers @relation(fields: [supplierid], references: [supplierid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_suppliers")
+  products   products  @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_supplyproducts_products")
+
+  @@id([productid, supplierid], map: "pk_fk_supplyproducts")
 }
 
 model timesheet {
-  timesheetid   Int        @id @default(autoincrement())
-  timesheetdate DateTime?  @db.Timestamptz(6)
-  starthour     DateTime?  @db.Timestamptz(6)
-  endhour       DateTime?  @db.Timestamptz(6)
-  employeeid    Int?
-  employees     employees? @relation(fields: [employeeid], references: [employeeid], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_employees")
+  employeeid    Int
+  shiftid       Int
+  shiftdate     DateTime  @db.Timestamptz(6)
+  checkin_time  DateTime? @db.Timestamptz(6)
+  checkout_time DateTime? @db.Timestamptz(6)
+  createdat     DateTime? @default(now()) @db.Timestamptz(6)
+  updatedat     DateTime? @default(now()) @db.Timestamptz(6)
+
+  shiftassignment shift_assignment @relation(fields: [employeeid, shiftid, shiftdate], references: [employeeid, shiftid, shiftdate], onDelete: NoAction, onUpdate: NoAction, map: "fk_timesheet_shiftassignment")
+
+  @@id([employeeid, shiftid, shiftdate], map: "pk_timesheet")
 }
 
 model voucher {
@@ -355,6 +362,7 @@ model zones {
   zonetype        String?
   zoneimgurl      String?
   zonedescription String?
+  avgzonerating   Decimal?        @db.Decimal
   courts          courts[]
   zone_prices     zone_prices[]
 }
@@ -364,7 +372,6 @@ model product_attributes {
   productfiltervalueid  Int
   product_filter_values product_filter_values @relation(fields: [productfiltervalueid], references: [productfiltervalueid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_productfiltervalues")
   products              products              @relation(fields: [productid], references: [productid], onDelete: NoAction, onUpdate: NoAction, map: "fk_productattributes_products")
-
   @@id([productid, productfiltervalueid], map: "pk_productattributes")
 }
 

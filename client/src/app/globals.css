@@ -70,11 +70,6 @@
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
@@ -83,6 +78,49 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.317 0.06 144.69);
+    --chart-2: oklch(0.36 0.09 144.69);
+    --chart-3: oklch(0.403 0.12 144.69);
+    --chart-4: oklch(0.446 0.15 144.69);
+    --chart-5: oklch(0.489 0.18 144.69);
+    --chart-6: oklch(0.532 0.21 144.69);
+    --chart-7: oklch(0.575 0.24 144.69);
+    --chart-8: oklch(0.618 0.27 144.69);
+    --chart-9: oklch(0.661 0.3 144.69);
+    --chart-10: oklch(0.704 0.33 144.69);
+
+    --chart-11: oklch(0.704 0.33 144.69);
+    --chart-12: oklch(0.682 0.32 165);
+    --chart-13: oklch(0.66 0.31 110);
+    --chart-14: oklch(0.72 0.29 90);
+    --chart-15: oklch(0.76 0.26 70);
+    --chart-16: oklch(0.72 0.27 50);
+    --chart-17: oklch(0.65 0.3 15);
+    --chart-18: oklch(0.58 0.32 0);
+    --chart-19: oklch(0.48 0.31 345);
+    --chart-20: oklch(0.38 0.29 320);
+
+    --chart-21: oklch(0.92 0.13 145);
+    --chart-22: oklch(0.92 0.13 240);
+    --chart-23: oklch(0.96 0.16 100);
+    --chart-24: oklch(0.95 0.14 70);
+    --chart-25: oklch(0.93 0.12 25);
+    --chart-26: oklch(0.91 0.12 310);
+    --chart-27: oklch(0.92 0.12 190);
+    --chart-28: oklch(0.91 0.12 20);
+    --chart-29: oklch(0.95 0.08 95);
+    --chart-30: oklch(0.92 0.02 240);
+
+    --chart-31: oklch(0.64 0.33 145);
+    --chart-32: oklch(0.65 0.35 30);
+    --chart-33: oklch(0.65 0.35 60);
+    --chart-34: oklch(0.6 0.3 10);
+    --chart-35: oklch(0.65 0.35 210);
+    --chart-36: oklch(0.6 0.35 275);
+    --chart-37: oklch(0.65 0.3 320);
+    --chart-38: oklch(0.6 0.3 350);
+    --chart-39: oklch(0.7 0.4 0);
+    --chart-40: oklch(0.65 0.25 50);
 }
 
 @theme inline {
@@ -113,7 +151,45 @@
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
-    --color-sidebar: var(--sidebar);
+    --color-chart-6: var(--chart-6);
+    --color-chart-7: var(--chart-7);
+    --color-chart-8: var(--chart-8);
+    --color-chart-9: var(--chart-9);
+    --color-chart-10: var(--chart-10);
+
+    --color-chart-11: var(--chart-11);
+    --color-chart-12: var(--chart-12);
+    --color-chart-13: var(--chart-13);
+    --color-chart-14: var(--chart-14);
+    --color-chart-15: var(--chart-15);
+    --color-chart-16: var(--chart-16);
+    --color-chart-17: var(--chart-17);
+    --color-chart-18: var(--chart-18);
+    --color-chart-19: var(--chart-19);
+    --color-chart-20: var(--chart-20);
+
+    --color-chart-21: var(--chart-21);
+    --color-chart-22: var(--chart-22);
+    --color-chart-23: var(--chart-23);
+    --color-chart-24: var(--chart-24);
+    --color-chart-25: var(--chart-25);
+    --color-chart-26: var(--chart-26);
+    --color-chart-27: var(--chart-27);
+    --color-chart-28: var(--chart-28);
+    --color-chart-29: var(--chart-29);
+    --color-chart-30: var(--chart-30);
+
+    --color-chart-31: var(--chart-31);
+    --color-chart-32: var(--chart-32);
+    --color-chart-33: var(--chart-33);
+    --color-chart-34: var(--chart-34);
+    --color-chart-35: var(--chart-35);
+    --color-chart-36: var(--chart-36);
+    --color-chart-37: var(--chart-37);
+    --color-chart-38: var(--chart-38);
+    --color-chart-39: var(--chart-39);
+    --color-chart-40: var(--chart-40);
+
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
@@ -129,5 +205,39 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Accordion Animations */
+[data-slot='accordion-content'] {
+    overflow: hidden;
+    transition: all 0.15s ease-out;
+}
+
+[data-slot='accordion-content'][data-state='open'] {
+    animation: slideDown 0.15s ease-out;
+}
+
+[data-slot='accordion-content'][data-state='closed'] {
+    animation: slideUp 0.15s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        height: 0;
+    }
+
+    to {
+        height: var(--radix-accordion-content-height);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        height: var(--radix-accordion-content-height);
+    }
+
+    to {
+        height: 0;
     }
 }

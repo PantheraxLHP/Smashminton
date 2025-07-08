@@ -1,0 +1,108 @@
+# Maven compiled output
+/target/
+/dist/
+/build/
+
+# Maven dependency directory
+/.mvn/wrapper/maven-wrapper.jar
+/.mvn/timing.properties
+/.mvn/wrapper/MavenWrapperDownloader.java
+
+# Generated sources
+/generated-sources/
+/generated-test-sources/
+
+# Logs
+logs
+*.log
+maven-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage/
+/surefire-reports/
+/failsafe-reports/
+
+# IDEs and editors
+/.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.iws
+*.iml
+*.ipr
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IDE - Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# IDE - NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# temp directory
+.temp
+.tmp
+
+# Application properties (if sensitive)
+*.properties
+
+# Database
+*.db
+*.sqlite
+
+# Spring Boot
+/out/
+/.gradle/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Java specific
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# Maven wrapper
+!/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

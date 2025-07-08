@@ -8,6 +8,7 @@ import { ProductsService } from '../products/products.service';
 import { Create } from 'sharp';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ProductBatchService } from '../product_batch/product_batch.service';
 
 @Injectable()
 export class OrdersService {
@@ -15,6 +16,7 @@ export class OrdersService {
         private cacheService: CacheService,
         private productService: ProductsService,
         private prisma: PrismaService,
+        private productBatchService: ProductBatchService,
     ) { }
 
     async getOrderFromCache(username: string): Promise<CacheOrder> {
@@ -41,13 +43,53 @@ export class OrdersService {
         if (!product_order) {
             throw new BadRequestException('Product not found for the given productid');
         }
+
         // Lấy cache của người dùng từ Redis
         const orderUserCache = await this.cacheService.getOrder(username);
 
         let unitprice: number = 0;
+        let discount: number = 0;
+
         // Kiểm tra nếu sản phẩm có giá bán
         if (product_order.sellingprice) {
+            // Lấy discount từ product_batch có expiry_date gần nhất với ngày hiện tại
+            const currentDate = new Date();
+            const productBatches = await this.prisma.product_batch.findMany({
+                where: {
+                    purchase_order: {
+                        some: {
+                            productid: productid
+                        },
+                    },
+                    expirydate: {
+                        not: null
+                    },
+                    stockquantity: {
+                        gt: 0
+                    }
+                }
+            });
+            // Tìm batch có expiry_date gần với current_date nhất
+            let closestBatch: typeof productBatches[0] | null = null;
+            let minTimeDiff = Infinity;
+
+            for (const batch of productBatches) {
+                if (batch.expirydate) {
+                    const timeDiff = Math.abs(batch.expirydate.getTime() - currentDate.getTime());
+                    if (timeDiff < minTimeDiff) {
+                        minTimeDiff = timeDiff;
+                        closestBatch = batch;
+                    }
+                }
+            }
+            // Chỉ áp dụng discount nếu batch gần nhất có discount
+            discount = (closestBatch?.discount && closestBatch.discount > 0) ? closestBatch.discount : 0;
             unitprice = product_order.sellingprice ? product_order.sellingprice.toNumber() : 0;
+
+            // Áp dụng discount nếu có
+            if (discount > 0) {
+                unitprice = unitprice * (100 - discount / 100);
+            }
         }
         else {
             unitprice = product_order.rentalprice ? product_order.rentalprice.toNumber() : 0;
@@ -137,7 +179,6 @@ export class OrdersService {
         // Lấy cache của người dùng từ Redis
         const orderUserCache = await this.cacheService.getOrder(username);
 
-        // Nếu không có cache, tạo mới
         if (!orderUserCache) {
             throw new BadRequestException('No cache found for the user');
         }
@@ -222,25 +263,66 @@ export class OrdersService {
             throw new BadRequestException('Failed to create product orders');
         }
 
-        return {
-            order: order,
-            product_orders: product_orders,
+        // Sau khi đã tạo order và productOrders
+        for (const product of productOrders) {
+            await this.productBatchService.decreaseStockQuantity(product.productid, product.quantity);
+        }
+
+        return order;
+    }
+
+    async removeAllRentalProductsInOrder(username: string): Promise<CacheOrder> {
+        // Lấy cache của người dùng từ Redis
+        const orderUserCache = await this.cacheService.getOrder(username);
+
+        if (!orderUserCache) {
+            throw new BadRequestException('No cache found for the user');
+        }
+
+        // Lấy danh sách productid từ cache
+        const productIds = orderUserCache.product_order.map(product => product.productid);
+
+        // Truy vấn database để lấy thông tin rental price của các products
+        const productsWithRentalPrice = await this.prisma.products.findMany({
+            where: {
+                productid: {
+                    in: productIds
+                },
+                rentalprice: {
+                    not: null  // Chỉ lấy products có rental price
+                }
+            },
+            select: {
+                productid: true,
+                rentalprice: true
+            }
+        });
+
+        // Tạo Set để tìm kiếm nhanh hơn
+        const rentalProductIds = new Set(productsWithRentalPrice.map(p => p.productid));
+
+        // Lọc ra các products không phải rental (giữ lại)
+        const filteredProducts = orderUserCache.product_order.filter(product =>
+            !rentalProductIds.has(product.productid)
+        );
+
+        // Tính lại tổng giá sau khi loại bỏ rental products
+        const newTotalPrice = filteredProducts.reduce((total, product) =>
+            total + (product.totalamount ?? 0), 0
+        );
+
+        // Cập nhật cache
+        const updatedOrderCache: CacheOrder = {
+            product_order: filteredProducts,
+            totalprice: newTotalPrice
         };
-    }
 
-    findAll() {
-        return `This action returns all orders`;
-    }
+        const isSuccess = await this.cacheService.setOrder(username, updatedOrderCache, 24 * 3600); // TTL 24 hour
 
-    findOne(id: number) {
-        return `This action returns a #${id} order`;
-    }
-
-    update(id: number, updateOrderDto: UpdateOrderDto) {
-            return `This action updates a #${id} order`;
+        if (!isSuccess) {
+            throw new BadRequestException('Failed to update order cache');
         }
 
-    remove(id: number) {
-            return `This action removes a #${id} order`;
-        }
+        return updatedOrderCache;
+    }
 }

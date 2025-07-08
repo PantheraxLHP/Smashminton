@@ -40,6 +40,10 @@ export interface Employees {
     last_week_shift_type?: string;
     employee_type?: string;
     role?: string;
+    cccd?: string;
+    expiry_cccd?: Date;
+    taxcode?: string;
+    salary?: number;
     bank_detail?: BankDetail[];
     bookings?: Bookings[];
     accounts?: Accounts;
@@ -52,31 +56,12 @@ export interface Employees {
     timesheet?: Timesheet[];
 }
 
-export interface AutoassignmentRules {
-    aaruleid: number;
-    rulename?: string;
-    ruledescription?: string;
-    rulestatus?: string;
-    ruleforemptype?: string;
-    rulevalue?: string;
-    ruleappliedfor?: string;
-    ruletype?: string;
-    rulesql?: string;
-    columnname?: string;
-    ctename?: string;
-    canbecollided?: boolean;
-    condition?: string;
-    createdat?: Date;
-    updatedat?: Date;
-}
-
 export interface BankDetail {
     bankdetailid: number;
     bankname?: string;
     banknumber?: string;
     bankholder?: string;
-    bankbranch?: string;
-    linkedphonenumber?: string;
+    active?: boolean;
     employeeid?: number;
     employees?: Employees;
 }
@@ -125,6 +110,7 @@ export interface Courts {
 export interface OrderProduct {
     orderid: number;
     productid: number;
+    returndate?: Date;
     quantity?: number;
     orders?: Orders;
     products?: Products;
@@ -134,7 +120,6 @@ export interface Orders {
     orderid: number;
     ordertype?: string;
     orderdate?: Date;
-    returndate?: Date;
     totalprice?: number;
     status?: string;
     employeeid?: number;
@@ -186,6 +171,7 @@ export interface Products {
     order_product?: OrderProduct[];
     product_attributes?: ProductAttributes[];
     purchase_order?: PurchaseOrder[];
+    supply_products?: SupplyProducts[];
 }
 
 export interface ProductBatch {
@@ -202,6 +188,7 @@ export interface ProductBatch {
 export interface PurchaseOrder {
     poid: number;
     quantity?: number;
+    statusorder?: string;
     deliverydate?: Date;
     createdat?: Date;
     updatedat?: Date;
@@ -231,6 +218,8 @@ export interface RewardRecords {
     rewardrecordid: number;
     rewarddate?: Date;
     finalrewardamount?: number;
+    rewardnote?: string;
+    rewardrecordstatus?: string;
     rewardapplieddate?: Date;
     rewardruleid?: number;
     employeeid?: number;
@@ -259,7 +248,7 @@ export interface ShiftAssignment {
     employeeid: number;
     shiftid: number;
     shiftdate: Date;
-    status?: string;
+    assignmentstatus?: string;
     employees?: Employees;
     shift_date?: ShiftDate;
 }
@@ -277,6 +266,7 @@ export interface ShiftEnrollment {
     shiftid: number;
     shiftdate: Date;
     enrollmentdate?: Date;
+    enrollmentstatus?: string;
     employees?: Employees;
     shift_date?: ShiftDate;
 }
@@ -290,24 +280,26 @@ export interface Suppliers {
     address?: string;
     createdat?: Date;
     updatedat?: Date;
+    supply_products?: SupplyProducts[];
     purchase_order?: PurchaseOrder[];
 }
 
 export interface Timesheet {
-    timesheetid: number;
-    timesheetdate?: Date;
-    starthour?: Date;
-    endhour?: Date;
-    employeeid?: number;
-    employees?: Employees;
+    employeeid: number;
+    shiftid: number;
+    shiftdate: Date;
+    checkin_time?: Date;
+    checkout_time?: Date;
+    createdat?: Date;
+    updatedat?: Date;
+    shiftassignment: ShiftAssignment;
 }
 
 export interface Voucher {
     voucherid: number;
     vouchername?: string;
-    vouchertype?: string;
     discountamount?: number;
-    duration?: string;
+    startdate?: Date;
     expireddate?: Date;
     bookings?: Bookings[];
 }
@@ -331,6 +323,7 @@ export interface Zones {
     zonetype?: string;
     zoneimgurl?: string;
     zonedescription?: string;
+    avgzonerating?: number;
     courts?: Courts[];
     zone_prices?: ZonePrices[];
 }
@@ -356,4 +349,16 @@ export interface ProductFilterValues {
     productfilterid?: number;
     product_attributes?: ProductAttributes[];
     product_filter?: ProductFilter;
+}
+
+export interface SupplyProducts {
+    productid: number;
+    supplierid: number;
+    suppliers?: Suppliers;
+    products?: Products;
+}
+
+export interface EmployeeSearchResult {
+    search: string; // Format: "ID-Name"
+    salary: string;
 }

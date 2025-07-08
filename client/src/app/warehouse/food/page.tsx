@@ -2,188 +2,368 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SidebarFilter from '../SidebarFilter';
-import DataTable, { Column, FilterConfig } from '../DataTable';
+import Filter, { FilterConfig, FilterOption } from '@/components/atomic/Filter';
+import DataTable, { Column } from '../../../components/warehouse/DataTable';
+import FoodModal from './AddFood';
+import PurchaseOrderForm from '@/components/warehouse/OrderForm';
+import { getProducts2, getProducts3, deleteProduct, getProductFilters } from '@/services/products.service';
+import PaginationComponent from '@/components/atomic/PaginationComponent';
+import { toast } from 'sonner';
+import { ProductTypes } from '@/types/types';
 
-interface FoodItem {
+export interface FoodItem {
+    id: number;
     name: string;
+    sellingprice: number;
     category: string;
-    price: number;
-    lot: string;
+    batchid: string;
     expiry: string;
     stock: number;
     image: string;
-    status?: string; // sẽ được tính toán sau
+    status?: string;
+    discount?: number;
 }
-
-// ✅ Dữ liệu "thô" như từ backend (chưa có status)
-const rawData: FoodItem[] = [
-    {
-        name: 'Set cá viên chiên',
-        category: 'Đồ ăn',
-        price: 50000,
-        lot: '3',
-        expiry: '2024-12-12',
-        stock: 80,
-        image: '/default.png',
-    },
-    {
-        name: 'Set cá viên chiên cay',
-        category: 'Đồ ăn',
-        price: 70000,
-        lot: '3',
-        expiry: '2024-12-12',
-        stock: 60,
-        image: '/default.png',
-    },
-    {
-        name: 'Snack O’Star',
-        category: 'Snack',
-        price: 25000,
-        lot: '2',
-        expiry: '2024-12-12',
-        stock: 35,
-        image: '/default.png',
-    },
-    {
-        name: 'Revive',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '3',
-        expiry: '2025-12-12',
-        stock: 25,
-        image: '/default.png',
-    },
-    {
-        name: 'Pocari (Hết hạn)',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '1',
-        expiry: '2024-05-10',
-        stock: 22,
-        image: '/default.png',
-    },
-    {
-        name: 'Pocari (Sắp hết hạn)',
-        category: 'Nước uống',
-        price: 15000,
-        lot: '2',
-        expiry: '2025-05-28',
-        stock: 30,
-        image: '/default.png',
-    },
-];
-
-// ✅ Hàm xử lý dữ liệu: thêm status dựa trên expiry
-const processDataWithStatus = (data: FoodItem[]): FoodItem[] => {
-    const today = new Date();
-    const soonThreshold = 30; // ngày sắp hết hạn trong vòng 30 ngày
-
-    return data.map((item) => {
-        const expiryDate = new Date(item.expiry);
-        const diffTime = expiryDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        let status = '';
-        if (diffDays < 0) status = 'Hết hạn';
-        else if (diffDays <= soonThreshold) status = 'Sắp hết hạn';
-        else status = 'Còn hạn';
-
-        return { ...item, status };
-    });
-};
-
-const getUniqueOptions = (data: FoodItem[], key: keyof FoodItem) => {
-    return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
-};
 
 export default function FoodAndBeveragePage() {
     const [data, setData] = useState<FoodItem[]>([]);
-    const [filters, setFilters] = useState<Record<string, any>>({
+    const [filteredData, setFilteredData] = useState<FoodItem[]>([]);
+    const [openModal, setOpenModal] = useState(false);
+    const [editData, setEditData] = useState<FoodItem | null>(null);
+    const [openOrderForm, setOpenOrderForm] = useState(false);
+    const [selectedOrderItem, setSelectedOrderItem] = useState<FoodItem | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(12);
+    const [totalPages, setTotalPages] = useState(2);
+    const [filtervalueid, setfiltervalueid] = useState<number[]>([]);
+    const defaultFilters = {
         name: '',
-        category: [],
-        price: [0, 100000],
-        lot: [],
-    });
+        productFilterValues: [],
+        type: [0],
+        price: undefined,
+    };
+    const [filters, setFilters] = useState<Record<string, any>>(defaultFilters);
+    const [filtersConfig, setFiltersConfig] = useState<FilterConfig[]>([]);
+    const showDiscount = filters.type?.[0] === 0;
+
+    async function fetchData() {
+        try {
+            let response;
+            const apiData: FoodItem[] = [];
+            if (filters.type?.[0] === 1) {
+                response = await getProducts2(1, page, pageSize, filtervalueid);
+
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid,
+                            name: item.productname,
+                            sellingprice: parseInt(item.sellingprice || '0'),
+                            category: item.value || '',
+                            image: item.productimgurl || '/default.png',
+                            batchid: '-', // Không có lô
+                            expiry: '', // Không có ngày hết hạn
+                            stock: item.quantity || 0,
+                            status: 'available', // Mặc định
+                            discount: 0, // Mặc định
+                        });
+                    });
+                }
+            } else {
+                response = await getProducts3(1, page, pageSize, filtervalueid);
+
+                if (response.ok) {
+                    response.data.data.forEach((item: any) => {
+                        apiData.push({
+                            id: item.productid ?? '',
+                            name: item.productname ?? '',
+                            sellingprice: item.sellingprice ? parseInt(item.sellingprice) : 0,
+                            category: item.value ?? '',
+                            image: item.productimgurl ?? '/default.png',
+                            batchid: item.batchid ? item.batchid.toString() : '',
+                            expiry: item.expirydate ?? '',
+                            stock: item.stockquantity ?? 0,
+                            status: item.status ?? '',
+                            discount: item.discount ? parseFloat(item.discount) : 0,
+                        });
+                    });
+                }
+            }
+
+            setData(apiData);
+            setFilteredData(apiData);
+            setTotalPages(response.data.pagination.totalPages);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
 
     useEffect(() => {
-        const fetchedData = processDataWithStatus(rawData);
-        setData(fetchedData);
+        fetchData();
+    }, [page, filtervalueid, filters.type?.[0]]);
 
-        // cập nhật filters nếu muốn giá trị price đúng theo data
-        const minPrice = Math.min(...rawData.map((d) => d.price));
-        const maxPrice = Math.max(...rawData.map((d) => d.price));
+    const fetchFilters = async () => {
+        const response = await getProductFilters();
+        if (response.ok) {
+            const productTypes: ProductTypes[] = response.data;
+            const selectedProductType = productTypes.find(type => type.producttypeid === 1);
+            const filterValues = selectedProductType?.product_filter?.[0]?.product_filter_values || [];
 
-        setFilters((prev) => ({
-            ...prev,
-            price: [minPrice, maxPrice],
-        }));
+            const dynamicFilter: FilterConfig = {
+                filterid: 'productFilterValues',
+                filterlabel: selectedProductType?.product_filter?.[0]?.productfiltername || 'Loại',
+                filtertype: 'checkbox',
+                filteroptions: filterValues.map(value => ({
+                    optionlabel: value.value || '',
+                    optionvalue: value.productfiltervalueid,
+                })),
+            };
+
+            setFiltersConfig([
+                { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
+                { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                {
+                    filterid: 'type',
+                    filtertype: 'radio',
+                    filterlabel: 'Loại hiển thị',
+                    filteroptions: [
+                        { optionlabel: 'Theo lô', optionvalue: 0 },
+                        { optionlabel: 'Tất cả sản phẩm', optionvalue: 1 },
+                    ],
+                },
+                dynamicFilter,
+            ]);
+        }
+    };
+
+    useEffect(() => {
+        fetchFilters();
     }, []);
 
-    const categoryOptions = getUniqueOptions(data, 'category');
-    const lotOptions = getUniqueOptions(data, 'lot');
+    useEffect(() => {
+        setPage(1);
+        fetchData();
+    }, [filters.type, filtervalueid]);
 
-    const filtersConfig: FilterConfig[] = [
-        { key: 'name', type: 'search', placeholder: 'Tìm kiếm' },
-        { key: 'category', title: 'LOẠI', type: 'checkbox', options: categoryOptions },
-        { key: 'price', title: 'KHOẢNG GIÁ', type: 'range', min: 0, max: 100000 },
-        { key: 'lot', title: 'Lô hàng', type: 'checkbox', options: lotOptions },
-    ];
+    useEffect(() => {
+        if (Array.isArray(filters.productFilterValues)) {
+            setfiltervalueid(filters.productFilterValues);
+        } else {
+            setfiltervalueid([]);
+        }
+        setPage(1);
+    }, [filters.productFilterValues]);
 
-    const filteredData = data.filter((item) => {
-        if (!filters.price || !Array.isArray(filters.price)) return true;
-
-        const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesCategory = !filters.category?.length || filters.category.includes(item.category);
-        const matchesPrice = item.price >= filters.price[0] && item.price <= filters.price[1];
-        const matchesLot = !filters.lot?.length || filters.lot.includes(item.lot);
-        return matchesName && matchesCategory && matchesPrice && matchesLot;
-    });
+    useEffect(() => {
+        const result = data.filter((item) => {
+            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
+            const matchesPrice = !filters.price ||
+                filters.price.length === 0 ||
+                (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
+            return matchesName && matchesPrice;
+        });
+        setFilteredData(result);
+    }, [filters, data]);
 
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },
         { header: 'Loại', accessor: 'category' },
         {
-            header: 'Giá / đơn vị tính',
-            accessor: (item) => (item?.price != null ? `${item.price.toLocaleString('vi-VN')} VND` : '—'),
-        },
-        { header: 'Lô Hàng', accessor: 'lot', align: 'center' },
-        {
-            header: 'Ngày hết hạn',
-            accessor: (item) => new Date(item.expiry).toLocaleDateString('vi-VN'),
-            align: 'center',
+            header: 'Giá bán / sản phẩm',
+            accessor: (item) => item.sellingprice.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+            })
         },
         { header: 'Tồn kho', accessor: 'stock', align: 'center' },
-        {
-            header: 'Tình trạng',
-            accessor: (item) => item.status || '',
-            align: 'center',
-            className: (item) =>
-                item.status === 'Sắp hết hạn'
-                    ? 'text-yellow-600 px-2 py-1 rounded'
-                    : item.status === 'Hết hạn'
-                      ? 'text-red-600 px-2 py-1 rounded'
-                      : 'text-green-600 px-2 py-1 rounded',
-        },
     ];
 
-    return (
-        <div className="flex h-full w-full flex-col gap-4 p-4 lg:flex-row">
-            <div className="w-full shrink-0 lg:w-[280px]">
-                <SidebarFilter filters={filters} setFilters={setFilters} config={filtersConfig} />
-            </div>
+    if (filters.type?.[0] === 0) {
+        columns.push(
+            { header: 'Lô Hàng', accessor: 'batchid', align: 'center' },
+            {
+                header: 'Ngày hết hạn',
+                accessor: (item) =>
+                    item.expiry
+                        ? new Date(item.expiry).toLocaleDateString('vi-VN')
+                        : '',
+                align: 'center',
+            },
+            {
+                header: 'Tình trạng',
+                accessor: (item) => {
+                    switch (item.status) {
+                        case 'available': return 'Còn hạn';
+                        case 'expiringsoon': return 'Sắp hết hạn';
+                        case 'expired': return 'Hết hạn';
+                        default: return '';
+                    }
+                },
+                align: 'center',
+                className: (item) => {
+                    switch (item.status) {
+                        case 'expiringsoon': return 'text-yellow-600';
+                        case 'expired': return 'text-red-600';
+                        default: return 'text-primary-600';
+                    }
+                },
+            },
+            {
+                header: 'Giảm giá',
+                accessor: (item) => item.discount ? `${item.discount.toFixed(0)}%` : '0%',
+                align: 'center',
+                className: (item) => item.discount && item.discount > 0 ? 'text-red-500' : '',
+            }
+        );
+    }
 
+    const handleEdit = (index: number) => {
+        setEditData(filteredData[index]);
+        setOpenModal(true);
+    };
+
+    const handleDelete = async (index: number) => {
+        const productid = filteredData[index].id;
+        const res = await deleteProduct(productid);
+
+        if (res.ok) {
+            setData((prev) => prev.filter((item) => item.id !== productid));
+            setFilteredData((prev) => prev.filter((item) => item.id !== productid));
+            toast.success('Xóa sản phẩm thành công!');
+        } else {
+            toast.error(`Không thể xóa sản phẩm: ${res.message}`);
+        }
+        fetchData();
+    };
+
+    const handleOrder = (index: number) => {
+        setSelectedOrderItem(filteredData[index]);
+        setOpenOrderForm(true);
+    };
+
+    const handleSubmit = () => {
+        setEditData(null);
+        setOpenModal(false);
+        fetchData();
+        fetchFilters();
+    };
+
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filtersConfig.find((f) => f.filterid === filterid)?.filtertype;
+
+        setFilters((prev) => {
+            const updated = { ...prev };
+
+            if (type === 'search') {
+                updated[filterid] = value;
+            } else if (type === 'radio') {
+                let resolvedValue = value;
+
+                if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
+                    resolvedValue = 0;
+                }
+
+                if (isNaN(resolvedValue)) {
+                    const options = filtersConfig.find((f) => f.filterid === filterid)?.filteroptions || [];
+                    resolvedValue = options[0]?.optionvalue ?? 0;
+                }
+
+                updated[filterid] = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+
+                if (filterid === 'type') {
+                    setPage(1);
+                }
+            } else if (type === 'checkbox') {
+                const current = Array.isArray(prev[filterid]) ? prev[filterid] : [];
+                if (current.includes(value)) {
+                    updated[filterid] = current.filter((v: any) => v !== value);
+                } else {
+                    updated[filterid] = [...current, value];
+                }
+                setPage(1);
+            }
+
+            return updated;
+        });
+    };    
+
+    return (
+        <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
+            <FoodModal
+                open={openModal}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditData(null);
+                }}
+                onSubmit={handleSubmit}
+                editData={editData}
+                openDiscount={showDiscount}
+            />
+
+            <div className="w-full shrink-0 lg:w-[280px]">
+                <Filter
+                    filters={filtersConfig}
+                    values={filters}
+                    setFilterValues={(newFilters) => {
+                        const resolvedFilters = { ...(typeof newFilters === 'function' ? newFilters(filters) : newFilters) };
+                        if (!resolvedFilters.type || resolvedFilters.type.length === 0) {
+                            resolvedFilters.type = [0];
+                        }
+                        setFilters(resolvedFilters);
+                    }}                    
+                    onFilterChange={handleFilterChange}
+                    onRemoveAllFilters={() => {
+                        setFilters(defaultFilters);
+                        setPage(1);
+                    }}                    
+                />
+            </div>
             <div className="flex flex-1 flex-col">
-                <div className="mb-2 flex justify-end pr-4">
-                    <button className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">Thêm</button>
+                <div className="mb-2 flex justify-end">
+                    <button
+                        onClick={() => {
+                            setOpenModal(true);
+                            setEditData(null);
+                        }}
+                        className="rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
+                    >
+                        Thêm sản phẩm
+                    </button>
                 </div>
 
                 <DataTable
                     columns={columns}
                     data={filteredData}
                     renderImage={(item) => <Image src={item.image} alt={item.name} width={40} height={40} />}
+                    showOptions
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onOrder={handleOrder}
+                    showMoreOption
+                    showHeader
+                    showDelete
                 />
+
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <PaginationComponent
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    </div>
+                )}
             </div>
+
+            {openOrderForm && selectedOrderItem && (
+                <PurchaseOrderForm
+                    open={openOrderForm}
+                    onClose={() => setOpenOrderForm(false)}
+                    item={{
+                        productid: selectedOrderItem.id,
+                        productname: selectedOrderItem.name,
+                    }}
+                />
+            )}
         </div>
     );
 }

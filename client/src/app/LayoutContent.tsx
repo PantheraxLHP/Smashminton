@@ -24,7 +24,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                 menuItems={menus[isAuthenticated ? userRole : 'guest']}
                 showLoginButton={!isAuthenticated}
             />
-            <main className="min-h-screen">{children}</main>
+            <main className="min-h-screen w-full">{children}</main>
             <Toaster richColors expand={false} position="top-left" />
             <Footer />
         </>

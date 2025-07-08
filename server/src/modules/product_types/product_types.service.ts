@@ -6,11 +6,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class ProductTypesService {
   constructor(private prisma: PrismaService) { }
-
-  create(createProductTypeDto: CreateProductTypeDto) {
-    return 'This action adds a new productType';
-  }
-
   findAllProductFilters() {
     return this.prisma.product_types.findMany({
       include: {
@@ -65,8 +60,51 @@ export class ProductTypesService {
   //   return allProducts;
   // }
 
-  async findAllProductsFromProductType(productTypeId: number, filterValueIds?: number[]) {
+  async getProductById(productId: number) {
     const now = new Date();
+
+    const product = await this.prisma.products.findUnique({
+      where: {
+        productid: productId,
+      },
+    });
+
+    if (!product) {
+      throw new Error(`Product with ID ${productId} not found`);
+    }
+
+    const purchaseOrders = await this.prisma.purchase_order.findMany({
+      where: {
+        productid: productId,
+        product_batch: {
+          expirydate: {
+            gte: now,
+          },
+        },
+      },
+      include: {
+        product_batch: true,
+      },
+    });
+
+    const quantity = purchaseOrders.reduce((sum, po) => {
+      return sum + (po.product_batch?.stockquantity || 0);
+    }, 0);
+
+    return {
+      productid: product.productid,
+      productname: product.productname,
+      sellingprice: product.sellingprice,
+      rentalprice: product.rentalprice,
+      productimgurl: product.productimgurl,
+      quantity,
+    };
+  }
+
+
+  async findAllProductsFromProductType(productTypeId: number, filterValueIds?: number[], page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
 
     const productTypes = await this.prisma.product_types.findUnique({
       where: {
@@ -98,7 +136,7 @@ export class ProductTypesService {
       filter.product_filter_values.forEach(value => {
         value.product_attributes.forEach(attr => {
           const product = attr.products;
-          if (product && !productMap.has(product.productid)) {
+          if (product && !product.isdeleted && !productMap.has(product.productid)) {
             productMap.set(product.productid, product);
           }
         });
@@ -114,16 +152,24 @@ export class ProductTypesService {
         where: {
           productid: product.productid,
           product_batch: {
-            expirydate: {
-              gte: now,
-            },
+            OR: [
+              // Nếu có expiry date thì phải >= now
+              {
+                expirydate: {
+                  gte: now,
+                },
+              },
+              // Nếu expiry date là null thì vẫn lấy
+              {
+                expirydate: null,
+              },
+            ],
           },
         },
         include: {
           product_batch: true,
         },
       });
-
       const quantity = purchaseOrders.reduce((sum, po) => {
         return sum + (po.product_batch?.stockquantity || 0);
       }, 0);
@@ -134,18 +180,247 @@ export class ProductTypesService {
         sellingprice: product.sellingprice,
         rentalprice: product.rentalprice,
         productimgurl: product.productimgurl,
+        isdeleted: product.isdeleted,
         quantity,
       };
     }));
 
-    return enrichedProducts;
+    const total = enrichedProducts.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // ⛳ CHỖ NÀY paginate nè:
+    const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
+
+    return {
+      data: paginatedProducts,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 
-  update(id: number, updateProductTypeDto: UpdateProductTypeDto) {
-    return `This action updates a #${id} productType`;
+  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    const productTypes = await this.prisma.product_types.findUnique({
+      where: {
+        producttypeid: productTypeId,
+      },
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: {
+              where: filterValueIds
+                ? { productfiltervalueid: { in: filterValueIds } }
+                : undefined,
+              include: {
+                product_attributes: {
+                  include: {
+                    products: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const productMap = new Map<number, any>();
+
+    productTypes?.product_filter.forEach(filter => {
+      filter.product_filter_values.forEach(value => {
+        value.product_attributes.forEach(attr => {
+          const product = attr.products;
+          if (product && !product.isdeleted && (!q || product.productname?.toLowerCase().includes(q.toLowerCase())) && !productMap.has(product.productid)) {
+            productMap.set(product.productid, product);
+          }
+        });
+      });
+    });
+
+    // Lấy danh sách productid duy nhất
+    const uniqueProducts = Array.from(productMap.values());
+
+    // Lấy stock quantity cho từng productid
+    const enrichedProducts = await Promise.all(uniqueProducts.map(async (product) => {
+      const purchaseOrders = await this.prisma.purchase_order.findMany({
+        where: {
+          productid: product.productid,
+          product_batch: {
+            OR: [
+              // Nếu có expiry date thì phải >= now
+              {
+                expirydate: {
+                  gte: now,
+                },
+              },
+              // Nếu expiry date là null thì vẫn lấy
+              {
+                expirydate: null,
+              },
+            ],
+          },
+        },
+        include: {
+          product_batch: true,
+        },
+      });
+      const quantity = purchaseOrders.reduce((sum, po) => {
+        return sum + (po.product_batch?.stockquantity || 0);
+      }, 0);
+
+      // 👉 Lấy 1 filter value duy nhất
+      const attribute = await this.prisma.product_attributes.findFirst({
+        where: {
+          productid: product.productid,
+        },
+        include: {
+          product_filter_values: true,
+        },
+      });
+
+      return {
+        productid: product.productid,
+        productname: product.productname,
+        sellingprice: product.sellingprice,
+        rentalprice: product.rentalprice,
+        productimgurl: product.productimgurl,
+        quantity,
+        productfiltervalueid: attribute?.product_filter_values?.productfiltervalueid || null,
+        value: attribute?.product_filter_values?.value || null,
+      };
+    }));
+
+    const total = enrichedProducts.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // ⛳ CHỖ NÀY paginate nè:
+    const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
+
+    return {
+      data: paginatedProducts,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productType`;
+  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    const productTypes = await this.prisma.product_types.findUnique({
+      where: {
+        producttypeid: productTypeId,
+      },
+      include: {
+        product_filter: {
+          include: {
+            product_filter_values: {
+              where: filterValueIds
+                ? { productfiltervalueid: { in: filterValueIds } }
+                : undefined,
+              include: {
+                product_attributes: {
+                  include: {
+                    products: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const productMap = new Map<number, any>();
+
+    productTypes?.product_filter.forEach(filter => {
+      filter.product_filter_values.forEach(value => {
+        value.product_attributes.forEach(attr => {
+          const product = attr.products;
+          if (product && !product.isdeleted && (!q || product.productname?.toLowerCase().includes(q.toLowerCase())) && !productMap.has(product.productid)) {
+            productMap.set(product.productid, product);
+          }
+        });
+      });
+    });
+
+    // Lấy danh sách productid duy nhất
+    const uniqueProducts = Array.from(productMap.values());
+
+    const enrichedProducts = (await Promise.all(uniqueProducts.map(async (product) => {
+      const purchaseOrders = await this.prisma.purchase_order.findMany({
+        where: {
+          productid: product.productid,
+        },
+        include: {
+          product_batch: true,
+        },
+      });
+
+      const productAttr = await this.prisma.product_attributes.findFirst({
+        where: { productid: product.productid },
+        include: {
+          product_filter_values: true,
+        },
+      });
+
+      const batches = purchaseOrders
+        .map(po => po.product_batch)
+        .filter((b): b is NonNullable<typeof b> => b !== null);
+
+      if (batches.length === 0) {
+        return [{
+          productid: product.productid,
+          productname: product.productname,
+          sellingprice: product.sellingprice,
+          rentalprice: product.rentalprice,
+          productimgurl: product.productimgurl,
+          productfiltervalueid: productAttr?.productfiltervalueid || null,
+          value: productAttr?.product_filter_values?.value || null,
+          batchid: null,
+          batchname: null,
+          expirydate: null,
+          stockquantity: null,
+          status: null,
+          discount: null,
+        }];
+      }
+
+      return batches.map(b => ({
+        productid: product.productid,
+        productname: product.productname,
+        sellingprice: product.sellingprice,
+        rentalprice: product.rentalprice,
+        productimgurl: product.productimgurl,
+        productfiltervalueid: productAttr?.productfiltervalueid || null,
+        value: productAttr?.product_filter_values?.value || null,
+        batchid: b.batchid,
+        batchname: b.batchname,
+        expirydate: b.expirydate,
+        stockquantity: b.stockquantity,
+        status: b.statusbatch,
+        discount: b.discount,
+      }));
+    }))).flat();
+
+    const total = enrichedProducts.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // ⛳ CHỖ NÀY paginate nè:
+    const paginatedProducts = enrichedProducts.slice(skip, skip + limit);
+
+    return {
+      data: paginatedProducts,
+      pagination: {
+        page: page,
+        totalPages: totalPages
+      },
+    }
   }
 }

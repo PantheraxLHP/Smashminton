@@ -1,9 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { CacheService } from './cache.service';
+import { ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('cache')
 export class CacheController {
-    constructor(private readonly cacheService: CacheService) {}
+    constructor(private readonly cacheService: CacheService) { }
 
     @Get('test')
     async testConnection(): Promise<string> {
@@ -15,5 +16,21 @@ export class CacheController {
         } catch (error) {
             return `Redis connection error: ${error.message}`;
         }
+    }
+    
+    @Delete('clear-all/:username')
+    @ApiOperation({
+        summary: 'delete all cache order and booking of a specific user',
+        description: 'delete all cache order and booking of a specific user',
+    })
+    @ApiParam({
+        name: 'username',
+        description: 'Username of the user whose cache will be cleared',
+        required: true,
+        type: String,
+        example: 'nguyenvun',
+    })
+    async clearAllCacheOrderAndBooking(@Param('username') username: string): Promise<boolean> {
+        return this.cacheService.clearAllCacheOrderAndBooking(username);
     }
 }

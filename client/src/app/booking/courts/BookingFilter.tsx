@@ -2,14 +2,8 @@ import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useRouter } from 'next/navigation';
-
-interface Filters {
-    zone?: string;
-    date?: string;
-    duration?: number;
-    startTime?: string;
-    fixedCourt?: boolean;
-}
+import { Filters } from './page';
+import { FeatureZone, getZones } from '@/services/zones.service';
 
 interface BookingFilterProps {
     initialFilters: Filters;
@@ -24,6 +18,17 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
     const [duration, setDuration] = useState(initialFilters?.duration || 0);
     const [startTime, setStartTime] = useState(initialFilters?.startTime || '');
 
+    const [zones, setZones] = useState<FeatureZone[]>([]);
+
+    useEffect(() => {
+        const fetchZones = async () => {
+            const response = await getZones();
+            if (response.ok) {
+                setZones(response.data.zones);
+            }
+        };
+        fetchZones();
+    }, []);
     // Format YYYY-MM-DD
     const getLocalDateString = (date: Date): string => {
         const year = date.getFullYear();
@@ -57,7 +62,6 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
         updateSearchParams(filters);
     }, [selectedZone, date, duration, startTime, onFilterChange, router]);
 
-    const zones = ['A', 'B', 'C'];
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
     const times = [
         '06:00',
@@ -102,15 +106,15 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                 <div className="mt-2 grid grid-cols-3 gap-2">
                     {zones.map((zone) => (
                         <button
-                            key={zone}
-                            onClick={() => setSelectedZone(zone)}
+                            key={zone.zoneid}
+                            onClick={() => setSelectedZone(zone.zoneid.toString())}
                             className={`rounded-lg border px-3 py-1 text-sm ${
-                                selectedZone === zone
+                                selectedZone === zone.zoneid.toString()
                                     ? 'bg-primary-500 text-white'
                                     : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
                             } transition`}
                         >
-                            Zone {zone}
+                            {zone.zonename}
                         </button>
                     ))}
                 </div>
@@ -162,22 +166,28 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
             <div>
                 <h3 className="text-sm font-semibold">Chọn giờ bắt đầu</h3>
                 <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {times.map((time) => (
-                        <button
-                            key={time}
-                            onClick={() => setStartTime(time)}
-                            disabled={disableTimes.includes(time)} // Check if time is in the array
-                            className={`rounded-lg border px-3 py-1 text-sm ${
-                                disableTimes.includes(time) // Check if time is in the array
-                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
-                                    : startTime === time
-                                      ? 'bg-primary-500 text-white'
-                                      : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
-                            } transition`}
-                        >
-                            {time}
-                        </button>
-                    ))}
+                    {times.map((time) => {
+                        // Determine if disableTimes is loaded (not empty)
+                        const disableTimesLoaded = Array.isArray(disableTimes) && disableTimes.length > 0;
+                        // If not loaded, disable all times. If loaded, only disable those in disableTimes
+                        const isDisabled = !disableTimesLoaded || disableTimes.includes(time);
+                        return (
+                            <button
+                                key={time}
+                                onClick={() => setStartTime(time)}
+                                disabled={isDisabled}
+                                className={`rounded-lg border px-3 py-1 text-sm ${
+                                    isDisabled
+                                        ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
+                                        : startTime === time
+                                          ? 'bg-primary-500 text-white'
+                                          : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
+                                } transition`}
+                            >
+                                {time}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 

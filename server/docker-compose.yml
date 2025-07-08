@@ -26,6 +26,20 @@ services:
             - redis_data:/data
         restart: unless-stopped
 
+    mosquitto:
+        image: eclipse-mosquitto:latest
+        container_name: mosquitto
+        pull_policy: missing
+        ports:
+            - '1883:1883'
+            - '9001:9001'
+        volumes:
+            - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./mosquitto/data:/mosquitto/data
+            - ./mosquitto/log:/mosquitto/log
+        restart: unless-stopped
+
 volumes:
     postgres_data:
     redis_data:
+    mosquitto:

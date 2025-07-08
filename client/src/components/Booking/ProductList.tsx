@@ -1,39 +1,59 @@
-import { SelectedProducts } from '@/app/products/page';
+import { SelectedProducts } from '@/app/booking/courts/page';
+import { ProductListItem } from '@/app/products/page';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import { formatPrice } from '@/lib/utils';
-import { Products } from '@/types/types';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ProductListProps {
-    products: Products[];
+    products: ProductListItem[];
     selectedProducts: SelectedProducts[];
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts }) => {
-    const { addProduct, removeProduct } = useBooking();
+const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProducts }) => {
+    const { addProductItem, removeProduct } = useBooking();
+    const { user } = useAuth();
     const [sortBy, setSortBy] = useState('sellingprice');
     const [sortOrder, setSortOrder] = useState('asc');
-
-    const getProductQuantity = (productid: number) => {
-        const product = selectedProducts.find((p) => p.productid === productid);
+    const router = useRouter();
+    const getProductQuantity = (productId: number) => {
+        // Get product quantity was selected
+        const product = selectedProducts.find((p) => p.productid === productId);
         return product ? product.quantity : 0;
     };
 
-    const handleIncrement = (productid: number) => {
-        addProduct(productid);
+    const getProductTotalStockQuantity = (productId: number) => {
+        const product = products.find((p) => p.productid === productId);
+        return product ? product.quantity : 0;
     };
 
-    const handleDecrement = (productid: number) => {
-        if (getProductQuantity(productid) == 0) {
-            return;
+    const handleQuantityChange = (productId: number, delta: number) => {
+        if (delta > 0) {
+            if (!user) {
+                toast.warning('Bạn cần đăng nhập để đặt sản phẩm');
+                router.push('/signin');
+                return;
+            }
+            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
+                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                return;
+            }
+            addProductItem(productId);
+        } else {
+            if (getProductQuantity(productId) == 0) {
+                return;
+            }
+            removeProduct(productId);
         }
-        removeProduct(productid);
     };
 
     const getSortedProducts = () => {
+        if (!Array.isArray(products)) return [];
         return [...products].sort((a, b) => {
             if (sortBy === 'sellingprice') {
                 const priceA = a.sellingprice || 0;
@@ -69,9 +89,12 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                     </Select>
                 </div>
             </div>
-            <div className="grid w-full grid-cols-1 gap-15 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {getSortedProducts().map((product) => (
-                    <div key={product.productid} className="">
+                    <div
+                        key={product.productid}
+                        className="border-gray-200 flex h-full min-h-[350px] flex-col rounded-lg border p-4 transition-colors hover:border-gray-300"
+                    >
                         <Image
                             src={product.productimgurl || '/default-image.jpg'}
                             alt={product.productname || 'Hình ảnh sản phẩm'}
@@ -79,31 +102,44 @@ const ProductList: React.FC<ProductListProps> = ({ products, selectedProducts })
                             height={200}
                             className="!h-[200px] w-full object-scale-down"
                         />
-                        <h3 className="text-md font-semibold">{product.productname}</h3>
-                        <div className="flex items-center justify-between">
-                            <p className="text-primary-600 font-bold">{formatPrice(product.sellingprice || 0)}</p>
-                            <div className="flex items-center">
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleDecrement(product.productid)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-minus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
-                                <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
-                                <button
-                                    type="button"
-                                    className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
-                                    onClick={() => handleIncrement(product.productid)}
-                                >
-                                    <Icon
-                                        icon="ic:baseline-plus"
-                                        className="text-lg text-gray-500 group-hover:text-white"
-                                    />
-                                </button>
+                        <div className="flex flex-1 flex-col justify-between pt-2">
+                            <h3 className="text-md line-clamp-3 font-semibold break-words" title={product.productname}>
+                                {product.productname}
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-primary-600 font-bold">
+                                        {formatPrice(product.sellingprice || 0)}
+                                    </p>
+                                </div>
+                                <div className="flex items-center">
+                                    <button
+                                        type="button"
+                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        onClick={() => handleQuantityChange(product.productid, -1)}
+                                    >
+                                        <Icon
+                                            icon="ic:baseline-minus"
+                                            className="text-lg text-gray-500 group-hover:text-white"
+                                        />
+                                    </button>
+                                    <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
+                                    <button
+                                        type="button"
+                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        onClick={() => handleQuantityChange(product.productid, 1)}
+                                    >
+                                        <Icon
+                                            icon="ic:baseline-plus"
+                                            className="text-lg text-gray-500 group-hover:text-white"
+                                        />
+                                    </button>
+                                </div>
+                                {/* show stock quantity */}
+                                <div className="flex items-end gap-1 text-sm text-gray-500">
+                                    <span>Số lượng: {product.quantity}</span>
+                                    <Icon icon="mdi:racket" className="h-5 w-5" />
+                                </div>
                             </div>
                         </div>
                     </div>

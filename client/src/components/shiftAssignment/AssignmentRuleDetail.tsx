@@ -1,115 +1,366 @@
-import { useState } from 'react';
-import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AssignmentRule, RuleCondition, RuleAction } from './AssignmentRuleList';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
+    formatConditionName,
+    formatConditionValue,
+    formatActionName,
+    getFalseActionValue,
+    getTrueActionValue,
+} from './utils';
+import { updateAutoAssignment } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
 enum CompareOperator {
-    LessThan = "<",
-    GreaterThan = ">",
-    EqualTo = "==",
-    NotEqualTo = "!=",
-    LessThanOrEqualTo = "<=",
-    GreaterThanOrEqualTo = ">=",
+    LessThan = '<',
+    GreaterThan = '>',
+    EqualTo = '==',
+    NotEqualTo = '!=',
+    LessThanOrEqualTo = '<=',
+    GreaterThanOrEqualTo = '>=',
 }
 
-enum ActionType {
-    SetEligible = "eligible",
-    SetDeletable = "deletable",
-}
+const AssignmentRuleDetail = ({
+    AssignmentRule,
+    ruleList,
+    setRuleList,
+    setIsDialogOpen,
+}: {
+    AssignmentRule?: AssignmentRule;
+    ruleList: AssignmentRule[];
+    setRuleList: (ruleList: AssignmentRule[]) => void;
+    setIsDialogOpen?: (open: boolean) => void;
+}) => {
+    const getAvailableConditionsByType = (assignmentType: string) => {
+        switch (assignmentType) {
+            case 'employee':
+                return [
+                    { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
+                    { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
+                    { conditionName: 'isEligible', defaultValue: 'true' },
+                    { conditionName: 'isAssigned', defaultValue: 'true' },
+                ];
+            case 'enrollmentEmployee':
+                return [
+                    { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
+                    { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
+                    { conditionName: 'isEligible', defaultValue: 'true' },
+                    { conditionName: 'isEnrolled', defaultValue: 'true' },
+                    { conditionName: 'isAssigned', defaultValue: 'true' },
+                ];
+            case 'shift':
+                return [
+                    { conditionName: 'assignedEmployees', defaultValue: '== 0' },
+                    { conditionName: 'isAssignable', defaultValue: 'true' },
+                ];
+            case 'enrollmentShift':
+                return [
+                    { conditionName: 'assignedEmployees', defaultValue: '== 0' },
+                    { conditionName: 'isAssignable', defaultValue: 'true' },
+                    { conditionName: 'isEnrolled', defaultValue: 'true' },
+                ];
+            default:
+                return [{ conditionName: '', defaultValue: '' }];
+        }
+    };
 
-interface CustomRuleDetailCondition {
-    ruleconditionid: number;
-    ruleconditionname: string;
-    ruleconditioncompareoperator: CompareOperator;
-    ruleconditioncomparevalue: number;
-}
+    const getAvailableActionsByType = (assignmentType: string) => {
+        switch (assignmentType) {
+            case 'employee':
+                return [
+                    { actionName: 'setEligible', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'enrollmentEmployee':
+                return [
+                    { actionName: 'setEligible', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'shift':
+                return [
+                    { actionName: 'setAssignable', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            case 'enrollmentShift':
+                return [
+                    { actionName: 'setAssignable', defaultValue: 'true' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                ];
+            default:
+                return [{ actionName: '', defaultValue: '' }];
+        }
+    };
 
-interface CustomRuleDetailAction {
-    ruleactionid: number;
-    ruleactionname: string;
-    ruleactiontype: ActionType;
-    ruleactionvalue: string;
-}
+    // Function to initialize conditions with all available conditions for the rule type
+    const initializeConditionsForRuleType = (
+        ruleType: string,
+        existingConditions?: RuleCondition[],
+        isNewRule: boolean = false,
+    ) => {
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        const existingConditionsMap = new Map<string, RuleCondition>();
 
-const AssignmentRuleDetail = () => {
-    const tabs = ["Thông tin cơ bản", "Điều kiện", "Hành động"];
+        // Map existing conditions by name
+        existingConditions?.forEach((condition) => {
+            if (condition.conditionName) {
+                existingConditionsMap.set(condition.conditionName, condition);
+            }
+        });
+
+        // Create conditions array with ALL available condition slots - always maintain full structure
+        return availableConditions.map((availableCondition) => {
+            const existingCondition = existingConditionsMap.get(availableCondition.conditionName);
+            if (existingCondition) {
+                return {
+                    conditionName: existingCondition.conditionName,
+                    conditionValue: existingCondition.conditionValue,
+                };
+            } else {
+                // For new rules, populate with condition name and default value to make them visible
+                // For existing rules, keep empty slots that can be filled later
+                if (isNewRule) {
+                    return {
+                        conditionName: availableCondition.conditionName,
+                        conditionValue: availableCondition.defaultValue,
+                    };
+                } else {
+                    return {
+                        conditionName: '',
+                        conditionValue: '',
+                        // Add a reference to which condition this slot represents
+                        _availableConditionName: availableCondition.conditionName,
+                        _defaultValue: availableCondition.defaultValue,
+                    };
+                }
+            }
+        });
+    };
+
+    const initializeActionsForRuleType = (
+        ruleType: string,
+        existingActions?: RuleAction[],
+        isNewRule: boolean = false,
+    ) => {
+        const availableActions = getAvailableActionsByType(ruleType);
+        const existingActionsMap = new Map<string, RuleAction>();
+
+        existingActions?.forEach((action) => {
+            if (action.actionName) {
+                existingActionsMap.set(action.actionName, action);
+            }
+        });
+
+        return availableActions.map((availableAction) => {
+            const existingAction = existingActionsMap.get(availableAction.actionName);
+            if (existingAction) {
+                return {
+                    actionName: existingAction.actionName,
+                    actionValue: existingAction.actionValue,
+                };
+            } else {
+                if (isNewRule) {
+                    return {
+                        actionName: availableAction.actionName,
+                        actionValue: availableAction.defaultValue,
+                    };
+                } else {
+                    return {
+                        actionName: '',
+                        actionValue: '',
+                        _availableActionName: availableAction.actionName,
+                        _defaultValue: availableAction.defaultValue,
+                    };
+                }
+            }
+        });
+    };
+
+    const tabs = ['Thông tin cơ bản', 'Điều kiện', 'Hành động'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
-    const [ruleConditions, setRuleConditions] = useState<CustomRuleDetailCondition[]>([
-        {
-            ruleconditionid: 1,
-            ruleconditionname: "Số ca làm việc trong tuần",
-            ruleconditioncompareoperator: CompareOperator.LessThan,
-            ruleconditioncomparevalue: 12,
-        },
-        {
-            ruleconditionid: 2,
-            ruleconditionname: "Số ca làm việc trong ngày",
-            ruleconditioncompareoperator: CompareOperator.LessThan,
-            ruleconditioncomparevalue: 2,
-        },
-    ]);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const popoverTriggerRef = useRef<HTMLButtonElement>(null);
+    const [ruleName, setRuleName] = useState(AssignmentRule?.ruleName || '');
+    const [ruleDescription, setRuleDescription] = useState(AssignmentRule?.ruleDescription || '');
+    const [ruleType, setRuleType] = useState(AssignmentRule?.ruleType || 'employee');
+    const [ruleConditions, setRuleConditions] = useState<RuleCondition[]>(
+        initializeConditionsForRuleType(
+            AssignmentRule?.ruleType || 'employee',
+            AssignmentRule?.conditions,
+            !AssignmentRule,
+        ),
+    );
+    const [ruleActions, setRuleActions] = useState<RuleAction[]>(
+        initializeActionsForRuleType(AssignmentRule?.ruleType || 'employee', AssignmentRule?.actions, !AssignmentRule),
+    );
 
-    const [ruleActions, setRuleActions] = useState<CustomRuleDetailAction[]>([
-        {
-            ruleactionid: 1,
-            ruleactionname: "Có thể phân công",
-            ruleactiontype: ActionType.SetEligible,
-            ruleactionvalue: "true",
-        },
-        {
-            ruleactionid: 2,
-            ruleactionname: "Xóa khỏi danh sách được xem xét phân công",
-            ruleactiontype: ActionType.SetDeletable,
-            ruleactionvalue: "false",
-        },
-    ]);
+    // Reset conditions when assignment type changes
+    useEffect(() => {
+        if (!AssignmentRule) {
+            // Only reset for new rules, not when editing existing rules
+            setRuleConditions(initializeConditionsForRuleType(ruleType, undefined, true));
+            setRuleActions(initializeActionsForRuleType(ruleType, undefined, true));
+        } else {
+            // Check if rule type has changed from the original
+            const ruleTypeChanged = ruleType !== AssignmentRule.ruleType;
 
-    const [nonScRuleConditions, setNonScRuleConditions] = useState<CustomRuleDetailCondition[]>([
-        {
-            ruleconditionid: 3,
-            ruleconditionname: "Điểm ưu tiên của nhân viên trong tháng",
-            ruleconditioncompareoperator: CompareOperator.GreaterThanOrEqualTo,
-            ruleconditioncomparevalue: 20,
-        },
-        {
-            ruleconditionid: 4,
-            ruleconditionname: "Điểm ABC XYZ",
-            ruleconditioncompareoperator: CompareOperator.NotEqualTo,
-            ruleconditioncomparevalue: 0,
-        },
-    ]);
+            if (ruleTypeChanged) {
+                // If rule type changed during editing, reset with default conditions for new type
+                setRuleConditions(initializeConditionsForRuleType(ruleType, undefined, true));
+                setRuleActions(initializeActionsForRuleType(ruleType, undefined, true));
+            } else {
+                // For existing rules with same type, reinitialize with existing data
+                setRuleConditions(initializeConditionsForRuleType(ruleType, AssignmentRule.conditions, false));
+                setRuleActions(initializeActionsForRuleType(ruleType, AssignmentRule.actions, false));
+            }
+        }
+    }, [ruleType, setRuleType, setRuleConditions, AssignmentRule]);
 
+    const resetFormData = () => {
+        setRuleName(AssignmentRule?.ruleName || '');
+        setRuleDescription(AssignmentRule?.ruleDescription || '');
+        setRuleType(AssignmentRule?.ruleType || 'employee');
+        setRuleConditions(
+            initializeConditionsForRuleType(
+                AssignmentRule?.ruleType || 'employee',
+                AssignmentRule?.conditions,
+                !AssignmentRule,
+            ),
+        );
+        setRuleActions(
+            initializeActionsForRuleType(
+                AssignmentRule?.ruleType || 'employee',
+                AssignmentRule?.actions,
+                !AssignmentRule,
+            ),
+        );
+    };
+
+    const updateConditionValue = (index: number, newValue: string) => {
+        setRuleConditions((prev) =>
+            prev.map((condition, i) => (i === index ? { ...condition, conditionValue: newValue } : condition)),
+        );
+    };
+
+    const removeCondition = (index: number) => {
+        // Get the original condition name from available conditions to preserve it
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        const originalConditionName = availableConditions[index]?.conditionName || '';
+
+        setRuleConditions((prev) =>
+            prev.map((condition, i) =>
+                i === index ? { conditionName: originalConditionName, conditionValue: '' } : condition,
+            ),
+        );
+    };
+
+    // Get available conditions that have been deleted (have empty values but keep names)
+    const getAvailableConditions = () => {
+        const availableConditions = getAvailableConditionsByType(ruleType);
+        return availableConditions.filter((availableCondition, index) => {
+            // Check if the condition at this index has empty value (was deleted)
+            return (
+                ruleConditions[index] &&
+                ruleConditions[index].conditionName === availableCondition.conditionName &&
+                (!ruleConditions[index].conditionValue || ruleConditions[index].conditionValue === '')
+            );
+        });
+    };
+
+    const updateActionValue = (actionName: string, newValue: string) => {
+        setRuleActions((prev) =>
+            prev.map((action) => (action.actionName === actionName ? { ...action, actionValue: newValue } : action)),
+        );
+    };
+
+    const saveRule = async () => {
+        // Keep ALL conditions that have valid condition names (including deleted ones with empty values)
+        const allConditions = ruleConditions.filter(
+            (condition) => condition.conditionName && condition.conditionName !== '',
+        );
+
+        const updatedRule: AssignmentRule = {
+            ruleName: ruleName,
+            ruleDescription: ruleDescription,
+            ruleType: ruleType,
+            subObj: [],
+            conditions: allConditions,
+            actions: ruleActions,
+        };
+
+        let updatedRuleList: AssignmentRule[] = [];
+        //check unique rule name
+        if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
+            toast.error('Tên quy tắc đã tồn tại');
+            return;
+        }
+        if (AssignmentRule) {
+            updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
+        } else {
+            updatedRuleList = [...ruleList, updatedRule];
+        }
+
+        const response = await updateAutoAssignment(updatedRuleList);
+        if (response.ok) {
+            setRuleList(updatedRuleList);
+            toast.success('Quy tắc đã được lưu thành công');
+        } else {
+            toast.error(response.message || 'Lưu quy tắc thất bại');
+        }
+    };
+
+    const checkChanged = () => {
+        if (!AssignmentRule) {
+            for (const condition of ruleConditions) {
+                if (condition.conditionName && condition.conditionValue !== '') {
+                    return true;
+                }
+            }
+            for (const action of ruleActions) {
+                if (action.actionName && action.actionValue !== '') {
+                    return true;
+                }
+            }
+        } else if (
+            ruleName !== AssignmentRule.ruleName ||
+            ruleDescription !== AssignmentRule.ruleDescription ||
+            ruleType !== AssignmentRule.ruleType ||
+            !ruleConditions.every(
+                (condition, index) =>
+                    condition.conditionName === AssignmentRule.conditions[index]?.conditionName &&
+                    condition.conditionValue === AssignmentRule.conditions[index]?.conditionValue,
+            ) ||
+            !ruleActions.every(
+                (action, index) =>
+                    action.actionName === AssignmentRule.actions[index]?.actionName &&
+                    action.actionValue === AssignmentRule.actions[index]?.actionValue,
+            )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    };
     return (
-        <div className="flex flex-col w-full h-[60vh]">
+        <div className="flex h-[60vh] w-full flex-col">
             <div className="flex items-center">
                 {tabs.map((tab, index) => (
                     <div
                         key={`tab-${index}`}
-                        className={`w-40 flex justify-center items-center p-4 rounded-t-lg cursor-pointer z-2 ${selectedTab === tab ? "border-primary border-t-2 border-l-2 border-r-2 bg-white" : ""}`}
+                        className={`z-2 flex w-40 cursor-pointer items-center justify-center rounded-t-lg p-4 ${selectedTab === tab ? 'border-primary border-t-2 border-r-2 border-l-2 bg-white' : ''}`}
                         onClick={() => setSelectedTab(tab)}
                     >
                         {tab}
                     </div>
                 ))}
             </div>
-            <div
-                className="flex flex-col p-4 border-primary border-l-2 border-r-2 border-b-2 rounded-b-lg border-t-2 z-1 -mt-0.5 bg-white h-full"
-            >
-                {selectedTab === "Thông tin cơ bản" && (
-                    <div className="flex flex-col gap-4 w-full h-full">
+            <div className="border-primary z-1 -mt-0.5 flex h-full flex-col rounded-b-lg border-t-2 border-r-2 border-b-2 border-l-2 bg-white p-4">
+                {selectedTab === 'Thông tin cơ bản' && (
+                    <div className="flex h-full w-full flex-col gap-4">
                         <span className="text-lg">Thông tin cơ bản quy tắc</span>
                         <div className="flex flex-col gap-1">
                             <span className="text-xs">Tên quy tắc</span>
@@ -117,194 +368,306 @@ const AssignmentRuleDetail = () => {
                                 name="input_rulename"
                                 type="text"
                                 placeholder="VD: Quy tắc A"
-                                defaultValue={""}
-                                className="w-full border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50"
+                                value={ruleName}
+                                onChange={(e) => setRuleName(e.target.value)}
+                                className="focus-visible:border-primary focus-visible:ring-primary/50 w-full border-gray-500"
                             />
                         </div>
-                        <div className="flex gap-4 w-full">
-                            <div className="flex flex-col gap-1 w-2/3">
+                        <div className="flex w-full gap-4">
+                            <div className="flex w-2/3 flex-col gap-1">
                                 <span className="text-xs">Đối tượng áp dụng</span>
-                                <Select>
-                                    <SelectTrigger className="border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50">
+                                <Select value={ruleType} onValueChange={setRuleType}>
+                                    <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                         <SelectValue placeholder="Chọn đối tượng" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="employee">Nhân viên</SelectItem>
+                                        <SelectItem value="enrollmentEmployee">
+                                            Nhân viên (Có đăng ký ca làm)
+                                        </SelectItem>
                                         <SelectItem value="shift">Ca làm việc</SelectItem>
+                                        <SelectItem value="enrollmentShift">
+                                            Ca làm việc (Đã có người đăng ký)
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="flex flex-col gap-1 w-full">
-                                <span className="text-xs">Độ ưu tiên (Tối đa 100, ưu tiên từ cao đến thấp)</span>
-                                <Input
-                                    name="input_priority"
-                                    type="number"
-                                    placeholder="VD: 100"
-                                    defaultValue={""}
-                                    min={1}
-                                    max={100}
-                                    className="w-full border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50"
-                                />
-                            </div>
                         </div>
-                        <div className="flex flex-col gap-1 w-full h-full">
+                        <div className="flex h-full w-full flex-col gap-1">
                             <span className="text-xs">Mô tả quy tắc</span>
                             <Textarea
                                 name="input_description"
                                 placeholder="Quy tắc được dùng để phân công nhân viên theo ..."
-                                defaultValue={""}
-                                className="w-full h-full border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50"
+                                value={ruleDescription}
+                                onChange={(e) => setRuleDescription(e.target.value)}
+                                className="focus-visible:border-primary focus-visible:ring-primary/50 h-full w-full border-gray-500"
                             />
                         </div>
                     </div>
                 )}
-                {selectedTab === "Điều kiện" && (
-                    <div className="flex flex-col gap-4 w-full h-full">
-                        <div className="flex justify-between items-center gap-4">
+                {selectedTab === 'Điều kiện' && (
+                    <div className="flex h-full w-full flex-col gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <span className="text-lg">Điều kiện của quy tắc</span>
-                                <span className="text-xs font-light">Định nghĩa các điều kiện cần đạt để quy tắc được kích hoạt</span>
+                                <span className="text-xs font-light">
+                                    Định nghĩa các điều kiện cần đạt để quy tắc được kích hoạt
+                                </span>
                             </div>
-                            <Popover>
+                            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={true}>
                                 <PopoverTrigger asChild>
-                                    <Button variant="outline">
+                                    <Button variant="outline" ref={popoverTriggerRef}>
                                         <Icon icon="ic:baseline-plus" className="" />
                                         Thêm điều kiện
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="end" className="w-50">
+                                <PopoverContent
+                                    align="end"
+                                    className="w-80"
+                                    onOpenAutoFocus={(e) => e.preventDefault()}
+                                    onCloseAutoFocus={(e) => e.preventDefault()}
+                                    avoidCollisions={true}
+                                    sideOffset={5}
+                                >
                                     <div className="flex flex-col">
-                                        {nonScRuleConditions.map((rule, index) => (
-                                            <div
-                                                key={`rulecondition-${rule.ruleconditionid}`}
-                                                className="flex w-full items-center justify-center p-2 border-b-2 hover:bg-primary-50 cursor-pointer"
-                                            >
-                                                {rule.ruleconditionname}
+                                        <div className="border-b p-2 text-sm font-semibold">Chọn điều kiện để thêm</div>
+                                        {getAvailableConditions().length > 0 ? (
+                                            getAvailableConditions().map((condition) => (
+                                                <div
+                                                    key={`available-condition-${condition.conditionName}`}
+                                                    className="hover:bg-primary/10 flex w-full cursor-pointer items-center justify-between border-b p-3 transition-colors duration-200"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        // Find the correct empty slot index for this condition
+                                                        const availableConditions =
+                                                            getAvailableConditionsByType(ruleType);
+                                                        const conditionIndex = availableConditions.findIndex(
+                                                            (availableCondition) =>
+                                                                availableCondition.conditionName ===
+                                                                condition.conditionName,
+                                                        );
+
+                                                        // Fill the deleted condition at the correct index
+                                                        if (
+                                                            conditionIndex !== -1 &&
+                                                            ruleConditions[conditionIndex] &&
+                                                            ruleConditions[conditionIndex].conditionName ===
+                                                                condition.conditionName &&
+                                                            (!ruleConditions[conditionIndex].conditionValue ||
+                                                                ruleConditions[conditionIndex].conditionValue === '')
+                                                        ) {
+                                                            updateConditionValue(
+                                                                conditionIndex,
+                                                                condition.defaultValue,
+                                                            );
+                                                        }
+                                                    }}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">
+                                                            {formatConditionName(condition.conditionName)}
+                                                        </span>
+                                                    </div>
+                                                    <Icon icon="ic:baseline-plus" className="text-primary" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-3 text-center text-sm text-gray-500">
+                                                Tất cả điều kiện đã được thêm
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <div className="flex flex-col max-w-full overflow-x-auto">
+                        <div className="flex max-w-full flex-col overflow-x-auto">
                             <div className="flex w-full">
-                                <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
+                                <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
                                     Thuộc tính cần so sánh
                                 </div>
-                                <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
-                                    Toán tử so sánh
+
+                                <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
+                                    Giá trị
                                 </div>
-                                <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
-                                    Giá trị so sánh
-                                </div>
-                                <div className="border-b-1 border-b-gray-500 w-8 flex-shrink-0">
+                                <div className="w-8 flex-shrink-0 border-b-1 border-b-gray-500">
                                     {/*Cột chứa nút xóa */}
                                 </div>
                             </div>
-                            {ruleConditions.length > 0 ? ruleConditions.map((rule, index) => (
-                                <div
-                                    key={`rulecondition-${rule.ruleconditionid}`}
-                                    className="flex w-full items-center h-full border-b max-h-[40vh] overflow-y-auto"
-                                >
-                                    <div className="w-full p-2 text-sm">
-                                        {rule.ruleconditionname}
+                            {ruleConditions.length > 0 ? (
+                                ruleConditions.map((condition, index) => (
+                                    <div
+                                        key={`rulecondition-${condition.conditionName || 'empty'}-${index}`}
+                                        className={`flex h-full max-h-[40vh] w-full items-center border-b ${
+                                            !condition.conditionValue || condition.conditionValue.trim() === ''
+                                                ? 'hidden'
+                                                : ''
+                                        }`}
+                                    >
+                                        <div className="w-full text-sm">
+                                            {condition.conditionName
+                                                ? formatConditionName(condition.conditionName)
+                                                : 'Chưa chọn điều kiện'}
+                                        </div>
+                                        <div className="w-full p-2">
+                                            {condition.conditionName.startsWith('is') ? (
+                                                <Select
+                                                    value={formatConditionValue(condition.conditionValue) || 'true'}
+                                                    onValueChange={(value) => updateConditionValue(index, value)}
+                                                >
+                                                    <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                        <SelectValue placeholder={'Giá trị'} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value={'true'}>{'Có'}</SelectItem>
+                                                        <SelectItem value={'false'}>{'Không'}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <div className="flex w-full flex-row gap-2">
+                                                    <Select
+                                                        value={
+                                                            condition.conditionValue?.split(' ')[0] ||
+                                                            CompareOperator.EqualTo
+                                                        }
+                                                        onValueChange={(operator) => {
+                                                            const currentNumber =
+                                                                condition.conditionValue?.split(' ')[1] || '0';
+                                                            updateConditionValue(index, `${operator} ${currentNumber}`);
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                            <SelectValue placeholder="Toán tử so sánh" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value={CompareOperator.LessThan}>
+                                                                {'<'}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.GreaterThan}>
+                                                                {'>'}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.EqualTo}>
+                                                                {'=='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.NotEqualTo}>
+                                                                {'!='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.LessThanOrEqualTo}>
+                                                                {'<='}
+                                                            </SelectItem>
+                                                            <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>
+                                                                {'>='}
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Input
+                                                        name="ruleconditioncomparevalue"
+                                                        type="number"
+                                                        placeholder="VD: 12"
+                                                        value={condition.conditionValue?.split(' ')[1] || ''}
+                                                        onChange={(e) => {
+                                                            const currentOperator =
+                                                                condition.conditionValue?.split(' ')[0] ||
+                                                                CompareOperator.EqualTo;
+                                                            updateConditionValue(
+                                                                index,
+                                                                `${currentOperator} ${e.target.value}`,
+                                                            );
+                                                        }}
+                                                        className="focus-visible:border-primary focus-visible:ring-primary/50 w-full border-gray-500"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex w-8 flex-shrink-0 items-center justify-center">
+                                            <Icon
+                                                icon="material-symbols:delete-outline-rounded"
+                                                className="size-6 cursor-pointer transition-all duration-300 hover:size-7 hover:text-red-500"
+                                                onClick={() => removeCondition(index)}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="w-full p-2">
-                                        <Select defaultValue={rule.ruleconditioncompareoperator}>
-                                            <SelectTrigger className="border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50">
-                                                <SelectValue placeholder={"Toán tử so sánh"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value={CompareOperator.LessThan}>{"<"}</SelectItem>
-                                                <SelectItem value={CompareOperator.GreaterThan}>{">"}</SelectItem>
-                                                <SelectItem value={CompareOperator.EqualTo}>{"=="}</SelectItem>
-                                                <SelectItem value={CompareOperator.NotEqualTo}>{"!="}</SelectItem>
-                                                <SelectItem value={CompareOperator.LessThanOrEqualTo}>{"<="}</SelectItem>
-                                                <SelectItem value={CompareOperator.GreaterThanOrEqualTo}>{">="}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="w-full p-2">
-                                        <Input
-                                            name="ruleconditioncomparevalue"
-                                            type="number"
-                                            placeholder="VD: 12"
-                                            defaultValue={rule.ruleconditioncomparevalue}
-                                            className="w-full border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50"
-                                        />
-                                    </div>
-                                    <div className="w-8 flex-shrink-0 flex items-center justify-center">
-                                        <Icon
-                                            icon="material-symbols:delete-outline-rounded"
-                                            className="cursor-pointer size-6 transition-all duration-300 hover:text-red-500 hover:size-7"
-                                        />
-                                    </div>
-                                </div>
-                            )) : (
+                                ))
+                            ) : (
                                 <div className="flex w-full items-center">
-                                    <div className="w-full p-2">
-                                        Chưa có điều kiện nào
-                                    </div>
+                                    <div className="w-full p-2">Chưa có điều kiện nào</div>
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
-                {selectedTab === "Hành động" && (
-                    <div className="flex flex-col gap-4 w-full h-full">
-                        <div className="flex justify-between items-center gap-4">
+                {selectedTab === 'Hành động' && (
+                    <div className="flex h-full w-full flex-col gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <div className="flex flex-col gap-1">
                                 <span className="text-lg">Hành động khi thỏa điều kiện của quy tắc</span>
-                                <span className="text-xs font-light">Định nghĩa các hành động thực hiện khi các điều kiện của quy tắc được thỏa mãn</span>
+                                <span className="text-xs font-light">
+                                    Định nghĩa các hành động thực hiện khi các điều kiện của quy tắc được thỏa mãn
+                                </span>
                             </div>
-                            <Button variant="outline">
-                                <Icon icon="ic:baseline-plus" className="" />
-                                Thêm điều kiện
-                            </Button>
                         </div>
-                        <div className="flex flex-col max-w-full overflow-x-auto">
+                        <div className="flex max-w-full flex-col overflow-x-auto">
                             <div className="flex w-full">
-                                <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
+                                <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
                                     Tên hành động
                                 </div>
-                                <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">
+                                <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
                                     Giá trị hành động
                                 </div>
-                                <div className="border-b-1 border-b-gray-500 w-8 flex-shrink-0">
-                                    {/*Cột chứa nút xóa */}
-                                </div>
                             </div>
-                            <div className="flex flex-col h-full max-h-[40vh] overflow-y-auto">
-                                {ruleActions.length > 0 ? ruleActions.map((rule, index) => (
-                                    <div
-                                        key={`rulecondition-${rule.ruleactionid}`}
-                                        className="flex w-full items-center h-full border-b "
-                                    >
+                            <div className="flex h-full max-h-[40vh] flex-col overflow-y-auto">
+                                {ruleActions.length > 0 ? (
+                                    <div className="flex h-full w-full items-center border-b">
                                         <div className="w-full p-2 text-sm">
-                                            {rule.ruleactionname}
+                                            {formatActionName(ruleActions[0].actionName)}
                                         </div>
                                         <div className="w-full p-2">
-                                            <Select defaultValue={rule.ruleactionvalue}>
-                                                <SelectTrigger className="border-gray-500 focus-visible:border-primary focus-visible:ring-primary/50">
-                                                    <SelectValue placeholder={"Chọn hành động"} />
+                                            <Select
+                                                value={
+                                                    ruleActions[0].actionValue === getTrueActionValue(ruleType)
+                                                        ? getTrueActionValue(ruleType)
+                                                        : getFalseActionValue(ruleType)
+                                                }
+                                                onValueChange={(value) =>
+                                                    updateActionValue(ruleActions[0].actionName, value)
+                                                }
+                                            >
+                                                <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                    <SelectValue placeholder={'Giá trị'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={"true"}>{"Có thể phân công hoặc xóa"}</SelectItem>
-                                                    <SelectItem value={"false"}>{"Không thể phân công hoặc xóa"}</SelectItem>
+                                                    <SelectItem value={getTrueActionValue(ruleType)}>{'Có'}</SelectItem>
+                                                    <SelectItem value={getFalseActionValue(ruleType)}>
+                                                        {'Không'}
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="w-8 flex-shrink-0 flex items-center justify-center">
-                                            <Icon
-                                                icon="material-symbols:delete-outline-rounded"
-                                                className="cursor-pointer size-6 transition-all duration-300 hover:text-red-500 hover:size-7"
-                                            />
-                                        </div>
                                     </div>
-                                )) : (
-                                    <div className="flex w-full items-center">
+                                ) : (
+                                    <div className="flex h-full w-full items-center border-b">
+                                        <div className="w-full p-2 text-sm">{formatActionName('setAssignable')}</div>
                                         <div className="w-full p-2">
-                                            Chưa có hành động nào
+                                            <Select
+                                                value={getTrueActionValue(ruleType)}
+                                                onValueChange={(value) =>
+                                                    setRuleActions([
+                                                        { actionName: 'setAssignable', actionValue: value },
+                                                    ])
+                                                }
+                                            >
+                                                <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
+                                                    <SelectValue placeholder={'Chưa chọn'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value={getTrueActionValue(ruleType)}>{'Có'}</SelectItem>
+                                                    <SelectItem value={getFalseActionValue(ruleType)}>
+                                                        {'Không'}
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
                                 )}
@@ -313,9 +676,21 @@ const AssignmentRuleDetail = () => {
                     </div>
                 )}
             </div>
+            <div className="mt-4 flex w-full justify-end gap-2">
+                <Button variant="secondary" onClick={() => setIsDialogOpen?.(false)}>
+                    <Icon icon="material-symbols:arrow-back-rounded" />
+                    Quay về
+                </Button>
+                <Button variant="secondary" onClick={resetFormData} className={`${checkChanged() ? '' : 'hidden'}`}>
+                    <Icon icon="bx:reset" />
+                    Hủy thay đổi
+                </Button>
+                <Button onClick={saveRule} disabled={!checkChanged()}>
+                    Lưu thay đổi
+                </Button>
+            </div>
         </div>
     );
-}
-
+};
 
 export default AssignmentRuleDetail;

@@ -10,8 +10,7 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 default: 'bg-primary text-primary-foreground hover:bg-primary-600 cursor-pointer',
-                destructive:
-                    'bg-destructive text-primary-foreground hover:bg-red-600 cursor-pointer ',
+                destructive: 'bg-destructive text-primary-foreground hover:bg-red-600 cursor-pointer ',
                 outline:
                     'bg-background text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer',
                 outline_destructive:
@@ -19,6 +18,10 @@ const buttonVariants = cva(
                 secondary:
                     'bg-secondary text-secondary-foreground hover:text-primary hover:bg-secondary/70 cursor-pointer border-1',
                 link: 'text-black font-semibold hover:underline hover:text-primary-600',
+                default_disabled:
+                    'bg-primary text-primary-foreground hover:bg-primary-600 cursor-pointer opacity-80 pointer-events-none',
+                destructive_disabled:
+                    'bg-destructive text-primary-foreground hover:bg-red-600 cursor-pointer opacity-80 pointer-events-none',
             },
             size: {
                 default: 'h-9 px-4 rounded-md py-2 has-[>svg]:px-3',

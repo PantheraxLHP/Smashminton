@@ -3,9 +3,10 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
-import { AvailableCourtsAndUnavailableStartTime, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
+import { AvailableCourtsAndUnavailableStartTime, Booking, CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { CourtBookingService } from '../court_booking/court_booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { CourtPrices } from 'src/interfaces/courts.interface';
 @Injectable()
 export class BookingsService {
 	constructor(
@@ -13,11 +14,11 @@ export class BookingsService {
 		private cacheService: CacheService,
 		private courtBookingService: CourtBookingService,
 	) { }
-	async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number, fixedCourt: boolean): Promise<AvailableCourtsAndUnavailableStartTime> {
-		if (!zoneid || !date || !starttime || !duration || fixedCourt === undefined) {
+	async getAvailableCourtsAndUnavailableStartTime(zoneid: number, date: string, starttime: string, duration: number): Promise<AvailableCourtsAndUnavailableStartTime> {
+		if (!zoneid || !date || !starttime || !duration) {
 			throw new BadRequestException('Missing query parameters');
 		}
-		const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration, fixedCourt);
+		const availableCourts = await this.courtBookingService.getAvaliableCourts(zoneid, date, starttime, duration);
 		const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimes(zoneid, date, duration);
 
 		return {
@@ -26,12 +27,29 @@ export class BookingsService {
 		};
 	}
 
-	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
-		const { username, court_booking } = CacheBookingDTO;
+	async getAvailableCourtsAndUnavailableStartTimeForFixedCourt(zoneid: number, date: string, starttime: string, duration: number): Promise<AvailableCourtsAndUnavailableStartTime> {
+		if (!zoneid || !date || !starttime || !duration) {
+			throw new BadRequestException('Missing query parameters');
+		}
+		const availableCourts = await this.courtBookingService.getAvailableFixedCourts(zoneid, date, starttime, duration);
+		const unavailableStartTimes = await this.courtBookingService.getUnavailableStartTimesForFixedCourt(zoneid, date, duration);
 
-		// Gọi hàm getSeparatedCourtPrices để lấy danh sách các khoảng giá đã tách
-		const separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
-		console.log('separatedCourts1', separatedCourts);
+		return {
+			availableCourts: availableCourts,
+			unavailableStartTimes: unavailableStartTimes,
+		};
+	}
+
+	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
+		const { username, fixedCourt, court_booking } = CacheBookingDTO;
+
+		let separatedCourts: CourtPrices[] = [];
+		if (fixedCourt) {
+			separatedCourts = await this.courtBookingService.getSeparatedFixedCourtPrices(court_booking);
+		} else {
+			separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
+		}
+
 		// Kiểm tra nếu không có username
 		if (!username) {
 			throw new BadRequestException('Username is required to add booking to cache');
@@ -41,9 +59,6 @@ export class BookingsService {
 		if (!separatedCourts || separatedCourts.length === 0) {
 			throw new BadRequestException('No separated court prices found');
 		}
-
-		console.log('separatedCourts2', separatedCourts);
-
 		// Lấy cache của người dùng từ Redis
 		const bookingUserCache = await this.cacheService.getBooking(username);
 
@@ -62,7 +77,7 @@ export class BookingsService {
 					courtid: court.courtid,
 					courtname: court.courtname ?? '',
 					courtimgurl: court.courtimgurl ?? '',
-					date: court_booking.date,
+					date: court.date || '',
 					starttime: court.starttime,
 					duration: court.duration ?? 0,
 					endtime: court.endtime,
@@ -83,9 +98,6 @@ export class BookingsService {
 			const TTL = await this.cacheService.getTTL('booking::booking:' + username);
 
 			newCacheBooking.TTL = TTL;
-
-			console.log('newCacheBooking', newCacheBooking);
-
 			return newCacheBooking;
 		}
 
@@ -97,7 +109,7 @@ export class BookingsService {
 				courtid: court.courtid,
 				courtname: court.courtname ?? '',
 				courtimgurl: court.courtimgurl ?? '',
-				date: court_booking.date,
+				date: court.date || '',
 				starttime: court.starttime,
 				duration: court.duration ?? 0,
 				endtime: court.endtime,
@@ -106,8 +118,6 @@ export class BookingsService {
 
 			bookingUserCache.court_booking.push(newCourtBooking);
 			bookingUserCache.totalprice += newCourtBooking.price;
-
-			console.log('newCourtBooking', newCourtBooking);
 		}
 
 		// Ghi đè lại dữ liệu trong Redis
@@ -153,7 +163,6 @@ export class BookingsService {
 		}
 
 		const { courtid, date, starttime, duration } = court_booking;
-		console.log('court_booking', court_booking);
 
 		const courtBookingToRemove = bookingUserCache.court_booking.find((court) =>
 			court.courtid === courtid &&
@@ -259,25 +268,149 @@ export class BookingsService {
 			throw new BadRequestException('Failed to create court booking');
 		}
 
-		return {
-			booking: booking,
-			court_booking: court_booking,
-		};
+		return booking;
 	}
 
-	findAll() {
-		return `This action returns all bookings`;
-	}
+	/**
+	 * Lấy chi tiết booking cho từng sân trong zone, theo ngày và format đặc biệt
+	 */
+	async getBookingDetail(date: string, zoneid: number) {
+		// 1. Lấy danh sách sân trong zone
+		const courts = await this.prisma.courts.findMany({
+			where: { zoneid: Number(zoneid) },
+			select: {
+				courtid: true,
+				courtname: true,
+				zoneid: true,
+				zones: { select: { zonename: true } },
+			},
+		});
+		if (!courts.length) return [];
 
-	findOne(id: number) {
-		return `This action returns a #${id} booking`;
-	}
+		// 2. Lấy tất cả court_booking trong ngày này, cho các sân thuộc zone
+		const startOfDay = new Date(date + 'T00:00:00.000Z');
+		const endOfDay = new Date(date + 'T23:59:59.999Z');
+		const courtBookings = await this.prisma.court_booking.findMany({
+			where: {
+				courtid: { in: courts.map(c => c.courtid) },
+				date: { gte: startOfDay, lte: endOfDay },
+			},
+			select: {
+				courtbookingid: true,
+				courtid: true,
+				starttime: true,
+				endtime: true,
+				duration: true,
+				bookingid: true,
+			},
+		});
+		// Loại bỏ null bookingid
+		const bookingIds = courtBookings.map(cb => cb.bookingid).filter((id): id is number => id !== null && id !== undefined);
 
-	update(id: number, updateBookingDto: UpdateBookingDto) {
-		return `This action updates a #${id} booking`;
-	}
+		// 3. Lấy thông tin booking, receipts, order_product, products
+		const bookings = await this.prisma.bookings.findMany({
+			where: { bookingid: { in: bookingIds } },
+			select: {
+				bookingid: true,
+				guestphone: true,
+				bookingstatus: true,
+				totalprice: true,
+				receipts: { select: { receiptid: true, totalamount: true, bookingid: true, orderid: true } },
+			},
+		});
+		// Map bookingid -> booking
+		const bookingMap = new Map(bookings.map(b => [b.bookingid, b]));
 
-	remove(id: number) {
-		return `This action removes a #${id} booking`;
+		// Lấy tất cả receipts liên quan đến các booking này (để lấy orderid)
+		const allOrderIds = bookings.flatMap(b => b.receipts.map(r => r.orderid).filter((oid): oid is number => typeof oid === 'number'));
+		// Lấy order_product và products
+		let orderProducts: any[] = [];
+		if (allOrderIds.length) {
+			orderProducts = await this.prisma.order_product.findMany({
+				where: { orderid: { in: allOrderIds } },
+				select: {
+					orderid: true,
+					productid: true,
+					quantity: true,
+					returndate: true,
+					products: { select: { productname: true } },
+				},
+			});
+		}
+		// Gom order_product theo orderid
+		const orderProductMap = new Map<number, any[]>();
+		for (const op of orderProducts) {
+			if (typeof op.orderid !== 'number') continue;
+			if (!orderProductMap.has(op.orderid)) orderProductMap.set(op.orderid, []);
+			orderProductMap.get(op.orderid)!.push(op);
+		}
+
+		// 4. Gom theo court
+		const now = new Date();
+		const result: any[] = [];
+		for (const court of courts) {
+			// Lấy tất cả booking của sân này trong ngày
+			const bookingsOfCourt = courtBookings.filter(cb => cb.courtid === court.courtid);
+			// Gom theo status
+			const upcoming: any[] = [];
+			const ongoing: any[] = [];
+			const completed: any[] = [];
+			let count_booking = 0;
+			let revenue = 0;
+			for (const cb of bookingsOfCourt) {
+				if (!cb.starttime || !cb.endtime || typeof cb.bookingid !== 'number') continue;
+				const booking = bookingMap.get(cb.bookingid);
+				if (!booking) continue;
+				// Xác định trạng thái thời gian
+				let statusGroup: any[] | null = null;
+				if (cb.starttime > now) statusGroup = upcoming;
+				else if (cb.starttime <= now && cb.endtime > now) statusGroup = ongoing;
+				else if (cb.endtime <= now) statusGroup = completed;
+				if (!statusGroup) continue;
+				// Tính revenue: tổng totalamount của receipts
+				const bookingRevenue = (booking.receipts || []).reduce((sum, r) => sum + Number(r.totalamount || 0), 0);
+				revenue += bookingRevenue;
+				count_booking++;
+				// Lấy products/rentals từ receipts -> orderid -> order_product
+				let products: any[] = [];
+				let rentals: any[] = [];
+				for (const receipt of (booking.receipts || [])) {
+					if (typeof receipt.orderid !== 'number') continue;
+					const ops = orderProductMap.get(receipt.orderid) || [];
+					for (const op of ops) {
+						const prod = {
+							productid: op.productid,
+							productname: op.products.productname,
+							quantity: op.quantity,
+						};
+						if (op.returndate) rentals.push({ ...prod, rentaldate: op.returndate });
+						else products.push(prod);
+					}
+				}
+				// Push vào group
+				const detail = {
+					starttime: cb.starttime,
+					endtime: cb.endtime,
+					duration: cb.duration,
+					date: cb.starttime,
+					zone: court.zones?.zonename || '',
+					guestphone: booking.guestphone,
+					totalamount: bookingRevenue,
+					products,
+					rentals,
+				};
+				statusGroup.push(detail);
+			}
+			result.push({
+				courtid: court.courtid,
+				courtname: court.courtname,
+				count_booking,
+				revenue,
+				upcoming,
+				ongoing,
+				completed,
+			});
+		}
+		return result;
 	}
 }

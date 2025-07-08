@@ -1,20 +1,23 @@
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Icon } from "@iconify/react";
-import { Fragment, useState } from "react";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Icon } from '@iconify/react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Range } from "react-range";
-import { formatPrice } from "@/lib/utils";
+} from '@/components/ui/select';
+import {
+    RadioGroup,
+    RadioGroupItem,
+} from '@/components/ui/radio-group';
+import { Range } from 'react-range';
+import { formatPrice } from '@/lib/utils';
 
-export type FilterType = "search" | "selectedFilter" | "checkbox" | "range" | "monthyear"
+export type FilterType = 'search' | 'selectedFilter' | 'checkbox' | 'radio' | 'range' | 'monthyear';
 
 export interface FilterOption {
     optionlabel: string;
@@ -28,208 +31,265 @@ export interface FilterConfig {
     filteroptions?: FilterOption[];
     rangemin?: number;
     rangemax?: number;
-    month?: number;
-    year?: number;
 }
-
 interface FilterProps {
     filters: FilterConfig[];
     values: Record<string, any>;
-    onChange: (filterid: string, value: any) => void;
+    setFilterValues: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+    onFilterChange?: (filterid: string, value: any) => void;
+    onRemoveFilter?: (filterid: string, removeValue?: string | number) => void;
+    onRemoveAllFilters?: () => void;
 }
-
-const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<string, any>) => {
-    // Return an array of filter elements instead of just the first one
-    const selectedFilters: React.ReactNode[] = [];
-
-    filters.forEach((filter) => {
-        const value = values[filter.filterid];
-
-        if (filter.filtertype === "search" && value) {
-            selectedFilters.push(
-                <Button
-                    key={`search-${filter.filterid}`}
-                    variant="default"
-                    size="xs"
-                    className="rounded-lg"
-                    onClick={() => {
-                        // Handle click to reset search value
-                    }}
-                >
-                    {value}
-                    <Icon
-                        icon="streamline:delete-1-solid"
-                        className="size-2.5"
-                    />
-                </Button>
-            );
-        }
-        else if (filter.filtertype === "checkbox" && Array.isArray(value) && value.length > 0) {
-            value.forEach((optionvalue: string | number) => {
-                selectedFilters.push(
-                    <Button
-                        key={`checkbox-${filter.filterid}-${optionvalue}`}
-                        variant="default"
-                        size="xs"
-                        className="rounded-lg"
-                        onClick={() => {
-                            // Handle click to remove this value
-                        }}
-                    >
-                        {optionvalue}
-                        <Icon
-                            icon="streamline:delete-1-solid"
-                            className="size-2.5"
-                        />
-                    </Button>
-                );
-            });
-        }
-        else if (filter.filtertype === "range" && Array.isArray(value)) {
-            selectedFilters.push(
-                <Button
-                    key={`range-${filter.filterid}`}
-                    variant="default"
-                    size="xs"
-                    className="rounded-lg"
-                    onClick={() => {
-                        // Handle click to reset range
-                    }}
-                >
-                    {`${value[0]} - ${value[1]}`}
-                    <Icon
-                        icon="streamline:delete-1-solid"
-                        className="size-2.5"
-                    />
-                </Button>
-            );
-        }
-        else if (filter.filtertype === "monthyear" && value) {
-            selectedFilters.push(
-                <Button
-                    key={`month-${filter.filterid}`}
-                    variant="default"
-                    size="xs"
-                    className="rounded-lg"
-                    onClick={() => {
-                        // Handle click to reset month
-                    }}
-                >
-                    {`Tháng ${value.month} - Năm ${value.year}`}
-                    <Icon
-                        icon="streamline:delete-1-solid"
-                        className="size-2.5"
-                    />
-                </Button>
-            );
-        }
-    });
-
-    console.log("Selected Filters:", selectedFilters);
-    return selectedFilters;
-};
 
 const Filter: React.FC<FilterProps> = ({
     filters,
     values,
-    onChange
+    setFilterValues,
+    onFilterChange,
+    onRemoveFilter,
+    onRemoveAllFilters,
 }) => {
-    const [selectedMonthData, setSelectedMonthData] = useState({
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-    });
+    // Render các Badge/Tag giá trị filter đã chọn
+    const renderSelectedFilterValue = (filters: FilterConfig[], values: Record<string, any>) => {
+        const selectedFilters: React.ReactNode[] = [];
+
+        filters.forEach((filter) => {
+            const value = values[filter.filterid];
+
+            if (filter.filtertype === 'search' && value) {
+                selectedFilters.push(
+                    <Button
+                        key={`search-${filter.filterid}`}
+                        variant="default"
+                        size="xs"
+                        className="rounded-lg"
+                        onClick={() => {
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
+                        }}
+                    >
+                        {value}
+                        <Icon icon="streamline:delete-1-solid" className="size-2.5" />
+                    </Button>,
+                );
+            } else if (
+                (filter.filtertype === 'checkbox' || filter.filtertype === 'radio') &&
+                Array.isArray(value) &&
+                value.length > 0
+            ) {
+                value.forEach((optionvalue: string | number) => {
+                    const optionlabel = filter.filteroptions?.find(
+                        (opt) => opt.optionvalue === optionvalue,
+                    )?.optionlabel;
+
+                    selectedFilters.push(
+                        <Button
+                            key={`${filter.filtertype}-${filter.filterid}-${optionvalue}`}
+                            variant="default"
+                            size="xs"
+                            className="rounded-lg"
+                            onClick={() => {
+                                if (onRemoveFilter) {
+                                    onRemoveFilter(filter.filterid, optionvalue);
+                                } else {
+                                    handleRemoveFilter(filter.filterid, optionvalue);
+                                }
+                            }}
+                        >
+                            {optionlabel || optionvalue}
+                            <Icon icon="streamline:delete-1-solid" className="size-2.5" />
+                        </Button>,
+                    );
+                });
+            } else if (filter.filtertype === 'range' && Array.isArray(value)) {
+                selectedFilters.push(
+                    <Button
+                        key={`range-${filter.filterid}`}
+                        variant="default"
+                        size="xs"
+                        className="rounded-lg"
+                        onClick={() => {
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
+                        }}
+                    >
+                        {`${formatPrice(value[0])} - ${formatPrice(value[1])}`}
+                        <Icon icon="streamline:delete-1-solid" className="size-2.5" />
+                    </Button>,
+                );
+            } else if (filter.filtertype === 'monthyear' && value) {
+                selectedFilters.push(
+                    <Button
+                        key={`month-${filter.filterid}`}
+                        variant="default"
+                        size="xs"
+                        className="rounded-lg"
+                        onClick={() => {
+                            if (onRemoveFilter) {
+                                onRemoveFilter(filter.filterid);
+                            } else {
+                                handleRemoveFilter(filter.filterid);
+                            }
+                        }}
+                    >
+                        {`Tháng ${value.month} - Năm ${value.year}`}
+                        <Icon icon="streamline:delete-1-solid" className="size-2.5" />
+                    </Button>,
+                );
+            }
+        });
+        return selectedFilters;
+    };
+
+    const handleFilterChange = (filterid: string, value: any) => {
+        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
+        setFilterValues((prev) => {
+            const updated = { ...prev };
+            if (type === 'search' || type === 'range' || type === 'monthyear') {
+                updated[filterid] = value;
+            } else if (type === 'checkbox') {
+                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
+                const idx = arr.indexOf(value);
+                if (idx > -1) {
+                    arr.splice(idx, 1);
+                } else {
+                    arr.push(value);
+                }
+                updated[filterid] = arr;
+            } else if (type === 'radio') {
+                // For radio, only allow single selection
+                updated[filterid] = [value];
+            }
+            return updated;
+        });
+    };
+
+    const handleRemoveFilter = (filterid: string, removeValue?: string | number) => {
+        const type = filters.find((f) => f.filterid === filterid)?.filtertype;
+        setFilterValues((prev) => {
+            const updated = { ...prev };
+            if (type === 'search' || type === 'range' || type === 'monthyear') {
+                updated[filterid] = undefined;
+            } else if (type === 'checkbox' || type === 'radio') {
+                const arr = Array.isArray(prev[filterid]) ? [...prev[filterid]] : [];
+                const idx = arr.indexOf(removeValue);
+                if (idx > -1) {
+                    arr.splice(idx, 1);
+                }
+                updated[filterid] = arr.length > 0 ? arr : undefined;
+            }
+            return updated;
+        });
+    };
+
+    const handleRemoveAllFilters = () => {
+        filters.forEach((filter) => {
+            if (
+                (filter.filtertype === 'checkbox' || filter.filtertype === 'radio') &&
+                Array.isArray(values[filter.filterid])
+            ) {
+                values[filter.filterid].forEach((optionvalue: string | number) => {
+                    handleRemoveFilter(filter.filterid, optionvalue);
+                });
+            } else if (
+                filter.filtertype === 'search' ||
+                filter.filtertype === 'range' ||
+                filter.filtertype === 'monthyear'
+            ) {
+                if (values[filter.filterid] !== undefined && values[filter.filterid] !== null) {
+                    handleRemoveFilter(filter.filterid);
+                }
+            }
+        });
+    };
 
     return (
-        <div className="flex flex-col gap-5 max-w-xs w-full p-4 border-2 rounded-lg border-gray-200">
+        <div className="flex w-full sm:max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
                 switch (filter.filtertype) {
-                    case "search":
+                    case 'search':
                         return (
-                            <div
-                                key={`filter-${filter.filterid}`}
-                                className="relative w-full"
-                            >
+                            <div key={`filter-${filter.filterid}`} className="relative w-full">
                                 <Icon
                                     icon="material-symbols:search-rounded"
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 size-5"
+                                    className="absolute top-1/2 left-3 size-5 -translate-y-1/2"
                                 />
                                 <Input
                                     name="search_rulename"
                                     type="text"
                                     placeholder={filter.filterlabel}
-                                    defaultValue={value || ""}
-                                    className="pl-10 w-full"
+                                    value={value || ''}
+                                    className="w-full pl-10"
+                                    onChange={(e) => {
+                                        const searchValue = e.target.value;
+                                        if (onFilterChange) {
+                                            onFilterChange(filter.filterid, searchValue);
+                                        } else {
+                                            handleFilterChange(filter.filterid, searchValue);
+                                        }
+                                    }}
                                 />
                             </div>
                         );
-                    case "selectedFilter":
+                    case 'selectedFilter':
                         return (
-                            <div
-                                key={`filter-${filter.filterid}`}
-                                className="flex flex-col gap-2"
-                            >
-                                <div
-                                    className="flex items-center justify-between"
-                                >
-                                    <span className="text-lg text-primary font-semibold">
-                                        Bạn chọn
-                                    </span>
+                            <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-primary text-lg font-semibold">Bạn chọn</span>
                                     <Button
                                         variant="link"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            onChange(filter.filterid.toString(), [])
+                                            if (onRemoveAllFilters) {
+                                                onRemoveAllFilters();
+                                            } else {
+                                                handleRemoveAllFilters();
+                                            }
                                         }}
                                     >
-                                        Bỏ chọn tất cả
-                                        <Icon
-                                            icon="streamline:delete-1-solid"
-                                            className="size-3"
-                                        />
+                                        Bỏ hết
+                                        <Icon icon="streamline:delete-1-solid" className="size-3" />
                                     </Button>
                                 </div>
                                 {Object.keys(values).length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="mb-4 flex flex-wrap gap-1">
                                         {renderSelectedFilterValue(filters, values)}
                                     </div>
                                 )}
+                                <div className="border-1 border-gray-300"></div>
                             </div>
                         );
-                    case "checkbox":
+                    case 'checkbox':
                         return (
-                            <div
-                                key={`filter-${filter.filterid}`}
-                                className="flex flex-col gap-2"
-                            >
-                                <div className="font-semibold">
-                                    {filter.filterlabel}
-                                </div>
+                            <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
+                                <div className="font-semibold">{filter.filterlabel}</div>
                                 {(filter.filteroptions?.length || 0) > 0 && (
-                                    <div
-                                        key={`checkbox-${filter.filterid}`}
-                                        className="flex flex-col gap-2"
-                                    >
+                                    <div key={`checkbox-${filter.filterid}`} className="mb-4 flex flex-col gap-2">
                                         {filter.filteroptions?.map((option) => (
-                                            <div
-                                                key={option.optionvalue}
-                                                className="flex gap-2 items-center"
-                                            >
+                                            <div key={option.optionvalue} className="flex items-center gap-2">
                                                 <Checkbox
                                                     id={`checkbox-${filter.filterid}-${option.optionvalue}`}
-                                                    checked={Array.isArray(value) ? value.includes(option.optionvalue) : false}
+                                                    checked={
+                                                        Array.isArray(value)
+                                                            ? value.some((v) => v === option.optionvalue)
+                                                            : false
+                                                    }
                                                     onCheckedChange={(checked) => {
-                                                        const newValue = Array.isArray(value)
-                                                            ? checked
-                                                                ? [...value, option.optionvalue]
-                                                                : value.filter((v: string | number) => v !== option.optionvalue)
-                                                            : checked
-                                                                ? [option.optionvalue]
-                                                                : [];
-                                                        onChange(filter.filterid.toString(), newValue);
+                                                        if (onFilterChange) {
+                                                            onFilterChange(filter.filterid, option.optionvalue);
+                                                        } else {
+                                                            handleFilterChange(filter.filterid, option.optionvalue);
+                                                        }
                                                     }}
-                                                    className="size-5"
+                                                    className="size-5 cursor-pointer"
                                                 />
                                                 <Label htmlFor={`checkbox-${filter.filterid}-${option.optionvalue}`}>
                                                     {option.optionlabel}
@@ -238,14 +298,53 @@ const Filter: React.FC<FilterProps> = ({
                                         ))}
                                     </div>
                                 )}
+                                <div className="border-1 border-gray-300"></div>
                             </div>
                         );
-                    case "range":
+                    case 'radio':
                         return (
-                            <div
-                                key={`filter-${filter.filterid}`}
-                                className="w-full flex flex-col gap-2"
-                            >
+                            <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
+                                <div className="font-semibold">{filter.filterlabel}</div>
+                                {(filter.filteroptions?.length || 0) > 0 && (
+                                    <div
+                                        key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2"
+                                    >
+                                        <RadioGroup
+                                            value={`${value?.[0]}`}
+                                            onValueChange={(newValue) => {
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, Number(newValue));
+                                                } else {
+                                                    handleFilterChange(filter.filterid, Number(newValue));
+                                                }
+                                            }}
+                                        >
+                                            {filter.filteroptions?.map((option) => (
+                                                <div
+                                                    key={`radio-${filter.filterid}-${option.optionvalue}`} className="flex items-center gap-2"
+                                                >
+                                                    <RadioGroupItem
+                                                        id={`${option.optionvalue}`}
+                                                        value={`${option.optionvalue}`}
+                                                        className="cursor-pointer"
+                                                    />
+                                                    <Label
+                                                        htmlFor={`${option.optionvalue}`}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {option.optionlabel}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                )}
+                                <div className="border-1 border-gray-300"></div>
+                            </div>
+                        );
+                    case 'range':
+                        return (
+                            <div key={`filter-${filter.filterid}`} className="flex w-full flex-col gap-2">
                                 <span className="font-semibold">{filter.filterlabel}</span>
 
                                 {/* Input boxes for direct value entry */}
@@ -255,38 +354,50 @@ const Filter: React.FC<FilterProps> = ({
                                             type="number"
                                             min={filter.rangemin}
                                             max={filter.rangemax}
-                                            value={Array.isArray(values[filter.filterid])
-                                                ? values[filter.filterid][0]
-                                                : filter.rangemin}
+                                            value={
+                                                Array.isArray(values[filter.filterid])
+                                                    ? values[filter.filterid][0]
+                                                    : filter.rangemin
+                                            }
                                             onChange={(e) => {
                                                 const newMin = Number(e.target.value);
                                                 const currentMax = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][1]
                                                     : filter.rangemax;
-                                                onChange(filter.filterid.toString(), [newMin, currentMax]);
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, [newMin, currentMax]);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, [newMin, currentMax]);
+                                                }
                                             }}
-                                            className="text-sm text-center"
+                                            className="text-sm"
                                         />
                                     </div>
 
-                                    <div className="mx-2 bg-gray-500 w-5 h-1"></div>
+                                    <div className="mx-2 h-1 w-5 bg-gray-500"></div>
 
                                     <div className="w-full">
                                         <Input
                                             type="number"
                                             min={filter.rangemin}
                                             max={filter.rangemax}
-                                            value={Array.isArray(values[filter.filterid])
-                                                ? values[filter.filterid][1]
-                                                : filter.rangemax}
+                                            value={
+                                                Array.isArray(values[filter.filterid])
+                                                    ? values[filter.filterid][1]
+                                                    : filter.rangemax
+                                            }
                                             onChange={(e) => {
                                                 const newMax = Number(e.target.value);
                                                 const currentMin = Array.isArray(values[filter.filterid])
                                                     ? values[filter.filterid][0]
                                                     : filter.rangemin;
-                                                onChange(filter.filterid.toString(), [currentMin, newMax]);
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, [currentMin, newMax]);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, [currentMin, newMax]);
+                                                }
                                             }}
-                                            className="text-sm text-center"
+                                            className="text-sm"
                                         />
                                     </div>
                                 </div>
@@ -302,14 +413,17 @@ const Filter: React.FC<FilterProps> = ({
                                         step={1}
                                         min={filter.rangemin || 0}
                                         max={filter.rangemax || 100}
-                                        allowOverlap
                                         onChange={(newValues) => {
-                                            onChange(filter.filterid.toString(), newValues);
+                                            if (onFilterChange) {
+                                                onFilterChange(filter.filterid, newValues);
+                                            } else {
+                                                handleFilterChange(filter.filterid, newValues);
+                                            }
                                         }}
                                         renderTrack={({ props, children }) => (
                                             <div
                                                 {...props}
-                                                className="w-full h-[10px] rounded bg-primary-50"
+                                                className="bg-primary-50 h-3 w-full rounded"
                                                 style={{
                                                     ...props.style,
                                                 }}
@@ -324,10 +438,10 @@ const Filter: React.FC<FilterProps> = ({
                                                 <div
                                                     key={key}
                                                     {...thumbProps}
-                                                    className="h-4 w-4 rounded-full bg-primary border-2 border-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                    className="bg-primary focus:ring-primary h-5 w-5 rounded-full border-2 border-white focus:ring-2 focus:ring-offset-2 focus:outline-none"
                                                     style={{
                                                         ...thumbProps.style,
-                                                        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
+                                                        boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.3)',
                                                     }}
                                                 />
                                             );
@@ -335,32 +449,33 @@ const Filter: React.FC<FilterProps> = ({
                                     />
                                 </div>
 
-                                {/* Range labels */}
-                                <div className="flex justify-between text-xs text-gray-500">
+                                {/* Chú thích Range (giá trị min-max) */}
+                                <div className="mb-4 flex justify-between text-xs text-gray-500">
                                     <span>{filter.rangemin != null && formatPrice(filter.rangemin)}</span>
                                     <span>{filter.rangemax != null && formatPrice(filter.rangemax)}</span>
                                 </div>
+                                <div className="border-1 border-gray-300"></div>
                             </div>
                         );
-                    case "monthyear":
+                    case 'monthyear':
                         return (
-                            <div
-                                className="flex flex-col gap-2"
-                                key={`filter-${filter.filterid}`}
-                            >
-                                <span className="font-semibold">
-                                    {filter.filterlabel}
-                                </span>
-                                <div className="flex gap-5 items-center">
-                                    <div className="flex flex-col gap-1 w-full">
-                                        <Label className="text-sm">
-                                            Tháng
-                                        </Label>
+                            <div className="flex flex-col gap-2" key={`filter-${filter.filterid}`}>
+                                <span className="font-semibold">{filter.filterlabel}</span>
+                                <div className="mb-4 flex items-center gap-5">
+                                    <div className="flex w-full flex-col gap-1">
+                                        <Label className="text-sm">Tháng</Label>
                                         <Select
-                                            value={`${value.month || new Date().getMonth() + 1}`}
-                                            onValueChange={(value) => {
-                                                setSelectedMonthData(prev => ({ ...prev, month: Number(value) }));
-                                                onChange(filter.filterid.toString(), value);
+                                            value={`${value?.month || new Date().getMonth() + 1}`}
+                                            onValueChange={(newMonth) => {
+                                                const newValue = {
+                                                    month: Number(newMonth),
+                                                    year: value?.year || new Date().getFullYear(),
+                                                }
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, newValue);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, newValue);
+                                                }
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
@@ -368,36 +483,35 @@ const Filter: React.FC<FilterProps> = ({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {Array.from({ length: 12 }, (_, i) => (
-                                                    <SelectItem
-                                                        key={`Month-${i + 1}`}
-                                                        value={`${i + 1}`}
-                                                    >
+                                                    <SelectItem key={`Month-${i + 1}`} value={`${i + 1}`}>
                                                         Tháng {i + 1}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="flex flex-col gap-1 w-full">
-                                        <Label className="text-sm">
-                                            Năm
-                                        </Label>
+                                    <div className="flex w-full flex-col gap-1">
+                                        <Label className="text-sm">Năm</Label>
                                         <Select
-                                            value={`${value.year || new Date().getFullYear()}`}
-                                            onValueChange={(value) => {
-                                                setSelectedMonthData(prev => ({ ...prev, year: Number(value) }));
-                                                onChange(filter.filterid.toString(), value);
+                                            value={`${value?.year || new Date().getFullYear()}`}
+                                            onValueChange={(newYear) => {
+                                                const newValue = {
+                                                    month: value?.month || new Date().getMonth() + 1,
+                                                    year: Number(newYear),
+                                                }
+                                                if (onFilterChange) {
+                                                    onFilterChange(filter.filterid, newValue);
+                                                } else {
+                                                    handleFilterChange(filter.filterid, newValue);
+                                                }
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Chọn năm" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Array.from({ length: (new Date().getFullYear() - 2000 + 1) }, (_, i) => (
-                                                    <SelectItem
-                                                        key={`Year-${2000 + i}`}
-                                                        value={`${2000 + i}`}
-                                                    >
+                                                {Array.from({ length: new Date().getFullYear() - 2000 + 1 }, (_, i) => (
+                                                    <SelectItem key={`Year-${2000 + i}`} value={`${2000 + i}`}>
                                                         Năm {2000 + i}
                                                     </SelectItem>
                                                 ))}
@@ -405,6 +519,7 @@ const Filter: React.FC<FilterProps> = ({
                                         </Select>
                                     </div>
                                 </div>
+                                <div className="border-1 border-gray-300"></div>
                             </div>
                         );
                     default:
@@ -413,6 +528,6 @@ const Filter: React.FC<FilterProps> = ({
             })}
         </div>
     );
-}
+};
 
 export default Filter;

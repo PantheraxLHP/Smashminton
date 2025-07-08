@@ -39,7 +39,6 @@ export class TesseractOcrController {
     },
   })
   async parseImage(@UploadedFiles() files: Express.Multer.File[]): Promise<{ results: { university: string; id: string; expiryYear: string }[] }> {
-    console.log('Uploaded files:', files); // Debug thông tin file upload
     if (!files || files.length === 0) {
         throw new Error('No files uploaded');
     }

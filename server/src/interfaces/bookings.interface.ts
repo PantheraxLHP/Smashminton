@@ -22,3 +22,14 @@ export interface AvailableCourtsAndUnavailableStartTime {
   availableCourts: AvailableCourts[]; // Danh sách các sân khả dụng
   unavailableStartTimes: string[];   // Danh sách các khung giờ không khả dụng
 }
+
+export interface Booking {
+  bookingid: number;           // ID booking (auto increment)
+  guestphone?: string;          // Số điện thoại khách
+  bookingdate?: Date;           // Ngày đặt lịch
+  totalprice?: number;          // Tổng giá tiền
+  bookingstatus?: string;       // Trạng thái đặt lịch
+  employeeid?: number;          // ID nhân viên
+  customerid?: number;          // ID khách hàng
+  voucherid?: number;           // ID voucher
+}

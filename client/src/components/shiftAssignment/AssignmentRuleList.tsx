@@ -1,13 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Icon } from "@iconify/react";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Button } from '@/components/ui/button';
+import { Icon } from '@iconify/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Dialog,
     DialogContent,
@@ -16,196 +9,216 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
-import { useState, Fragment } from "react";
-import AssignmentRuleDetail from "./AssignmentRuleDetail";
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+} from '@/components/ui/dialog';
+import { useState, Fragment, useEffect } from 'react';
+import AssignmentRuleDetail from './AssignmentRuleDetail';
+import { exportAutoAssignmentFile, getAutoAssignment, updateAutoAssignment } from '@/services/shiftdate.service';
+import { toast } from 'sonner';
 
-interface CustomRuleList {
-    ruleid: number;
-    rulename: string;
-    applyto: string;
-    priority: number;
-    lastmodified: Date;
+export interface RuleCondition {
+    conditionName: string;
+    conditionValue: string;
 }
 
-const AssignmentRuleList = () => {
-    const [selectedRadio, setSelectedRadio] = useState("assignedShiftInWeek");
-    const [ruleList, setRuleList] = useState<CustomRuleList[]>([
-        {
-            ruleid: 1,
-            rulename: "Quy tắc 1",
-            applyto: "Nhân viên",
-            priority: 100,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 2,
-            rulename: "Quy tắc 2",
-            applyto: "Ca làm việc",
-            priority: 90,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 3,
-            rulename: "Quy tắc 3",
-            applyto: "Nhân viên",
-            priority: 80,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 4,
-            rulename: "Quy tắc 4",
-            applyto: "Ca làm việc",
-            priority: 70,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 5,
-            rulename: "Quy tắc 5",
-            applyto: "Nhân viên",
-            priority: 60,
-            lastmodified: new Date(),
-        },
-        {
-            ruleid: 6,
-            rulename: "Quy tắc 6",
-            applyto: "Ca làm việc",
-            priority: 50,
-            lastmodified: new Date(),
-        },
-    ]);
+export interface RuleAction {
+    actionName: string;
+    actionValue: string;
+}
+
+export interface AssignmentRule {
+    ruleName: string;
+    ruleType: string;
+    ruleDescription: string;
+    subObj: any[];
+    conditions: RuleCondition[];
+    actions: RuleAction[];
+}
+
+interface AssignmentRuleListProps {
+    fullTimeOption?: string;
+    setFullTimeOption?: (value: string) => void;
+    partTimeOption?: string;
+    setPartTimeOption?: (value: string) => void;
+}
+
+function formatRuleType(ruleType: string) {
+    switch (ruleType) {
+        case 'employee':
+            return 'Nhân viên';
+        case 'enrollmentEmployee':
+            return 'Nhân viên (Có đăng ký ca làm)';
+        case 'shift':
+            return 'Ca làm việc';
+        case 'enrollmentShift':
+            return 'Ca làm việc (Đã có người đăng ký)';
+        default:
+            return 'Không xác định';
+    }
+}
+
+const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
+    fullTimeOption,
+    setFullTimeOption,
+    partTimeOption,
+    setPartTimeOption,
+}) => {
+    const [ruleList, setRuleList] = useState<AssignmentRule[]>([]);
+    const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+    const [editDialogStates, setEditDialogStates] = useState<{ [key: string]: boolean }>({});
+
+    const openEditDialog = (ruleName: string) => {
+        setEditDialogStates((prev) => ({ ...prev, [ruleName]: true }));
+    };
+
+    const closeEditDialog = (ruleName: string) => {
+        setEditDialogStates((prev) => ({ ...prev, [ruleName]: false }));
+    };
+
+    useEffect(() => {
+        const fetchAutoAssignment = async () => {
+            const response = await getAutoAssignment();
+            if (response.ok) {
+                setRuleList(response.data);
+            } else {
+                setRuleList([]);
+            }
+        };
+        fetchAutoAssignment();
+    }, []);
+
+    const handleRemoveRule = async (ruleName: string) => {
+        if (ruleList.length === 1) {
+            toast.error('Không thể xóa quy tắc cuối cùng');
+            return;
+        }
+        const response = await updateAutoAssignment(ruleList.filter((r) => r.ruleName !== ruleName));
+        if (response.ok) {
+            toast.success('Xóa quy tắc thành công');
+            setRuleList(ruleList.filter((r) => r.ruleName !== ruleName));
+        } else {
+            toast.error(response.message || 'Xóa quy tắc thất bại');
+        }
+    };
+
+    const handleExportExcel = async () => {
+        const res = await exportAutoAssignmentFile();
+        if (res.ok) {
+            // Create a temporary link and trigger download
+            const link = document.createElement('a');
+            link.href = res.data.url;
+            link.download = 'drools_decisiontable.drl.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the URL object
+            window.URL.revokeObjectURL(res.data.url);
+
+            toast.success('File đã được tải xuống thành công');
+        } else {
+            toast.error(res.message || 'Không thể xuất file phân công');
+        }
+    };
 
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex w-full flex-col gap-4">
             <div className="flex items-center justify-end gap-4">
-                <Dialog>
+                <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline">
                             <Icon icon="ic:baseline-plus" className="" />
                             Thêm quy tắc
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="!max-w-[700px] overflow-y-auto max-h-[80vh]">
+                    <DialogContent
+                        className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
                         <DialogHeader>
-                            <DialogTitle>
-                                Thêm quy tắc phân công mới
-                            </DialogTitle>
-                            <DialogDescription>
-                            </DialogDescription>
+                            <DialogTitle>Thêm quy tắc phân công mới</DialogTitle>
+                            <DialogDescription></DialogDescription>
                         </DialogHeader>
-                        <AssignmentRuleDetail />
-                        <DialogFooter>
-                            <DialogTrigger asChild>
-                                <Button variant="secondary">
-                                    <Icon icon="material-symbols:arrow-back-rounded" />
-                                    Quay về
-                                </Button>
-                            </DialogTrigger>
-                            <Button>
-                                Lưu
-                            </Button>
-                        </DialogFooter>
+                        <AssignmentRuleDetail
+                            ruleList={ruleList}
+                            setRuleList={setRuleList}
+                            setIsDialogOpen={setIsNewDialogOpen}
+                        />
                     </DialogContent>
                 </Dialog>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExportExcel}>
                     <Icon icon="vscode-icons:file-type-excel2" className="" />
-                    {"Xuất file Excel (.drl.xlsx)"}
+                    {'Xuất file Excel (.drl.xlsx)'}
                 </Button>
             </div>
-            <div className="w-full flex items-end gap-10">
-                <div className="relative w-100">
-                    <Icon
-                        icon="material-symbols:search-rounded"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-5"
-                    />
-                    <Input
-                        name="search_rulename"
-                        type="text"
-                        placeholder="Tìm kiếm tên quy tắc"
-                        defaultValue={""}
-                        className="pl-10 w-full"
-                    />
-                </div>
-                <div className="flex flex-col gap-1">
-                    <span className="text-xs">Đối tượng áp dụng</span>
-                    <Select defaultValue="all">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Tất cả" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tất cả</SelectItem>
-                            <SelectItem value="employee">Nhân viên</SelectItem>
-                            <SelectItem value="shift">Ca làm việc</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
             <div className="flex w-full gap-4">
-                <div className="flex flex-col max-w-full overflow-x-auto">
-                    <div className="grid grid-cols-[repeat(5,minmax(100px,200px))]">
-                        <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Tên quy tắc</div>
-                        <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Đối tượng áp dụng</div>
-                        <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Độ ưu tiên</div>
-                        <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Chỉnh sửa lần cuối</div>
-                        <div className="w-full p-2 font-semibold text-sm border-b-1 border-b-gray-500">Thao tác</div>
+                <div className="flex w-full max-w-full flex-col overflow-x-auto">
+                    <div className="grid grid-cols-[repeat(4,minmax(150px,250px))]">
+                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Tên quy tắc</div>
+                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">
+                            Đối tượng áp dụng
+                        </div>
+                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Mô tả</div>
+                        <div className="w-full border-b-1 border-b-gray-500 p-2 text-sm font-semibold">Thao tác</div>
                     </div>
-                    <div className="grid grid-cols-[repeat(5,minmax(150px,200px))] items-center max-h-[40vh] overflow-auto">
-                        {ruleList.map((rule) => (
-                            <Fragment key={`rule-${rule.ruleid}`}>
-                                <div className="w-full flex items-center text-sm p-2 border-b h-full">
-                                    {rule.rulename}
+                    <div className="grid max-h-[40vh] grid-cols-[repeat(4,minmax(150px,250px))] items-center overflow-auto">
+                        {ruleList?.map((rule) => (
+                            <Fragment key={`rule-${rule.ruleName}`}>
+                                <div className="flex h-full w-full items-center border-b p-2 text-sm break-all">
+                                    {rule.ruleName}
                                 </div>
-                                <div className="w-full flex items-center text-sm p-2 border-b h-full">
-                                    {rule.applyto}
+                                <div className="flex h-full w-full items-center border-b p-2 text-sm">
+                                    {formatRuleType(rule.ruleType)}
                                 </div>
-                                <div className="w-full flex items-center text-sm p-2 border-b h-full">
-                                    {rule.priority}
+                                <div className="flex h-full w-full items-center border-b p-2 text-sm">
+                                    {rule.ruleDescription}
                                 </div>
-                                <div className="w-full flex items-center text-sm p-2 border-b h-full">
-                                    {rule.lastmodified.toLocaleTimeString("vi-VN", {
-                                        year: "numeric",
-                                        month: "2-digit",
-                                        day: "2-digit",
-                                    })}
-                                </div>
-                                <div className="border-b p-2 w-full flex flex-wrap gap-2 items-center justify-center h-full">
-                                    <Dialog>
+                                <div className="flex h-full w-full flex-wrap items-center justify-center gap-2 border-b p-2">
+                                    <Dialog
+                                        open={editDialogStates[rule.ruleName] || false}
+                                        onOpenChange={(open) =>
+                                            open ? openEditDialog(rule.ruleName) : closeEditDialog(rule.ruleName)
+                                        }
+                                    >
                                         <DialogTrigger asChild>
                                             <Button variant="outline" className="group w-full">
                                                 <Icon
                                                     icon="uil:setting"
-                                                    className="size-5 transition-all duration-300 group-hover:rotate-180 group-hover:size-6 " />
+                                                    className="size-5 transition-all duration-300 group-hover:size-6 group-hover:rotate-180"
+                                                />
                                                 <span className="group-hover:font-semibold">Chỉnh sửa</span>
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="!max-w-[600px] overflow-y-auto max-h-[80vh]">
+                                        <DialogContent
+                                            className="max-h-[80vh] !max-w-[600px] overflow-y-auto"
+                                            onOpenAutoFocus={(e) => e.preventDefault()}
+                                        >
                                             <DialogHeader>
-                                                <DialogTitle>
-                                                    Chỉnh sửa quy tắc phân công
-                                                </DialogTitle>
-                                                <DialogDescription>
-                                                </DialogDescription>
+                                                <DialogTitle>Chỉnh sửa quy tắc phân công</DialogTitle>
+                                                <DialogDescription></DialogDescription>
                                             </DialogHeader>
-                                            <AssignmentRuleDetail />
-                                            <DialogFooter>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="secondary">
-                                                        <Icon icon="material-symbols:arrow-back-rounded" />
-                                                        Quay về
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <Button>
-                                                    Lưu
-                                                </Button>
-                                            </DialogFooter>
+                                            <AssignmentRuleDetail
+                                                AssignmentRule={rule}
+                                                ruleList={ruleList}
+                                                setRuleList={setRuleList}
+                                                setIsDialogOpen={(open) =>
+                                                    open
+                                                        ? openEditDialog(rule.ruleName)
+                                                        : closeEditDialog(rule.ruleName)
+                                                }
+                                            />
                                         </DialogContent>
                                     </Dialog>
-                                    <Button variant="outline_destructive" className="group w-full">
+                                    <Button
+                                        variant="outline_destructive"
+                                        className="group w-full"
+                                        onClick={() => {
+                                            handleRemoveRule(rule.ruleName);
+                                        }}
+                                    >
                                         <Icon
                                             icon="material-symbols:delete-outline-rounded"
-                                            className="size-5 transition-all duration-300 group-hover:size-6" />
+                                            className="size-5 transition-all duration-300 group-hover:size-6"
+                                        />
                                         <span className="group-hover:font-semibold">Xóa</span>
                                     </Button>
                                 </div>
@@ -213,22 +226,41 @@ const AssignmentRuleList = () => {
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-col gap-2 border-2 rounded-lg p-4">
-                    <span className="text-xs font-semibold">Ưu tiên phân công nhân viên theo:</span>
-                    <RadioGroup value={selectedRadio} onValueChange={setSelectedRadio} >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem className="cursor-pointer" value="assignedShiftInWeek" id="assignedShiftInWeek" />
-                            <Label className="cursor-pointer" htmlFor="assignedShiftInWeek">Số ca làm trong tuần (tăng dần)</Label>
+                <div className="flex w-80 flex-col gap-2 rounded-lg border-2 p-4">
+                    <div className="flex w-full flex-col items-center justify-between gap-5">
+                        <div className="flex w-full flex-col gap-1">
+                            <span className="text-sm font-semibold">Chế độ phân công cho nhân viên toàn thời gian</span>
+                            <Select value={fullTimeOption} onValueChange={setFullTimeOption}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn chế độ phân công" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                    <SelectItem value="same">Như tuần trước</SelectItem>
+                                    <SelectItem value="rotate">Xoay tua buổi</SelectItem>
+                                    <SelectItem value="random">Ngẫu nhiên</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem className="cursor-pointer" value="employeePriority" id="employeePriority" />
-                            <Label className="cursor-pointer" htmlFor="employeePriority">Điểm ưu tiên (giảm dần)</Label>
+                        <div className="flex w-full flex-col gap-1">
+                            <span className="text-sm font-semibold">
+                                Ưu tiên phân công cho nhân viên bán thời gian theo
+                            </span>
+                            <Select value={partTimeOption} onValueChange={setPartTimeOption}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn loại ưu tiên" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                    <SelectItem value="0">Không ưu tiên</SelectItem>
+                                    <SelectItem value="1">Số ca được phân công ít nhất</SelectItem>
+                                    <SelectItem value="2">Điểm ưu tiên của nhân viên cao nhất</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                    </RadioGroup>
+                    </div>
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export default AssignmentRuleList;

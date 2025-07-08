@@ -3,13 +3,15 @@
 import Payment from '@/app/payment/page';
 import BookingStepper from '../_components/BookingStepper';
 
-const BookingProductPage = () => {
+const BookingPaymentPage = () => {
     return (
         <div>
-            <BookingStepper currentStep={4} />
+            <div className="p-4">
+                <BookingStepper currentStep={4} />
+            </div>
             <Payment />
         </div>
     );
 };
 
-export default BookingProductPage;
+export default BookingPaymentPage;

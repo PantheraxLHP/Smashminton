@@ -31,7 +31,7 @@ const SignupForm = () => {
     const form = useForm<SignupSchema>({
         resolver: zodResolver(signupSchema),
         defaultValues: {
-            dob: '1990-01-01T00:00:00Z',
+            dob: '1990-01-01',
             phonenumber: undefined,
         },
     });
@@ -53,35 +53,31 @@ const SignupForm = () => {
                 formData.append('studentCard', file);
             });
         }
-
         const response = await handleSignup(formData);
 
         if (response.ok) {
-            toast.success('Đăng ký thành công!');
-            router.push('/signin');
+            const studentCardStatus = response.data.studentCard;
+            if (studentCardStatus === false) {
+                toast.warning(
+                    'Tạo tài khoản thành công nhưng không quét được thẻ học sinh/sinh viên. Vui lòng đăng nhập để cập nhật thông tin thẻ',
+                );
+                router.push('/signin');
+            } else {
+                toast.success('Đăng ký thành công!');
+                router.push('/signin');
+            }
         } else {
-            toast.error('Đăng ký thất bại, vui lòng thử lại! ');
+            if (response.message === 'Email already existed') {
+                toast.error('Email đã tồn tại, vui lòng thử lại!');
+            } else {
+                toast.error('Đăng ký thất bại, vui lòng thử lại! ');
+            }
         }
     };
 
     return (
-            <div
-                className="
-                    w-[95%] 
-                    max-w-[600px] 
-                    bg-white/90 
-                    rounded-lg 
-                    p-6 sm:p-8 
-                    shadow-lg 
-                    backdrop-blur-sm 
-                    mt-5 mb-5
-
-                    mx-auto 
-                    lg:ml-[-30%] lg:mr-0 
-                "
-            >
-
-            <h2 className="mb-6 text-center text-2xl font-semibold text-primary-600">Đăng ký thành viên</h2>
+        <div className="mx-auto mt-5 mb-5 w-[95%] max-w-[600px] rounded-lg bg-white/90 p-6 shadow-lg backdrop-blur-sm sm:p-8 lg:mr-0 lg:ml-[-30%]">
+            <h2 className="text-primary-600 mb-6 text-center text-2xl font-semibold">Đăng ký thành viên</h2>
 
             <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -89,6 +85,7 @@ const SignupForm = () => {
                         { label: 'Tên đăng nhập*', name: 'username', type: 'text' },
                         { label: 'Mật khẩu*', name: 'password', type: 'password' },
                         { label: 'Xác nhận mật khẩu*', name: 'repassword', type: 'password' },
+                        { label: 'Email*', name: 'email', type: 'email' },
                         { label: 'Họ và Tên', name: 'fullname', type: 'text' },
                         { label: 'Ngày sinh', name: 'dob', type: 'date' },
                         { label: 'Số điện thoại', name: 'phonenumber', type: 'text' },
@@ -131,7 +128,10 @@ const SignupForm = () => {
                     {isStudent && (
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-medium text-black">
-                                TẢI LÊN ẢNH THẺ HỌC SINH - SINH VIÊN ( Mặt trước và mặt sau )
+                                TẢI LÊN ẢNH THẺ HỌC SINH - SINH VIÊN ( Mặt trước và mặt sau ).
+                                <br />
+                                Hiện tại chức năng quét thẻ tự động chỉ hỗ trợ cho thẻ sinh viên của trường Đại học Khoa
+                                học Tự nhiên, ĐHQG-HCM.
                             </label>
                             <div className="flex flex-col gap-4">
                                 <input
@@ -158,6 +158,7 @@ const SignupForm = () => {
                                                     alt={`Ảnh ${index + 1}`}
                                                     width={100}
                                                     height={100}
+                                                    style={{ height: 'auto' }}
                                                     className="rounded-md border border-gray-300 object-contain"
                                                 />
                                                 <button

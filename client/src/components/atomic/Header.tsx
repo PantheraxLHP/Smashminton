@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import ProfileIcon from './ProfileIcon';
@@ -20,6 +21,7 @@ interface HeaderProps {
 export default function Header({ menuItems = [], showLoginButton }: HeaderProps) {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
 
     const handleMenuClick = (label: string) => {
         setOpenMenu(openMenu === label ? null : label);
@@ -62,7 +64,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         onClick={() => handleMenuClick(item.label)}
                                         className={`flex cursor-pointer items-center gap-1 hover:text-gray-400 ${
                                             openMenu === item.label ? 'border-primary-500 border-b-2' : ''
-                                        }`}
+                                        } ${item.link && pathname === item.link ? 'text-primary' : ''}`}
                                     >
                                         {item.label}
                                         {openMenu === item.label ? (
@@ -72,7 +74,10 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                                         )}
                                     </button>
                                 ) : (
-                                    <Link href={item.link || '#'} className="hover:text-gray-400">
+                                    <Link
+                                        href={item.link || '#'}
+                                        className={`hover:text-gray-400 ${item.link && pathname === item.link ? 'text-primary' : ''}`}
+                                    >
                                         {item.label}
                                     </Link>
                                 )}
@@ -138,9 +143,16 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                 (item, index) =>
                     item.subMenu &&
                     openMenu === item.label && (
-                        <div key={index} className="hidden justify-center gap-50 bg-gray-100 p-2 shadow-md md:flex">
+                        <div
+                            key={index}
+                            className="flex flex-row items-center justify-center bg-gray-100 p-2 shadow-md"
+                        >
                             {item.subMenu.map((sub, i) => (
-                                <Link key={i} href={sub.link || '#'} className="hover:text-primary-600">
+                                <Link
+                                    key={i}
+                                    href={sub.link || '#'}
+                                    className={`hover:text-primary flex cursor-pointer items-center gap-1 sm:mx-5 md:mx-5 xl:mx-15 ${pathname === sub.link ? 'text-primary' : ''}`}
+                                >
                                     {sub.label}
                                 </Link>
                             ))}
