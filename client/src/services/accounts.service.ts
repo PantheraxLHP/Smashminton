@@ -33,8 +33,6 @@ export const updateProfile = async (accountId: number, formData: FormData) => {
             method: 'PUT',
             body: formData,
             credentials: 'include',
-            // @ts-expect-error - TypeScript doesn't recognize duplex option yet
-            duplex: 'half',
         });
 
         const result = await response.json();

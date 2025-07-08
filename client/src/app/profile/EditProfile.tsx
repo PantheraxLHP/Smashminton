@@ -51,19 +51,17 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
 
         const formDataToSend = new FormData();
 
-        // Add all form fields to FormData
-        if (formData.fullname) formDataToSend.append('fullname', formData.fullname);
-        if (formData.gender) formDataToSend.append('gender', formData.gender);
-        if (formData.email) formDataToSend.append('email', formData.email);
-        if (formData.phonenumber) formDataToSend.append('phonenumber', formData.phonenumber);
-        if (formData.address) formDataToSend.append('address', formData.address);
+        formDataToSend.append('fullname', formData.fullname || '');
+        formDataToSend.append('gender', formData.gender || '');
+        formDataToSend.append('email', formData.email || '');
+        formDataToSend.append('phonenumber', formData.phonenumber || '');
+        formDataToSend.append('address', formData.address || '');
+
         // Add dob if it exists, ensuring it's in ISO format
         if (formData.dob) {
             const dobDate = new Date(formData.dob);
             formDataToSend.append('dob', dobDate.toISOString());
         }
-
-        // Add avatar if it exists - make sure to use the correct field name 'avatarurl'
         if (formData.avatar) {
             formDataToSend.append('avatarurl', formData.avatar);
         }
