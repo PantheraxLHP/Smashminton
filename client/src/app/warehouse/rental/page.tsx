@@ -156,8 +156,6 @@ export default function RentalPriceManager() {
             return updated;
         });
     };
-    
-    
 
     const columns: Column<Service>[] = [
         {

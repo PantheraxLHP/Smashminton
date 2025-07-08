@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { updateEmployeeDto } from './dto/update-employee.dto';
 import { AddEmployeeDto } from './dto/add-employee.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -178,7 +177,183 @@ export class EmployeesService {
 			},
 		};
 	}
+	async searchEmployeeForManager(
+		query: string = '',
+		page: number = 1,
+		pageSize: number = 10,
+		filter?: {
+			role?: string[];
+			employee_type?: string[];
+			fingerprintid?: string[]
+		}
+	) {
+		// Xây dựng điều kiện where động
+		const where: any = {
+			accounts: {
+				status: 'Active',
+			},
+			AND: [
+				// Luôn loại bỏ admin
+				{
+					role: { not: 'admin' }
+				}
+			]
+		};
 
+		// Thêm search query theo tên
+		if (query && query.trim()) {
+			where.accounts = {
+				...where.accounts,
+				fullname: { contains: query.trim(), mode: 'insensitive' }
+			};
+		}
+
+		// Thêm role filter nếu có (nhưng vẫn loại bỏ admin)
+		if (filter?.role && Array.isArray(filter.role)) {
+			const nonAdminRoles = filter.role.filter(role => role !== 'admin');
+
+			if (nonAdminRoles.length > 0) {
+				where.AND.push({
+					role: { in: nonAdminRoles }
+				});
+			}
+		}
+
+		// Filter theo employee_type
+		if (filter?.employee_type && Array.isArray(filter.employee_type)) {
+			where.employee_type = { in: filter.employee_type };
+		}
+
+		// fingerprintid logic giống getAllEmployees
+		if (filter?.fingerprintid && Array.isArray(filter.fingerprintid)) {
+			const hasNull = filter.fingerprintid.includes('null');
+			const hasNotNull = filter.fingerprintid.includes('notnull');
+			if (hasNull && !hasNotNull) {
+				where.fingerprintid = null;
+			} else if (!hasNull && hasNotNull) {
+				where.NOT = { ...(where.NOT || {}), fingerprintid: null };
+			}
+		}
+
+		// Đếm tổng số bản ghi với filter TRƯỚC KHI query
+		const total = await this.prisma.employees.count({ where });
+		const totalPages = Math.ceil(total / pageSize);
+
+		// Reset page về 1 nếu vượt quá tổng số trang và có kết quả
+		if (page > totalPages && totalPages >= 0) {
+			page = 1;
+		}
+
+		// Tính skip sau khi đã reset page
+		const skip = (page - 1) * pageSize;
+
+		const employees = await this.prisma.employees.findMany({
+			skip: skip,
+			take: pageSize,
+			where,
+			select: {
+				// Employee fields
+				employeeid: true,
+				fingerprintid: true,
+				last_week_shift_type: true,
+				employee_type: true,
+				role: true,
+				cccd: true,
+				expiry_cccd: true,
+				taxcode: true,
+				salary: true,
+
+				// Account fields (flatten)
+				accounts: {
+					select: {
+						username: true,
+						fullname: true,
+						gender: true,
+						email: true,
+						dob: true,
+						phonenumber: true,
+						address: true,
+						avatarurl: true,
+						status: true,
+						createdat: true,
+					},
+				},
+				// Relations
+				bank_detail: {
+					select: {
+						bankdetailid: true,
+						bankname: true,
+						banknumber: true,
+						bankholder: true,
+						active: true,
+					}
+				},
+				reward_records: {
+					select: {
+						rewardrecordid: true,
+						rewarddate: true,
+						finalrewardamount: true,
+						rewardapplieddate: true,
+						rewardruleid: true,
+						employeeid: true,
+						reward_rules: {
+							select: {
+								rewardname: true,
+							}
+						}
+					},
+					where: {
+						rewarddate: {
+							gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+							lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+						},
+					},
+				},
+
+				penalty_records: {
+					select: {
+						penaltyrecordid: true,
+						penaltyruleid: true,
+						employeeid: true,
+						violationdate: true,
+						finalpenaltyamount: true,
+						penaltyapplieddate: true,
+						penalty_rules: {
+							select: {
+								penaltyname: true,
+							}
+						}
+					},
+					where: {
+						violationdate: {
+							gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+							lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+						},
+					}
+				},
+			},
+			orderBy: {
+				employeeid: 'asc',
+			},
+		});
+
+		// Làm phẳng với spread operator giống getAllEmployees
+		const flattenedEmployees: any[] = employees.map(employee => {
+			const { accounts, ...employeeData } = employee;
+			return {
+				...employeeData,
+				...accounts, // Spread tất cả fields từ accounts
+			};
+		});
+
+		return {
+			data: flattenedEmployees,
+			pagination: {
+				page: page,
+				totalPages: totalPages,
+			},
+		};
+	}
 	async getEmployeeRoles(employeeId: number): Promise<string> {
 		const employeeRole = await this.prisma.employees.findUnique({
 			where: { employeeid: employeeId },
@@ -427,7 +602,32 @@ export class EmployeesService {
 		searchTerm: string
 	): Promise<any[]> {
 		if (!searchTerm || searchTerm.trim().length === 0) {
-			return [];
+			// Trả về 5 nhân viên đầu tiên khi không có search term
+			const employees = await this.prisma.employees.findMany({
+				where: {
+					accounts: { status: 'Active' },
+					role: { not: 'admin' }
+				},
+				take: 5,
+				select: {
+					employeeid: true,
+					salary: true,
+					accounts: {
+						select: {
+							fullname: true,
+						}
+					}
+				},
+				orderBy: [
+					{ employeeid: 'asc' },
+					{ accounts: { fullname: 'asc' } }
+				]
+			});
+
+			return employees.map(employee => ({
+				search: `${employee.employeeid}-${employee.accounts.fullname}`,
+				salary: employee.salary
+			}));
 		}
 
 		const trimmedSearch = searchTerm.trim();

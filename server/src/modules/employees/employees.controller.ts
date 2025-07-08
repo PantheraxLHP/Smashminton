@@ -111,6 +111,100 @@ export class EmployeesController {
     );
   }
 
+  @Get('search-for-manager')
+  @ApiOperation({
+    summary: 'Search employees for manager',
+    description: 'Search and filter employees with advanced options for manager use. Supports search by name and multiple filters.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the filtered list of employees.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid query parameters provided.'
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Tìm kiếm theo tên nhân viên (case-insensitive)',
+    example: 'Nguyen Van',
+    type: String
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Số trang (bắt đầu từ 1)',
+    example: 1,
+    type: Number
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Số lượng items mỗi trang',
+    example: 10,
+    type: Number
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    description: 'Lọc theo vai trò (có thể truyền nhiều giá trị, loại bỏ admin tự động)',
+    type: String,
+    isArray: true,
+    example: ['employee', 'hr_manager']
+  })
+  @ApiQuery({
+    name: 'employee_type',
+    required: false,
+    description: 'Lọc theo loại nhân viên (có thể truyền nhiều giá trị)',
+    type: String,
+    isArray: true,
+    example: ['Full-time', 'Part-time']
+  })
+  @ApiQuery({
+    name: 'fingerprintid',
+    required: false,
+    description: 'Lọc theo trạng thái vân tay: null (chưa có), notnull (đã có)',
+    type: String,
+    isArray: true,
+    example: ['null', 'notnull']
+  })
+  async searchEmployeeForManager(
+    @Query('q') query: string = '',
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10',
+    @Query('role') role?: string[] | string,
+    @Query('employee_type') employee_type?: string[] | string,
+    @Query('fingerprintid') fingerprintid?: string[] | string
+  ) {
+    const pageNumber = parseInt(page) || 1;
+    const pageSizeNumber = parseInt(pageSize) || 10;
+
+    // Đảm bảo các filter là mảng nếu có nhiều giá trị, hoặc undefined nếu không truyền
+    const roleArr = Array.isArray(role) ? role : (role ? String(role).split(',') : undefined);
+    const employeeTypeArr = Array.isArray(employee_type) ? employee_type : (employee_type ? String(employee_type).split(',') : undefined);
+    const fingerprintidArr = Array.isArray(fingerprintid) ? fingerprintid : (fingerprintid ? String(fingerprintid).split(',') : undefined);
+
+    // Validation
+    if (pageNumber < 1) {
+      throw new BadRequestException('Page number must be greater than 0');
+    }
+    if (pageSizeNumber < 1) {
+      throw new BadRequestException('Page size must be between 1 and 50');
+    }
+
+    return await this.employeesService.searchEmployeeForManager(
+      query,
+      pageNumber,
+      pageSizeNumber,
+      {
+        role: roleArr,
+        employee_type: employeeTypeArr,
+        fingerprintid: fingerprintidArr,
+      }
+    );
+  }
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.employeesService.findOne(+id);
@@ -236,12 +330,12 @@ export class EmployeesController {
 
   @Get('search-employees')
   @ApiOperation({ summary: 'Search employees' })
-  @ApiQuery({ name: 'q', description: 'Search term', required: true })
+  @ApiQuery({ name: 'q', description: 'Search term', required: false })
   async searchEmployees(
     @Query('q') searchTerm: string,
   ) {
     return this.employeesService.searchEmployees(searchTerm);
   }
 
-  
+
 }
