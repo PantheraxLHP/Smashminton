@@ -28,7 +28,7 @@ export default function RentalPriceManager() {
     const [editData, setEditData] = useState<Service | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(12);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(2);
     const [editingItem, setEditingItem] = useState<Service | null>(null);
     const [editedPrice, setEditedPrice] = useState<string>('');
@@ -48,8 +48,7 @@ export default function RentalPriceManager() {
             setFilters((prev) => ({ ...prev, servicetype: [3] }));
             return;
         }
-
-        const response = await getProducts2(selectedTypeId, page, pageSize);
+        const response = await getProducts2(selectedTypeId, page, pageSize, undefined, filters.productname);
 
         if (response.ok) {
             const data = response.data.data;
@@ -78,35 +77,12 @@ export default function RentalPriceManager() {
 
     useEffect(() => {
         fetchData();
-    }, [filters.servicetype, page]);
+    }, [filters.servicetype, page, filters.productname]);
     
 
     useEffect(() => {
         setPage(1);
-    }, [filters.servicetype]);
-    
-    useEffect(() => {
-        let result = servicesState;
-
-        if (filters.productname) {
-            const keyword = filters.productname.toLowerCase();
-            result = result.filter((item) => item.productname.toLowerCase().includes(keyword));
-        }
-
-        if (Array.isArray(filters.servicetype) && filters.servicetype.length > 0) {
-            const selectedTypeId = filters.servicetype[0];
-            const typeMap: Record<number, string> = {
-                3: 'Thuê vợt',
-                4: 'Thuê giày',
-            };
-            const typeName = typeMap[selectedTypeId];
-            result = result.filter((item) => item.servicetype === typeName);
-        }
-
-        setFilteredData(result);
-    }, [filters, servicesState]);
-    
-    
+    }, [filters.servicetype, filters.productname]);
 
     const getUniqueOptions = (data: Service[], key: keyof Service) => {
         return Array.from(new Set(data.map((item) => item[key]))).filter(Boolean) as string[];
@@ -205,18 +181,18 @@ export default function RentalPriceManager() {
                 </div>
                 <DataTable
                     columns={columns}
-                    data={filteredData}
+                    data={servicesState}
                     renderImage={undefined}
                     filterConfig={[]}
                     filters={{}}
                     setFilters={() => { }}
                     onEdit={(index) => {
                         setSelectedIndex(index);
-                        setEditData(filteredData[index]);
+                        setEditData(servicesState[index]);
                         setIsAddShoeRacketModalOpen(true);
                     }}
                     onDelete={(index) => {
-                        const itemToDelete = filteredData[index];
+                        const itemToDelete = servicesState[index];
                         setServicesState((prev) => prev.filter((item) => item !== itemToDelete));
                     }}
                     showOptions={true}
@@ -224,7 +200,7 @@ export default function RentalPriceManager() {
                     showHeader
                     showDelete={false}
                     onOrder={(index) => {
-                        setSelectedOrderItem(filteredData[index]);
+                        setSelectedOrderItem(servicesState[index]);
                         setOpenOrderForm(true);
                     }}
                 />

@@ -33,7 +33,7 @@ export default function AccessoryPage() {
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<Accessory | null>(null);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(12);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
     const [filtervalueid, setFiltervalueid] = useState<number[]>([]);
     const defaultFilters = {
@@ -51,7 +51,7 @@ export default function AccessoryPage() {
             const apiData: Accessory[] = [];
 
             if (filters.type?.[0] === 1) {
-                response = await getProducts2(2, page, pageSize, filtervalueid);
+                response = await getProducts2(2, page, pageSize, filtervalueid, filters.name);
                 if (response.ok) {
                     response.data.data.forEach((item: any) => {
                         apiData.push({
@@ -69,7 +69,7 @@ export default function AccessoryPage() {
                     });
                 }
             } else {
-                response = await getProducts3(2, page, pageSize, filtervalueid);
+                response = await getProducts3(2, page, pageSize, filtervalueid, filters.name);
                 if (response.ok) {
                     response.data.data.forEach((item: any) => {
                         apiData.push({
@@ -98,12 +98,12 @@ export default function AccessoryPage() {
 
     useEffect(() => {
         fetchData();
-    }, [page, filtervalueid, filters.type?.[0]]);
+    }, [page, filtervalueid, filters.type?.[0], filters.name]);
 
     useEffect(() => {
         setPage(1);
         fetchData();
-    }, [filters.type, filtervalueid]);
+    }, [filters.type, filtervalueid, filters.name]);
 
     const fetchFilters = async () => {
         const response = await getProductFilters();
@@ -124,7 +124,7 @@ export default function AccessoryPage() {
 
             setFiltersConfig([
                 { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-                { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                { filterid: 'name', filtertype: 'search', filterlabel: 'Tên sản phẩm' },
                 {
                     filterid: 'type',
                     filtertype: 'radio',
@@ -154,11 +154,10 @@ export default function AccessoryPage() {
 
     useEffect(() => {
         const result = data.filter((item) => {
-            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesPrice = !filters.price ||
                 filters.price.length === 0 ||
                 (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
-            return matchesName && matchesPrice;
+            return matchesPrice;
         });
         setFilteredData(result);
     }, [filters, data]);
