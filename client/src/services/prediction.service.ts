@@ -1,4 +1,4 @@
-const API_BASE = process.env.SERVER || 'http://localhost:8000';
+import { getServerUrl } from './server.service';
 
 export interface PredictionRatioItem {
     id: string;
@@ -27,6 +27,9 @@ export interface PredictionData {
 
 export async function getPredictionData(filters: PredictionFilters): Promise<PredictionData> {
     try {
+        // Get server URL dynamically
+        const API_BASE = await getServerUrl();
+
         const params = new URLSearchParams({
             type: filters.type,
             year: filters.year.toString(),
@@ -127,6 +130,9 @@ export interface PredictionTableFilters {
 
 export async function getPredictionDataTable(filters: PredictionTableFilters): Promise<PredictionTable[]> {
     try {
+        // Get server URL dynamically
+        const API_BASE = await getServerUrl();
+
         const params = new URLSearchParams({
             filter_type: filters.type,
         });

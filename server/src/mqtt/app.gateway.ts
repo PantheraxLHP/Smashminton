@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
-    namespace: '/app', // Generic namespace for all app events
+    namespace: '/app',
     cors: {
         origin: "*",
         methods: ["GET", "POST"]

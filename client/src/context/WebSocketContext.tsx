@@ -1,10 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/context/AuthContext';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { getServerUrl } from '@/services/server.service';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
 interface WebSocketContextType {
     isConnected: boolean;
     lastMessage: any;
@@ -31,7 +31,15 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
     const wsNamespace = '/app';
-    const server = process.env.NEXT_PUBLIC_SERVER || 'http://localhost:8000';
+    const [server, setServer] = useState<string>('');
+    useEffect(() => {
+        const getServer = async () => {
+            const response = await getServerUrl();
+            setServer(response);
+        };
+        getServer();
+    }, []);
+
     const { isConnected, lastMessage, sendMessage } = useWebSocket(server, wsNamespace);
     const { user } = useAuth();
 
