@@ -66,10 +66,13 @@ export class SuppliersService {
       orderBy: { supplierid: 'asc' }
     });
 
-    const total = allSuppliers.length;
+    // 🔥 Chỉ lấy những thằng có supply_products.length > 0
+    const filtered = allSuppliers.filter(supplier => supplier.supply_products.length > 0);
+
+    const total = filtered.length;
     const totalPages = Math.ceil(total / limit);
 
-    const paginatedSuppliers = allSuppliers.slice(skip, skip + limit);
+    const paginatedSuppliers = filtered.slice(skip, skip + limit);
 
     return {
       data: paginatedSuppliers,
