@@ -1,13 +1,26 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export const getSuppliers = async (page: number, pageSize: number) => {
+export const getSuppliers = async (
+    page: number,
+    pageSize: number,
+    q1?: string, // supplier name
+    q2?: string  // product name
+) => {
     try {
         const queryParams = new URLSearchParams({
             page: page.toString(),
             pageSize: pageSize.toString(),
         });
 
-        const response = await fetch(`/api/suppliers/get-suppliers?${queryParams}`, {
+        if (q1 && q1.trim() !== '') {
+            queryParams.set('q1', q1.trim());
+        }
+
+        if (q2 && q2.trim() !== '') {
+            queryParams.set('q2', q2.trim());
+        }
+
+        const response = await fetch(`/api/suppliers/get-suppliers?${queryParams.toString()}`, {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
         });

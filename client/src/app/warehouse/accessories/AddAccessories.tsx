@@ -363,7 +363,7 @@ export default function AccessoryModal({ open, onClose, onSubmit, editData, show
                                     {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
                                 </div>
                             )}
-                            <div className="mt-4">
+                            <div className="">
                                 <label className="block text-sm font-medium mb-1">Chọn nhà cung cấp</label>
                                 <div className="flex flex-col sm:flex-row gap-4 items-center">
                                     <select

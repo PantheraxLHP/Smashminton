@@ -198,13 +198,13 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
                 <div className="mt-6 flex justify-end gap-3">
                     <button
                         onClick={handleExit}
-                        className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 hover:bg-gray-100 transition"
+                        className="px-4 py-2 rounded border border-gray-400 text-gray-700 hover:bg-gray-100 transition"
                     >
                         Thoát
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition"
+                        className="px-4 py-2 rounded bg-primary-500 text-white hover:bg-primary-600 transition"
                     >
                         Tạo
                     </button>
