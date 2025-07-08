@@ -14,6 +14,8 @@ export const useWebSocket = (url: string, namespace?: string) => {
     const socket = useRef<Socket | null>(null);
 
     useEffect(() => {
+        if (!url) return;
+        
         const connectSocket = () => {
             try {
                 const socketUrl = namespace ? `${url}${namespace}` : url;

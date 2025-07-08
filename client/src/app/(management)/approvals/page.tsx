@@ -5,7 +5,7 @@ import Filter, { FilterConfig } from '@/components/atomic/Filter';
 import ApprovalList from './ApprovalList';
 
 const filters: FilterConfig[] = [
-    { filterid: 'search', filterlabel: 'Tìm kiếm tên/mã nhân viên', filtertype: 'search' },
+    { filterid: 'query', filterlabel: 'Tìm kiếm tên/mã nhân viên', filtertype: 'search' },
     { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
     {
         filterid: 'monthyear',
