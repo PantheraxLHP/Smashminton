@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import PayOS from '@payos/node';
-import { cacheOrderDTO } from '../orders/dto/create-cache-order.dto';
 import { ConfigService } from '@nestjs/config';
 import crypto from 'crypto';
 import { paymentData } from 'src/interfaces/payment.interface';
@@ -13,7 +12,6 @@ import { CacheService } from '../cache/cache.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { Booking } from 'src/interfaces/bookings.interface';
 import { Order } from 'src/interfaces/orders.interface';
-import { query } from 'express';
 
 @Injectable()
 export class PaymentService {

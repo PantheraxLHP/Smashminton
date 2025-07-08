@@ -147,6 +147,7 @@ export class AccountsService {
         return this.employeeService.getEmployeeRoles(employeeId);
     }
     async update(id: number, updateAccountDto: UpdateAccountDto, file: Express.Multer.File): Promise<any> {
+        try{
         const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
         if (!existingAccount) {
             throw new BadRequestException('Account not found');
@@ -176,8 +177,11 @@ export class AccountsService {
         if (!updatedAccount) {
             throw new BadRequestException('Failed to update account');
         }
-
+        console.log(updatedAccount);
         return updatedAccount;
+        } catch (error) {
+            throw new BadRequestException('Failed to update account');
+        }
     }
 
     remove(id: number) {

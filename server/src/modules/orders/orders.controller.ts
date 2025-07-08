@@ -1,14 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { addProductOrderDto, cacheOrderDTO, deleteProductOrderDto } from './dto/create-cache-order.dto';
+import { addProductOrderDto, deleteProductOrderDto } from './dto/create-cache-order.dto';
 import { CacheOrder } from 'src/interfaces/orders.interface';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+
+@ApiTags('Orders')
+@UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) { }
 
     @Post()
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new booking' })
     @ApiBody({ type: CreateOrderDto })
     @ApiResponse({ status: 201, description: 'Booking created successfully' })
@@ -18,6 +23,7 @@ export class OrdersController {
     }
 
     @Post('cache-order')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Add order to redis' })
     @ApiBody({ type: addProductOrderDto })
     @ApiResponse({ status: 201, description: 'Add successful' })
@@ -27,6 +33,7 @@ export class OrdersController {
     }
 
     @Get('cache-order')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Get order from redis' })
     @ApiQuery({ name: 'username', type: String, example: 'nguyenvun', description: 'Tên người dùng' })
     @ApiResponse({ status: 200, description: 'Get successful' })
@@ -36,6 +43,7 @@ export class OrdersController {
     }
 
     @Delete('cache-order')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete product order from redis' })
     @ApiBody({ type: deleteProductOrderDto })
     @ApiResponse({ status: 200, description: 'Delete successful' })
@@ -46,6 +54,7 @@ export class OrdersController {
     }
 
     @Delete('remove-rental-products/:username')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Delete all rental products from user order cache',
         description: 'Delete all rental products from user order cache by username',

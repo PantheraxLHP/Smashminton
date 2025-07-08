@@ -1,11 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors, ParseIntPipe, UseGuards, Logger } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import {
     ApiTags,
     ApiBadRequestResponse,
-    ApiCreatedResponse,
     ApiOkResponse,
     ApiOperation,
     ApiNotFoundResponse,
@@ -13,21 +12,22 @@ import {
     ApiBody,
     ApiParam,
     ApiResponse,
+    ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CustomerService } from '../customers/customers.service';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @ApiTags('Accounts')
+@UseGuards(JwtAuthGuard)
 @Controller('accounts')
 export class AccountsController {
     constructor(
         private readonly accountsService: AccountsService,
-        private readonly cloudinaryService: CloudinaryService,
     ) { }
 
     @Post('customer')
+    @ApiBearerAuth()
     @UseInterceptors(FilesInterceptor('studentCard', 10, { // Cho phép tối đa 10 file
         limits: {
             fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
@@ -51,6 +51,7 @@ export class AccountsController {
     }
 
     @Put(':id/password')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Change account password' })
     @ApiBody({
         description: 'Change account password',
@@ -67,6 +68,7 @@ export class AccountsController {
     }
 
     @Get()
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Find all accounts' })
     @ApiOkResponse({ description: 'Found all accounts' })
     async findAll() {
@@ -78,6 +80,7 @@ export class AccountsController {
     }
 
     @Get(':id')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Find one account' })
     @ApiOkResponse({ description: 'Found the account' })
     @ApiBadRequestResponse({ description: 'Invalid ID' })
@@ -90,6 +93,7 @@ export class AccountsController {
         return account;
     }
     @Put(':id')
+    @ApiBearerAuth()
     @UseInterceptors(
         FileInterceptor('avatarurl', {
             limits: {
@@ -118,6 +122,7 @@ export class AccountsController {
         @Body() updateAccountDto: UpdateAccountDto,
         @UploadedFile() file: Express.Multer.File,
     ) {
+        Logger.log(updateAccountDto);
         if (!updateAccountDto) {
             throw new BadRequestException('Invalid account data');
         }
@@ -125,6 +130,7 @@ export class AccountsController {
     }
 
     @Delete(':id')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete an account' })
     @ApiOkResponse({ description: 'Account was deleted' })
     @ApiNotFoundResponse({ description: 'Account not found' })
@@ -137,6 +143,7 @@ export class AccountsController {
     }
 
     @Put(':id/student-card')
+    @ApiBearerAuth()
     @UseInterceptors(FilesInterceptor('files', 2)) // Max 2 files
     @ApiOperation({
         summary: 'Update student card with OCR',

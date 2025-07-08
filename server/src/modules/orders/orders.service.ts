@@ -1,11 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { CacheService } from '../cache/cache.service';
-import { addProductOrderDto, cacheOrderDTO } from './dto/create-cache-order.dto';
+import { addProductOrderDto } from './dto/create-cache-order.dto';
 import { CacheOrder, CacheProductOrder } from 'src/interfaces/orders.interface';
-import { CacheBooking, CacheCourtBooking } from 'src/interfaces/bookings.interface';
 import { ProductsService } from '../products/products.service';
-import { Create } from 'sharp';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProductBatchService } from '../product_batch/product_batch.service';
