@@ -9,12 +9,15 @@ export async function GET(request: NextRequest) {
 
         const searchParams = request.nextUrl.searchParams;
         const params = new URLSearchParams(searchParams).toString();
-        const response = await fetch(`${process.env.SERVER}/api/v1/reward-records/employees?${params}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        const response = await fetch(
+            `${process.env.SERVER}/api/v1/reward-records/search-employees-in-reward-records?${params}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
             },
-        });
+        );
 
         if (!response.ok) {
             return ApiResponse.error(`HTTP error! Status: ${response.status}`);

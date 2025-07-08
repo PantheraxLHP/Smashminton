@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
         const searchParams = request.nextUrl.searchParams;
         const params = new URLSearchParams(searchParams).toString();
-        const response = await fetch(`${process.env.SERVER}/api/v1/employees?${params}`, {
+        const response = await fetch(`${process.env.SERVER}/api/v1/employees/search-for-manager?${params}`, {
             headers: {
                 'Content-Type': 'application/json',
                 ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
