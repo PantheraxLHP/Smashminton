@@ -1,14 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, Put, UseGuards } from '@nestjs/common';
 import { BankDetailService } from './bank_detail.service';
 import { CreateBankDetailDto } from './dto/create-bank_detail.dto';
 import { UpdateBankDetailDto } from './dto/update-bank_detail.dto';
-import { ApiOperation, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from 'src/guards/role.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
 @Controller('bank-detail')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class BankDetailController {
   constructor(private readonly bankDetailService: BankDetailService) { }
 
   @Post()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create new bank detail',
   })
@@ -33,6 +39,8 @@ export class BankDetailController {
   }
 
   @Get('employee/:employeeid')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get all bank details by employee ID',
     description: 'Retrieve all bank details associated with a specific employee'
@@ -71,6 +79,8 @@ export class BankDetailController {
   // }
 
   @Put(':employeeid')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Update bank detail by employee ID',
     description: 'Update the bank detail for a specific employee'
@@ -98,6 +108,8 @@ export class BankDetailController {
   }
 
   @Delete(':employeeid')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Remove bank detail by employee ID',
     description: 'Deactivate the bank detail for a specific employee'
