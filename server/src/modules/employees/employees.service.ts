@@ -600,20 +600,32 @@ export class EmployeesService {
 						password: hashedPassword,
 						fullname: fullname,
 						email: email,
+						accounttype: 'Employee',
 						dob: new Date(dob),
 						status: 'Active',
 						createdat: new Date(),
 					}
 				});
 
-				// Tạo employee với accountid
-				const newEmployee = await prisma.employees.create({
-					data: {
-						employeeid: newAccount.accountid,
-						role: role,
-						employee_type: 'Full-time', // Mặc định
-					}
-				});
+				let newEmployee;
+				if (role === 'employee') {
+					newEmployee = await prisma.employees.create({
+						data: {
+							employeeid: newAccount.accountid,
+							role: role,
+							employee_type: 'Part-time', // Mặc định
+						}
+					});
+				} else {
+					// Tạo employee với accountid
+					newEmployee = await prisma.employees.create({
+						data: {
+							employeeid: newAccount.accountid,
+							role: role,
+							employee_type: 'Full-time', // Mặc định
+						}
+					});
+				}
 
 				return {
 					account: newAccount,
