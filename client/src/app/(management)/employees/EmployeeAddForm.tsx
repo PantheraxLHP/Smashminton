@@ -32,6 +32,10 @@ const EmployeeAddForm = ({ onSuccess }: EmployeeAddFormProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!employeeData.role) {
+            toast.warning('Vui lòng chọn vai trò cho nhân viên');
+            return;
+        }
         setIsSubmitting(true);
         const result = await postEmployee(employeeData);
         if (result.ok) {

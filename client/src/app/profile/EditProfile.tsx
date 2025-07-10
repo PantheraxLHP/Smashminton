@@ -156,6 +156,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-1"
                                 >
+                                    <option value="">-- Chọn giới tính --</option>
                                     <option value="Nam">Nam</option>
                                     <option value="Nữ">Nữ</option>
                                     <option value="Khác">Khác</option>
