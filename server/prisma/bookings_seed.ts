@@ -69,6 +69,7 @@ async function main() {
             { date: new Date('2025-08-15'), starttime: new Date('2025-08-15 06:00:00'), endtime: new Date('2025-08-15 09:30:00'), duration: 3.5, bookingid: bookings[0].bookingid, courtid: 6 },
             { date: new Date('2025-08-15'), starttime: new Date('2025-08-15 06:00:00'), endtime: new Date('2025-08-15 10:00:00'), duration: 4, bookingid: bookings[0].bookingid, courtid: 7 },
             { date: new Date('2025-08-15'), starttime: new Date('2025-08-15 06:00:00'), endtime: new Date('2025-08-15 10:30:00'), duration: 4.5, bookingid: bookings[0].bookingid, courtid: 8 },
+            { date: new Date('2025-08-15'), starttime: new Date('2025-08-15 06:00:00'), endtime: new Date('2025-08-15 11:00:00'), duration: 5, bookingid: bookings[0].bookingid, courtid: 9 },
 
             // Trường hợp 3: Một số khung giờ bị block một phần
             { date: new Date('2025-08-15'), starttime: new Date('2025-08-15 13:30:00'), endtime: new Date('2025-08-15 15:30:00'), duration: 2, bookingid: bookings[1].bookingid, courtid: 1 },
