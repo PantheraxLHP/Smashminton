@@ -1,20 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException, UseGuards } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('suppliers')
 export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) { }
 
   @Post('new-supplier')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new supplier with productid + costprice' })
   create(@Body() dto: CreateSupplierWithProductsDto) {
     return this.suppliersService.createSupplierWithProducts(dto);
   }
 
   @Get('all-suppliers')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all suppliers' })
   @ApiQuery({ name: 'q1', required: false, type: String, description: 'Search keyword for suppliername' })
   @ApiQuery({ name: 'q2', required: false, type: String, description: 'Search keyword for productname' })
@@ -39,12 +47,16 @@ export class SuppliersController {
   }
 
   @Get(':productid/suppliers')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Find supplierid, suppliername, costprice' })
   getSuppliersByProduct(@Param('productid') productid: string) {
     return this.suppliersService.findSuppliersByProduct(+productid);
   }
 
   @Patch(':supplierid')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update supplier & update/insert costprice' })
   // @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -57,12 +69,16 @@ export class SuppliersController {
   }
 
   @Patch('delete-supplier/:supplierid')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete supplier (set isdeleted=true)' })
   deleteProduct(@Param('supplierid') supplierid: number) {
     return this.suppliersService.deleteSupplier(+supplierid);
   }
 
   @Delete('supply-products')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete supply_products' })
   async deleteSupplyProduct(
     @Query('productid') productid: number,

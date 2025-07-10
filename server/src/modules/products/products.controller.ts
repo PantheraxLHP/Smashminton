@@ -1,16 +1,18 @@
-import { Controller, Get, Post, Body, Query, Param, Delete, Put, NotFoundException, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, UploadedFile, UseInterceptors, Patch, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductServiceDto } from './dto/update-product.dto';
 import { UpdateFoodAccessoryDto } from './dto/update-product.dto';
 import { UpdateFoodAccessoryWithoutBatchDto } from './dto/update-product.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CacheService } from '../cache/cache.service';
-import { Public } from 'src/decorators/public.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('products')
-
 export class ProductsController {
     constructor(
         private readonly productsService: ProductsService,
@@ -18,6 +20,8 @@ export class ProductsController {
     ) { }
 
     @Post('new-product')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Create new product with value + productfilterid' })
     @UseInterceptors(
         FileInterceptor('productimgurl', {
@@ -52,6 +56,8 @@ export class ProductsController {
     }
 
     @Get('all-products')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Get all products' })
     getAllBasicProducts() {
         return this.productsService.findAllBasicProducts();
@@ -59,6 +65,8 @@ export class ProductsController {
 
     @Get('all-products-with-batches')
     @ApiOperation({ summary: 'Get all products with batches' })
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     getProductsWithBatches(@Query('page') page: string = '1',
         @Query('pageSize') pageSize: string = '12') {
         const pageNumber = parseInt(page) || 1;
@@ -74,6 +82,8 @@ export class ProductsController {
     }
 
     @Patch(':id/update-services')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Update product-services' })
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(
@@ -99,6 +109,8 @@ export class ProductsController {
 
 
     @Patch('update-food-acccessory/:productid/:batchid')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Update food and accessory with discount (optional)'})
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(
@@ -124,6 +136,8 @@ export class ProductsController {
     }
 
     @Patch('update-food-acccessory-without-batch/:productid')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Update food and accessory without batch' })
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(
@@ -148,6 +162,8 @@ export class ProductsController {
     }
 
     @Patch('delete-product/:productid')
+    @Roles('wh_manager')
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Delete product (set isdeleted=true)' })
     deleteProduct(@Param('productid') productid: number) {
         return this.productsService.deleteProduct(+productid);

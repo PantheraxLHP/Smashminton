@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, Delete, UseGuards } from '@nestjs/common';
 import { ProductTypesService } from './product_types.service';
 import { CreateProductTypeDto } from './dto/create-product_type.dto';
 import { UpdateProductTypeDto } from './dto/update-product_type.dto';
@@ -10,13 +10,20 @@ import {
   ApiOperation,
   ApiNotFoundResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Public } from 'src/decorators/public.decorator';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('product-types')
 export class ProductTypesController {
   constructor(private readonly productTypesService: ProductTypesService) { }
 
   @Get('all-product-filters')
+  @Public()
   findAllProductFilters() {
     return this.productTypesService.findAllProductFilters();
   }
@@ -27,6 +34,7 @@ export class ProductTypesController {
   }
 
   @Get('/:id/products')
+  @Public()
   @ApiQuery({
     name: 'productfiltervalue',
     required: false,
@@ -54,6 +62,8 @@ export class ProductTypesController {
   }
 
   @Get('/:id/products/v2')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'productfiltervalue',
     required: false,
@@ -86,6 +96,8 @@ export class ProductTypesController {
 
 
   @Get('/:id/products/v3')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'productfiltervalue',
     required: false,
@@ -114,8 +126,6 @@ export class ProductTypesController {
       : undefined;
     return this.productTypesService.findAllProductsFromProductType_V3(+id, filterValues, q, pageNumber, pageSizeNumber);
   }
-
-
 }
 
 

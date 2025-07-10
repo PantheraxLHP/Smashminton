@@ -1,14 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiOperation, ApiBody } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PurchaseOrdersService } from './purchase_orders.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase_order.dto';
 import { UpdateDeliverySuccessfullyDto } from './dto/update-purchase_order.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) { }
 
   @Post('new-purchase-order')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create purchase_order attached batch' })
   @ApiBody({
     description: 'Update supplier data',
@@ -19,6 +25,8 @@ export class PurchaseOrdersController {
   }
 
   @Get('all-purchase-orders')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all purchase_order' })
   findAllPurchaseOrders(
     @Query('page') page: string = '1',
@@ -37,11 +45,15 @@ export class PurchaseOrdersController {
   }
 
   @Get(':id')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.purchaseOrdersService.findOne(+id);
   }
 
   @Patch('successful-delivery/:id')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Confirm purchase_order successfully' })
   @ApiBody({ description: 'fill', type: UpdateDeliverySuccessfullyDto })
   async confirmPurchaseOrderDelivery(
@@ -52,12 +64,16 @@ export class PurchaseOrdersController {
   }
 
   @Patch('cancel-purchaseOrder/:poid')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel purchase-order' })
   cancelPurchaseOrder(@Param('poid') poid: number) {
     return this.purchaseOrdersService.cancelPurchaseOrder(+poid);
   }
 
   @Delete(':id')
+  @Roles('wh_manager')
+  @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.purchaseOrdersService.remove(+id);
   }
