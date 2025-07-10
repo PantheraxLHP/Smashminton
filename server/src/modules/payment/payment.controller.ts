@@ -4,6 +4,7 @@ import { PaymentService } from './payment.service';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { paymentData } from 'src/interfaces/payment.interface';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Public } from 'src/decorators/public.decorator';
 
 @ApiTags('Payment')
 @UseGuards(JwtAuthGuard)
@@ -12,6 +13,7 @@ export class PaymentsController {
 	constructor(private readonly paymentsService: PaymentService) { }
 
 	@Post('success-payment')
+	@ApiBearerAuth()
 	@ApiOperation({ summary: 'Handle successful payment', description: 'Process successful payment and create order, booking, receipt' })
 	@ApiResponse({ status: 201, description: 'Payment processed successfully' })
 	@ApiResponse({ status: 400, description: 'Bad request' })
@@ -52,6 +54,7 @@ export class PaymentsController {
 	}
 
 	@Post('momo/transaction-status/:orderId')
+	@ApiBearerAuth()
 	@ApiOperation({ summary: 'Check MoMo transaction status', description: 'Check the status of a MoMo transaction using orderId' })
 	@ApiResponse({ status: 200, description: 'Transaction status retrieved successfully' })
 	@ApiResponse({ status: 500, description: 'Failed to check transaction status' })
@@ -68,6 +71,7 @@ export class PaymentsController {
 	}
 
 	@Post('momo/ipn')
+	@ApiBearerAuth()
 	async momoIPN(@Body() body: any, @Res() res: Response) {
 		try {
 			console.log('Received MoMo IPN:', body);
@@ -82,6 +86,7 @@ export class PaymentsController {
 	}
 
 	@Post('momo/payment-link')
+	@ApiBearerAuth()
 	@ApiOperation({ summary: 'Create MoMo payment link', description: 'Generate a payment link using MoMo' })
 	@ApiResponse({ status: 200, description: 'Payment link created successfully' })
 	@ApiResponse({ status: 500, description: 'Failed to create payment link' })
@@ -129,6 +134,7 @@ export class PaymentsController {
 	}
 
 	@Post('payos/payment-link')
+	@ApiBearerAuth()
 	@ApiOperation({ summary: 'Create payment link', description: 'Generate a payment link using PayOS' })
 	@ApiResponse({ status: 201, description: 'Payment link created successfully' })
 	@ApiResponse({ status: 400, description: 'Bad request' })
@@ -162,6 +168,7 @@ export class PaymentsController {
 	}
 
 	@Get('receipt-detail-by-employee-or-customer')
+	@ApiBearerAuth()
 	@ApiQuery({ name: 'employeeid', required: false, type: Number, example: 2 })
 	@ApiQuery({ name: 'customerid', required: false, type: Number, example: 16 })
 	async getReceiptDetailByEmployeeOrCustomer(
