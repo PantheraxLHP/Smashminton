@@ -1,18 +1,35 @@
 #!/bin/bash
 
+# =============================================================================
 # Smashminton Prediction Server Setup Script
 # Compatible with Windows (Git Bash/WSL) and Linux
+# =============================================================================
 
 set -e  # Exit on any error
 
-# Colors for output
+# =============================================================================
+# CONFIGURATION AND CONSTANTS
+# =============================================================================
+
+# Terminal colors for pretty output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to print colored output
+# Global variables (will be set during execution)
+OS=""
+PYTHON_CMD=""
+PIP_CMD=""
+ACTIVATE_CMD=""
+PYTHON_IN_VENV=""
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Print colored status messages
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -29,7 +46,11 @@ print_section() {
     echo -e "\n${BLUE}=== $1 ===${NC}"
 }
 
-# Detect operating system
+# =============================================================================
+# SYSTEM DETECTION FUNCTIONS
+# =============================================================================
+
+# Detect the operating system
 detect_os() {
     case "$(uname -s)" in
         Linux*)     OS="Linux";;
@@ -40,7 +61,7 @@ detect_os() {
         *)          OS="Unknown";;
     esac
     
-    # Additional Windows detection
+    # Additional Windows detection for edge cases
     if [[ "$OS" == "Unknown" && (-n "$WINDIR" || -n "$windir") ]]; then
         OS="Windows"
     fi
@@ -48,7 +69,7 @@ detect_os() {
     print_status "Detected OS: $OS"
 }
 
-# Function to get the correct Python command
+# Find the correct Python command
 get_python_cmd() {
     if command -v python3 &> /dev/null; then
         PYTHON_CMD="python3"
@@ -61,7 +82,7 @@ get_python_cmd() {
     print_status "Using Python command: $PYTHON_CMD"
 }
 
-# Function to get the correct pip command
+# Find the correct pip command
 get_pip_cmd() {
     if command -v pip3 &> /dev/null; then
         PIP_CMD="pip3"
@@ -73,8 +94,12 @@ get_pip_cmd() {
     print_status "Using pip command: $PIP_CMD"
 }
 
-# Function to activate virtual environment
-activate_venv() {
+# =============================================================================
+# VIRTUAL ENVIRONMENT FUNCTIONS
+# =============================================================================
+
+# Set the correct virtual environment paths based on OS
+set_venv_paths() {
     if [[ "$OS" == "Windows" || "$OS" == "Cygwin" || "$OS" == "MinGw" || "$OS" == "Msys" ]]; then
         ACTIVATE_CMD="venv/Scripts/activate"
         PYTHON_IN_VENV="venv/Scripts/python"
@@ -82,6 +107,11 @@ activate_venv() {
         ACTIVATE_CMD="venv/bin/activate"
         PYTHON_IN_VENV="venv/bin/python"
     fi
+}
+
+# Activate the virtual environment
+activate_venv() {
+    set_venv_paths
     
     if [[ -f "$ACTIVATE_CMD" ]]; then
         print_status "Activating virtual environment..."
@@ -92,14 +122,16 @@ activate_venv() {
     fi
 }
 
-# Function to create virtual environment
+# Create a new virtual environment
 create_venv() {
     print_section "Creating Virtual Environment"
     
+    # Check if virtual environment already exists
     if [[ -d "venv" ]]; then
         print_warning "Virtual environment already exists"
         read -p "Do you want to recreate it? (y/N): " -n 1 -r
         echo
+        
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             print_status "Removing existing virtual environment..."
             rm -rf venv
@@ -109,6 +141,7 @@ create_venv() {
         fi
     fi
     
+    # Create new virtual environment
     print_status "Creating new virtual environment..."
     $PYTHON_CMD -m venv venv
     
@@ -120,15 +153,21 @@ create_venv() {
     fi
 }
 
-# Function to install dependencies
+# =============================================================================
+# DEPENDENCY MANAGEMENT FUNCTIONS
+# =============================================================================
+
+# Install Python dependencies from requirements.txt
 install_dependencies() {
     print_section "Installing Dependencies"
     
+    # Check if requirements.txt exists
     if [[ ! -f "requirements.txt" ]]; then
         print_error "requirements.txt not found"
         exit 1
     fi
     
+    # Activate virtual environment and install dependencies
     activate_venv
     
     print_status "Upgrading pip..."
@@ -145,12 +184,17 @@ install_dependencies() {
     fi
 }
 
-# Function to apply database migrations
+# =============================================================================
+# DATABASE FUNCTIONS
+# =============================================================================
+
+# Apply Django database migrations
 apply_migrations() {
     print_section "Applying Database Migrations"
     
     activate_venv
     
+    # Check if manage.py exists
     if [[ ! -f "manage.py" ]]; then
         print_error "manage.py not found. Make sure you're in the correct directory"
         exit 1
@@ -167,23 +211,11 @@ apply_migrations() {
     fi
 }
 
-# Function to create superuser
-create_superuser() {
-    print_section "Creating Superuser (Optional)"
-    
-    read -p "Do you want to create a superuser? (y/N): " -n 1 -r
-    echo
-    
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        activate_venv
-        print_status "Creating superuser..."
-        $PYTHON_IN_VENV manage.py createsuperuser
-    else
-        print_status "Skipping superuser creation"
-    fi
-}
+# =============================================================================
+# SERVER FUNCTIONS
+# =============================================================================
 
-# Function to run development server
+# Start the Django development server
 run_server() {
     print_section "Starting Development Server"
     
@@ -206,7 +238,11 @@ run_server() {
     $PYTHON_IN_VENV manage.py runserver
 }
 
-# Function to display usage
+# =============================================================================
+# HELP AND USAGE FUNCTIONS
+# =============================================================================
+
+# Display script usage information
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -215,24 +251,26 @@ show_usage() {
     echo "  --skip-venv    Skip virtual environment creation"
     echo "  --skip-deps    Skip dependency installation"
     echo "  --skip-migrate Skip database migrations"
-    echo "  --skip-super   Skip superuser creation"
     echo "  --skip-server  Skip starting the development server"
-    echo "  --full-auto    Run full setup without prompts (except superuser)"
+    echo "  --full-auto    Run full setup without prompts"
     echo ""
 }
 
-# Main setup function
+# =============================================================================
+# MAIN SETUP FUNCTION
+# =============================================================================
+
 main() {
     print_section "Smashminton Prediction Server Setup"
     
-    # Parse command line arguments
+    # Initialize command line flags
     SKIP_VENV=false
     SKIP_DEPS=false
     SKIP_MIGRATE=false
-    SKIP_SUPER=false
     SKIP_SERVER=false
     FULL_AUTO=false
     
+    # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
             -h|--help)
@@ -251,10 +289,6 @@ main() {
                 SKIP_MIGRATE=true
                 shift
                 ;;
-            --skip-super)
-                SKIP_SUPER=true
-                shift
-                ;;
             --skip-server)
                 SKIP_SERVER=true
                 shift
@@ -271,12 +305,12 @@ main() {
         esac
     done
     
-    # Detect OS and Python
+    # System detection and setup
     detect_os
     get_python_cmd
     get_pip_cmd
     
-    # Run setup steps
+    # Run setup steps based on flags
     if [[ "$SKIP_VENV" != true ]]; then
         create_venv
     fi
@@ -289,10 +323,7 @@ main() {
         apply_migrations
     fi
     
-    if [[ "$SKIP_SUPER" != true && "$FULL_AUTO" != true ]]; then
-        create_superuser
-    fi
-    
+    # Handle server startup
     if [[ "$SKIP_SERVER" != true ]]; then
         if [[ "$FULL_AUTO" == true ]]; then
             print_status "Setup completed successfully!"
@@ -303,8 +334,11 @@ main() {
             run_server
         fi
     fi
-    
 }
 
-# Run main function with all arguments
+# =============================================================================
+# SCRIPT ENTRY POINT
+# =============================================================================
+
+# Run main function with all command line arguments
 main "$@" 

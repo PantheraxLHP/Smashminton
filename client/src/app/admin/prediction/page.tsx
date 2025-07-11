@@ -73,7 +73,7 @@ export default function PredictionPage() {
     }, [chartTimeType, chartSelectedTime, chartSelectedYear, sortOrder]);
 
     return (
-        <div className="flex h-full w-full flex-col gap-8 bg-gray-200 p-4">
+        <div className="flex h-full w-full flex-col gap-4 bg-gray-200 p-4">
             {/* Part 1: Table controls and table */}
             <div>
                 <PredictionTableControls
