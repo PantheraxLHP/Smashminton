@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { CourtBookingService } from './court_booking.service';
-import { CreateCourtBookingDto } from './dto/create-court_booking.dto';
-import { UpdateCourtBookingDto } from './dto/update-court_booking.dto';
-import { ApiQuery, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @ApiTags('Court Booking')
+@UseGuards(JwtAuthGuard)    
 @Controller('court-booking')
 export class CourtBookingController {
     constructor(private readonly courtBookingService: CourtBookingService) { }
 
     @Get('available-courts')
+    @ApiBearerAuth()
     @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
     @ApiQuery({ name: 'date', type: String, example: '2025-05-16', description: 'Ngày đặt sân (YYYY-MM-DD)' })
     @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
@@ -24,6 +25,7 @@ export class CourtBookingController {
     }
 
     @Get('unavailable-starttimes')
+    @ApiBearerAuth()
     @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
     @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
     @ApiQuery({ name: 'duration', type: Number, example: 1.5, description: 'Thời lượng đặt sân (giờ)' })
@@ -36,6 +38,7 @@ export class CourtBookingController {
     }
 
     @Get('unavailable-starttimes-fixed-court')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Lấy danh sách khung giờ không khả dụng cho đặt sân cố định',
         description: 'Trả về danh sách các khung giờ bắt đầu không thể đặt sân cố định trong 4 tuần liên tiếp. Mỗi starttime đại diện cho khả năng đặt sân cùng giờ trong 4 tuần.'
@@ -64,6 +67,7 @@ export class CourtBookingController {
     }
 
     @Get('available-fixed-courts')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Lấy danh sách sân có thể đặt cố định',
         description: 'Trả về danh sách các sân có thể đặt cố định trong 4 tuần liên tiếp (mỗi tuần 1 lần, cùng ngày trong tuần, cùng giờ). Giá trả về là tổng giá của 4 lần đặt.'

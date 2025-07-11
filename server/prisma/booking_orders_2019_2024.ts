@@ -439,75 +439,89 @@ async function main() {
         const tempBookingIdMap: Record<number, number> = {};
         const tempOrderIdMap: Record<number, number> = {};
 
-        await prisma.$transaction(async (tx) => {
-            // --- Create Bookings ---
-            for (const booking of bookingsToCreate) {
-                const createdBooking = await tx.bookings.create({
-                    data: {
-                        guestphone: booking.guestphone,
-                        bookingdate: booking.bookingdate,
-                        totalprice: booking.totalprice,
-                        bookingstatus: booking.bookingstatus,
-                        createdat: booking.createdat,
-                        updatedat: booking.updatedat,
-                        employeeid: booking.employeeid,
-                        customerid: booking.customerid,
-                        voucherid: booking.voucherid,
-                    }
-                });
-                tempBookingIdMap[booking.bookingid] = createdBooking.bookingid;
-            }
+        try {
+            await prisma.$transaction(async (tx) => {
+                // --- Create Bookings ---
+                for (const booking of bookingsToCreate) {
+                    const createdBooking = await tx.bookings.create({
+                        data: {
+                            guestphone: booking.guestphone,
+                            bookingdate: booking.bookingdate,
+                            totalprice: booking.totalprice,
+                            bookingstatus: booking.bookingstatus,
+                            createdat: booking.createdat,
+                            updatedat: booking.updatedat,
+                            employeeid: booking.employeeid,
+                            customerid: booking.customerid,
+                            voucherid: booking.voucherid,
+                        }
+                    });
+                    tempBookingIdMap[booking.bookingid] = createdBooking.bookingid;
+                }
 
-            // --- Create Court Bookings ---
-            const courtBookingsWithRealIds = courtBookingsToCreate.map(cb => ({
-                ...cb,
-                bookingid: tempBookingIdMap[cb.bookingid],
-            }));
-            if (courtBookingsWithRealIds.length > 0) {
-                await tx.court_booking.createMany({ data: courtBookingsWithRealIds });
-            }
+                // --- Create Court Bookings ---
+                const courtBookingsWithRealIds = courtBookingsToCreate.map(cb => ({
+                    ...cb,
+                    bookingid: tempBookingIdMap[cb.bookingid],
+                }));
+                if (courtBookingsWithRealIds.length > 0) {
+                    await tx.court_booking.createMany({ data: courtBookingsWithRealIds });
+                }
 
-            // --- Create Orders ---
-            for (const order of ordersToCreate) {
-                const createdOrder = await tx.orders.create({
-                    data: {
-                        ordertype: order.ordertype,
-                        orderdate: order.orderdate,
-                        totalprice: order.totalprice,
-                        status: order.status,
-                        employeeid: order.employeeid,
-                        customerid: order.customerid,
-                    }
-                });
-                tempOrderIdMap[order.orderid] = createdOrder.orderid;
-            }
+                // --- Create Orders ---
+                for (const order of ordersToCreate) {
+                    const createdOrder = await tx.orders.create({
+                        data: {
+                            ordertype: order.ordertype,
+                            orderdate: order.orderdate,
+                            totalprice: order.totalprice,
+                            status: order.status,
+                            employeeid: order.employeeid,
+                            customerid: order.customerid,
+                        }
+                    });
+                    tempOrderIdMap[order.orderid] = createdOrder.orderid;
+                }
 
-            // --- Create Order Products ---
-            const orderProductsWithRealIds = orderProductsToCreate.map(op => ({
-                ...op,
-                orderid: tempOrderIdMap[op.orderid],
-            })).filter((op, index, self) =>
-                index === self.findIndex(p =>
-                    p.orderid === op.orderid && p.productid === op.productid
-                )
-            );
-            if (orderProductsWithRealIds.length > 0) {
-                await tx.order_product.createMany({ data: orderProductsWithRealIds });
-            }
+                // --- Create Order Products ---
+                const orderProductsWithRealIds = orderProductsToCreate.map(op => ({
+                    ...op,
+                    orderid: tempOrderIdMap[op.orderid],
+                })).filter((op, index, self) =>
+                    index === self.findIndex(p =>
+                        p.orderid === op.orderid && p.productid === op.productid
+                    )
+                );
+                if (orderProductsWithRealIds.length > 0) {
+                    await tx.order_product.createMany({ data: orderProductsWithRealIds });
+                }
 
-            // --- Create Receipts ---
-            const receiptsWithRealIds = receiptsToCreate.map(receipt => ({
-                ...receipt,
-                bookingid: receipt.bookingid !== null ? tempBookingIdMap[receipt.bookingid] : null,
-                orderid: receipt.orderid !== null ? tempOrderIdMap[receipt.orderid] : null,
-            }));
-            if (receiptsWithRealIds.length > 0) {
-                await tx.receipts.createMany({ data: receiptsWithRealIds });
-            }
-        });
+                // --- Create Receipts ---
+                const receiptsWithRealIds = receiptsToCreate.map(receipt => ({
+                    ...receipt,
+                    bookingid: receipt.bookingid !== null ? tempBookingIdMap[receipt.bookingid] : null,
+                    orderid: receipt.orderid !== null ? tempOrderIdMap[receipt.orderid] : null,
+                }));
+                if (receiptsWithRealIds.length > 0) {
+                    await tx.receipts.createMany({ data: receiptsWithRealIds });
+                }
+            }, {
+                timeout: 60000, // 60 seconds timeout
+            });
+        } catch (error) {
+            console.error(`Lỗi khi tạo data cho ngày ${date.toISOString().split('T')[0]}:`, error);
+            throw error; // Re-throw để dừng process
+        }
 
         totalBookings += bookingsToCreate.length;
         totalOrders += ordersToCreate.length;
+
+        // Clear memory
+        bookingsToCreate.length = 0;
+        courtBookingsToCreate.length = 0;
+        ordersToCreate.length = 0;
+        orderProductsToCreate.length = 0;
+        receiptsToCreate.length = 0;
 
         // --- Xử lý cuối tháng: Tạo Purchase Orders ---
         const nextDay = new Date(date);
@@ -568,23 +582,36 @@ async function main() {
             // --- Lưu Purchase Orders vào DB ---
             if (purchaseOrdersToCreate.length > 0) {
                 console.log(`  Đang tạo ${purchaseOrdersToCreate.length} đơn hàng nhập kho...`);
-                await prisma.$transaction(async (tx) => {
-                    for (let i = 0; i < purchaseOrdersToCreate.length; i++) {
-                        const po = purchaseOrdersToCreate[i];
-                        const batch = productBatchesToCreate[i];
 
-                        const createdBatch = await tx.product_batch.create({
-                            data: batch,
-                        });
+                // Chia thành batches nhỏ hơn để tránh timeout
+                const BATCH_SIZE = 10;
+                for (let i = 0; i < purchaseOrdersToCreate.length; i += BATCH_SIZE) {
+                    const batchEnd = Math.min(i + BATCH_SIZE, purchaseOrdersToCreate.length);
+                    const purchaseOrderBatch = purchaseOrdersToCreate.slice(i, batchEnd);
+                    const productBatchBatch = productBatchesToCreate.slice(i, batchEnd);
 
-                        await tx.purchase_order.create({
-                            data: {
-                                ...po,
-                                batchid: createdBatch.batchid,
-                            }
-                        });
-                    }
-                });
+                    await prisma.$transaction(async (tx) => {
+                        for (let j = 0; j < purchaseOrderBatch.length; j++) {
+                            const po = purchaseOrderBatch[j];
+                            const batch = productBatchBatch[j];
+
+                            const createdBatch = await tx.product_batch.create({
+                                data: batch,
+                            });
+
+                            await tx.purchase_order.create({
+                                data: {
+                                    ...po,
+                                    batchid: createdBatch.batchid,
+                                }
+                            });
+                        }
+                    }, {
+                        timeout: 30000, // 30 seconds timeout cho batch nhỏ
+                    });
+
+                    console.log(`    Đã tạo batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(purchaseOrdersToCreate.length / BATCH_SIZE)}`);
+                }
                 totalPurchaseOrders += purchaseOrdersToCreate.length;
             }
 

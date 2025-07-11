@@ -246,13 +246,10 @@ export class RewardRecordsService {
     // Tính skip sau khi đã reset page
     const skip = (page - 1) * pageSize;
 
-    // Nếu query rỗng, lấy 5 records đầu tiên thay vì phân trang đầy đủ
-    const takeCount = (!query || !query.trim()) ? Math.min(5, pageSize) : pageSize;
-
     // Query với phân trang và filter
     const employees_reward_records = await this.prisma.reward_records.findMany({
       skip: skip,
-      take: takeCount,
+      take: pageSize,
       where: whereCondition,
       include: {
         employees: {

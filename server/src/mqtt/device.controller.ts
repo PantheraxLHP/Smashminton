@@ -1,6 +1,9 @@
-import { Controller, Post, Body, Param, Get, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, Param, Get, Delete, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { MqttService } from './mqtt.service';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
 @ApiTags('ESP8266 Device Control')
 @Controller('devices')
@@ -71,6 +74,9 @@ export class DeviceController {
     }
 
     @Post(':deviceId/fingerprint/enroll')
+    @Roles('hr_manager')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @ApiOperation({ summary: 'Enroll new fingerprint on ESP8266 device' })
     @ApiParam({ name: 'deviceId', description: 'Device ID (e.g., esp01)', example: 'esp01' })
     @ApiBody({

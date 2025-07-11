@@ -200,12 +200,74 @@ export class EmployeesService {
 			]
 		};
 
-		// Thêm search query theo tên
+		// Xử lý search query theo format 'accountid-fullname'
 		if (query && query.trim()) {
-			where.accounts = {
-				...where.accounts,
-				fullname: { contains: query.trim(), mode: 'insensitive' }
-			};
+			const trimmedQuery = query.trim();
+			let accountId: number | undefined;
+			let namePart: string | undefined;
+
+			if (trimmedQuery.includes('-')) {
+				// Trường hợp có dấu gạch: "22-Nguyen" hoặc "22-Nguyen Van A"
+				const parts = trimmedQuery.split('-', 2);
+				const leftPart = parts[0].trim();
+				const rightPart = parts[1] ? parts[1].trim() : '';
+
+				// Kiểm tra phần trái có phải số không
+				if (leftPart && !isNaN(parseInt(leftPart))) {
+					accountId = parseInt(leftPart);
+				}
+
+				// Phần phải là tên
+				if (rightPart) {
+					namePart = rightPart;
+				} else if (leftPart && isNaN(parseInt(leftPart))) {
+					namePart = leftPart;
+				}
+
+				// Xử lý điều kiện search
+				if (accountId !== undefined && namePart) {
+					// Có cả accountid và fullname: tìm chính xác
+					where.employeeid = accountId;
+					where.accounts = {
+						...where.accounts,
+						fullname: { contains: namePart, mode: 'insensitive' }
+					};
+				} else if (accountId !== undefined && !namePart) {
+					// Chỉ có accountid
+					where.employeeid = accountId;
+				} else if (!accountId && namePart) {
+					// Chỉ có fullname
+					where.accounts = {
+						...where.accounts,
+						fullname: { contains: namePart, mode: 'insensitive' }
+					};
+				}
+			} else {
+				// Không có dấu gạch: có thể là accountid hoặc fullname
+				if (/^\d+$/.test(trimmedQuery)) {
+					// Là số: tìm cả theo employeeid VÀ fullname chứa số đó
+					where.OR = [
+						{
+							employeeid: parseInt(trimmedQuery)
+						},
+						{
+							accounts: {
+								...where.accounts,
+								fullname: {
+									contains: trimmedQuery,
+									mode: 'insensitive'
+								}
+							}
+						}
+					];
+				} else {
+					// Là text: tìm theo fullname
+					where.accounts = {
+						...where.accounts,
+						fullname: { contains: trimmedQuery, mode: 'insensitive' }
+					};
+				}
+			}
 		}
 
 		// Thêm role filter nếu có (nhưng vẫn loại bỏ admin)
@@ -538,20 +600,32 @@ export class EmployeesService {
 						password: hashedPassword,
 						fullname: fullname,
 						email: email,
+						accounttype: 'Employee',
 						dob: new Date(dob),
 						status: 'Active',
 						createdat: new Date(),
 					}
 				});
 
-				// Tạo employee với accountid
-				const newEmployee = await prisma.employees.create({
-					data: {
-						employeeid: newAccount.accountid,
-						role: role,
-						employee_type: 'Full-time', // Mặc định
-					}
-				});
+				let newEmployee;
+				if (role === 'employee') {
+					newEmployee = await prisma.employees.create({
+						data: {
+							employeeid: newAccount.accountid,
+							role: role,
+							employee_type: 'Part-time', // Mặc định
+						}
+					});
+				} else {
+					// Tạo employee với accountid
+					newEmployee = await prisma.employees.create({
+						data: {
+							employeeid: newAccount.accountid,
+							role: role,
+							employee_type: 'Full-time', // Mặc định
+						}
+					});
+				}
 
 				return {
 					account: newAccount,

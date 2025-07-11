@@ -35,11 +35,11 @@ export default function SupplierManagementPage() {
     const [editData, setEditData] = useState<Supplier | null>(null);
     const [productsList, setProductsList] = useState<ProductOption[]>([]);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(4);
+    const [pageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(2);
 
     const fetchSuppliers = async () => {
-        const response = await getSuppliers(page, pageSize);
+        const response = await getSuppliers(page, pageSize, filters.name, filters.productname);
         if (response.ok) {
             const { data, pagination } = response.data;
 
@@ -50,9 +50,9 @@ export default function SupplierManagementPage() {
                 email: supplier.email || '',
                 contactname: supplier.contactname || '',
                 address: supplier.address || '',
-                products: (supplier.products || []).map((p: any) => ({
+                products: (supplier.supply_products || []).map((p: any) => ({
                     productid: p.productid,
-                    productname: p.productname,
+                    productname: p.products.productname,
                     costprice: p.costprice || 0,
                 })),
             }));
@@ -63,18 +63,21 @@ export default function SupplierManagementPage() {
     };
 
     useEffect(() => {
-        fetchSuppliers();
-    }, [page]);
+        setPage(1);
+    }, [filters.name, filters.productname]);
 
+    useEffect(() => {
+        fetchSuppliers();
+    }, [page, filters.name, filters.productname]);
 
     const filtersConfig: FilterConfig[] = [
         { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-        { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm theo tên nhà cung cấp' },
-        { filterid: 'productname', filtertype: 'search', filterlabel: 'Tìm theo tên sản phẩm' },
+        { filterid: 'name', filtertype: 'search', filterlabel: 'Tên nhà cung cấp' },
+        { filterid: 'productname', filtertype: 'search', filterlabel: 'Tên sản phẩm' },
     ];
 
     const columns: Column<Supplier>[] = [
-        { header: 'Nhà phân phối', accessor: 'name' },
+        { header: 'Nhà cung cấp', accessor: 'name' },
         { header: 'Người liên hệ', accessor: 'contactname' },
         { header: 'Số điện thoại', accessor: 'phone' },
         { header: 'Email', accessor: 'email' },
@@ -125,23 +128,15 @@ export default function SupplierManagementPage() {
         }
     ];
 
-    const filteredData = suppliers.filter((item) => {
-        const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
-        const matchesProductName = !filters.productname || item.products.some((p) =>
-            p.productname.toLowerCase().includes(filters.productname.toLowerCase())
-        );
-        return matchesName && matchesProductName;
-    });
-
     const handleEdit = (index: number) => {
-        const supplier = filteredData[index];
+        const supplier = suppliers[index];
         setEditData({ ...supplier });
         setEditIndex(index);
         setOpenModal(true);
     };
 
     const handleDelete = async (index: number) => {
-        const supplier = filteredData[index];
+        const supplier = suppliers[index];
         if (!supplier.supplierid) return;
 
         const result = await deleteSupplier(supplier.supplierid);
@@ -167,8 +162,6 @@ export default function SupplierManagementPage() {
         setEditData(null);
         fetchSuppliers();
     };
-
-
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-6 lg:flex-row">
@@ -203,7 +196,7 @@ export default function SupplierManagementPage() {
 
                 <DataTable
                     columns={columns}
-                    data={filteredData}
+                    data={suppliers}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     showOptions={false}

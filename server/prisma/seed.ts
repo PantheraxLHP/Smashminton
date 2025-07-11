@@ -2504,16 +2504,22 @@ async function main() {
             const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
             if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
 
-            // Tạo starttime và endtime dựa trên time slot
-            const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
-            const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+            // Sử dụng duration từ durationOptions thay vì tính từ zone_prices
+            const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+            const selectedDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+
+            // Tạo starttime ngẫu nhiên trong khoảng 6h-21h, đảm bảo endtime <= 22h
+            const minStartHour = 6;
+            const maxStartHour = 22 - selectedDuration;
+            const startHour = minStartHour + Math.random() * (maxStartHour - minStartHour);
+            const startMinute = Math.floor((startHour % 1) * 60);
+            const realStartHour = Math.floor(startHour);
 
             const bookingDate = new Date(bookingsList[i].bookingdate!.toISOString().split('T')[0]);
             const starttime = new Date(bookingDate);
-            starttime.setHours(startHour, startMinute, 0, 0);
+            starttime.setHours(realStartHour, startMinute, 0, 0);
 
-            const endtime = new Date(bookingDate);
-            endtime.setHours(endHour, endMinute, 0, 0);
+            const endtime = new Date(starttime.getTime() + selectedDuration * 60 * 60 * 1000);
 
             // Tính duration (số giờ)
             const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
@@ -2641,26 +2647,29 @@ async function main() {
         const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
         if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
 
-        // Tạo starttime và endtime dựa trên time slot
-        const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
-        const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+        // Sử dụng duration từ durationOptions thay vì tính từ zone_prices
+        const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+        const selectedDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+
+        // Tạo starttime ngẫu nhiên trong khoảng 6h-21h, đảm bảo endtime <= 22h
+        const minStartHour = 6;
+        const maxStartHour = 22 - selectedDuration;
+        const startHour = minStartHour + Math.random() * (maxStartHour - minStartHour);
+        const startMinute = Math.floor((startHour % 1) * 60);
+        const realStartHour = Math.floor(startHour);
 
         const bookingDate = new Date([completedStart, ongoingStart, upcomingStart][i].toISOString().split('T')[0]);
         const starttime = new Date(bookingDate);
-        starttime.setHours(startHour, startMinute, 0, 0);
+        starttime.setHours(realStartHour, startMinute, 0, 0);
 
-        const endtime = new Date(bookingDate);
-        endtime.setHours(endHour, endMinute, 0, 0);
-
-        // Tính duration (số giờ)
-        const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
+        const endtime = new Date(starttime.getTime() + selectedDuration * 60 * 60 * 1000);
 
         await prisma.court_booking.create({
             data: {
                 date: bookingDate,
                 starttime,
                 endtime,
-                duration,
+                duration: selectedDuration,
                 bookingid: testBookings[i].bookingid,
                 courtid: 10 + i,
             },
@@ -2808,26 +2817,29 @@ async function main() {
                 const randomSlot = zonePrices[Math.floor(Math.random() * zonePrices.length)];
                 if (!randomSlot || !randomSlot.starttime || !randomSlot.endtime) continue;
 
-                // Tạo starttime và endtime dựa trên time slot
-                const [startHour, startMinute] = randomSlot.starttime.split(':').map(Number);
-                const [endHour, endMinute] = randomSlot.endtime.split(':').map(Number);
+                // Sử dụng duration từ durationOptions thay vì tính từ zone_prices
+                const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+                const monthlyDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+
+                // Tạo starttime ngẫu nhiên trong khoảng 6h-21h, đảm bảo endtime <= 22h
+                const minStartHour = 6;
+                const maxStartHour = 22 - monthlyDuration;
+                const startHour = minStartHour + Math.random() * (maxStartHour - minStartHour);
+                const startMinute = Math.floor((startHour % 1) * 60);
+                const realStartHour = Math.floor(startHour);
 
                 const bookingDate = new Date(bookingsListMonth[i].bookingdate!.toISOString().split('T')[0]);
                 const starttime = new Date(bookingDate);
-                starttime.setHours(startHour, startMinute, 0, 0);
+                starttime.setHours(realStartHour, startMinute, 0, 0);
 
-                const endtime = new Date(bookingDate);
-                endtime.setHours(endHour, endMinute, 0, 0);
-
-                // Tính duration (số giờ)
-                const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
+                const endtime = new Date(starttime.getTime() + monthlyDuration * 60 * 60 * 1000);
 
                 await prisma.court_booking.create({
                     data: {
                         date: bookingDate,
                         starttime,
                         endtime,
-                        duration,
+                        duration: monthlyDuration,
                         bookingid: bookingsListMonth[i].bookingid,
                         courtid,
                     },

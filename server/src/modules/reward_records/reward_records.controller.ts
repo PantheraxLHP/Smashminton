@@ -1,14 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Query, UseGuards } from '@nestjs/common';
 import { RewardRecordsService } from './reward_records.service';
 import { CreateRewardRecordDto } from './dto/create-reward_record.dto';
 import { UpdateRewardRecordDto } from './dto/update-reward_record.dto';
-import { ApiOperation, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiQuery, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/decorators/role.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reward-records')
 export class RewardRecordsController {
   constructor(private readonly rewardRecordsService: RewardRecordsService) { }
 
   @Get('employees')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get employees in reward records',
     description: 'Retrieve a paginated list of employees who have received rewards with filters.'
@@ -114,6 +120,8 @@ export class RewardRecordsController {
   }
 
   @Get('search-employees-in-reward-records')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Search employees in reward records',
     description: 'Search employees in reward records with advanced query support. Supports format: "accountid-fullname", "accountid", or "fullname".'
@@ -279,6 +287,8 @@ export class RewardRecordsController {
   }
 
   @Patch('approve')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Approve multiple reward records' })
   @ApiBody({
     schema: {
@@ -298,6 +308,8 @@ export class RewardRecordsController {
   }
 
   @Patch('reject')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Reject multiple reward records' })
   @ApiBody({
     schema: {
@@ -317,6 +329,8 @@ export class RewardRecordsController {
   }
 
   @Get('reward-rules')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get all reward rules',
     description: 'Retrieve a list of all reward rules available in the system.'
@@ -330,6 +344,8 @@ export class RewardRecordsController {
   }
 
   @Post()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create new reward record',
     description: 'Tạo reward record mới cho nhân viên'

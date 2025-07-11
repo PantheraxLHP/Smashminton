@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, BadRequestException, UseGuards } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { updateEmployeeDto } from './dto/update-employee.dto';
@@ -8,7 +8,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiBadRequestResponse,
-  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiNotFoundResponse,
@@ -16,14 +15,21 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-  ApiResponse
+  ApiResponse,
+  ApiBearerAuth
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 @ApiTags('Employees')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) { }
 
   @Get()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get all employees',
     description: 'Retrieve a paginated list of all employees with their account details.'
@@ -112,13 +118,15 @@ export class EmployeesController {
   }
 
   @Get('search-for-manager')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Search employees for manager',
-    description: 'Search and filter employees with advanced options for manager use. Supports search by name and multiple filters.'
+    description: 'Advanced search for employees with filters. Supports search format: "accountid-fullname" (e.g., "22-Nguyen"), "accountid" (e.g., "22"), or "fullname" (e.g., "Nguyen"). Returns first 5 employees when query is empty.'
   })
   @ApiResponse({
     status: 200,
-    description: 'Successfully retrieved the filtered list of employees.',
+    description: 'Successfully retrieved the search results.',
   })
   @ApiResponse({
     status: 400,
@@ -127,8 +135,8 @@ export class EmployeesController {
   @ApiQuery({
     name: 'q',
     required: false,
-    description: 'Tìm kiếm theo tên nhân viên (case-insensitive)',
-    example: 'Nguyen Van',
+    description: 'Search query. Supports formats: "employeeid-fullname" (e.g., "22-Nguyen"), "employeeid" (e.g., "22"), or "fullname" (e.g., "Nguyen"). Returns first 5 employees when empty.',
+    example: '22-Nguyen',
     type: String
   })
   @ApiQuery({
@@ -211,6 +219,8 @@ export class EmployeesController {
   // }
 
   @Put(':id')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @UseInterceptors(
     FileInterceptor('avatarurl', {
       limits: {
@@ -243,6 +253,8 @@ export class EmployeesController {
   }
 
   @Delete()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Deactivate multiple employees',
     description: 'Set status to Inactive for multiple employees by their account IDs and remove their fingerprints.'
@@ -296,6 +308,8 @@ export class EmployeesController {
   }
 
   @Post()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Add new employee',
     description: 'Create a new employee account with automatic username and password generation'
@@ -329,6 +343,8 @@ export class EmployeesController {
   }
 
   @Get('search-employees')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Search employees' })
   @ApiQuery({ name: 'q', description: 'Search term', required: false })
   async searchEmployees(

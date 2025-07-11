@@ -32,7 +32,7 @@ export default function FoodAndBeveragePage() {
     const [openOrderForm, setOpenOrderForm] = useState(false);
     const [selectedOrderItem, setSelectedOrderItem] = useState<FoodItem | null>(null);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(12);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(2);
     const [filtervalueid, setfiltervalueid] = useState<number[]>([]);
     const defaultFilters = {
@@ -50,7 +50,7 @@ export default function FoodAndBeveragePage() {
             let response;
             const apiData: FoodItem[] = [];
             if (filters.type?.[0] === 1) {
-                response = await getProducts2(1, page, pageSize, filtervalueid);
+                response = await getProducts2(1, page, pageSize, filtervalueid, filters.name);
 
                 if (response.ok) {
                     response.data.data.forEach((item: any) => {
@@ -60,16 +60,16 @@ export default function FoodAndBeveragePage() {
                             sellingprice: parseInt(item.sellingprice || '0'),
                             category: item.value || '',
                             image: item.productimgurl || '/default.png',
-                            batchid: '-', // Không có lô
-                            expiry: '', // Không có ngày hết hạn
+                            batchid: '-',
+                            expiry: '',
                             stock: item.quantity || 0,
-                            status: 'available', // Mặc định
-                            discount: 0, // Mặc định
+                            status: 'available',
+                            discount: 0,
                         });
                     });
                 }
             } else {
-                response = await getProducts3(1, page, pageSize, filtervalueid);
+                response = await getProducts3(1, page, pageSize, filtervalueid, filters.name);
 
                 if (response.ok) {
                     response.data.data.forEach((item: any) => {
@@ -99,7 +99,7 @@ export default function FoodAndBeveragePage() {
 
     useEffect(() => {
         fetchData();
-    }, [page, filtervalueid, filters.type?.[0]]);
+    }, [page, filtervalueid, filters.type?.[0], filters.name]);    
 
     const fetchFilters = async () => {
         const response = await getProductFilters();
@@ -120,7 +120,7 @@ export default function FoodAndBeveragePage() {
 
             setFiltersConfig([
                 { filterid: 'selectedFilter', filterlabel: 'selectedFilter', filtertype: 'selectedFilter' },
-                { filterid: 'name', filtertype: 'search', filterlabel: 'Tìm kiếm' },
+                { filterid: 'name', filtertype: 'search', filterlabel: 'Tên sản phẩm' },
                 {
                     filterid: 'type',
                     filtertype: 'radio',
@@ -142,7 +142,7 @@ export default function FoodAndBeveragePage() {
     useEffect(() => {
         setPage(1);
         fetchData();
-    }, [filters.type, filtervalueid]);
+    }, [filters.type, filtervalueid, filters.name]);
 
     useEffect(() => {
         if (Array.isArray(filters.productFilterValues)) {
@@ -155,14 +155,13 @@ export default function FoodAndBeveragePage() {
 
     useEffect(() => {
         const result = data.filter((item) => {
-            const matchesName = !filters.name || item.name.toLowerCase().includes(filters.name.toLowerCase());
             const matchesPrice = !filters.price ||
                 filters.price.length === 0 ||
                 (item.sellingprice >= filters.price[0] && item.sellingprice <= filters.price[1]);
-            return matchesName && matchesPrice;
+            return matchesPrice;
         });
         setFilteredData(result);
-    }, [filters, data]);
+    }, [filters.price, data]);    
 
     const columns: Column<FoodItem>[] = [
         { header: 'Tên sản phẩm', accessor: 'name' },

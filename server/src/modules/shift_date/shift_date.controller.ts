@@ -1,17 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ShiftDateService } from './shift_date.service';
-import { CreateShiftDateDto } from './dto/create-shift_date.dto';
-import { UpdateShiftDateDto } from './dto/update-shift_date.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftAssignmentDto } from './dto/create-shift_assignment.dto';
 import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('shift-date')
 export class ShiftDateController {
   constructor(private readonly shiftDateService: ShiftDateService) { }
 
   @Get()
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'dayfrom',
     required: true,
@@ -39,6 +43,8 @@ export class ShiftDateController {
   }
 
   @Get('shift-assignment/:employeeid')
+  @Roles('employee')
+  @ApiBearerAuth()
   @ApiParam({
     name: 'employeeid',
     required: true,
@@ -66,6 +72,8 @@ export class ShiftDateController {
   }
 
   @Get('employees-not-in-shift')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'shiftdate',
     required: true,
@@ -100,6 +108,8 @@ export class ShiftDateController {
   }
 
   @Patch('update-shift-assignment')
+  @Roles('employee')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update shift assignment status' })
   @ApiBody({ type: UpdateShiftAssignmentDto })
   @ApiResponse({
@@ -117,6 +127,8 @@ export class ShiftDateController {
   }
 
   @Post('assignment/add')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiBody({ type: CreateShiftAssignmentDto })
   async addEmployeeToShiftAssignment(@Body() body: CreateShiftAssignmentDto) {
     const { shiftid, shiftdate, employeeid } = body;
@@ -124,12 +136,16 @@ export class ShiftDateController {
   }
 
   @Delete('assignment/remove')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiBody({ type: CreateShiftAssignmentDto })
   async removeEmployeeFromShiftAssignment(@Body() body: CreateShiftAssignmentDto) {
     const { shiftid, shiftdate, employeeid } = body;
     return this.shiftDateService.removeEmployeeFromShiftAssignment(shiftid, shiftdate, employeeid);
   }
   @Get('search-employees-not-in-shift')
+  @Roles('hr_manager')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'shiftdate',
     required: true,
@@ -185,6 +201,8 @@ export class ShiftDateController {
   }
 
   @Get('parttime-shift-enrollment')
+  @Roles('employee')
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'dayfrom',
     required: true,
@@ -225,6 +243,8 @@ export class ShiftDateController {
   }
 
   @Post('enrollment')
+  @Roles('employee')
+  @ApiBearerAuth()
   @ApiBody({ type: CreateShiftEnrollmentDto })
   @ApiOperation({ summary: 'Create a new shift enrollment' })
   @ApiResponse({ status: 201, description: 'Shift enrollment created' })
@@ -234,6 +254,8 @@ export class ShiftDateController {
   }
 
   @Delete('enrollment')
+  @Roles('employee')
+  @ApiBearerAuth()
   @ApiBody({ type: CreateShiftEnrollmentDto })
   @ApiOperation({ summary: 'Delete a shift enrollment' })
   @ApiResponse({ status: 200, description: 'Shift enrollment deleted' })

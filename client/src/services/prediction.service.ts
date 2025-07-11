@@ -1,4 +1,5 @@
 import { getServerUrl } from './server.service';
+import { getAccessToken } from '@/utils/auth.utils';
 
 export interface PredictionRatioItem {
     id: string;
@@ -27,8 +28,8 @@ export interface PredictionData {
 
 export async function getPredictionData(filters: PredictionFilters): Promise<PredictionData> {
     try {
-        // Get server URL dynamically
         const API_BASE = await getServerUrl();
+        const accessToken = await getAccessToken();
 
         const params = new URLSearchParams({
             type: filters.type,
@@ -38,21 +39,34 @@ export async function getPredictionData(filters: PredictionFilters): Promise<Pre
         if (filters.type === 'month' && filters.month) {
             params.append('month', filters.month.toString());
         }
-
         if (filters.type === 'quarter' && filters.quarter) {
             params.append('quarter', filters.quarter.toString());
         }
 
-        // Use Next.js built-in fetch with caching
         const [soldRatioRes, purchasedRatioRes, salesPurchaseRes] = await Promise.all([
             fetch(`${API_BASE}/api/v1/admin/prediction/sold-ratio-by-filter-value?${params}`, {
-                next: { revalidate: 300 }, // Cache for 5 minutes
+                next: { revalidate: 300 },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
+                credentials: 'include',
             }),
             fetch(`${API_BASE}/api/v1/admin/prediction/purchased-ratio-by-filter-value?${params}`, {
                 next: { revalidate: 300 },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
+                credentials: 'include',
             }),
             fetch(`${API_BASE}/api/v1/admin/prediction/sales-purchase-by-filter-value?${params}`, {
                 next: { revalidate: 300 },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
+                credentials: 'include',
             }),
         ]);
 
@@ -132,6 +146,8 @@ export async function getPredictionDataTable(filters: PredictionTableFilters): P
     try {
         // Get server URL dynamically
         const API_BASE = await getServerUrl();
+        const accessToken = await getAccessToken();
+        console.log('accessToken', accessToken);
 
         const params = new URLSearchParams({
             filter_type: filters.type,
@@ -147,6 +163,11 @@ export async function getPredictionDataTable(filters: PredictionTableFilters): P
 
         const response = await fetch(`${API_BASE}/api/v1/admin/prediction/predict-bestseller-by-time?${params}`, {
             next: { revalidate: 300 },
+            headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+            credentials: 'include',
         });
 
         if (!response.ok) {

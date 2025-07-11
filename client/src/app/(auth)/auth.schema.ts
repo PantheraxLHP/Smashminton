@@ -18,10 +18,7 @@ export const signupSchema = z
         email: z.string().email('Email không hợp lệ'),
         fullname: z.string().optional(),
         dob: z.string().optional(),
-        phonenumber: z
-            .string()
-            .regex(/^\d{10,11}$/, 'Số điện thoại phải có 10-11 chữ số')
-            .optional(),
+        phonenumber: z.string().optional(),
         address: z.string().optional(),
         accounttype: z.string().optional(),
         studentCard: z.any().optional(),

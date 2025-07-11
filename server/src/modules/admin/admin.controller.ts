@@ -1,11 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { PredictionService } from './prediction.service';
-import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { BadRequestException } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('admin')
 export class AdminController {
   constructor(
@@ -14,6 +18,8 @@ export class AdminController {
   ) { }
 
   @Get('dashboard/revenue/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get total revenue', type: String })
   @ApiResponse({ status: 200, description: 'Total revenue for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -22,6 +28,8 @@ export class AdminController {
   }
 
   @Get('dashboard/duration/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get total duration', type: String })
   @ApiResponse({ status: 200, description: 'Total duration for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -30,6 +38,8 @@ export class AdminController {
   }
 
   @Get('dashboard/top-courts/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get top courts by booking count', type: String })
   @ApiResponse({ status: 200, description: 'Top courts by booking count for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -38,6 +48,8 @@ export class AdminController {
   }
 
   @Get('dashboard/zone-revenue/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get zone revenue by month', type: String })
   @ApiResponse({ status: 200, description: 'Zone revenue by month for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -46,6 +58,8 @@ export class AdminController {
   }
 
   @Get('dashboard/new-customers/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to count new customers', type: String })
   @ApiResponse({ status: 200, description: 'Number of new customers for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -54,6 +68,8 @@ export class AdminController {
   }
 
   @Get('dashboard/booking-count-timeslot/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get booking count by time slot per month', type: String })
   @ApiResponse({ status: 200, description: 'Booking count by time slot per month for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -62,6 +78,8 @@ export class AdminController {
   }
 
   @Get('dashboard/product-sales-rentals/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get product sales and rentals by month', type: String })
   @ApiResponse({ status: 200, description: 'Product sales and rentals by month for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -70,6 +88,8 @@ export class AdminController {
   }
 
   @Get('dashboard/top-products/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get top 10 best selling products', type: String })
   @ApiResponse({ status: 200, description: 'Top 10 best selling products for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -78,6 +98,8 @@ export class AdminController {
   }
 
   @Get('dashboard/top-rented-products/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get top 10 most rented products', type: String })
   @ApiResponse({ status: 200, description: 'Top 10 most rented products for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -86,6 +108,8 @@ export class AdminController {
   }
 
   @Get('dashboard/new-customer-rate/:year')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiParam({ name: 'year', description: 'Year for which to get new customer rate', type: String })
   @ApiResponse({ status: 200, description: 'New customer rate for the year' })
   @ApiResponse({ status: 400, description: 'Invalid year format' })
@@ -94,13 +118,15 @@ export class AdminController {
     return result.rate * 100;
   }
 
+  @Get('prediction/sold-ratio-by-filter-value')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
   @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2024 })
   @ApiResponse({ status: 200, description: 'Sold ratio by filter value' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-  @Get('prediction/sold-ratio-by-filter-value')
   async getSoldRatioByFilterValue(
     @Query('type') type: string,
     @Query('month') month?: number,
@@ -128,14 +154,15 @@ export class AdminController {
     });
   }
 
+  @Get('prediction/purchased-ratio-by-filter-value')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
   @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
   @ApiResponse({ status: 200, description: 'Purchased ratio by filter value' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-
-  @Get('prediction/purchased-ratio-by-filter-value')
   async getPurchasedRatioByFilterValue(
     @Query('type') type: 'month' | 'quarter',
     @Query('month') month?: string,
@@ -164,13 +191,15 @@ export class AdminController {
     });
   }
 
+  @Get('prediction/sales-purchase-by-filter-value')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'type', description: 'Type of filter', type: String, required: false, example: 'month' })
   @ApiQuery({ name: 'month', description: 'Month of filter', type: Number, required: false, example: 1 })
   @ApiQuery({ name: 'quarter', description: 'Quarter of filter', type: Number, required: false })
   @ApiQuery({ name: 'year', description: 'Year of filter', type: Number, required: true, example: 2025 })
   @ApiResponse({ status: 200, description: 'Sales and purchase by filter value' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-  @Get('prediction/sales-purchase-by-filter-value')
   async getSalesAndPurchaseByFilterValue(
     @Query('type') type: 'month' | 'quarter',
     @Query('month') month?: string,
@@ -200,6 +229,8 @@ export class AdminController {
   }
 
   @Get('prediction/train-bestseller-model')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Train bestseller models (month & quarter) and return training info' })
   @ApiResponse({ status: 400, description: 'Failed to train bestseller model' })
   async trainBestsellerModel() {
@@ -207,6 +238,8 @@ export class AdminController {
   }
 
   @Get('prediction/predict-bestseller-by-time')
+  @Roles('admin')
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Predict bestseller by time' })
   @ApiResponse({ status: 400, description: 'Failed to predict bestseller by time' })
   @ApiQuery({ name: 'filter_type', description: 'Filter type', type: String, required: true, example: 'month' })

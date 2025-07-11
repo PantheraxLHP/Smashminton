@@ -87,6 +87,7 @@ export const getProducts2 = async (
     page: number,
     pageSize: number,
     productFilterValue?: number[],
+    q?: string,
 ) => {
     try {
         const queryParams = new URLSearchParams();
@@ -105,6 +106,10 @@ export const getProducts2 = async (
 
         if (pageSize) {
             queryParams.set('pageSize', pageSize.toString());
+        }
+
+        if (q && q.trim() !== '') {
+            queryParams.set('q', q.trim());
         }
 
         const response = await fetch(`/api/products/get-products2?${queryParams.toString()}`, {
@@ -129,6 +134,7 @@ export const getProducts3 = async (
     page: number,
     pageSize: number,
     productFilterValue?: number[],
+    q?: string,
 ) => {
     try {
         const queryParams = new URLSearchParams();
@@ -147,6 +153,10 @@ export const getProducts3 = async (
 
         if (pageSize) {
             queryParams.set('pageSize', pageSize.toString());
+        }
+
+        if (q && q.trim() !== '') {
+            queryParams.set('q', q.trim());
         }
 
         const response = await fetch(`/api/products/get-products3?${queryParams.toString()}`, {

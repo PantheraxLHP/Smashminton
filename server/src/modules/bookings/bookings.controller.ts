@@ -1,15 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Query, BadRequestException, UseGuards } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { UpdateBookingDto } from './dto/update-booking.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { cacheBookingDTO, courtBookingDto, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { cacheBookingDTO, deleteCourtBookingDto } from './dto/create-cache-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
+@ApiTags('Bookings')
+@UseGuards(JwtAuthGuard)
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) { }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new booking' })
   @ApiBody({ type: CreateBookingDto })
   @ApiResponse({ status: 201, description: 'Booking created successfully' })
@@ -19,6 +22,7 @@ export class BookingsController {
   }
 
   @Post('cache-booking')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Add booking to redis' })
   @ApiBody({ type: cacheBookingDTO })
   @ApiResponse({ status: 201, description: 'Add successful' })
@@ -28,6 +32,7 @@ export class BookingsController {
   }
 
   @Get('available-courts-and-unavailable-start-time')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
   @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
@@ -42,6 +47,7 @@ export class BookingsController {
   }
 
   @Get('available-courts-and-unavailable-start-time-fixed-court')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })
   @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày đặt sân (YYYY-MM-DD)' })
   @ApiQuery({ name: 'starttime', type: String, example: '08:00', description: 'Thời gian bắt đầu (HH:mm)' })
@@ -56,6 +62,7 @@ export class BookingsController {
   }
 
   @Get('cache-booking')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get booking from redis' })
   @ApiQuery({ name: 'username', type: String, example: 'nguyenvun', description: 'Tên người dùng' })
   @ApiResponse({ status: 200, description: 'Get successful' })
@@ -65,6 +72,7 @@ export class BookingsController {
   }
 
   @Delete('cache-booking')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete court booking from redis' })
   @ApiBody({ type: deleteCourtBookingDto })
   @ApiResponse({ status: 200, description: 'Delete successful' })
@@ -74,6 +82,7 @@ export class BookingsController {
   }
 
   @Get('detail')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get booking detail for all courts in a zone on a specific date' })
   @ApiQuery({ name: 'date', type: String, example: '2025-05-15', description: 'Ngày cần xem chi tiết (YYYY-MM-DD)' })
   @ApiQuery({ name: 'zoneid', type: Number, example: 1, description: 'ID của khu vực' })

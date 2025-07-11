@@ -24,5 +24,5 @@ export async function GET() {
         return ApiResponse.unauthorized('Invalid token');
     }
     // Return data{user: decoded} => Get user: data.user.sub
-    return ApiResponse.success({ user: decoded });
+    return ApiResponse.success({ user: decoded, accessToken: accessToken });
 }

@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Body, Patch } from '@nestjs/common';
 import { ProductBatchService } from './product_batch.service';
-import { CreateProductBatchDto } from './dto/create-product_batch.dto';
-import { UpdateProductBatchDto } from './dto/update-product_batch.dto';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('product-batch')

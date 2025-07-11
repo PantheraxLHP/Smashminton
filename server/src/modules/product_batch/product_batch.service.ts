@@ -11,21 +11,25 @@ export class ProductBatchService {
     if (!productid || !quantity || quantity <= 0) {
       throw new BadRequestException('productid và quantity phải hợp lệ');
     }
+    console.log(productid, quantity);
 
-    // Lấy tất cả batch còn tồn kho, sort expirydate ASC, batchid ASC
+    // Lấy tất cả batch còn tồn kho và còn hạn sử dụng, sort expirydate ASC, batchid ASC
     const batches = await this.prisma.product_batch.findMany({
       where: {
         purchase_order: {
           some: { productid: productid },
         },
         stockquantity: { gt: 0 },
+        OR: [
+          { expirydate: null }, // Batch không có ngày hết hạn
+          { expirydate: { gte: new Date() } }, // Batch còn hạn sử dụng
+        ],
       },
       orderBy: [
         { expirydate: 'asc' }, // null sẽ ở đầu hoặc cuối tùy DB, nên cần xử lý tiếp
         { batchid: 'asc' }
       ],
     });
-
     if (!batches.length) {
       throw new BadRequestException('Không có batch nào còn tồn kho');
     }
@@ -48,10 +52,12 @@ export class ProductBatchService {
     for (const batch of batches) {
       if (remain <= 0) break;
       const decrease = Math.min(batch.stockquantity ?? 0, remain);
-      await this.prisma.product_batch.update({
+      console.log(batch.batchid, batch.stockquantity, decrease);
+      const result = await this.prisma.product_batch.update({
         where: { batchid: batch.batchid },
         data: { stockquantity: (batch.stockquantity ?? 0) - decrease },
       });
+      console.log(result);
       remain -= decrease;
     }
 
@@ -92,7 +98,7 @@ export class ProductBatchService {
       if (X < 30) Y = Math.ceil(X * 0.2);
       else if (X < 180) Y = Math.ceil(X * 0.15);
       else if (X < 365) Y = Math.ceil(X * 0.1);
-      else Y = Math.ceil(X* 0.05);
+      else Y = Math.ceil(X * 0.05);
 
       const Z = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 

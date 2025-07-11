@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, InternalServerErrorException, Put } from '@nestjs/common';
-import { ApiOperation, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, InternalServerErrorException, Put, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiBody, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { AutoAssignmentService } from './auto-assignment.service';
 import { AutoAssignmentDto } from './dto/auto-assignment.dto';
 import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
+import { Roles } from 'src/decorators/role.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/role.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('auto-assignment')
 export class AutoAssignmentController {
     constructor(
@@ -11,6 +15,8 @@ export class AutoAssignmentController {
     ) { }
 
     @Post()
+    @Roles('hr_manager')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Perform auto assignment',
     })
@@ -111,6 +117,8 @@ export class AutoAssignmentController {
     }
 
     @Get()
+    @Roles('hr_manager')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Get auto assignment settings',
     })
@@ -158,6 +166,8 @@ export class AutoAssignmentController {
     }
 
     @Put()
+    @Roles('hr_manager')
+    @ApiBearerAuth()
     @ApiOperation({
         summary: 'Update auto assignment settings',
     })

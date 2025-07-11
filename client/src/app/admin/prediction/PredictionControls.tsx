@@ -161,9 +161,6 @@ export function PredictionChartControls({
 
     return (
         <div className="flex flex-col gap-4 rounded-lg bg-gray-200">
-            <div className="flex items-center justify-center p-4">
-                <span className="text-2xl font-semibold">Biểu đồ</span>
-            </div>
             <div className="flex items-center gap-4 rounded-lg bg-white p-4">
                 <span>Tuỳ chỉnh thời gian của biểu đồ</span>
                 <div className="flex flex-col">
