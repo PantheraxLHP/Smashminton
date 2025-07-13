@@ -93,7 +93,7 @@ export class ProductBatchService {
 
       if (!po?.deliverydate || !expiry) continue;
 
-      const X = (expiry.getTime() - po.deliverydate.getTime()) / (1000 * 60 * 60 * 24);
+      const X = Math.ceil((expiry.getTime() - po.deliverydate.getTime()) / (1000 * 60 * 60 * 24));
       let Y: number;
       if (X < 30) Y = Math.ceil(X * 0.2);
       else if (X < 180) Y = Math.ceil(X * 0.15);
@@ -101,14 +101,14 @@ export class ProductBatchService {
       else Y = Math.ceil(X * 0.05);
 
       const Z = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-
-      // console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
-
+      
       let statusbatch = '';
       if (Z < 0) statusbatch = 'expired';
       else if (Z < Y) statusbatch = 'expiringsoon';
       else statusbatch = 'available';
 
+      // console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
+      
       if (batch.statusbatch !== statusbatch) {
         await this.prisma.product_batch.update({
           where: { batchid: batch.batchid },
