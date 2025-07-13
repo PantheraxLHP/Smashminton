@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(null);
                 setIsAuthenticated(false);
                 toast.error('Phiên đăng nhập đã hết hạn');
-                window.location.href = '/signin';
+                // window.location.href = '/signin';
             }
         } catch (error) {
             setUser(null);

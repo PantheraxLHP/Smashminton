@@ -484,7 +484,7 @@ export class CourtBookingService {
         return this.prisma.court_booking.findMany();
     }
 
-    @Cron('* */15 6-22 * * *') // Chạy mỗi 15 phút
+    @Cron('0 */15 6-22 * * *') // Chạy mỗi 15 phút
     async regularCourtBookingNotify() {
         const now = new Date();
         const courtBookings = await this.prisma.court_booking.findMany({
