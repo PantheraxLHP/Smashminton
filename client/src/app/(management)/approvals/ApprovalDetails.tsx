@@ -52,7 +52,7 @@ const ApprovalDetails = ({ record }: ApprovalDetailsProps) => {
                     Ghi chú
                 </Label>
                 <Textarea
-                    disabled={record.rewardrecordstatus?.toLocaleLowerCase() === 'approved'}
+                    disabled={record.rewardrecordstatus?.toLocaleLowerCase() !== 'pending'}
                     id="note"
                     placeholder="Nhập ghi chú tại đây..."
                     value={record.rewardnote || ''}
