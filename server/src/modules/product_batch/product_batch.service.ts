@@ -93,6 +93,8 @@ export class ProductBatchService {
 
       if (!po?.deliverydate || !expiry) continue;
 
+      const testNow = new Date('2025-08-01'); // <-- Bạn thay đổi ngày ở đây để test
+
       const X = Math.ceil((expiry.getTime() - po.deliverydate.getTime()) / (1000 * 60 * 60 * 24));
       let Y: number;
       if (X < 30) Y = Math.ceil(X * 0.2);
