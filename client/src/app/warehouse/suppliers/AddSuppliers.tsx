@@ -103,12 +103,30 @@ export default function AddSupplierModal({
                 ...product,
                 costprice: productCostPrice,
             };
-            if (!formData.products.some(p => p.productid === selectedProductId)) {
+            const existingProductIndex = formData.products.findIndex(
+                (p) => p.productid === selectedProductId
+            );
+
+            if (existingProductIndex !== -1) {
+                const existingProduct = formData.products[existingProductIndex];
+
+                if (existingProduct.costprice !== productCostPrice) {
+                    const updatedProducts = [...formData.products];
+                    updatedProducts[existingProductIndex] = {
+                        ...existingProduct,
+                        costprice: productCostPrice,
+                    };
+                    setFormData((prev) => ({
+                        ...prev,
+                        products: updatedProducts,
+                    }));
+                }
+            } else {
                 setFormData((prev) => ({
                     ...prev,
                     products: [...prev.products, newProduct],
                 }));
-            }
+            }            
             setProductCostPrice(null);
         }
         setSelectedProductId(0);
@@ -344,7 +362,7 @@ export default function AddSupplierModal({
                                             className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
                                         >
                                             <span className="truncate">
-                                                {p.productname} - {p.costprice.toLocaleString('vi-VN', {
+                                                {p.productname} - {Number(p.costprice).toLocaleString('vi-VN', {
                                                     style: 'currency',
                                                     currency: 'VND',
                                                 })}

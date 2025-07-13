@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
 import { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const supplierid = url.searchParams.get('supplierid');
 
@@ -15,6 +19,10 @@ export async function PATCH(request: NextRequest) {
             {
                 method: 'PATCH',
                 credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
             }
         );
 
