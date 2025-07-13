@@ -89,23 +89,23 @@ export class AccountsService {
         });
 
         if (validResult === undefined) {
-            // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
-            const results = await Promise.all(
-                files.map((file) => this.cloudinaryService.uploadFiles(file)),
-            );
+            // // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
+            // const results = await Promise.all(
+            //     files.map((file) => this.cloudinaryService.uploadFiles(file)),
+            // );
 
-            /// Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
-            const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
-                const typedResult = result as { secure_url: string };
-                acc[`img${index + 1}`] = typedResult.secure_url;
-                return acc;
-            }, {} as Record<string, string>);
+            // /// Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
+            // const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
+            //     const typedResult = result as { secure_url: string };
+            //     acc[`img${index + 1}`] = typedResult.secure_url;
+            //     return acc;
+            // }, {} as Record<string, string>);
 
-            // Lưu danh sách URL vào Cache
-            if (!data.username) {
-                throw new BadRequestException('Username is required');
-            }
-            await this.cacheService.setStudentCard(data.username, JSON.stringify(urlsObject));
+            // // Lưu danh sách URL vào Cache
+            // if (!data.username) {
+            //     throw new BadRequestException('Username is required');
+            // }
+            // await this.cacheService.setStudentCard(data.username, JSON.stringify(urlsObject));
 
             // Trả về danh sách URL dưới dạng object
             return { account, customer, studentCard: false };
@@ -246,23 +246,23 @@ export class AccountsService {
         });
 
         if (validResult === undefined) {
-            // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
-            const results = await Promise.all(
-                files.map((file) => this.cloudinaryService.uploadFiles(file)),
-            );
+            // // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
+            // const results = await Promise.all(
+            //     files.map((file) => this.cloudinaryService.uploadFiles(file)),
+            // );
 
-            // Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
-            const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
-                const typedResult = result as { secure_url: string };
-                acc[`img${index + 1}`] = typedResult.secure_url;
-                return acc;
-            }, {} as Record<string, string>);
+            // // Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
+            // const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
+            //     const typedResult = result as { secure_url: string };
+            //     acc[`img${index + 1}`] = typedResult.secure_url;
+            //     return acc;
+            // }, {} as Record<string, string>);
 
-            // Lưu danh sách URL vào Cache (update cache)
-            if (!existingAccount.username) {
-                throw new BadRequestException('Username is required');
-            }
-            await this.cacheService.setStudentCard(existingAccount.username, JSON.stringify(urlsObject));
+            // // Lưu danh sách URL vào Cache (update cache)
+            // if (!existingAccount.username) {
+            //     throw new BadRequestException('Username is required');
+            // }
+            // await this.cacheService.setStudentCard(existingAccount.username, JSON.stringify(urlsObject));
 
             // Trả về kết quả từ findOne với thông tin URLs
             const accountInfo = await this.findOne(accountId);
