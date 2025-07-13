@@ -97,6 +97,7 @@ export default function PurchaseOrderPage() {
                     : order
             )
         );
+        fetchOrders();
     };
 
     const handleCancelOrder = async (orderId: number) => {
