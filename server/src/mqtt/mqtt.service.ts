@@ -393,7 +393,7 @@ export class MqttService {
         }
     }
 
-    async getEmployeeNearAssignments(assignments: any[], scanTime: Date, timeBuffer: number = 30) {
+    async getEmployeeNearAssignments(assignments: any[], scanTime: Date, startTimeBuffer: number = 30, endTimeBuffer: number = 10) {
         let nearAssignment: any[] = [];
         for (const assignment of assignments) {
             const shiftStartMinutes = this.stringTimeToMinutes(assignment.shift_date?.shift?.shiftstarthour);
@@ -401,8 +401,8 @@ export class MqttService {
             const scanTimeMinutes = scanTime.getHours() * 60 + scanTime.getMinutes();
 
             // Trong khoảng thời gian có thể check-in/check-out
-            const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - timeBuffer &&
-                scanTimeMinutes <= shiftEndMinutes;
+            const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - startTimeBuffer &&
+                scanTimeMinutes <= shiftEndMinutes + endTimeBuffer;
 
             if (!isWithinTimeBuffer) {
                 continue;
