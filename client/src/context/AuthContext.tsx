@@ -3,6 +3,7 @@
 import { getUser } from '@/services/accounts.service';
 import { Accounts, StudentCard } from '@/types/types';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface UserJWT {
     sub: number;
@@ -67,6 +68,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             } else {
                 setUser(null);
                 setIsAuthenticated(false);
+                toast.error('Phiên đăng nhập đã hết hạn');
+                window.location.href = '/signin';
             }
         } catch (error) {
             setUser(null);
