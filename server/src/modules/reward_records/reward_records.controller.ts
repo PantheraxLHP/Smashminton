@@ -367,8 +367,7 @@ export class RewardRecordsController {
   }
 
   @Patch('update-reward-note')
-  @Public()
-  //@Roles('hr_manager')
+  @Roles('hr_manager')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update reward note' })
   @ApiBody({
