@@ -8,6 +8,7 @@ import { BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/decorators/role.decorator';
+import { Public } from 'src/decorators/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('admin')
@@ -229,7 +230,7 @@ export class AdminController {
   }
 
   @Get('prediction/train-bestseller-model')
-  @Roles('admin')
+  @Public()
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Train bestseller models (month & quarter) and return training info' })
   @ApiResponse({ status: 400, description: 'Failed to train bestseller model' })
