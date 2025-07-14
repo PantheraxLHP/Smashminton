@@ -219,7 +219,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                                     `${rc.rewardapplieddate ? formatDate(rc.rewardapplieddate) : ''}`}
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <ApprovalDetails record={rc} />
+                                        <ApprovalDetails record={rc} onSaveSuccess={fetchRewardRecords} />
                                     </DialogContent>
                                 </Dialog>
                             </div>
@@ -281,7 +281,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                     Vui lòng điền thông tin ghi chú mới cho nhân viên.
                                 </DialogDescription>
                             </DialogHeader>
-                            <ApprovalAddForm employees={employees} />
+                            <ApprovalAddForm employees={employees} onAddSuccess={fetchRewardRecords} />
                         </DialogContent>
                     </Dialog>
                 </div>

@@ -116,3 +116,24 @@ export const getRewardRules = async () => {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể tải danh sách thưởng');
     }
 };
+
+export const patchRewardNote = async (rewardRecordId: number, rewardNote: string) => {
+    try {
+        const response = await fetch(`/api/reward-record/patch-reward-note`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ rewardrecordid: rewardRecordId, rewardnote: rewardNote }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể lưu ghi chú');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể lưu ghi chú');
+    }
+};
