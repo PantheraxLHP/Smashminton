@@ -393,7 +393,7 @@ export class MqttService {
         }
     }
 
-    async getEmployeeNearAssignments(assignments: any[], scanTime: Date, timeBuffer: number = 30) {
+    async getEmployeeNearAssignments(assignments: any[], scanTime: Date, startTimeBuffer: number = 30, endTimeBuffer: number = 10) {
         let nearAssignment: any[] = [];
         for (const assignment of assignments) {
             const shiftStartMinutes = this.stringTimeToMinutes(assignment.shift_date?.shift?.shiftstarthour);
@@ -401,8 +401,8 @@ export class MqttService {
             const scanTimeMinutes = scanTime.getHours() * 60 + scanTime.getMinutes();
 
             // Trong khoảng thời gian có thể check-in/check-out
-            const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - timeBuffer &&
-                scanTimeMinutes <= shiftEndMinutes;
+            const isWithinTimeBuffer = scanTimeMinutes >= shiftStartMinutes - startTimeBuffer &&
+                scanTimeMinutes <= shiftEndMinutes + endTimeBuffer;
 
             if (!isWithinTimeBuffer) {
                 continue;
@@ -467,10 +467,103 @@ export class MqttService {
                         penaltyruleid: lateRule.penaltyruleid,
                         employeeid: employeeID,
                         violationdate: lateTime,
-                        finalpenaltyamount: finalPenaltyAmount
+                        finalpenaltyamount: finalPenaltyAmount,
+                        penaltyapplieddate: lateTime,
                     }
                 });
             }
+        }
+    }
+
+    async addEmployeeAbsencePenaltyRecord(employeeID: number, absenceDate: Date) {
+        const absenceRule = await this.prisma.penalty_rules.findFirst({
+            where: {
+                penaltyname: 'Unauthorized absence',
+            },
+        });
+        if (absenceRule) {
+            const currentMonthStart = new Date(absenceDate.getFullYear(), absenceDate.getMonth(), 1);
+            currentMonthStart.setHours(0, 0, 0, 0);
+            const currentMonthEnd = new Date(absenceDate.getFullYear(), absenceDate.getMonth() + 1, 0);
+            currentMonthEnd.setHours(23, 59, 59, 999);
+            const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
+                where: {
+                    penaltyruleid: absenceRule.penaltyruleid,
+                    employeeid: employeeID,
+                    violationdate: {
+                        gte: currentMonthStart,
+                        lte: currentMonthEnd
+                    }
+                },
+            });
+            let finalPenaltyAmount: number | null = null;
+            if (absenceRule.basepenalty !== null && absenceRule.incrementalpenalty !== null && absenceRule.maxiumpenalty !== null) {
+                const basePenalty = Number(absenceRule.basepenalty);
+                const incrementalPenalty = Number(absenceRule.incrementalpenalty);
+                const maxPenalty = Number(absenceRule.maxiumpenalty);
+
+                // + 1 Cho lần vi phạm hiện tại
+                const totalAbsenceCount = currentMonthAbsenceCount + 1;
+
+                if (totalAbsenceCount === 1) {
+                    finalPenaltyAmount = basePenalty;
+                } else {
+                    // - 1 để bớt đi lần tính base penalty
+                    const tmp = basePenalty + incrementalPenalty * (totalAbsenceCount - 1);
+                    // Giới hạn không vượt quá max penalty
+                    finalPenaltyAmount = tmp > maxPenalty ? maxPenalty : tmp;
+                }
+
+                await this.prisma.penalty_records.create({
+                    data: {
+                        penaltyruleid: absenceRule.penaltyruleid,
+                        employeeid: employeeID,
+                        violationdate: absenceDate,
+                        finalpenaltyamount: finalPenaltyAmount,
+                        penaltyapplieddate: absenceDate,
+                    }
+                });
+            }
+        }
+    }
+
+    async addEmployeeEarlyLeavePenaltyRecord(type: 'full-time' | 'part-time', employeeID: number, shiftEnd: string | null, earlyLeaveTime: Date) {
+        if (!shiftEnd) {
+            this.logger.error(`❌ Shift end time is required for early leave penalty`);
+            return;
+        }
+        const earlyLeaveRule = await this.prisma.penalty_rules.findFirst({
+            where: {
+                penaltyname: 'Early leave',
+            },
+        });
+        if (earlyLeaveRule) {
+            const earlyLeaveMinutes = earlyLeaveTime.getHours() * 60 + earlyLeaveTime.getMinutes();
+            let finalPenaltyAmount: number = 0;
+            const shiftEndMinutes = this.stringTimeToMinutes(shiftEnd);
+            switch (type) {
+                case 'full-time':
+                    const fullTimeOneHourPenaltyAmount = 50000;
+                    finalPenaltyAmount = Math.ceil((shiftEndMinutes - earlyLeaveMinutes) / 60) * fullTimeOneHourPenaltyAmount;
+                    break;
+                case 'part-time':
+                    const partTimeOneHourPenaltyAmount = 20000;
+                    finalPenaltyAmount = Math.ceil((shiftEndMinutes - earlyLeaveMinutes) / 60) * partTimeOneHourPenaltyAmount;
+                    break;
+                default:
+                    this.logger.error(`❌ Invalid employee type: ${type} for early leave penalty`);
+                    return;
+            }
+
+            await this.prisma.penalty_records.create({
+                data: {
+                    penaltyruleid: earlyLeaveRule.penaltyruleid,
+                    employeeid: employeeID,
+                    violationdate: earlyLeaveTime,
+                    finalpenaltyamount: finalPenaltyAmount,
+                    penaltyapplieddate: earlyLeaveTime,
+                }
+            });
         }
     }
 
@@ -525,6 +618,13 @@ export class MqttService {
                 return checkin > shiftStartDate;
             }
 
+            const isEarlyLeave = (shiftEnd: string, checkout: Date) => {
+                const [h, m] = shiftEnd.split(":").map(Number);
+                const shiftEndDate = new Date(checkout);
+                shiftEndDate.setHours(h, m, 0, 0);
+                return checkout < shiftEndDate;
+            }
+
             // Trường hợp nhân viên là nhân viên toàn thời gian
             if (employee.employee_type?.toLowerCase() === "full-time") {
                 // Chỉ có tối đa 1 ca làm việc trong ngày
@@ -561,7 +661,8 @@ export class MqttService {
                     }
 
                     if (tooLate) {
-                        this.logger.warn(`⚠️  Full-time Employee ${employee.employeeid} is too late to check in at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                        this.logger.warn(`⚠️  Full-time Employee ${employee.employeeid} is too late to check in Shift ${assignment.shiftid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                        await this.addEmployeeAbsencePenaltyRecord(assignment.employeeid, scanTime);
 
                         await this.prisma.timesheet.upsert({
                             where: {
@@ -609,7 +710,7 @@ export class MqttService {
                         }
                     });
 
-                    this.logger.log(`🟢 Check-in recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
+                    this.logger.log(`🟢 Check-in recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")} ${late ? '(LATE)' : ''}`);
                     return {
                         success: true,
                         action: 'check_in',
@@ -618,10 +719,17 @@ export class MqttService {
                         shiftId: assignment.shiftid,
                         time: scanTime,
                         late: late,
-                        message: late ? `Check-in successful (LATE)` : `Check-in successful`
+                        message: late ? `Check-in successful (LATE) for Shift ${assignment.shiftid}` : `Check-in successful for Shift ${assignment.shiftid}`
                     };
                 } else if (existingTimesheet.checkin_time && !existingTimesheet.checkout_time) {
                     // Nếu đã có bảng chấm công và đã check-in nhưng chưa check-out thì ghi giờ chấm công ra
+
+                    const isEarly = assignment.shift_date?.shift?.shiftendhour ? isEarlyLeave(assignment.shift_date.shift.shiftendhour, scanTime) : false;
+                    if (isEarly) {
+                        this.logger.warn(`⚠️  Full-time Employee ${employee.employeeid} is leaving early at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                        await this.addEmployeeEarlyLeavePenaltyRecord('full-time', assignment.employeeid, assignment.shift_date.shift.shiftendhour, scanTime);
+                    }
+
                     await this.prisma.timesheet.update({
                         where: {
                             employeeid_shiftid_shiftdate: {
@@ -635,7 +743,7 @@ export class MqttService {
                         }
                     });
 
-                    this.logger.log(`🔵 Check-out recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                    this.logger.log(`🔵 Check-out recorded for full-time employee ${employee.employeeid} at ${scanTime.toLocaleTimeString("vi-VN")} ${isEarly ? '(EARLY)' : ''}`);
                     return {
                         success: true,
                         action: 'check_out',
@@ -643,7 +751,7 @@ export class MqttService {
                         employeeName: employee.accounts?.fullname || 'Unknown',
                         shiftId: assignment.shiftid,
                         time: scanTime,
-                        message: `Check-out successful`
+                        message: isEarly ? `Check-out successful (EARLY) for Shift ${assignment.shiftid}` : `Check-out successful for Shift ${assignment.shiftid}`
                     };
                 } 
             }
@@ -676,6 +784,7 @@ export class MqttService {
 
                     if (tooLate) {
                         this.logger.warn(`⚠️  Part-time Employee ${employee.employeeid} is too late to check in Shift ${nextAssignment.shiftid} at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                        await this.addEmployeeAbsencePenaltyRecord(nextAssignment.employeeid, scanTime);
 
                         await this.prisma.timesheet.upsert({
                             where: {
@@ -723,7 +832,7 @@ export class MqttService {
                         }
                     });
 
-                    this.logger.log(`🟢 Check-in recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}${late ? ' (LATE)' : ''}`);
+                    this.logger.log(`🟢 Check-in recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")} ${late ? '(LATE)' : ''}`);
                     return {
                         success: true,
                         action: 'check_in',
@@ -736,6 +845,13 @@ export class MqttService {
                     };
                 } else if (existingTimesheet.checkin_time && !existingTimesheet.checkout_time) {
                     // Nếu đã có bảng chấm công và đã check-in nhưng chưa check-out thì ghi giờ chấm công ra
+
+                    const isEarly = nextAssignment.shift_date?.shift?.shiftendhour ? isEarlyLeave(nextAssignment.shift_date.shift.shiftendhour, scanTime) : false;
+                    if (isEarly) {
+                        this.logger.warn(`⚠️  Part-time Employee ${employee.employeeid} is leaving early at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                        await this.addEmployeeEarlyLeavePenaltyRecord('part-time', nextAssignment.employeeid, nextAssignment.shift_date.shift.shiftendhour, scanTime);
+                    }
+
                     await this.prisma.timesheet.update({
                         where: {
                             employeeid_shiftid_shiftdate: {
@@ -750,7 +866,7 @@ export class MqttService {
                         }
                     });
 
-                    this.logger.log(`🔵 Check-out recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")}`);
+                    this.logger.log(`🔵 Check-out recorded for part-time employee ${employee.employeeid} (Shift ${nextAssignment.shiftid}) at ${scanTime.toLocaleTimeString("vi-VN")} ${isEarly ? '(EARLY)' : ''}`);
                     return {
                         success: true,
                         action: 'check_out',
@@ -758,7 +874,7 @@ export class MqttService {
                         employeeName: employee.accounts?.fullname || 'Unknown',
                         shiftId: nextAssignment.shiftid,
                         time: scanTime,
-                        message: `Check-out successful for Shift ${nextAssignment.shiftid}`
+                        message: isEarly ? `Check-out successful (EARLY) for Shift ${nextAssignment.shiftid}` : `Check-out successful for Shift ${nextAssignment.shiftid}`
                     };
                 } else {
                     // Trường hợp đã có bảng chấm công và đã check-out, thông báo và không cập nhật lại
