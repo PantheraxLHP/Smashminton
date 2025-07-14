@@ -4,13 +4,14 @@ import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link'; // Import Link from next/link
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaBirthdayCake, FaEnvelope, FaMapMarkerAlt, FaPhone, FaUser, FaVenusMars } from 'react-icons/fa';
 import EditProfile from './EditProfile';
 import UserReceipts from './UserReceipts';
 import { updatePassword, updateStudentCard } from '@/services/accounts.service';
 import { toast } from 'sonner';
 import { getReceiptDetail } from '@/services/receipts.service';
+import { Icon } from '@iconify/react';
 
 // Types for the API data
 interface Product {
@@ -55,10 +56,12 @@ const UserProfilePage = () => {
     );
     const userProfile = user;
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [frontImage, setFrontImage] = useState<File | null>(null);
-    const [backImage, setBackImage] = useState<File | null>(null);
-    const [frontImagePreview, setFrontImagePreview] = useState<string | null>(null);
-    const [backImagePreview, setBackImagePreview] = useState<string | null>(null);
+
+    // Updated state for single image
+    const [studentImage, setStudentImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [receipts, setReceipts] = useState<Receipt[]>([]);
     const [isLoadingReceipts, setIsLoadingReceipts] = useState(false);
@@ -91,40 +94,33 @@ const UserProfilePage = () => {
         }
     }, [user?.accountid, user?.accounttype]);
 
-    const handleImageUpload = (file: File, type: 'front' | 'back') => {
-        if (type === 'front') {
-            setFrontImage(file);
-            const reader = new FileReader();
-            reader.onload = (e) => setFrontImagePreview(e.target?.result as string);
-            reader.readAsDataURL(file);
-        } else {
-            setBackImage(file);
-            const reader = new FileReader();
-            reader.onload = (e) => setBackImagePreview(e.target?.result as string);
-            reader.readAsDataURL(file);
-        }
+    // Updated image upload handler for single image
+    const handleImageUpload = (file: File) => {
+        setStudentImage(file);
+        const reader = new FileReader();
+        reader.onload = (e) => setImagePreview(e.target?.result as string);
+        reader.readAsDataURL(file);
     };
 
+    // Updated student status handler for single image
     const handleUpdateStudentStatus = async () => {
-        if (!frontImage || !backImage) {
-            toast.error('Vui lòng tải lên cả hai mặt của thẻ sinh viên');
+        if (!studentImage) {
+            toast.error('Vui lòng tải lên hình ảnh thẻ sinh viên');
             return;
         }
 
         setIsSubmitting(true);
         try {
             const formData = new FormData();
-            formData.append('files', frontImage);
-            formData.append('files', backImage);
+            formData.append('files', studentImage);
 
             const response = await updateStudentCard(userProfile?.accountid || 0, formData);
 
             if (response.ok) {
                 toast.success('Tình trạng học sinh/sinh viên đã được cập nhật');
-                setFrontImage(null);
-                setBackImage(null);
-                setFrontImagePreview(null);
-                setBackImagePreview(null);
+                setStudentImage(null);
+                setImagePreview(null);
+                setIsEditing(false);
                 window.location.reload();
             } else {
                 toast.error(response.message || 'Có lỗi xảy ra khi cập nhật');
@@ -134,6 +130,42 @@ const UserProfilePage = () => {
             toast.error('Có lỗi xảy ra khi cập nhật');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    // Updated image change handler
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                toast.error('Vui lòng chọn một file ảnh hợp lệ');
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Kích thước file không được vượt quá 5MB');
+                return;
+            }
+
+            handleImageUpload(file);
+        }
+    };
+
+    // Updated cancel function
+    const handleCancel = () => {
+        setStudentImage(null);
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+            setImagePreview(null);
+        }
+        setIsEditing(false);
+
+        // Reset the specific file input
+        const fileInput = document.getElementById('student-card-input') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
         }
     };
 
@@ -171,8 +203,8 @@ const UserProfilePage = () => {
         setIsSubmitting(false);
     };
     return (
-        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
-            <div className="mx-auto max-w-6xl rounded bg-white p-6 shadow-2xl">
+        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center py-10 px-35 flex justify-center w-full max-h-screen">
+            <div className="w-full rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
                     {userProfile?.avatarurl ? (
@@ -248,7 +280,7 @@ const UserProfilePage = () => {
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
                 {activeTab === 'bookings' && (
-                    <div className="mt-4 max-h-80 overflow-y-auto">
+                    <div className="mt-4 max-h-[55vh] overflow-y-auto">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
                                 <div className="text-center">
@@ -273,81 +305,149 @@ const UserProfilePage = () => {
                     </div>
                 )}
 
-                {/* Content for "Học sinh/Sinh viên" */}
+                {/* Updated Student Tab Content */}
                 {activeTab === 'student' && (
                     <div className="mt-4">
                         {isStudentStatusUpdated ? (
-                            <div className="text-center text-gray-600">
-                                <p>Tình trạng học sinh/sinh viên đã được cập nhật.</p>
+                            <div className="text-primary-600 text-center font-semibold">
+                                <p>Bạn đã được ghi nhận là học sinh/sinh viên.</p>
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold text-white"
+                                    >
+                                        Cập nhật thẻ sinh viên
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             <div className="mx-auto max-w-md">
                                 <h3 className="mb-4 text-lg font-semibold">Xác minh thẻ sinh viên</h3>
                                 <p className="mb-4 text-sm text-gray-600">
-                                    Vui lòng tải lên hình ảnh mặt trước và mặt sau của thẻ sinh viên để xác minh.
+                                    Vui lòng tải lên hình ảnh thẻ sinh viên để xác minh.
                                 </p>
 
-                                {/* Front Image Upload */}
-                                <div className="mb-4">
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Mặt trước thẻ sinh viên
-                                    </label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handleImageUpload(file, 'front');
-                                        }}
-                                        className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
-                                    />
-                                    {frontImagePreview && (
-                                        <div className="mt-2">
-                                            <Image
-                                                src={frontImagePreview}
-                                                alt="Front preview"
-                                                width={400}
-                                                height={128}
-                                                className="h-32 w-full rounded border object-cover"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Back Image Upload */}
+                                {/* Simplified Image Upload */}
                                 <div className="mb-6">
                                     <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Mặt sau thẻ sinh viên
+                                        Thẻ sinh viên
                                     </label>
+
+                                    {/* Direct File Input - Always Visible */}
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handleImageUpload(file, 'back');
-                                        }}
+                                        onChange={handleImageChange}
                                         className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
                                     />
-                                    {backImagePreview && (
-                                        <div className="mt-2">
-                                            <Image
-                                                src={backImagePreview}
-                                                alt="Back preview"
-                                                width={400}
-                                                height={128}
-                                                className="h-32 w-full rounded border object-cover"
-                                            />
+
+                                    {/* Image Preview */}
+                                    {imagePreview && (
+                                        <div className="mt-4">
+                                            <div className="relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-lg border">
+                                                <Image
+                                                    src={imagePreview}
+                                                    alt="Student card preview"
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 400px"
+                                                    className="object-cover"
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>
 
-                                <button
-                                    onClick={handleUpdateStudentStatus}
-                                    disabled={isSubmitting || !frontImage || !backImage}
-                                    className="bg-primary-600 hover:bg-primary-700 w-full rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
-                                >
-                                    {isSubmitting ? 'Đang tải lên...' : 'Gửi xác minh'}
-                                </button>
+                                {/* Action Buttons */}
+                                <div className="flex gap-2">
+                                    {imagePreview && (
+                                        <button
+                                            onClick={handleCancel}
+                                            className="flex-1 rounded border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Hủy
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleUpdateStudentStatus}
+                                        disabled={isSubmitting || !studentImage}
+                                        className="bg-primary-600 hover:bg-primary-700 flex-1 rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
+                                    >
+                                        {isSubmitting ? 'Đang tải lên...' : 'Gửi xác minh'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Update Section for Already Verified Users */}
+                        {isStudentStatusUpdated && isEditing && (
+                            <div className="mx-auto mt-6 max-w-md rounded-lg border bg-gray-50 p-4">
+                                <h4 className="mb-4 text-lg font-semibold">Cập nhật thẻ sinh viên</h4>
+
+                                <div className="mb-6">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                        Chọn ảnh thẻ sinh viên mới
+                                    </label>
+
+                                    {/* Custom File Upload Button */}
+                                    <div className="flex flex-col gap-4">
+                                        {/* Hidden File Input */}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                            id="student-card-input"
+                                        />
+
+                                        {/* Custom Button that triggers file input */}
+                                        <label
+                                            htmlFor="student-card-input"
+                                            className="bg-primary-100 text-primary-700 hover:bg-primary-200 inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-transparent px-4 py-2 text-sm font-medium"
+                                        >
+                                            Chọn ảnh
+                                        </label>
+
+                                        {/* File Status */}
+                                        <p className="text-sm text-gray-500">
+                                            {studentImage ? (
+                                                <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
+                                            ) : (
+                                                'Chưa chọn file nào'
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    {/* Image Preview for Update */}
+                                    {imagePreview && (
+                                        <div className="mt-4">
+                                            <div className="relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-lg border">
+                                                <Image
+                                                    src={imagePreview}
+                                                    alt="Student card preview"
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 400px"
+                                                    className="object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleCancel}
+                                        className="flex-1 rounded border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={handleUpdateStudentStatus}
+                                        disabled={isSubmitting || !studentImage}
+                                        className="bg-primary-600 hover:bg-primary-700 flex-1 rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-gray-400"
+                                    >
+                                        {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
