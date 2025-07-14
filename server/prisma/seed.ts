@@ -467,6 +467,10 @@ async function main() {
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
             },
+            {
+                penaltyname: 'Early leave',
+                penaltydescription: 'Phạt nhân viên rời khỏi nơi làm việc (chấm công ra) sớm hơn giờ quy định',                
+            }
         ],
     });
 
