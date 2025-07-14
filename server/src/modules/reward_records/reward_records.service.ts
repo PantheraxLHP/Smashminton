@@ -245,7 +245,6 @@ export class RewardRecordsService {
 
     // Tính skip sau khi đã reset page
     const skip = (page - 1) * pageSize;
-    console.log(whereCondition);
     // Query với phân trang và filter
     const employees_reward_records = await this.prisma.reward_records.findMany({
       skip: skip,
