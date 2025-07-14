@@ -223,7 +223,7 @@ export default function ZoneCourtManager() {
 
                 return (
                     <div className="flex items-center gap-2">
-                        <span className={`${colorClass} font-semibold`}>{item.status}</span>
+                        <span className={`${colorClass} font-semibold min-w-[110px]`}>{item.status}</span>
                         <Switch
                             id={`switch-${item.courtname}`}
                             checked={isActive}

@@ -89,36 +89,26 @@ export class AccountsService {
         });
 
         if (validResult === undefined) {
-            // // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
-            // const results = await Promise.all(
-            //     files.map((file) => this.cloudinaryService.uploadFiles(file)),
-            // );
-
-            // /// Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
-            // const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
-            //     const typedResult = result as { secure_url: string };
-            //     acc[`img${index + 1}`] = typedResult.secure_url;
-            //     return acc;
-            // }, {} as Record<string, string>);
-
-            // // Lưu danh sách URL vào Cache
-            // if (!data.username) {
-            //     throw new BadRequestException('Username is required');
-            // }
-            // await this.cacheService.setStudentCard(data.username, JSON.stringify(urlsObject));
-
-            // Trả về danh sách URL dưới dạng object
             return { account, customer, studentCard: false };
         }
 
         // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
         if (validResult) {
-            await this.studentCardService.createStudentCard({
-                studentcardid: account.accountid,
-                schoolname: validResult.university,
-                studentid: validResult.id,
-                studyperiod: validResult.expiryYear,
+            const studnetid = await this.prisma.student_card.findFirst({
+                where: {
+                    studentid: validResult.id,
+                },
             });
+            if (!studnetid) {
+                await this.studentCardService.createStudentCard({
+                    studentcardid: account.accountid,
+                    schoolname: validResult.university,
+                    studentid: validResult.id,
+                    studyperiod: validResult.expiryYear,
+                });
+            } else {
+                throw new BadRequestException('Student card already exists');
+            }
         }
         // Trả về kết quả cuối cùng
         return { account, customer, studentCard: validResult };
@@ -147,38 +137,38 @@ export class AccountsService {
         return this.employeeService.getEmployeeRoles(employeeId);
     }
     async update(id: number, updateAccountDto: UpdateAccountDto, file: Express.Multer.File): Promise<any> {
-        try{
-        const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
-        if (!existingAccount) {
-            throw new BadRequestException('Account not found');
-        }
-
-        let url_avatar: string = existingAccount.avatarurl || '';
-        if (file) {
-            // If files are provided, upload them to Cloudinary
-            const uploadResults = await this.cloudinaryService.uploadAvatar(file); // Changed to handle multiple files
-            url_avatar = uploadResults.secure_url || '';
-            if (!url_avatar) {
-                throw new BadRequestException('Failed to upload files');
+        try {
+            const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
+            if (!existingAccount) {
+                throw new BadRequestException('Account not found');
             }
-        }
-        // Map updateAccountDto into a variable named updatedInfo with data type Accounts
-        const updatedInfo: Accounts = {
-            ...updateAccountDto,
-            avatarurl: url_avatar,
-        };
 
-        // Update account details in the database
-        const updatedAccount = await this.prisma.accounts.update({
-            where: { accountid: id },
-            data: updatedInfo,
-        });
+            let url_avatar: string = existingAccount.avatarurl || '';
+            if (file) {
+                // If files are provided, upload them to Cloudinary
+                const uploadResults = await this.cloudinaryService.uploadAvatar(file); // Changed to handle multiple files
+                url_avatar = uploadResults.secure_url || '';
+                if (!url_avatar) {
+                    throw new BadRequestException('Failed to upload files');
+                }
+            }
+            // Map updateAccountDto into a variable named updatedInfo with data type Accounts
+            const updatedInfo: Accounts = {
+                ...updateAccountDto,
+                avatarurl: url_avatar,
+            };
 
-        if (!updatedAccount) {
-            throw new BadRequestException('Failed to update account');
-        }
-        console.log(updatedAccount);
-        return updatedAccount;
+            // Update account details in the database
+            const updatedAccount = await this.prisma.accounts.update({
+                where: { accountid: id },
+                data: updatedInfo,
+            });
+
+            if (!updatedAccount) {
+                throw new BadRequestException('Failed to update account');
+            }
+            console.log(updatedAccount);
+            return updatedAccount;
         } catch (error) {
             throw new BadRequestException('Failed to update account');
         }
@@ -246,36 +236,23 @@ export class AccountsService {
         });
 
         if (validResult === undefined) {
-            // // Nếu không có JSON nào hợp lệ, upload tất cả các file lên Cloudinary
-            // const results = await Promise.all(
-            //     files.map((file) => this.cloudinaryService.uploadFiles(file)),
-            // );
-
-            // // Lấy danh sách URL từ kết quả upload và chuyển đổi thành object
-            // const urlsObject = results.reduce((acc: Record<string, string>, result, index) => {
-            //     const typedResult = result as { secure_url: string };
-            //     acc[`img${index + 1}`] = typedResult.secure_url;
-            //     return acc;
-            // }, {} as Record<string, string>);
-
-            // // Lưu danh sách URL vào Cache (update cache)
-            // if (!existingAccount.username) {
-            //     throw new BadRequestException('Username is required');
-            // }
-            // await this.cacheService.setStudentCard(existingAccount.username, JSON.stringify(urlsObject));
-
             // Trả về kết quả từ findOne với thông tin URLs
             const accountInfo = await this.findOne(accountId);
             return accountInfo;
         }
 
-        // Xóa student card cũ nếu có
-        await this.prisma.student_card.deleteMany({
-            where: { studentcardid: accountId }
+        const studnetid = await this.prisma.student_card.findFirst({
+            where: {
+                studentid: validResult.id,
+            },
         });
+        if (studnetid) {
+            throw new BadRequestException('Student card already exists');
+        }
 
         // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
         if (validResult) {
+            // Tạo student card mới
             await this.studentCardService.createStudentCard({
                 studentcardid: accountId,
                 schoolname: validResult.university,
