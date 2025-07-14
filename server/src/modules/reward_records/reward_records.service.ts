@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateRewardRecordDto } from './dto/create-reward_record.dto';
 import { UpdateRewardRecordDto } from './dto/update-reward_record.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -332,5 +332,21 @@ export class RewardRecordsService {
     }
 
     return rewardRecord;
+  }
+
+  async updateRewardNote(rewardrecordid: number, rewardnote: string) {
+    const status = await this.prisma.reward_records.findUnique({
+      where: { rewardrecordid: rewardrecordid },
+    });
+    if (status && status.rewardrecordstatus !== 'pending') {
+      throw new BadRequestException('Reward record is not pending');
+    }
+    if (!status) {
+      throw new BadRequestException('Reward record not found');
+    }
+    return this.prisma.reward_records.update({
+      where: { rewardrecordid: rewardrecordid },
+      data: { rewardnote: rewardnote }
+    });
   }
 }

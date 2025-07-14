@@ -568,11 +568,28 @@ export class ShiftDateService {
             const maxPenalty = Number(absentRule.maxiumpenalty);
 
             for (const assignment of shiftAssignments) {
+                const assignmentDate = new Date(assignment.shiftdate);
+                const existingAbsencePenalty = await this.prisma.penalty_records.findFirst({
+                    where: {
+                        employeeid: assignment.employeeid,
+                        penaltyruleid: absentRule.penaltyruleid,
+                        violationdate: {
+                            gte: new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), assignmentDate.getDate()),
+                            lt: new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), assignmentDate.getDate() + 1)
+                        },
+                    },
+                });
+
+                if (existingAbsencePenalty) {
+                    Logger.log(`Employee ${assignment.employeeid} already has an absence penalty for ${assignmentDate.toLocaleDateString('vi-VN')}. Skipping.`);
+                    continue;
+                }
+
                 let finalPenaltyAmount: number | null = null;
 
-                const currentMonthStart = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth(), 1);
+                const currentMonthStart = new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), 1);
                 currentMonthStart.setHours(0, 0, 0, 0);
-                const currentMonthEnd = new Date(assignment.shiftdate.getFullYear(), assignment.shiftdate.getMonth() + 1, 0);
+                const currentMonthEnd = new Date(assignmentDate.getFullYear(), assignmentDate.getMonth() + 1, 0);
                 currentMonthEnd.setHours(23, 59, 59, 999);
                 const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
                     where: {
@@ -585,23 +602,25 @@ export class ShiftDateService {
                     },
                 });
 
-                if (currentMonthAbsenceCount > 1) {
-                    const tmp = basePenalty + incrementalPenalty * currentMonthAbsenceCount;
-                    if (tmp > maxPenalty) {
-                        finalPenaltyAmount = maxPenalty;
-                    } else {
-                        finalPenaltyAmount = tmp;
-                    }
-                } else {
+                // + 1 Cho lần vi phạm hiện tại
+                const totalAbsenceCount = currentMonthAbsenceCount + 1;
+
+                if (totalAbsenceCount === 1) {
                     finalPenaltyAmount = basePenalty;
+                } else {
+                    // - 1 để bớt đi lần tính base penalty
+                    const tmp = basePenalty + incrementalPenalty * (totalAbsenceCount - 1);
+                    // Giới hạn không vượt quá max penalty
+                    finalPenaltyAmount = tmp > maxPenalty ? maxPenalty : tmp;
                 }
 
                 await this.prisma.penalty_records.create({
                     data: {
                         penaltyruleid: absentRule.penaltyruleid,
                         employeeid: assignment.employeeid,
-                        violationdate: assignment.shiftdate,
-                        finalpenaltyamount: finalPenaltyAmount
+                        violationdate: assignmentDate,
+                        finalpenaltyamount: finalPenaltyAmount,
+                        penaltyapplieddate: assignmentDate,
                     }
                 });
             }
