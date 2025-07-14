@@ -151,7 +151,7 @@ export default function PurchaseOrderPage() {
                 return (
                     <span className={`${colorClass} font-semibold`}>
                         {item.status}
-                        {item.status === 'Chờ giao hàng' && '...'}
+                        {item.status === 'Chờ giao hàng'}
                     </span>
                 );
             }, align: 'center'
@@ -165,35 +165,37 @@ export default function PurchaseOrderPage() {
     if (activeTab === 'pending') {
         columns.push({
             header: '',
-            accessor: (item) =>
-                item.status !== 'Đã nhận hàng' && item.status !== 'Đã huỷ' ? (
-                    <button
-                        className="bg-primary-500 text-white px-3 py-2 rounded hover:bg-primary-600 mr-2 cursor-pointer"
-                        onClick={() => handleOpenVerifyModal(item)}
-                    >
-                        Xác nhận đơn
-                    </button>
-                ) : null, align: 'center'
+            accessor: (item) => {
+                if (item.status === 'Đã nhận hàng' || item.status === 'Đã huỷ') return null;
+
+                return (
+                    <div className="flex items-center justify-center gap-x-2">
+                        <button
+                            className="bg-primary-500 text-white px-3 py-2 rounded hover:bg-primary-600 cursor-pointer"
+                            onClick={() => handleOpenVerifyModal(item)}
+                        >
+                            Xác nhận đơn
+                        </button>
+
+                        {item.status === 'Chờ giao hàng' && (
+                            <ConfirmDialog
+                                title="Huỷ đơn hàng"
+                                description="Bạn có chắc muốn huỷ đơn hàng này không?"
+                                onConfirm={() => handleCancelOrder(item.orderid)}
+                                trigger={
+                                    <button className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer">
+                                        Huỷ đơn
+                                    </button>
+                                }
+                            />
+                        )}
+                    </div>
+                );
+            },
+            align: 'center',
         });
-        columns.push({
-            header: '',
-            accessor: (item) =>
-                item.status === 'Chờ giao hàng' ? (
-                    <ConfirmDialog
-                        title="Huỷ đơn hàng"
-                        description="Bạn có chắc muốn huỷ đơn hàng này không?"
-                        onConfirm={() => handleCancelOrder(item.orderid)}
-                        trigger={
-                            <button className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 cursor-pointer">
-                                Huỷ đơn
-                            </button>
-                        }
-                    />
-                ) : null,
-            align: 'center'
-        }
-        );
     }
+
 
     const filteredOrders = ordersState.filter((order) => {
         if (activeTab === 'pending') {

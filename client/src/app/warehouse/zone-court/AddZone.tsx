@@ -74,7 +74,7 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             });
 
             if (!formData.zonename || !formData.zonetype) {
-                setMessage("Vui lòng điền đủ tên và loại zone.");
+                setMessage("Vui lòng điền đủ tên và loại khu vực.");
                 return;
             }
 
@@ -87,13 +87,13 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             fd.append("zonedescription", formData.zonedescription);
             if (formData.zoneAvatar) {
                 fd.append("image", formData.zoneAvatar);
-                console.log("Zone image file:", formData.zoneAvatar);
+                console.log("Ảnh khu vực:", formData.zoneAvatar);
             }
 
             try {
                 const response = await postZones(fd);
                 if (response.ok) {
-                    toast.success("Thêm zone thành công");
+                    toast.success("Thêm khu vực thành công");
                     onSuccess();
                     onSubmit({
                         zonename: formData.zonename,
@@ -102,7 +102,7 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                         image: response.data?.imageUrl || "",
                     });
                 } else {
-                    toast.error(response.message || "Thêm zone thất bại");
+                    toast.error(response.message || "Thêm khu vực thất bại");
                 }
             } catch (error) {
                 toast.error("Có lỗi xảy ra");
@@ -138,7 +138,7 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                     ref={modalRef}
                     className="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg relative"
                 >
-                    <h2 className="text-lg font-semibold mb-4">Thêm Zone</h2>
+                    <h2 className="text-lg font-semibold mb-4">Thêm khu vực</h2>
 
                     <div className="flex flex-col sm:flex-row gap-6 mb-6">
                         <div className="flex flex-col items-center gap-2">
@@ -167,12 +167,12 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                                     id="zone-upload-file"
                                 />
                             </div>
-                            <p className="text-sm text-gray-500">Ảnh Zone</p>
+                            <p className="text-sm text-gray-500">Ảnh khu vực</p>
                         </div>
 
                         <div className="flex-1 grid grid-cols-1 gap-4">
                             <div>
-                                <label className="block text-sm font-medium">Tên Zone</label>
+                                <label className="block text-sm font-medium">Tên khu vực</label>
                                 <input
                                     type="text"
                                     value={formData.zonename}
@@ -183,16 +183,16 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium">Loại Zone</label>
+                                <label className="block text-sm font-medium">Loại khu vực</label>
                                 <select
                                     value={formData.zonetype}
                                     onChange={(e) => setFormData({ ...formData, zonetype: e.target.value })}
                                     className="w-full border rounded px-3 py-2"
                                 >
-                                    <option value="">Chọn loại Zone</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="AirConditioner">Air Conditioner</option>
-                                    <option value="Private">Private</option>
+                                    <option value="">Chọn loại khu vực</option>
+                                    <option value="Normal">Bình thường</option>
+                                    <option value="AirConditioner">Máy lạnh</option>
+                                    <option value="Private">Riêng tư</option>
                                 </select>
                             </div>
 
