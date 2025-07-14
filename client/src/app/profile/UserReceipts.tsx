@@ -355,10 +355,10 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
             {/* Filter Buttons */}
-            <div className="flex flex-wrap gap-2">
-                {filterButtons.map((button) => (
+            <div className="flex flex-wrap gap-2 sticky top-0">
+                {filterButtons.map((button) => (    
                     <button
                         key={button.key}
                         onClick={() => setSelectedFilter(button.key)}
