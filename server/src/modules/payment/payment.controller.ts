@@ -91,8 +91,6 @@ export class PaymentsController {
 	@ApiResponse({ status: 302, description: 'Redirect to success or fail page' })
 	async momoCallback(@Query() query: any, @Res() res: Response) {
 		try {
-			console.log('Received MoMo callback:', query);
-
 			// Extract original payment data from query params
 			const originalParams = {
 				userId: query.userId,
