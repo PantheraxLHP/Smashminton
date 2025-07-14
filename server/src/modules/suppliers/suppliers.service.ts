@@ -46,7 +46,12 @@ export class SuppliersService {
     const allSuppliers = await this.prisma.suppliers.findMany({
       where: {
         isdeleted: false,
-        ...(q1 && { suppliername: { contains: q1, mode: 'insensitive' } }),
+        ...(q1 && {
+          suppliername: {
+            contains: q1,
+            mode: 'insensitive',
+          },
+        }),
       },
       include: {
         supply_products: {
@@ -63,25 +68,39 @@ export class SuppliersService {
           include: { products: true }
         }
       },
-      orderBy: { supplierid: 'asc' }
+      orderBy: {
+        supplierid: 'asc',
+      },
     });
 
-    // 🔥 Chỉ lấy những thằng có supply_products.length > 0
-    const filtered = allSuppliers.filter(supplier => supplier.supply_products.length > 0);
+    let filtered = allSuppliers;
+
+    if (q2) {
+      filtered = allSuppliers.filter(supplier =>
+        supplier.supply_products.some(sp =>
+          sp.products?.productname?.toLowerCase().includes(q2.toLowerCase())
+        )
+      );
+    }
 
     const total = filtered.length;
     const totalPages = Math.ceil(total / limit);
-
     const paginatedSuppliers = filtered.slice(skip, skip + limit);
 
     return {
       data: paginatedSuppliers,
       pagination: {
-        page: page,
-        totalPages: totalPages
+        page,
+        totalPages,
       },
-    }
+    };
   }
+
+
+
+
+
+
 
   async findSuppliersByProduct(productid: number) {
     const supplies = await this.prisma.supply_products.findMany({
