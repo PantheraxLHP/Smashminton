@@ -87,6 +87,9 @@ export class SuppliersService {
     const supplies = await this.prisma.supply_products.findMany({
       where: {
         productid: productid,
+        suppliers: {
+          isdeleted: false,
+        },
       },
       include: {
         suppliers: true,
