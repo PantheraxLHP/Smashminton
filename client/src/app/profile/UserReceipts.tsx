@@ -1,6 +1,7 @@
 import { formatDate, formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { useState } from 'react';
 
 interface Product {
     productid: number;
@@ -39,6 +40,8 @@ interface UserReceiptsProps {
 }
 
 const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
+    const [selectedFilter, setSelectedFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
+
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleTimeString('vi-VN', {
@@ -56,6 +59,25 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         if (now < start) return 'upcoming';
         if (now >= start && now <= end) return 'ongoing';
         return 'completed';
+    };
+
+    // Add sorting function
+    const sortReceiptsByDate = (receipts: Receipt[], reverse: boolean = false) => {
+        return receipts.sort((a, b) => {
+            // Get the earliest court date for each receipt
+            const getEarliestDate = (receipt: Receipt) => {
+                if (!receipt.courts || !Array.isArray(receipt.courts) || receipt.courts.length === 0) {
+                    return new Date(0); // fallback for empty courts
+                }
+                const dates = receipt.courts.map((court) => new Date(court.starttime || court.date));
+                return new Date(Math.min(...dates.map((d) => d.getTime())));
+            };
+
+            const dateA = getEarliestDate(a);
+            const dateB = getEarliestDate(b);
+
+            return reverse ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+        });
     };
 
     const getStatusColor = (status: 'upcoming' | 'ongoing' | 'completed') => {
@@ -216,25 +238,32 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
     const validReceipts = Array.isArray(receipts) ? receipts : [];
 
     // Group receipts by status
-    const upcomingReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'upcoming'),
+    const upcomingReceipts = sortReceiptsByDate(
+        validReceipts.filter(
+            (receipt) =>
+                receipt.courts &&
+                Array.isArray(receipt.courts) &&
+                receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'upcoming'),
+        ),
     );
 
-    const ongoingReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'ongoing'),
+    const ongoingReceipts = sortReceiptsByDate(
+        validReceipts.filter(
+            (receipt) =>
+                receipt.courts &&
+                Array.isArray(receipt.courts) &&
+                receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'ongoing'),
+        ),
     );
 
-    const completedReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.every((court) => getBookingStatus(court.starttime, court.endtime) === 'completed'),
+    const completedReceipts = sortReceiptsByDate(
+        validReceipts.filter(
+            (receipt) =>
+                receipt.courts &&
+                Array.isArray(receipt.courts) &&
+                receipt.courts.every((court) => getBookingStatus(court.starttime, court.endtime) === 'completed'),
+        ),
+        true, // reverse = true for completed (newest first)
     );
 
     if (validReceipts.length === 0) {
@@ -246,31 +275,107 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         );
     }
 
+    const filterButtons = [
+        { key: 'all', label: 'Tất cả', icon: 'mdi:calendar-multiple' },
+        { key: 'ongoing', label: 'Đang diễn ra', icon: 'mdi:clock-outline' },
+        { key: 'upcoming', label: 'Sắp diễn ra', icon: 'mdi:calendar-clock' },
+        { key: 'completed', label: 'Đã hoàn thành', icon: 'mdi:calendar-check' },
+    ] as const;
+
+    const renderFilteredContent = () => {
+        switch (selectedFilter) {
+            case 'ongoing':
+                return ongoingReceipts.length > 0 ? (
+                    <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-800">Đang diễn ra</h3>
+                        {ongoingReceipts.map(renderReceipt)}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                        <Icon icon="mdi:clock-outline" className="mb-4 size-16" />
+                        <span className="text-lg">Không có booking đang diễn ra</span>
+                    </div>
+                );
+
+            case 'upcoming':
+                return upcomingReceipts.length > 0 ? (
+                    <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-800">Sắp diễn ra</h3>
+                        {upcomingReceipts.map(renderReceipt)}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                        <Icon icon="mdi:calendar-clock" className="mb-4 size-16" />
+                        <span className="text-lg">Không có booking sắp diễn ra</span>
+                    </div>
+                );
+
+            case 'completed':
+                return completedReceipts.length > 0 ? (
+                    <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-800">Đã hoàn thành</h3>
+                        {completedReceipts.map(renderReceipt)}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                        <Icon icon="mdi:calendar-check" className="mb-4 size-16" />
+                        <span className="text-lg">Không có booking đã hoàn thành</span>
+                    </div>
+                );
+
+            default: // 'all'
+                return (
+                    <>
+                        {/* Ongoing Bookings */}
+                        {ongoingReceipts.length > 0 && (
+                            <div>
+                                <h3 className="mb-4 text-lg font-semibold text-gray-800">Đang diễn ra</h3>
+                                {ongoingReceipts.map(renderReceipt)}
+                            </div>
+                        )}
+
+                        {/* Upcoming Bookings */}
+                        {upcomingReceipts.length > 0 && (
+                            <div>
+                                <h3 className="mb-4 text-lg font-semibold text-gray-800">Sắp diễn ra</h3>
+                                {upcomingReceipts.map(renderReceipt)}
+                            </div>
+                        )}
+
+                        {/* Completed Bookings */}
+                        {completedReceipts.length > 0 && (
+                            <div>
+                                <h3 className="mb-4 text-lg font-semibold text-gray-800">Đã hoàn thành</h3>
+                                {completedReceipts.map(renderReceipt)}
+                            </div>
+                        )}
+                    </>
+                );
+        }
+    };
+
     return (
         <div className="space-y-6">
-            {/* Ongoing Bookings */}
-            {ongoingReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Đang diễn ra</h3>
-                    {ongoingReceipts.map(renderReceipt)}
-                </div>
-            )}
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
+                {filterButtons.map((button) => (
+                    <button
+                        key={button.key}
+                        onClick={() => setSelectedFilter(button.key)}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                            selectedFilter === button.key
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                    >
+                        <Icon icon={button.icon} className="size-4" />
+                        {button.label}
+                    </button>
+                ))}
+            </div>
 
-            {/* Upcoming Bookings */}
-            {upcomingReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Sắp diễn ra</h3>
-                    {upcomingReceipts.map(renderReceipt)}
-                </div>
-            )}
-
-            {/* Completed Bookings */}
-            {completedReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Đã hoàn thành</h3>
-                    {completedReceipts.map(renderReceipt)}
-                </div>
-            )}
+            {/* Filtered Content */}
+            {renderFilteredContent()}
         </div>
     );
 };

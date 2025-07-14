@@ -86,7 +86,7 @@ export default function PredictionPage() {
                 {tableLoading && <div>Đang tải dữ liệu...</div>}
                 {tableShow && (
                     <div className="flex flex-col gap-4 rounded-lg bg-white p-4">
-                        <Button variant="outline" onClick={() => setTableShow(false)}>
+                        <Button variant="outline" onClick={() => setTableShow(false)} className="w-fit">
                             Ẩn bảng dự đoán
                         </Button>
                         <PredictionTable data={tableData} />
@@ -113,14 +113,28 @@ export default function PredictionPage() {
                             <div className="h-[60vh] max-w-[50vw] flex-1 rounded-lg border-2 bg-white p-4">
                                 <PredictionChart
                                     data={chartData}
-                                    title={`Tỉ lệ loại sản phẩm bán ra trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                    title={
+                                        <>
+                                            Tỉ lệ loại sản phẩm bán ra trong{' '}
+                                            <span className="text-primary-500">
+                                                {chartSelectedTime.toLowerCase()} năm {chartSelectedYear}
+                                            </span>
+                                        </>
+                                    }
                                     sortOrder={sortOrder}
                                 />
                             </div>
                             <div className="h-[60vh] max-w-[50vw] flex-1 rounded-lg border-2 bg-white p-4">
                                 <PredictionChart
                                     data={purchaseData}
-                                    title={`Tỉ lệ loại sản phẩm mua vào trong ${chartSelectedTime.toLowerCase()} năm ${chartSelectedYear}`}
+                                    title={
+                                        <>
+                                            Tỉ lệ loại sản phẩm mua vào trong{' '}
+                                            <span className="text-primary-500">
+                                                {chartSelectedTime.toLowerCase()} năm {chartSelectedYear}
+                                            </span>
+                                        </>
+                                    }
                                     sortOrder={sortOrder}
                                 />
                             </div>

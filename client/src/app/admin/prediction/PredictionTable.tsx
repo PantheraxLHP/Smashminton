@@ -9,8 +9,8 @@ const PredictionTable: React.FC<PredictionTableProps> = ({ data }) => {
         <table className="min-w-full text-sm text-left border rounded-lg bg-white">
             <thead>
                 <tr>
-                    <th className="border px-4 py-2">Mã loại sản phẩm</th>
-                    <th className="border px-4 py-2">Tên loại sản phẩm</th>
+                    <th className="border px-4 py-2 font-bold">Mã loại sản phẩm</th>
+                    <th className="border px-4 py-2 font-bold">Tên loại sản phẩm</th>
                 </tr>
             </thead>
             <tbody>

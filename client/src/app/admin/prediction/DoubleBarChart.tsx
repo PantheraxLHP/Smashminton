@@ -41,8 +41,11 @@ const DoubleBarChart: React.FC<DoubleBarChartProps> = ({ data, selectedTime, sel
     return (
         <div className="flex h-full flex-col">
             <h2 className="mb-4 text-lg font-semibold">
-                So sánh số lượng <span className="text-primary-500">mua vào</span> và{' '}
-                <span className="text-primary-500">bán ra </span> của từng loại sản phẩm trong {selectedTime.toLowerCase()} năm {selectedYear}
+                So sánh số lượng <span className="text-[#10b981]">mua vào</span> và{' '}
+                <span className="text-[#4f46e5]">bán ra </span> của từng loại sản phẩm trong{' '}
+                <span className="text-primary-500">
+                    {selectedTime.toLowerCase()} năm {selectedYear}
+                </span>
             </h2>
             <div className="flex-1 overflow-hidden">
                 <ChartContainer config={chartConfig} className="h-full min-w-full">

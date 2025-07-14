@@ -19,6 +19,7 @@ interface EmployeeDetailsProps {
 }
 
 interface FormData {
+    employeeid: number;
     fullname: string;
     gender: string;
     dob: Date;
@@ -45,6 +46,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [bankDetails, setBankDetails] = useState(employee.bank_detail || []);
     const [formData, setFormData] = useState<FormData>({
+        employeeid: employee.employeeid || 0,
         fullname: employee.fullname || '',
         gender: employee.gender || '',
         dob: employee.dob || new Date(),
@@ -91,8 +93,10 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         if (newBankDetail) {
             setBankDetails((prev) => [...prev, newBankDetail]);
         }
-        setIsEditing(false);
+        // Don't exit edit mode - remove setIsEditing(false)
         setIsAddDialogOpen(false);
+
+        // Refetch data to get updated information
         onSuccess();
     };
 
@@ -135,6 +139,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
 
     const resetForm = () => {
         setFormData({
+            employeeid: employee.employeeid || 0,
             fullname: employee.fullname || '',
             gender: employee.gender || '',
             dob: employee.dob || new Date(employee.dob || ''),
@@ -175,9 +180,27 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
 
             if (result.ok) {
                 toast.success('Cập nhật thông tin nhân viên thành công');
-                setIsEditing(false);
-                resetForm();
-                Object.assign(employee, { ...formData, avatarurl: result.data.avatarurl });
+                // Don't exit edit mode - remove setIsEditing(false)
+                // Don't reset form - keep current form data
+
+                // Update the employee object with new data including avatar URL
+                Object.assign(employee, {
+                    ...formData,
+                    avatarurl: result.data.avatarurl,
+                    dob: formData.dob,
+                    expiry_cccd: formData.expiry_cccd,
+                });
+
+                // Clear avatar file from form since it's now saved
+                setFormData((prev) => ({ ...prev, avatar: null }));
+
+                // Clear avatar preview
+                if (avatarPreview) {
+                    URL.revokeObjectURL(avatarPreview);
+                    setAvatarPreview(null);
+                }
+
+                // Refetch data to get updated information
                 onSuccess();
             } else {
                 toast.error(result.message || 'Cập nhật thông tin nhân viên thất bại');
@@ -270,12 +293,30 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
             {selectedTab === 'Thông tin cơ bản' && (
                 <div className="flex h-full w-full flex-col gap-10">
                     {renderFieldPair(
-                        renderField('employee-id', 'Mã nhân viên', 'fullname', 'text', true),
+                        renderField('employee-id', 'Mã nhân viên', 'employeeid', 'text', true),
                         renderField('employee-name', 'Họ tên nhân viên', 'fullname'),
                     )}
                     {renderFieldPair(
                         renderField('employee-dob', 'Ngày sinh', 'dob', 'date'),
-                        renderField('employee-gender', 'Giới tính', 'gender'),
+                        <div className="flex w-full flex-col gap-1">
+                            <Label htmlFor="employee-gender" className="text-xs font-semibold">
+                                Giới tính
+                            </Label>
+                            <Select
+                                disabled={!isEditing}
+                                value={formData.gender}
+                                onValueChange={(value) => setFormData((prev) => ({ ...prev, gender: value }))}
+                            >
+                                <SelectTrigger id="employee-gender" className="">
+                                    <SelectValue placeholder="Chọn giới tính" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Nam">Nam</SelectItem>
+                                    <SelectItem value="Nữ">Nữ</SelectItem>
+                                    <SelectItem value="Khác">Khác</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>,
                     )}
                     {renderFieldPair(
                         renderField('employee-phonenumber', 'Số điện thoại', 'phonenumber'),
