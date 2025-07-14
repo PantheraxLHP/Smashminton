@@ -3,17 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Icon } from '@iconify/react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    RadioGroup,
-    RadioGroupItem,
-} from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Range } from 'react-range';
 import { formatPrice } from '@/lib/utils';
 
@@ -210,7 +201,7 @@ const Filter: React.FC<FilterProps> = ({
     };
 
     return (
-        <div className="flex w-full sm:max-w-xs flex-col gap-5 rounded-lg border-2 border-gray-200 p-4">
+        <div className="flex w-full flex-col gap-5 rounded-lg border-2 border-gray-200 p-4 sm:max-w-xs">
             {filters.map((filter) => {
                 const value = values[filter.filterid];
 
@@ -306,9 +297,7 @@ const Filter: React.FC<FilterProps> = ({
                             <div key={`filter-${filter.filterid}`} className="flex flex-col gap-2">
                                 <div className="font-semibold">{filter.filterlabel}</div>
                                 {(filter.filteroptions?.length || 0) > 0 && (
-                                    <div
-                                        key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2"
-                                    >
+                                    <div key={`radio-${filter.filterid}`} className="mb-4 flex flex-col gap-2">
                                         <RadioGroup
                                             value={`${value?.[0]}`}
                                             onValueChange={(newValue) => {
@@ -321,17 +310,15 @@ const Filter: React.FC<FilterProps> = ({
                                         >
                                             {filter.filteroptions?.map((option) => (
                                                 <div
-                                                    key={`radio-${filter.filterid}-${option.optionvalue}`} className="flex items-center gap-2"
+                                                    key={`radio-${filter.filterid}-${option.optionvalue}`}
+                                                    className="flex items-center gap-2"
                                                 >
                                                     <RadioGroupItem
                                                         id={`${option.optionvalue}`}
                                                         value={`${option.optionvalue}`}
                                                         className="cursor-pointer"
                                                     />
-                                                    <Label
-                                                        htmlFor={`${option.optionvalue}`}
-                                                        className="cursor-pointer"
-                                                    >
+                                                    <Label htmlFor={`${option.optionvalue}`} className="cursor-pointer">
                                                         {option.optionlabel}
                                                     </Label>
                                                 </div>
@@ -465,12 +452,12 @@ const Filter: React.FC<FilterProps> = ({
                                     <div className="flex w-full flex-col gap-1">
                                         <Label className="text-sm">Tháng</Label>
                                         <Select
-                                            value={`${value?.month || new Date().getMonth() + 1}`}
+                                            value={value?.month ? `${value.month}` : ''}
                                             onValueChange={(newMonth) => {
                                                 const newValue = {
                                                     month: Number(newMonth),
                                                     year: value?.year || new Date().getFullYear(),
-                                                }
+                                                };
                                                 if (onFilterChange) {
                                                     onFilterChange(filter.filterid, newValue);
                                                 } else {
@@ -493,12 +480,12 @@ const Filter: React.FC<FilterProps> = ({
                                     <div className="flex w-full flex-col gap-1">
                                         <Label className="text-sm">Năm</Label>
                                         <Select
-                                            value={`${value?.year || new Date().getFullYear()}`}
+                                            value={value?.year ? `${value.year}` : ''}
                                             onValueChange={(newYear) => {
                                                 const newValue = {
                                                     month: value?.month || new Date().getMonth() + 1,
                                                     year: Number(newYear),
-                                                }
+                                                };
                                                 if (onFilterChange) {
                                                     onFilterChange(filter.filterid, newValue);
                                                 } else {
