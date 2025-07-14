@@ -36,11 +36,11 @@ export class PaymentsController {
 		@Query('resultCode') resultCode?: string
 	) {
 		if (status && status !== 'PAID') {
-			throw new Error('Payment status must be PAID');
+			if (resultCode && resultCode !== '0') {
+				throw new Error('Result code or Payment status is failed');
+			}
 		}
-		if (resultCode && resultCode !== '0') {
-			throw new Error('Result code must be 0 for successful payment');
-		}
+
 		const paymentData: paymentData = {
 			userId,
 			userName,
@@ -82,6 +82,37 @@ export class PaymentsController {
 				status: 'ERROR',
 				message: 'Failed to process IPN',
 			});
+		}
+	}
+
+	@Get('momo/callback')
+	@Public() // Make this public as MoMo will call it directly
+	@ApiOperation({ summary: 'Handle MoMo callback redirect', description: 'Process MoMo payment callback and redirect based on resultCode' })
+	@ApiResponse({ status: 302, description: 'Redirect to success or fail page' })
+	async momoCallback(@Query() query: any, @Res() res: Response) {
+		try {
+			console.log('Received MoMo callback:', query);
+
+			// Extract original payment data from query params
+			const originalParams = {
+				userId: query.userId,
+				userName: query.userName,
+				paymentMethod: query.paymentMethod,
+				guestPhoneNumber: query.guestPhoneNumber,
+				voucherId: query.voucherId,
+				totalAmount: query.totalAmount,
+			};
+
+			// Get the redirect URL based on resultCode
+			const redirectUrl = await this.paymentsService.handleMomoCallback(query, originalParams);
+
+			// Redirect user to the appropriate page
+			return res.redirect(redirectUrl);
+		} catch (error) {
+			console.error('Error handling MoMo callback:', error);
+			// In case of error, redirect to fail page
+			const DOMAIN = process.env.CLIENT || 'http://localhost:3000';
+			return res.redirect(`${DOMAIN}/payment/fail`);
 		}
 	}
 
