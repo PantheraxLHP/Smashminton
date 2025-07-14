@@ -11,7 +11,7 @@ export default function DashboardControls({ activeTab }: DashboardControlsProps)
     const router = useRouter();
     const searchParams = useSearchParams();
     const currentYear = Number(searchParams.get('year')) || new Date().getFullYear();
-    const newCustomerTabs = ['số lượng', 'tỉ lệ %'];
+    const newCustomerTabs = ['Số lượng', 'Tỉ lệ %'];
 
     const handleYearChange = (year: number) => {
         const params = new URLSearchParams(searchParams);
@@ -90,7 +90,7 @@ export default function DashboardControls({ activeTab }: DashboardControlsProps)
 export function CustomerTabSwitcher({ activeTab }: { activeTab: string }) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const newCustomerTabs = ['số lượng', 'tỉ lệ %'];
+    const newCustomerTabs = ['Số lượng', 'Tỉ lệ %'];
 
     const handleTabChange = (tab: string) => {
         const params = new URLSearchParams(searchParams);

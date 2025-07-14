@@ -89,7 +89,7 @@ const UserProfilePage = () => {
         if (user?.accountid) {
             fetchUserReceipts();
         }
-    }, [user?.accountid]);
+    }, [user?.accountid, user?.accounttype]);
 
     const handleImageUpload = (file: File, type: 'front' | 'back') => {
         if (type === 'front') {

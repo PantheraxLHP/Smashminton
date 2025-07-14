@@ -293,11 +293,12 @@ const AssignmentRuleDetail = ({
         };
 
         let updatedRuleList: AssignmentRule[] = [];
-        //check unique rule name
-        if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
+        
+        if (ruleList.some((rule) => (rule.ruleName === updatedRule.ruleName) && (rule.ruleName !== AssignmentRule?.ruleName))) {
             toast.error('Tên quy tắc đã tồn tại');
             return;
         }
+        
         if (AssignmentRule) {
             updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
         } else {
