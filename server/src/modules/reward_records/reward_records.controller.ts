@@ -6,6 +6,7 @@ import { ApiOperation, ApiResponse, ApiQuery, ApiBody, ApiBearerAuth } from '@ne
 import { Roles } from 'src/decorators/role.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
+import { Public } from 'src/decorators/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reward-records')
@@ -363,5 +364,25 @@ export class RewardRecordsController {
   })
   async createRewardRecord(@Body() createRewardRecordDto: CreateRewardRecordDto) {
     return this.rewardRecordsService.create(createRewardRecordDto);
+  }
+
+  @Patch('update-reward-note')
+  @Public()
+  //@Roles('hr_manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update reward note' })
+  @ApiBody({
+    type: UpdateRewardRecordDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reward note updated successfully'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data'
+  })
+  async updateRewardNote(@Body() updateRewardRecordDto: UpdateRewardRecordDto) {
+    return this.rewardRecordsService.updateRewardNote(updateRewardRecordDto.rewardrecordid, updateRewardRecordDto.rewardnote);
   }
 }
