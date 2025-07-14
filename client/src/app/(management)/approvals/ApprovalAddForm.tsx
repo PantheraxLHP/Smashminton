@@ -26,8 +26,9 @@ interface ApprovalFormData {
 interface ApprovalAddFormProps {
     employees: Employees[];
     rewardNote?: string;
-    setRewardNote?: React.Dispatch<React.SetStateAction<string>>;
-    setIsAddDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+    setRewardNote?: (note: string) => void;
+    setIsAddDialogOpen?: (open: boolean) => void;
+    onAddSuccess?: () => void;
 }
 
 const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
@@ -35,6 +36,7 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
     rewardNote,
     setRewardNote,
     setIsAddDialogOpen,
+    onAddSuccess,
 }) => {
     const [rewardRules, setRewardRules] = useState<RewardRules[]>([]);
     const [rewardValue, setRewardValue] = useState<number>(0);
@@ -144,6 +146,11 @@ const ApprovalAddForm: React.FC<ApprovalAddFormProps> = ({
             setSelectedEmployee(null);
             setRewardValue(0);
             clearSearch();
+            
+            // Refetch data after successful creation
+            if (onAddSuccess) {
+                onAddSuccess();
+            }
         } else {
             toast.error('Đã thêm đề xuất thưởng thất bại!');
         }

@@ -223,7 +223,7 @@ export class RewardRecordsService {
       const filterMonth = filters.month || (currentDate.getMonth() + 1);
       const filterYear = filters.year || currentDate.getFullYear();
 
-      whereCondition.rewarddate = {
+      whereCondition.rewardapplieddate = {
         gte: new Date(filterYear, filterMonth - 1, 1),
         lt: new Date(filterYear, filterMonth, 1),
       };
@@ -245,7 +245,6 @@ export class RewardRecordsService {
 
     // Tính skip sau khi đã reset page
     const skip = (page - 1) * pageSize;
-
     // Query với phân trang và filter
     const employees_reward_records = await this.prisma.reward_records.findMany({
       skip: skip,
