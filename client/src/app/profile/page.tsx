@@ -153,7 +153,7 @@ const UserProfilePage = () => {
         }
     };
 
-    // Clean up function for cancel
+    // Updated cancel function
     const handleCancel = () => {
         setStudentImage(null);
         if (imagePreview) {
@@ -162,11 +162,11 @@ const UserProfilePage = () => {
         }
         setIsEditing(false);
 
-        // Reset file input
-        const fileInputs = document.querySelectorAll('input[type="file"]');
-        fileInputs.forEach((input: any) => {
-            input.value = '';
-        });
+        // Reset the specific file input
+        const fileInput = document.getElementById('student-card-input') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
     };
 
     const handleTabClick = (tabName: string) => {
@@ -309,7 +309,7 @@ const UserProfilePage = () => {
                 {activeTab === 'student' && (
                     <div className="mt-4">
                         {isStudentStatusUpdated ? (
-                            <div className="text-center text-primary-600 font-semibold">
+                            <div className="text-primary-600 text-center font-semibold">
                                 <p>Bạn đã được ghi nhận là học sinh/sinh viên.</p>
                                 <div className="mt-4">
                                     <button
@@ -388,13 +388,34 @@ const UserProfilePage = () => {
                                         Chọn ảnh thẻ sinh viên mới
                                     </label>
 
-                                    {/* Direct File Input for Update */}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
-                                    />
+                                    {/* Custom File Upload Button */}
+                                    <div className="flex flex-col gap-4">
+                                        {/* Hidden File Input */}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                            id="student-card-input"
+                                        />
+
+                                        {/* Custom Button that triggers file input */}
+                                        <label
+                                            htmlFor="student-card-input"
+                                            className="bg-primary-100 text-primary-700 hover:bg-primary-200 inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-transparent px-4 py-2 text-sm font-medium"
+                                        >
+                                            Chọn ảnh
+                                        </label>
+
+                                        {/* File Status */}
+                                        <p className="text-sm text-gray-500">
+                                            {studentImage ? (
+                                                <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
+                                            ) : (
+                                                'Chưa chọn file nào'
+                                            )}
+                                        </p>
+                                    </div>
 
                                     {/* Image Preview for Update */}
                                     {imagePreview && (
