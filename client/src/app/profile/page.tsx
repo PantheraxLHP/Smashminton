@@ -203,8 +203,8 @@ const UserProfilePage = () => {
         setIsSubmitting(false);
     };
     return (
-        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center p-8">
-            <div className="mx-auto max-w-6xl rounded bg-white p-6 shadow-2xl">
+        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center py-10 px-35 flex justify-center w-full max-h-screen">
+            <div className="w-full rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
                     {userProfile?.avatarurl ? (
@@ -280,7 +280,7 @@ const UserProfilePage = () => {
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
                 {activeTab === 'bookings' && (
-                    <div className="mt-4 max-h-80 overflow-y-auto">
+                    <div className="mt-4 max-h-[55vh] overflow-y-auto">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
                                 <div className="text-center">
