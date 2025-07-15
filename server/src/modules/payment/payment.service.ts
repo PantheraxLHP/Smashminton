@@ -45,9 +45,11 @@ export class PaymentService {
             ...(paymentData.voucherId && { voucherId: paymentData.voucherId }),
             totalAmount: paymentData.totalAmount ? String(paymentData.totalAmount) : '0',
         });
-        const redirectUrl = `${DOMAIN}/payment/success?${queryParams.toString()}`;
 
         const server_domain = this.configService.get<string>('SERVER', '');
+        // Change redirectUrl to point to our callback endpoint
+        const redirectUrl = `${server_domain}/api/v1/payment/momo/callback?${queryParams.toString()}`;
+
         const ipnUrl =
             'https://c904-2402-800-6371-704a-89ef-92be-7d07-74e2.ngrok-free.app/api/v1/payment/momo/ipn';
         `${server_domain}/api/v1/payment/momo/ipn`; // URL nhận thông báo từ MoMo
@@ -296,6 +298,32 @@ export class PaymentService {
         };
 
         return this.createReciept(createReceiptDto);
+    }
+
+    async handleMomoCallback(callbackData: any, originalParams: any): Promise<string> {
+        const DOMAIN = this.configService.get<string>('CLIENT', '');
+
+        // Reconstruct original query params
+        const queryParams = new URLSearchParams({
+            userId: originalParams.userId || '',
+            userName: originalParams.userName || '',
+            paymentMethod: originalParams.paymentMethod || '',
+            ...(originalParams.guestPhoneNumber && { guestPhoneNumber: originalParams.guestPhoneNumber }),
+            ...(originalParams.voucherId && { voucherId: originalParams.voucherId }),
+            totalAmount: originalParams.totalAmount || '0',
+            resultCode: callbackData.resultCode || 1,
+        });
+
+        // Check resultCode to determine redirect destination
+        const resultCode = callbackData.resultCode || callbackData.errorCode || 1;
+
+        if (resultCode === 0 || resultCode === '0') {
+            // Success: redirect to success page
+            return `${DOMAIN}/payment/success?${queryParams.toString()}`;
+        } else {
+            // Failure: redirect to fail page
+            return `${DOMAIN}/payment/fail?${queryParams.toString()}`;
+        }
     }
 
     async getReceiptDetailByEmployeeOrCustomer(employeeid: number | null, customerid: number | null) {

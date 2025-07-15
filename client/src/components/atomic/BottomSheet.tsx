@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { SelectedCourts, SelectedProducts } from '../../app/booking/courts/page';
-import { formatTime } from '@/lib/utils';
+import { formatDate, formatTime } from '@/lib/utils';
 
 export interface BookingBottomSheetProps {
     onConfirm?: () => void;
@@ -76,7 +76,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
                             {selectedCourts?.map((scCourt: SelectedCourts, index: number) => (
                                 <div
                                     key={`
-                                        ${scCourt.courtid}-${scCourt.zoneid}-${scCourt.date}-
+                                        ${scCourt.courtid}-${scCourt.zoneid}- ${(scCourt.date)}-
                                         ${scCourt.starttime}-${scCourt.duration}
                                     `}
                                     className="flex flex-wrap items-center gap-1 text-xs sm:flex-nowrap sm:gap-2 sm:text-sm"
@@ -89,7 +89,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({
 
                                     <div className="flex items-center gap-1 sm:contents">
                                         <Icon icon="mdi:calendar" className="h-3 w-3 sm:h-5 sm:w-5" />
-                                        <span className="text-xs sm:text-sm">{scCourt.date || ''}</span>
+                                        <span className="text-xs sm:text-sm">{formatDate(scCourt.date) || ''}</span>
                                         <Icon icon="mdi:clock-outline" className="h-3 w-3 sm:h-5 sm:w-5" />
                                         <span className="text-xs sm:text-sm">{scCourt.starttime || ''}</span>
                                         <Icon icon="mdi:timer" className="h-3 w-3 sm:h-5 sm:w-5" />
