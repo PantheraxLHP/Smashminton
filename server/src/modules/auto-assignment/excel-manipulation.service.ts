@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
+import * as path from 'path';
 import { UpdateAutoAssignmentDto } from './dto/update-auto-assignment.dto';
 import { AutoAssignmentRule, SingleRowRule } from './dto/auto-assignment-rule.dto';
 
@@ -193,7 +194,7 @@ export class ExcelManipulationService {
         try {
             console.log('⚠️  IMPORTANT: Make sure the Excel file is CLOSED before running this!');
 
-            console.log(`\n🗑️ Delete Rule Table Rows - Sheet: ${sheetName}\n`);
+            console.log(`\n🗑️  Delete Rule Table Rows - Sheet: ${sheetName}\n`);
 
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.readFile(filePath);
@@ -238,83 +239,65 @@ export class ExcelManipulationService {
 
             let totalDeletedRows = 0;
 
-            // Process each rule table (starting from bottom)
-            for (const rule of sortedRuleTables) {
-                const ruleTableRow = rule.rowNumber;
-                const startDeleteRow = ruleTableRow + 5; // Skip 5 rows after rule table
+            this.preserveMergedCells(worksheet, () => {
+                // Process each rule table (starting from bottom)
+                for (const rule of sortedRuleTables) {
+                    const ruleTableRow = rule.rowNumber;
+                    const startDeleteRow = ruleTableRow + 5; // Skip 5 rows after rule table
 
-                console.log(`\n🎯 Processing rule table at row ${ruleTableRow}`);
-                console.log(`   Starting deletion check from row ${startDeleteRow}`);
+                    console.log(`🎯 Processing rule table at row ${ruleTableRow}`);
 
-                // Find the end of the data block (first blank row)
-                let endDeleteRow = startDeleteRow;
-                let foundBlankRow = false;
+                    // Find the end of the data block (first blank row)
+                    let endDeleteRow = startDeleteRow;
+                    let foundBlankRow = false;
 
-                // Look for the first completely blank row to determine deletion range
-                while (endDeleteRow <= worksheet.rowCount && !foundBlankRow) {
-                    const row = worksheet.getRow(endDeleteRow);
-                    let hasData = false;
+                    // Look for the first completely blank row to determine deletion range
+                    while (endDeleteRow <= worksheet.rowCount && !foundBlankRow) {
+                        const row = worksheet.getRow(endDeleteRow);
+                        let hasData = false;
 
-                    // Check if row has any non-empty cells
-                    row.eachCell({ includeEmpty: false }, (cell) => {
-                        if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
-                            hasData = true;
-                            return;
+                        // Check if row has any non-empty cells
+                        row.eachCell({ includeEmpty: false }, (cell) => {
+                            if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
+                                hasData = true;
+                                return;
+                            }
+                        });
+
+                        if (!hasData) {
+                            foundBlankRow = true;
+                        } else {
+                            endDeleteRow++;
                         }
-                    });
+                    }
 
-                    if (!hasData) {
-                        foundBlankRow = true;
-                        console.log(`   Found blank row at ${endDeleteRow}`);
-                    } else {
-                        endDeleteRow++;
+                    // Calculate how many rows to delete
+                    const rowsToDelete = foundBlankRow ? endDeleteRow - startDeleteRow : 0;
+
+                    if (rowsToDelete > 0) {
+                        console.log(`   Deleting ${rowsToDelete} rows (${startDeleteRow} to ${endDeleteRow - 1})`);
+
+                        const deletedData: any[] = [];
+                        for (let i = startDeleteRow; i < endDeleteRow; i++) {
+                            const row = worksheet.getRow(i);
+                            const rowData: any[] = [];
+                            row.eachCell({ includeEmpty: true }, (cell) => {
+                                rowData.push(cell.value);
+                            });
+                            deletedData.push({
+                                rowNumber: i,
+                                data: rowData
+                            });
+                        }
+
+                        worksheet.spliceRows(startDeleteRow, rowsToDelete);
+                        totalDeletedRows += rowsToDelete;
                     }
                 }
-
-                // Calculate how many rows to delete
-                const rowsToDelete = foundBlankRow ? endDeleteRow - startDeleteRow : 0;
-
-                if (rowsToDelete > 0) {
-                    console.log(`   Deleting ${rowsToDelete} rows (${startDeleteRow} to ${endDeleteRow - 1})`);
-
-                    const deletedData: any[] = [];
-                    for (let i = startDeleteRow; i < endDeleteRow; i++) {
-                        const row = worksheet.getRow(i);
-                        const rowData: any[] = [];
-                        row.eachCell({ includeEmpty: true }, (cell) => {
-                            rowData.push(cell.value);
-                        });
-                        deletedData.push({
-                            rowNumber: i,
-                            data: rowData
-                        });
-                    }
-
-                    console.log(`   Backed up ${deletedData.length} rows of data`);
-
-                    // Delete rows using spliceRows (removes multiple rows at once)
-                    worksheet.spliceRows(startDeleteRow, rowsToDelete);
-                    totalDeletedRows += rowsToDelete;
-
-                    console.log(`   ✅ Successfully deleted ${rowsToDelete} rows`);
-
-                    console.log('   Deleted data preview:');
-                    deletedData.slice(0, 5).forEach((item, index) => {
-                        const nonEmptyData = item.data.filter((val: any) => val !== null && val !== undefined && val !== '');
-                        if (nonEmptyData.length > 0) {
-                            console.log(`     Row ${item.rowNumber}: [${nonEmptyData.slice(0, 10).join(', ')}]${nonEmptyData.length > 5 ? '...' : ''}`);
-                        }
-                    });
-                    if (deletedData.length > 5) {
-                        console.log(`     ... and ${deletedData.length - 5} more rows`);
-                    }
-                } else {
-                    console.log(`   No data rows found to delete for this rule table`);
-                }
-            }
+            });
 
             console.log(`\n📊 After deletion: ${worksheet.rowCount} rows x ${worksheet.columnCount} columns`);
-            console.log(`🗑️ Total rows deleted: ${totalDeletedRows}`);
+            console.log(`🗑️  Total rows deleted: ${totalDeletedRows}`);
 
             if (totalDeletedRows > 0) {
                 // CRITICAL: Save the file to make changes persistent!
@@ -339,9 +322,16 @@ export class ExcelManipulationService {
 
     async deleteRuleTableRowsWithBackup(sheetName: string, filePath: string) {
         try {
+            const backupDir = './excel_backup';
+            if (!fs.existsSync(backupDir)) {
+                await fs.promises.mkdir(backupDir, { recursive: true });
+                console.log(`📁 Created backup directory: ${backupDir}`);
+            }
 
-            // Create backup first
-            const backupPath = `${filePath.replace('.drl.xlsx', '')}_backup_${Date.now()}.drl.xlsx`;
+            const fileName = path.basename(filePath);
+            const backupFileName = fileName.replace('.drl.xlsx', '') + `_backup_${Date.now()}.drl.xlsx`;
+            const backupPath = path.join(backupDir, backupFileName);
+
             await fs.promises.copyFile(filePath, backupPath);
             console.log(`📋 Created backup: ${backupPath}`);
 
@@ -383,56 +373,61 @@ export class ExcelManipulationService {
             console.log(`📊 Before insertion: ${worksheet.rowCount} rows x ${worksheet.columnCount} columns`);
 
             let totalInsertedRows = 0;
-            for (const data of ruleTableData.data) {
-                let ruleTable: any[] = [];
-                switch ((data.type).toLowerCase()) {
-                    case 'shift':
-                        ruleTable = searcher.findCellsContaining('RuleTable AssignableShifts', sheetName);
-                        data.cols.push("");
-                        data.cols.push("ShiftRule");
-                        break;
-                    case 'enrollmentshift':
-                        ruleTable = searcher.findCellsContaining('RuleTable AssignableEnrollmentShifts', sheetName);
-                        data.cols.push("");
-                        data.cols.push("EnrollmentShiftRule");
-                        break;
-                    case 'employee':
-                        ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
-                        data.cols.splice(2, 0, "-", "-");
-                        data.cols.push("");
-                        data.cols.push("EmployeeRule");
-                        break;
-                    case 'enrollmentemployee':
-                        ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
-                        data.cols.splice(2, 0, "-", "-");
-                        data.cols.push("");
-                        data.cols.push("EnrollmentEmployeeRule");
-                        break;
-                    default:
-                        console.log(`❌ Unknown rule type "${data.type}"`);
+
+            // ✅ Preserve merged cells for the ENTIRE operation (not per iteration)
+            this.preserveMergedCells(worksheet, () => {
+                for (const data of ruleTableData.data) {
+                    let ruleTable: any[] = [];
+                    switch ((data.type).toLowerCase()) {
+                        case 'shift':
+                            ruleTable = searcher.findCellsContaining('RuleTable AssignableShifts', sheetName);
+                            data.cols.push("");
+                            data.cols.push("ShiftRule");
+                            break;
+                        case 'enrollmentshift':
+                            ruleTable = searcher.findCellsContaining('RuleTable AssignableEnrollmentShifts', sheetName);
+                            data.cols.push("");
+                            data.cols.push("EnrollmentShiftRule");
+                            break;
+                        case 'employee':
+                            ruleTable = searcher.findCellsContaining('RuleTable EligibleEmployees', sheetName);
+                            data.cols.splice(2, 0, "-", "-");
+                            data.cols.push("");
+                            data.cols.push("EmployeeRule");
+                            break;
+                        case 'enrollmentemployee':
+                            ruleTable = searcher.findCellsContaining('RuleTable EligibleEnrollmentEmployees', sheetName);
+                            data.cols.splice(2, 0, "-", "-");
+                            data.cols.push("");
+                            data.cols.push("EnrollmentEmployeeRule");
+                            break;
+                        default:
+                            console.log(`❌ Unknown rule type "${data.type}"`);
+                            continue;
+                    }
+
+                    if (ruleTable.length === 0) {
+                        console.log(`❌ No RuleTable found for type "${data.type}"`);
                         continue;
+                    }
+
+                    console.log(`✅ Found RuleTable for type "${data.type}"`);
+                    ruleTable = ruleTable
+                        .map(rule => {
+                            const rowMatch = rule.address.match(/\d+/);
+                            return {
+                                ...rule,
+                                rowNumber: rowMatch ? parseInt(rowMatch[0]) : 0
+                            };
+                        })
+
+                    const startRow = ruleTable[0].rowNumber;
+                    const startRowInsert = startRow + 5;
+
+                    worksheet.insertRow(startRowInsert, data.cols);
+                    totalInsertedRows++;
                 }
-
-                if (ruleTable.length === 0) {
-                    console.log(`❌ No RuleTable found for type "${data.type}"`);
-                    continue;
-                }
-
-                console.log(`✅ Found ${ruleTable.length} RuleTable(s) for type "${data.type}":`);
-                ruleTable = ruleTable
-                    .map(rule => {
-                        const rowMatch = rule.address.match(/\d+/);
-                        return {
-                            ...rule,
-                            rowNumber: rowMatch ? parseInt(rowMatch[0]) : 0
-                        };
-                    })
-
-                const startRow = ruleTable[0].rowNumber;
-                const startRowInsert = startRow + 5;
-                worksheet.insertRow(startRowInsert, data.cols);
-                totalInsertedRows++;
-            }
+            });
 
             console.log(`📊 After insertion: ${worksheet.rowCount} rows x ${worksheet.columnCount} columns`);
             console.log(`📥 Total rows inserted: ${totalInsertedRows}`);
@@ -536,7 +531,6 @@ export class ExcelManipulationService {
                 const startRowRead = ruleTableRow + 5;
 
                 console.log(`🎯 Processing rule table at row ${ruleTableRow}`);
-                console.log(`   Starting data extraction from row ${startRowRead}`);
 
                 let endRowRead = startRowRead;
                 let foundBlankRow = false;
@@ -553,7 +547,6 @@ export class ExcelManipulationService {
 
                     if (!hasData) {
                         foundBlankRow = true;
-                        console.log(`   Found blank row at ${endRowRead}`);
                     } else {
                         endRowRead++;
                     }
@@ -625,5 +618,151 @@ export class ExcelManipulationService {
             console.error('❌ Get Rule Table Data operation failed:', error instanceof Error ? error.message : String(error));
             throw error;
         }
+    }
+
+    private preserveMergedCells(worksheet: ExcelJS.Worksheet, operation: () => void) {
+        const mergedCells = [...worksheet.model.merges];
+
+        console.log(`📋 Found ${mergedCells.length} merged cell ranges to preserve:`);
+        mergedCells.forEach((range, index) => {
+            console.log(`   ${index + 1}. ${range}`);
+        });
+
+        const deletedRanges: Array<{ startRow: number, count: number }> = [];
+        const originalSpliceRows = worksheet.spliceRows.bind(worksheet);
+
+        worksheet.spliceRows = function (start: number, count: number, ...insert: any[]) {
+            if (count > 0) {
+                deletedRanges.push({ startRow: start, count });
+            }
+            return originalSpliceRows(start, count, ...insert);
+        };
+
+        operation();
+
+        worksheet.spliceRows = originalSpliceRows;
+
+        const adjustedMergedCells = this.adjustMergedCellRanges(mergedCells, deletedRanges);
+
+        worksheet.unMergeCells();
+
+        console.log(`\n🔄 Attempting to restore ${adjustedMergedCells.length} adjusted merged cell ranges:`);
+        adjustedMergedCells.forEach((range, index) => {
+            try {
+                const [startCell, endCell] = range.split(':');
+
+                const startMatch = startCell.match(/([A-Z]+)(\d+)/);
+                const endMatch = endCell.match(/([A-Z]+)(\d+)/);
+
+                if (!startMatch || !endMatch) {
+                    console.warn(`   ⚠️  Invalid range format: ${range}`);
+                    return;
+                }
+
+                const startRow = parseInt(startMatch[2]);
+                const endRow = parseInt(endMatch[2]);
+
+                if (startRow > worksheet.rowCount || endRow > worksheet.rowCount || startRow > endRow) {
+                    console.warn(`   ⚠️  Range out of bounds or invalid: ${range} (worksheet has ${worksheet.rowCount} rows)`);
+                    return;
+                }
+
+                worksheet.mergeCells(range);
+                console.log(`   ✅ Restored adjusted merged cell range ${index + 1}/${adjustedMergedCells.length}: ${range}`);
+            } catch (error) {
+                console.warn(`   ⚠️  Could not restore merged cell range: ${range} - ${error}`);
+            }
+        });
+
+        const finalMergedCells = [...worksheet.model.merges];
+        console.log(`\n📋 Final merged cell ranges after restoration (${finalMergedCells.length}):`);
+        finalMergedCells.forEach((range, index) => {
+            console.log(`   ${index + 1}. ${range}`);
+        });
+    }
+
+    private adjustMergedCellRanges(mergedCells: string[], deletedRanges: Array<{ startRow: number, count: number }>): string[] {
+        if (deletedRanges.length === 0) {
+            console.log(`ℹ️  No row deletions detected, keeping original merged cell ranges`);
+            return mergedCells;
+        }
+
+        console.log(`\n🔧 Adjusting merged cell ranges for ${deletedRanges.length} deletion(s):`);
+        deletedRanges.forEach((deletion, index) => {
+            console.log(`   ${index + 1}. Deleted ${deletion.count} rows starting from row ${deletion.startRow}`);
+        });
+
+        const adjustedCells: string[] = [];
+
+        mergedCells.forEach(range => {
+            const [startCell, endCell] = range.split(':');
+            const startMatch = startCell.match(/([A-Z]+)(\d+)/);
+            const endMatch = endCell.match(/([A-Z]+)(\d+)/);
+
+            if (!startMatch || !endMatch) {
+                console.warn(`   ⚠️  Invalid range format, skipping: ${range}`);
+                return;
+            }
+
+            let startRow = parseInt(startMatch[2]);
+            let endRow = parseInt(endMatch[2]);
+            const startCol = startMatch[1];
+            const endCol = endMatch[1];
+
+            const sortedDeletions = [...deletedRanges].sort((a, b) => b.startRow - a.startRow);
+
+            let rangeWasDeleted = false;
+
+            for (const deletion of sortedDeletions) {
+                const deleteStart = deletion.startRow;
+                const deleteEnd = deletion.startRow + deletion.count - 1;
+
+                if (startRow >= deleteStart && endRow <= deleteEnd) {
+                    console.log(`   🗑️  Merged range ${range} completely deleted (deletion: rows ${deleteStart}-${deleteEnd})`);
+                    rangeWasDeleted = true;
+                    break;
+                }
+
+                if (startRow <= deleteEnd && endRow >= deleteStart) {
+                    console.log(`   ⚠️  Merged range ${range} partially overlaps with deletion (rows ${deleteStart}-${deleteEnd})`);
+
+                    if (startRow >= deleteStart && startRow <= deleteEnd) {
+                        startRow = deleteStart;
+                    }
+
+                    if (endRow >= deleteStart && endRow <= deleteEnd) {
+                        endRow = deleteStart - 1;
+                    }
+
+                    if (startRow > endRow) {
+                        console.log(`   🗑️  Merged range ${range} became invalid after overlap adjustment`);
+                        rangeWasDeleted = true;
+                        break;
+                    }
+                }
+
+                if (startRow > deleteEnd) {
+                    startRow -= deletion.count;
+                }
+                if (endRow > deleteEnd) {
+                    endRow -= deletion.count;
+                }
+            }
+
+            if (!rangeWasDeleted) {
+                const adjustedRange = `${startCol}${startRow}:${endCol}${endRow}`;
+
+                if (adjustedRange !== range) {
+                    console.log(`   📝 Adjusted merged range: ${range} → ${adjustedRange}`);
+                } else {
+                    console.log(`   ✅ Merged range unchanged: ${range}`);
+                }
+
+                adjustedCells.push(adjustedRange);
+            }
+        });
+
+        console.log(`   📊 Result: ${mergedCells.length} original → ${adjustedCells.length} adjusted ranges`);
+        return adjustedCells;
     }
 }

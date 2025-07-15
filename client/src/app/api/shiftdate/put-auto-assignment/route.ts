@@ -19,11 +19,11 @@ export async function PUT(request: NextRequest) {
         });
 
         if (!response.ok) {
-            return ApiResponse.error(`HTTP error! Status: ${response.status}`);
+            return ApiResponse.error(`Không thể cập nhật quy tắc phân công tự động`);
         }
         const result = await response.json();
         return ApiResponse.success(result);
     } catch (error) {
-        return ApiResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện yêu cầu');
+        return ApiResponse.error(error instanceof Error ? error.message : 'Không thể cập nhật quy tắc phân công tự động');
     }
 }

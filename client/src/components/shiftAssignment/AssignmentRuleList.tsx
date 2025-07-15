@@ -81,6 +81,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
                 setRuleList(response.data);
             } else {
                 setRuleList([]);
+                toast.error('Không thể tải danh sách quy tắc phân công');
             }
         };
         fetchAutoAssignment();

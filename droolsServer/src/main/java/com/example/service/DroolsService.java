@@ -28,15 +28,6 @@ public class DroolsService {
             KieServices kieServices = KieServices.Factory.get();
             Resource dt = ResourceFactory.newClassPathResource("dtables/drools_decisiontable.drl.xlsx", getClass());
 
-            // Convert Excel decision table to DRL and print to console
-            DecisionTableProviderImpl decisionTableProvider = new DecisionTableProviderImpl();
-            DecisionTableConfiguration dtConfig = KnowledgeBuilderFactory.newDecisionTableConfiguration();
-            dtConfig.setInputType(DecisionTableInputType.XLSX);
-            String drl = decisionTableProvider.loadFromResource(dt, dtConfig);
-            System.out.println("=== CONVERTED DRL RULES FROM DECISION TABLE ===");
-            System.out.println(drl);
-            System.out.println("=== END OF DRL RULES ===");
-
             KieFileSystem kieFileSystem = kieServices.newKieFileSystem().write(dt);
             KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem);
             kieBuilder.buildAll();
@@ -54,6 +45,22 @@ public class DroolsService {
 
     public KieSession getKieSession() {
         return kieSession;
+    }
+
+    public String getDrlRules() {
+        if (kieSession == null) {
+            throw new IllegalStateException("KieSession is not initialized");
+        }
+
+        Resource dt = ResourceFactory.newClassPathResource("dtables/drools_decisiontable.drl.xlsx", getClass());
+        DecisionTableProviderImpl decisionTableProvider = new DecisionTableProviderImpl();
+        DecisionTableConfiguration dtConfig = KnowledgeBuilderFactory.newDecisionTableConfiguration();
+        dtConfig.setInputType(DecisionTableInputType.XLSX);
+        String drl = decisionTableProvider.loadFromResource(dt, dtConfig);
+        System.out.println("=== CONVERTED DRL RULES FROM DECISION TABLE ===");
+        System.out.println(drl);
+        System.out.println("=== END OF DRL RULES ===");
+        return drl;
     }
 
     @PreDestroy
