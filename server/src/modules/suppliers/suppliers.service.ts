@@ -180,6 +180,17 @@ export class SuppliersService {
       throw new NotFoundException(`Không tìm thấy supplierid = ${supplierid}`);
     }
 
+    const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+      where: {
+        supplierid,
+        statusorder: 'pending',
+      },
+    });
+
+    if (hasPendingOrder) {
+      throw new BadRequestException(`Không thể xóa nhà cung cấp vì bạn đang đặt hàng họ với đơn hàng ${hasPendingOrder.poid}`);
+    }
+
     const deleted = await this.prisma.suppliers.update({
       where: { supplierid },
       data: {
