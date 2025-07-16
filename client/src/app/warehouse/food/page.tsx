@@ -229,7 +229,7 @@ export default function FoodAndBeveragePage() {
             setFilteredData((prev) => prev.filter((item) => item.id !== productid));
             toast.success('Xóa sản phẩm thành công!');
         } else {
-            toast.error(`Không thể xóa sản phẩm: ${res.message}`);
+            toast.error(`${res.message}`);
         }
         fetchData();
     };

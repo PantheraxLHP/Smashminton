@@ -23,8 +23,19 @@ export async function PATCH(request: NextRequest) {
         });
 
         if (!response.ok) {
-            const errorMessage = await response.text();
-            return ApiResponse.error(`Lỗi: ${response.status} - ${errorMessage}`);
+            let errorMessage = ``;
+
+            try {
+                const errorData = await response.json();
+                if (errorData.message) {
+                    errorMessage += ` ${errorData.message}`;
+                }
+            } catch (e) {
+                const fallbackMessage = await response.text();
+                errorMessage += ` - ${fallbackMessage}`;
+            }
+
+            return ApiResponse.error(errorMessage);
         }
 
         const result = await response.json();
