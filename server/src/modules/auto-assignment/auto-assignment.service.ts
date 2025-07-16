@@ -437,30 +437,53 @@ export class AutoAssignmentService {
     }
 
     async updateAutoAssignmentSettings(updateAutoAssignmentDto: UpdateAutoAssignmentDto) {
-        if (!updateAutoAssignmentDto.data) {
-            throw new Error("Invalid input data. 'data' are required.");
+        try {
+            if (!updateAutoAssignmentDto.data) {
+                throw new Error("Invalid input data. 'data' are required.");
+            }
+    
+            const basePath = "droolsServer/src/main/resources/dtables/";
+            const fileName = "drools_decisiontable.drl.xlsx";
+            const filePath = path.join(__dirname, "../../../../../", basePath, fileName);
+    
+            const deleteResult = await this.excelManipulationService.deleteRuleTableRowsWithBackup("DroolsRules", filePath);
+    
+            if (!deleteResult || deleteResult.deletedRows === undefined) {
+                throw new Error("Failed to delete rule table rows or no rows deleted.");
+            }
+    
+            const insertResult = await this.excelManipulationService.insertRuleTableData("DroolsRules", filePath, updateAutoAssignmentDto);
+    
+            if (!insertResult || insertResult.insertedRows === undefined) {
+                throw new Error("Failed to insert rule table data or no rows inserted.");
+            }
+
+            console.log("🔄 Reloading Drools decision table after Excel changes...");
+            let reloaded = false;
+            try {
+                const droolsReloadResponse = await fetch(`${process.env.DROOLS}/api/drools/reload`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (droolsReloadResponse.ok) {
+                    reloaded = true;
+                }
+            } catch (droolsError) {
+                
+            }
+    
+            return {
+                reloaded,
+                deleteResult,
+                insertResult
+            };
+        } catch (error) {
+            console.error("Error in updateAutoAssignmentSettings:", error);
+            throw new Error(`Failed to update auto assignment settings: ${error.message}`);
         }
-
-        const basePath = "droolsServer/src/main/resources/dtables/";
-        const fileName = "drools_decisiontable.drl.xlsx";
-        const filePath = path.join(__dirname, "../../../../../", basePath, fileName);
-
-        const deleteResult = await this.excelManipulationService.deleteRuleTableRowsWithBackup("DroolsRules", filePath);
-
-        if (!deleteResult || deleteResult.deletedRows === undefined) {
-            throw new Error("Failed to delete rule table rows or no rows deleted.");
-        }
-
-        const insertResult = await this.excelManipulationService.insertRuleTableData("DroolsRules", filePath, updateAutoAssignmentDto);
-
-        if (!insertResult || insertResult.insertedRows === undefined) {
-            throw new Error("Failed to insert rule table data or no rows inserted.");
-        }
-
-        return {
-            deleteResult,
-            insertResult
-        };
     }
 
     async getAutoAssignmentSettings() {

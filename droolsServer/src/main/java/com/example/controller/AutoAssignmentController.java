@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.service.AutoAssignmentService;
+import com.example.service.DroolsService;
 import com.example.dto.AutoAssignmentRequest;
 import com.example.dto.AutoAssignmentResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class AutoAssignmentController {
 
     @Autowired
     private AutoAssignmentService autoAssignmentService;
+
+    @Autowired
+    private DroolsService droolsService;
 
     @PostMapping("/auto-assignment")
     @Operation(summary = "Execute automatic shift assignment", description = "Processes employees and shifts for next week using Drools business rules with configurable sort options")
@@ -71,6 +75,34 @@ public class AutoAssignmentController {
     @Operation(summary = "Health check", description = "Check if the application is running")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Drools Decision Table Application is running! " +
-                "Available endpoints: POST /api/auto-assignment, GET /api/auto-assignment/options");
+                "Available endpoints: " +
+                "POST /api/auto-assignment, " +
+                "GET /api/auto-assignment/options, " +
+                "GET /api/drl, " + 
+                "POST /api/drools/reload, " +
+                "GET /api/health");
+    }
+
+    @GetMapping("/drl")
+    @Operation(summary = "Get DRL rules from decision table", description = "Fetches the DRL rules generated from the decision table")
+    public ResponseEntity<String> getDrlRules() {
+        String drlRules = droolsService.getDrlRules();
+        return ResponseEntity.ok(drlRules);
+    }
+
+    @PostMapping("/drools/reload")
+    @Operation(summary = "Reload decision table", description = "Reloads the decision table from the file system to pick up changes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Decision table reloaded successfully"),
+            @ApiResponse(responseCode = "500", description = "Failed to reload decision table")
+    })
+    public ResponseEntity<String> reloadDecisionTable() {
+        try {
+            droolsService.reloadDecisionTable();
+            return ResponseEntity.ok("Decision table reloaded successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Failed to reload decision table: " + e.getMessage());
+        }
     }
 }

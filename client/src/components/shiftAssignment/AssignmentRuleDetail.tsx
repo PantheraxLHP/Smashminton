@@ -308,7 +308,11 @@ const AssignmentRuleDetail = ({
         const response = await updateAutoAssignment(updatedRuleList);
         if (response.ok) {
             setRuleList(updatedRuleList);
-            toast.success('Quy tắc đã được lưu thành công');
+            if (response.data.data.reloaded) {
+                toast.success('Quy tắc đã được lưu thành công và bảng quyết định Drools đã được tải lại');
+            } else {
+                toast.warning('Quy tắc đã được lưu thành công nhưng không thể tải lại bảng quyết định Drools');
+            }
         } else {
             toast.error(response.message || 'Lưu quy tắc thất bại');
         }

@@ -224,21 +224,7 @@ export default function RentalPriceManager() {
                         setIsAddShoeRacketModalOpen(false);
                     }}
                     editData={editData}
-                    // onSubmit={(updatedService) => {
-                    //     if (editData && selectedIndex !== null) {
-                    //         setServicesState((prev) =>
-                    //             prev.map((item) => (item === editData ? updatedService : item))
-                    //         );
-                    //     } else {
-                    //         setServicesState((prev) => [...prev, updatedService]);
-                    //     }
-
-                    //     setIsAddShoeRacketModalOpen(false);
-                    //     setEditData(null);
-                    //     setSelectedIndex(null);
-                    // }}
                     onSubmit={() => {
-                        setPage(1);
                         fetchData();
                         setIsAddShoeRacketModalOpen(false);
                         setEditData(null);
