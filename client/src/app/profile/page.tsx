@@ -280,7 +280,7 @@ const UserProfilePage = () => {
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
                 {activeTab === 'bookings' && (
-                    <div className="mt-4 max-h-[55vh] overflow-y-auto">
+                    <div className="mt-4 max-h-[45vh] overflow-y-auto">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
                                 <div className="text-center">

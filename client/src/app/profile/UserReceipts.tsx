@@ -111,7 +111,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
             case 'banking':
                 return 'Chuyển khoản';
             default:
-                return method || 'N/A';
+                return method || 'Không xác định';
         }
     };
 
@@ -156,9 +156,11 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
             // Priority: ongoing > upcoming > completed
             if (statuses.includes('ongoing')) {
                 ongoing.push(receipt);
-            } else if (statuses.includes('upcoming')) {
+            }
+            if (statuses.includes('upcoming')) {
                 upcoming.push(receipt);
-            } else {
+            }
+            if (statuses.includes('completed')) {
                 completed.push(receipt);
             }
         });
@@ -309,7 +311,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
                                 </div>
                                 <div className="text-right">
                                     <div className="text-xs text-gray-500">Tổng cộng</div>
-                                    <div className="text-lg font-bold text-primary-600">
+                                    <div className="text-primary-600 text-lg font-bold">
                                         {formatPrice(parseInt(receipt.totalamount || '0'))}
                                     </div>
                                 </div>
