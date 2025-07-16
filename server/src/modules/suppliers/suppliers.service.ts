@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -180,6 +180,17 @@ export class SuppliersService {
       throw new NotFoundException(`Không tìm thấy supplierid = ${supplierid}`);
     }
 
+    const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+      where: {
+        supplierid,
+        statusorder: 'pending',
+      },
+    });
+
+    if (hasPendingOrder) {
+      throw new BadRequestException(`Không thể xóa nhà cung cấp vì bạn đang đặt hàng họ với đơn hàng ${hasPendingOrder.poid}`);
+    }
+
     const deleted = await this.prisma.suppliers.update({
       where: { supplierid },
       data: {
@@ -206,6 +217,17 @@ export class SuppliersService {
 
     if (!existing) {
       throw new NotFoundException(`Không tìm thấy supply_products với productid = ${productid} và supplierid = ${supplierid}`);
+    }
+
+    const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+      where: {
+        productid,
+        statusorder: 'pending',
+      },
+    });
+
+    if (hasPendingOrder) {
+      throw new BadRequestException(`Không thể xóa sản phẩm vì đang nằm trong đơn hàng ${hasPendingOrder.poid}`);
     }
 
     await this.prisma.supply_products.delete({
