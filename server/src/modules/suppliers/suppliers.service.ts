@@ -96,12 +96,6 @@ export class SuppliersService {
     };
   }
 
-
-
-
-
-
-
   async findSuppliersByProduct(productid: number) {
     const supplies = await this.prisma.supply_products.findMany({
       where: {
