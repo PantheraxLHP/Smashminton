@@ -79,6 +79,7 @@ public class AutoAssignmentController {
                 "POST /api/auto-assignment, " +
                 "GET /api/auto-assignment/options, " +
                 "GET /api/drl, " + 
+                "POST /api/drools/reload, " +
                 "GET /api/health");
     }
 
@@ -87,5 +88,21 @@ public class AutoAssignmentController {
     public ResponseEntity<String> getDrlRules() {
         String drlRules = droolsService.getDrlRules();
         return ResponseEntity.ok(drlRules);
+    }
+
+    @PostMapping("/drools/reload")
+    @Operation(summary = "Reload decision table", description = "Reloads the decision table from the file system to pick up changes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Decision table reloaded successfully"),
+            @ApiResponse(responseCode = "500", description = "Failed to reload decision table")
+    })
+    public ResponseEntity<String> reloadDecisionTable() {
+        try {
+            droolsService.reloadDecisionTable();
+            return ResponseEntity.ok("Decision table reloaded successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Failed to reload decision table: " + e.getMessage());
+        }
     }
 }
