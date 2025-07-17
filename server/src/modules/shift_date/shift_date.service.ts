@@ -524,11 +524,12 @@ export class ShiftDateService {
     @Cron("0 23 * * *")
     async dailyTimesheetCheck() {
         try {
+            Logger.log("Starting daily timesheet check for unauthorized absences.");
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             // Lấy tất cả shift_assignment cho ngày hôm nay
-            const shiftAssignments = await this.prisma.shift_assignment.findMany({
+            const violateEmployees = await this.prisma.shift_assignment.findMany({
                 where: {
                     shiftdate: today,
                     assignmentstatus: "approved",
@@ -550,7 +551,16 @@ export class ShiftDateService {
                         }
                     ]
                 },
+                distinct: ['employeeid'],
+                select: {
+                    employeeid: true,
+                },
             });
+
+            if (violateEmployees.length === 0) {
+                Logger.log("No unauthorized absences found for today.");
+                return;
+            }
 
             const absentRule = await this.prisma.penalty_rules.findFirst({
                 where: {
@@ -567,63 +577,93 @@ export class ShiftDateService {
             const incrementalPenalty = Number(absentRule.incrementalpenalty);
             const maxPenalty = Number(absentRule.maxiumpenalty);
 
-            for (const assignment of shiftAssignments) {
-                const assignmentDate = new Date(assignment.shiftdate);
-                const existingAbsencePenalty = await this.prisma.penalty_records.findFirst({
+            for (const employee of violateEmployees) {
+                const absenceCount = await this.prisma.shift_assignment.count({
                     where: {
-                        employeeid: assignment.employeeid,
-                        penaltyruleid: absentRule.penaltyruleid,
-                        violationdate: {
-                            gte: new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), assignmentDate.getDate()),
-                            lt: new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), assignmentDate.getDate() + 1)
-                        },
-                    },
-                });
-
-                if (existingAbsencePenalty) {
-                    Logger.log(`Employee ${assignment.employeeid} already has an absence penalty for ${assignmentDate.toLocaleDateString('vi-VN')}. Skipping.`);
-                    continue;
-                }
-
-                let finalPenaltyAmount: number | null = null;
-
-                const currentMonthStart = new Date(assignmentDate.getFullYear(), assignmentDate.getMonth(), 1);
-                currentMonthStart.setHours(0, 0, 0, 0);
-                const currentMonthEnd = new Date(assignmentDate.getFullYear(), assignmentDate.getMonth() + 1, 0);
-                currentMonthEnd.setHours(23, 59, 59, 999);
-                const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
-                    where: {
-                        penaltyruleid: absentRule.penaltyruleid,
-                        employeeid: assignment.employeeid,
-                        violationdate: {
-                            gte: currentMonthStart,
-                            lte: currentMonthEnd
-                        }
-                    },
-                });
-
-                // + 1 Cho lần vi phạm hiện tại
-                const totalAbsenceCount = currentMonthAbsenceCount + 1;
-
-                if (totalAbsenceCount === 1) {
-                    finalPenaltyAmount = basePenalty;
-                } else {
-                    // - 1 để bớt đi lần tính base penalty
-                    const tmp = basePenalty + incrementalPenalty * (totalAbsenceCount - 1);
-                    // Giới hạn không vượt quá max penalty
-                    finalPenaltyAmount = tmp > maxPenalty ? maxPenalty : tmp;
-                }
-
-                await this.prisma.penalty_records.create({
-                    data: {
-                        penaltyruleid: absentRule.penaltyruleid,
-                        employeeid: assignment.employeeid,
-                        violationdate: assignmentDate,
-                        finalpenaltyamount: finalPenaltyAmount,
-                        penaltyapplieddate: assignmentDate,
+                        employeeid: employee.employeeid,
+                        shiftdate: today,
+                        assignmentstatus: "approved",
+                        OR: [
+                            {
+                                timesheet: {
+                                    none: {}
+                                }
+                            },
+                            {
+                                timesheet: {
+                                    some: {
+                                        OR: [
+                                            { checkin_time: null },
+                                            { checkout_time: null }
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
                     }
                 });
+
+                const penaltyCount = await this.prisma.penalty_records.count({
+                    where: {
+                        employeeid: employee.employeeid,
+                        penaltyruleid: absentRule.penaltyruleid,
+                        violationdate: {
+                            gte: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+                            lt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+                        },
+                    }
+                });
+
+                if (absenceCount > penaltyCount) {
+                    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    currentMonthStart.setHours(0, 0, 0, 0);
+                    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    currentMonthEnd.setHours(23, 59, 59, 999);
+                    const currentMonthAbsenceCount = await this.prisma.penalty_records.count({
+                        where: {
+                            penaltyruleid: absentRule.penaltyruleid,
+                            employeeid: employee.employeeid,
+                            violationdate: {
+                                gte: currentMonthStart,
+                                lte: currentMonthEnd
+                            }
+                        },
+                    });
+
+                    const penaltyToCreate = absenceCount - penaltyCount;
+                    const penaltyRecords: any[] = [];
+                    for (let i = 0; i < penaltyToCreate; i++) {
+                        let finalPenaltyAmount = 0;
+
+                        const totalAbsenceCount = currentMonthAbsenceCount + i + 1;
+
+                        if (totalAbsenceCount === 1) {
+                            finalPenaltyAmount = basePenalty;
+                        } else {
+                            // - 1 để bớt đi lần tính base penalty
+                            const tmp = basePenalty + incrementalPenalty * (totalAbsenceCount - 1);
+                            // Giới hạn không vượt quá max penalty
+                            finalPenaltyAmount = tmp > maxPenalty ? maxPenalty : tmp;
+                        }
+
+                        penaltyRecords.push({
+                            penaltyruleid: absentRule.penaltyruleid,
+                            employeeid: employee.employeeid,
+                            violationdate: today,
+                            finalpenaltyamount: finalPenaltyAmount,
+                            penaltyapplieddate: today,
+                        });
+                    }
+
+                    await this.prisma.penalty_records.createMany({
+                        data: penaltyRecords
+                    });
+
+                    Logger.log(`Created ${penaltyToCreate} absence penalties for employee ${employee.employeeid} on ${today.toLocaleDateString('vi-VN')}`);
+                }
             }
+
+            Logger.log(`Daily timesheet check completed. Processed ${violateEmployees.length} employees with potential absences.`);
         } catch (error) {
             console.error("Error in dailyTimesheetCheck:", error);
             throw error;
