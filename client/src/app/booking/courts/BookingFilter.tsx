@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { useRouter } from 'next/navigation';
 import { Filters } from './page';
 import { FeatureZone, getZones } from '@/services/zones.service';
 
 interface BookingFilterProps {
-    initialFilters: Filters;
+    filters: Filters;
     onFilterChange: (filters: Filters) => void;
     disableTimes: string[];
 }
 
-const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFilters, disableTimes }) => {
-    const router = useRouter();
-    const [selectedZone, setSelectedZone] = useState(initialFilters?.zone || '');
-    const [date, setDate] = useState(initialFilters?.date ? new Date(initialFilters.date) : new Date());
-    const [duration, setDuration] = useState(initialFilters?.duration || 0);
-    const [startTime, setStartTime] = useState(initialFilters?.startTime || '');
-
+const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, filters, disableTimes }) => {
     const [zones, setZones] = useState<FeatureZone[]>([]);
 
     useEffect(() => {
@@ -29,6 +22,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
         };
         fetchZones();
     }, []);
+
     // Format YYYY-MM-DD
     const getLocalDateString = (date: Date): string => {
         const year = date.getFullYear();
@@ -38,29 +32,22 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
         return `${year}-${month}-${day}`;
     };
 
-    // Update URL search params when filters change
-    const updateSearchParams = (filters: Filters) => {
-        const params = new URLSearchParams();
-        if (filters.zone) params.append('zone', filters.zone);
-        if (filters.date) params.append('date', filters.date);
-        if (filters.duration) params.append('duration', filters.duration.toString());
-        if (filters.startTime) params.append('startTime', filters.startTime);
-
-        // Update URL without refreshing the page
-        router.push(`/booking/courts?${params.toString()}`, { scroll: false });
+    // Helper functions to handle filter changes
+    const handleZoneChange = (zone: string) => {
+        onFilterChange({ ...filters, zone });
     };
 
-    // Effect to update filters for the parent component
-    useEffect(() => {
-        const filters: Filters = {
-            zone: selectedZone,
-            date: getLocalDateString(date),
-            duration,
-            startTime,
-        };
-        onFilterChange(filters);
-        updateSearchParams(filters);
-    }, [selectedZone, date, duration, startTime, onFilterChange, router]);
+    const handleDateChange = (date: Date) => {
+        onFilterChange({ ...filters, date: getLocalDateString(date) });
+    };
+
+    const handleDurationChange = (duration: number) => {
+        onFilterChange({ ...filters, duration });
+    };
+
+    const handleStartTimeChange = (startTime: string) => {
+        onFilterChange({ ...filters, startTime });
+    };
 
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
     const times = [
@@ -107,9 +94,9 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                     {zones.map((zone) => (
                         <button
                             key={zone.zoneid}
-                            onClick={() => setSelectedZone(zone.zoneid.toString())}
+                            onClick={() => handleZoneChange(zone.zoneid.toString())}
                             className={`rounded-lg border px-3 py-1 text-sm ${
-                                selectedZone === zone.zoneid.toString()
+                                filters.zone === zone.zoneid.toString()
                                     ? 'bg-primary-500 text-white'
                                     : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
                             } transition`}
@@ -128,8 +115,8 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                 <div className="mt-2">
                     <div className="custom-calendar-wrapper">
                         <Calendar
-                            onChange={(value) => value && setDate(value as Date)}
-                            value={date}
+                            onChange={(value) => value && handleDateChange(value as Date)}
+                            value={filters.date ? new Date(filters.date) : new Date()}
                             locale="vi-VN"
                             minDate={new Date()}
                             className="custom-calendar"
@@ -147,9 +134,9 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                     {durations.map((d) => (
                         <button
                             key={d}
-                            onClick={() => setDuration(d)}
+                            onClick={() => handleDurationChange(d)}
                             className={`rounded-lg border px-3 py-1 text-sm ${
-                                duration === d
+                                filters.duration === d
                                     ? 'bg-primary-500 text-white'
                                     : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
                             } transition`}
@@ -174,12 +161,12 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, initialFi
                         return (
                             <button
                                 key={time}
-                                onClick={() => setStartTime(time)}
+                                onClick={() => handleStartTimeChange(time)}
                                 disabled={isDisabled}
                                 className={`rounded-lg border px-3 py-1 text-sm ${
                                     isDisabled
                                         ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
-                                        : startTime === time
+                                    : filters.startTime === time
                                           ? 'bg-primary-500 text-white'
                                           : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
                                 } transition`}
