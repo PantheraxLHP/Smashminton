@@ -153,7 +153,7 @@ export class MqttService {
         }
     }
 
-    async handleEnrollFingerprint(deviceId: string, employeeID: number) {
+    async handleEnrollFingerprint(deviceId: string, roomID: number, employeeID: number) {
         try {
             const employee = await this.prisma.employees.findUnique({
                 where: { employeeid: employeeID },
@@ -173,8 +173,9 @@ export class MqttService {
             const nextFingerprintId = await this.getNextAvailableFingerprintId();
 
             // Send command to ESP8266 to start enrollment
-            this.appGateway.enrollmentStarted(employeeID, nextFingerprintId);
+            this.appGateway.enrollmentStarted(roomID, employeeID, nextFingerprintId);
             await this.sendCommand(deviceId, 'enroll_finger', {
+                roomID: roomID,
                 employeeID: employeeID,
                 fingerID: nextFingerprintId,
             });

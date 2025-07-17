@@ -89,9 +89,9 @@ export class DeviceController {
     })    
     async enrollFingerprint(
         @Param('deviceId') deviceId: string,
-        @Body() body: { employeeID: number }
+        @Body() body: { roomID: number, employeeID: number }
     ) {
-        await this.mqttService.handleEnrollFingerprint(deviceId, body.employeeID);
+        await this.mqttService.handleEnrollFingerprint(deviceId, body.roomID, body.employeeID);
         return {
             success: true,
             message: `Fingerprint enrollment started for employee ID ${body.employeeID} on ${deviceId}`,

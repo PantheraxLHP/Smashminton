@@ -1,6 +1,6 @@
 import { ServiceResponse } from '@/lib/serviceResponse';
 
-export const postEnrollFingerprint = async (data: { employeeID: number }) => {
+export const postEnrollFingerprint = async (data: { roomID: number, employeeID: number }) => {
     try {
         const response = await fetch(`/api/fingerprint/enroll-fingerprint`, {
             headers: { 'Content-Type': 'application/json' },

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { postEnrollFingerprint } from '@/services/fingerprint_enrollment.service';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { parse } from 'path';
 
 type STATUS_VALUE = 'start' | 'loading' | 'success' | 'fail' | 'press_again';
 
@@ -69,7 +70,7 @@ const FingerprintPage = () => {
 
     useEffect(() => {
         if (isConnected && sendMessage && user && user.role && user.accountid) {
-            sendMessage('subscribe_employee', { employeeID: user.accountid });
+            sendMessage('subscribe_employee', { roomID: user.accountid });
         }
     }, [isConnected, sendMessage, user]);
 
@@ -82,6 +83,7 @@ const FingerprintPage = () => {
 
             // Send enrollment command to ESP8266
             const response = await postEnrollFingerprint({
+                roomID: user?.accountid || parseInt(employeeID),
                 employeeID: parseInt(employeeID),
             });
 
