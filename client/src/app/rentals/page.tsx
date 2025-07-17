@@ -164,8 +164,8 @@ const RentalPage = () => {
     };
 
     return (
-        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row w-full">
-            <div className="flex w-full sm:max-w-xs flex-col gap-4">
+        <div className="flex w-full flex-col gap-4 px-2 py-4 sm:flex-row">
+            <div className="flex w-full flex-col gap-4 sm:max-w-xs">
                 <div className="flex flex-col gap-2 w-full sm:max-w-xs">
                     <label htmlFor="date-booking" className="text-sm font-bold">
                         Ngày nhận
@@ -216,7 +216,7 @@ const RentalPage = () => {
                     />
                 </div>
             </div>
-            <div className="flex w-full flex-col gap-4 sm:w-4/5">
+            <div className="flex w-full flex-col gap-4">
                 <RentalList
                     products={products}
                     selectedProducts={selectedProducts}
