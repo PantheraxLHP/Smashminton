@@ -43,7 +43,7 @@ export class ShiftDateController {
   }
 
   @Get('shift-assignment/:employeeid')
-  @Roles('employee')
+  @Roles('employee', 'wh_manager')
   @ApiBearerAuth()
   @ApiParam({
     name: 'employeeid',
