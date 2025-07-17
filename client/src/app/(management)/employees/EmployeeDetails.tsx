@@ -501,19 +501,19 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                             key={record[`${section.type}recordid`]}
                                             className="flex w-full items-center"
                                         >
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {formatDateString(
                                                     section.type === 'reward'
                                                         ? record.rewardapplieddate
                                                         : record.violationdate || '',
                                                 )}
                                             </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {section.type === 'reward'
                                                     ? record.reward_rules?.rewardname
                                                     : record.penalty_rules?.penaltyname || ''}
                                             </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {section.type === 'reward' ? '+' : '-'}{' '}
                                                 {formatPrice(
                                                     section.type === 'reward'
