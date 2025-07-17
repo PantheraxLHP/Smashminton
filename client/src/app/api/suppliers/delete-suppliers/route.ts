@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/lib/apiResponse';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
@@ -29,8 +29,10 @@ export async function PATCH(request: NextRequest) {
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] Backend error response:', result);
-            return ApiResponse.error(result.message || 'Lỗi khi xoá nhà cung cấp');
+            return NextResponse.json(
+                { message: result.message || 'Lỗi khi xoá nhà cung cấp' },
+                { status: response.status }
+            );
         }
 
         return ApiResponse.success(result.data || 'Xoá thành công');

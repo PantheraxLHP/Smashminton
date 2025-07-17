@@ -143,24 +143,17 @@ export default function SupplierManagementPage() {
         if (!supplier.supplierid) return;
 
         const result = await deleteSupplier(supplier.supplierid);
-        // console.log(supplier.supplierid);
         if (result.ok) {
             toast.success('Xoá nhà cung cấp thành công!');
-            await fetchSuppliers();
         } else {
-            toast.error(`Lỗi khi xoá: ${result.message}`);
+            toast.error(`${result.message}`);
         }
+        fetchSuppliers();
         setPage(1);
     };
 
 
     const handleSubmit = async (formData: Supplier, isEdit: boolean) => {
-        if (isEdit) {
-            toast.success('Cập nhật nhà cung cấp thành công!');
-        } else {
-            toast.success('Thêm nhà cung cấp thành công!');
-        }
-
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);
