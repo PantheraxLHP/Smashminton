@@ -280,7 +280,7 @@ const UserProfilePage = () => {
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
                 {activeTab === 'bookings' && (
-                    <div className="mt-4 max-h-[45vh] overflow-y-auto">
+                    <div className="mt-4 max-h-[45vh] sm:max-h-[50vh] overflow-y-auto">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
                                 <div className="text-center">
@@ -310,15 +310,13 @@ const UserProfilePage = () => {
                     <div className="mt-4">
                         {isStudentStatusUpdated ? (
                             <div className="text-primary-600 text-center font-semibold">
-                                <p>Bạn đã được ghi nhận là học sinh/sinh viên.</p>
-                                <div className="mt-4">
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold text-white"
-                                    >
-                                        Cập nhật thẻ sinh viên
-                                    </button>
-                                </div>
+                                <span>Bạn đã được ghi nhận là học sinh/sinh viên.</span>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className={`bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold mt-4 text-white ${isEditing ? 'hidden' : ''}`}
+                                >
+                                    Cập nhật thẻ sinh viên
+                                </button>
                             </div>
                         ) : (
                             <div className="mx-auto max-w-md">
@@ -328,22 +326,40 @@ const UserProfilePage = () => {
                                 </p>
 
                                 {/* Simplified Image Upload */}
-                                <div className="mb-6">
+                                    <div className="mb-4">
                                     <label className="mb-2 block text-sm font-medium text-gray-700">
                                         Thẻ sinh viên
                                     </label>
 
-                                    {/* Direct File Input - Always Visible */}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
-                                    />
+                                        {/* Custom File Input */}
+                                        <div className="relative group">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                                                id="student-upload"
+                                            />
+                                            <label
+                                                htmlFor="student-upload"
+                                                className="flex w-full cursor-pointer items-center justify-between gap-10 rounded text-sm text-gray-500"
+                                            >
+                                                <span className="w-30 flex justify-center bg-primary-50 text-primary-700 group-hover:bg-primary-100 rounded-full font-medium px-2 py-1">
+                                                    Chọn file ảnh
+                                                </span>
+                                                {studentImage ? (
+                                                    <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
+                                                ) : (
+                                                    <span>
+                                                        Chưa chọn file nào
+                                                    </span>
+                                                )}
+                                            </label>
+                                        </div>
 
                                     {/* Image Preview */}
                                     {imagePreview && (
-                                        <div className="mt-4">
+                                            <div className="mt-3">
                                             <div className="relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-lg border">
                                                 <Image
                                                     src={imagePreview}
@@ -380,10 +396,10 @@ const UserProfilePage = () => {
 
                         {/* Update Section for Already Verified Users */}
                         {isStudentStatusUpdated && isEditing && (
-                            <div className="mx-auto mt-6 max-w-md rounded-lg border bg-gray-50 p-4">
-                                <h4 className="mb-4 text-lg font-semibold">Cập nhật thẻ sinh viên</h4>
+                            <div className="mx-auto max-w-md rounded-lg border bg-gray-50 p-2 mt-1">
+                                <h4 className="mb-2 text-lg font-semibold">Cập nhật thẻ sinh viên</h4>
 
-                                <div className="mb-6">
+                                <div className="mb-4">
                                     <label className="mb-2 block text-sm font-medium text-gray-700">
                                         Chọn ảnh thẻ sinh viên mới
                                     </label>
@@ -402,19 +418,19 @@ const UserProfilePage = () => {
                                         {/* Custom Button that triggers file input */}
                                         <label
                                             htmlFor="student-card-input"
-                                            className="bg-primary-100 text-primary-700 hover:bg-primary-200 inline-flex w-fit cursor-pointer items-center justify-center rounded-full border border-transparent px-4 py-2 text-sm font-medium"
+                                            className="flex w-full cursor-pointer items-center justify-between gap-10 rounded text-sm text-gray-500"
                                         >
-                                            Chọn ảnh
-                                        </label>
-
-                                        {/* File Status */}
-                                        <p className="text-sm text-gray-500">
+                                            <span className="w-30 flex justify-center bg-primary-50 text-primary-700 group-hover:bg-primary-100 rounded-full font-medium px-2 py-1">
+                                                Chọn file ảnh
+                                            </span>
                                             {studentImage ? (
                                                 <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
                                             ) : (
-                                                'Chưa chọn file nào'
+                                                    <span>
+                                                        Chưa chọn file nào
+                                                    </span>
                                             )}
-                                        </p>
+                                        </label>
                                     </div>
 
                                     {/* Image Preview for Update */}
