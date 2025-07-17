@@ -131,7 +131,7 @@ export const deleteSupplier = async (supplierid: number) => {
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] deleteSupplier failed:', result);
+            //console.error('[ERROR] deleteSupplier failed:', result);
             return ServiceResponse.error(result.message || 'Không thể xoá nhà cung cấp');
         }
 
@@ -146,8 +146,6 @@ export const deleteSupplier = async (supplierid: number) => {
 
 export const deleteSupplyProduct = async (supplierid: number, productid: number) => {
     try {
-        console.log("service sup: ", supplierid);
-        console.log("service pro: ", productid);
         const response = await fetch(`/api/suppliers/delete-supply-product?supplierid=${supplierid}&productid=${productid}`, {
             method: 'DELETE',
             credentials: 'include',
@@ -155,7 +153,7 @@ export const deleteSupplyProduct = async (supplierid: number, productid: number)
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] deleteSupplyProduct failed:', result);
+            //console.error('[ERROR] deleteSupplyProduct failed:', result);
             return ServiceResponse.error(result.message || 'Không thể xoá nhà cung cấp khỏi sản phẩm');
         }
 
