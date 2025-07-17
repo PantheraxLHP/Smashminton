@@ -201,7 +201,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                         className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
                                     >
                                         <Image
-                                            src={`${assignment.employees?.accounts?.avatarurl || '/logo.png'}`}
+                                            src={`${assignment.employees?.accounts?.avatarurl || '/user.png'}`}
                                             alt={`Nhân viên ${assignment.employeeid}`}
                                             width={40}
                                             height={40}

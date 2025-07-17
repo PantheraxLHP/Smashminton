@@ -219,7 +219,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
             <div className="flex w-full items-center gap-5">
                 <div className="border-primary relative aspect-square h-full w-40 rounded-lg border-2 bg-green-50">
                     <Image
-                        src={avatarPreview || employee.avatarurl || `/logo.png`}
+                        src={avatarPreview || employee.avatarurl || `/user.png`}
                         alt={`Hình của nhân viên ${formData.fullname}`}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
