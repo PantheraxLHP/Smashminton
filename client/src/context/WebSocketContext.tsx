@@ -99,7 +99,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
                         <div className="flex items-center">
                             <span className="text-yellow-600 mr-2">⏰</span>
                             <span className="text-yellow-800 font-medium">
-                                Sắp hết giờ, hỏi khách hàng có muốn gia hạn không
+                                Sắp hết giờ, hỏi khách hàng có muốn gia hạn không ?
                             </span>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         switch (type) {
             case 'regular_court_booking_check':
                 toast.warning(formatObjectToJSX(data.zoneCourtObj), {
-                    duration: 30000,
+                    duration: 300000,
                     actionButtonStyle: { backgroundColor: 'transparent' },
                     action: {
                         label: (

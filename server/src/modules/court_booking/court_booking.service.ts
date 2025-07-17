@@ -485,6 +485,7 @@ export class CourtBookingService {
     }
 
     @Cron('0 */15 6-22 * * *') // Chạy mỗi 15 phút
+    // @Cron('0/10 * * * * *') // Chạy mỗi 10 giây 
     async regularCourtBookingNotify() {
         const now = new Date();
         const courtBookings = await this.prisma.court_booking.findMany({
@@ -528,14 +529,4 @@ export class CourtBookingService {
 
         this.appGateway.regularCourtBookingCheck(zoneCourt);
     }
-
-    // @Cron('*/10 * * * * *')
-    // async testNotification() {
-    //     this.appGateway.testNotification('TEST GLOBAL ');
-    // }
-
-    // @Cron('*/10 * * * * *')
-    // async testNotificationAllEmployee() {
-    //     this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
-    // }
 }

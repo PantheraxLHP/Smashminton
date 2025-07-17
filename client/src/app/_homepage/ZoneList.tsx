@@ -63,7 +63,7 @@ export default function ZoneList() {
                         <h4 className="text-xl font-semibold text-gray-800">{zone.zonename}</h4>
                         <p className="mt-1 text-gray-600">Mở cửa 6:00 - 22:00</p>
 
-                        <div className="mt-4 flex items-center justify-between">
+                        <div className="mt-4 flex items-start justify-between">
                             <p className="text-lg font-bold">{zone.feature}</p>
                             <Button variant="outline" asChild>
                                 <Link href={'booking'}>Đặt ngay</Link>
