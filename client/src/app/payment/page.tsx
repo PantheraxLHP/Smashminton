@@ -69,7 +69,7 @@ export default function PaymentPage() {
     }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
 
     const handlePayment = async () => {
-        if (totalProductPrice === 0 || totalCourtPrice === 0) {
+        if (totalProductPrice === 0 && totalCourtPrice === 0) {
             toast.error('Vui lòng chọn sản phẩm hoặc sân để thanh toán!');
             return;
         }
