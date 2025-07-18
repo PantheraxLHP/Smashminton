@@ -29,6 +29,7 @@ export class ProductTypesController {
   }
 
   @Get(':id')
+  @Public()
   getProductById(@Param('id') id: string) {
     return this.productTypesService.getProductById(+id);
   }
