@@ -233,18 +233,18 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                                 if (selectedEmployees.length > 0) {
                                     setIsDeleteDialogOpen(true);
                                 } else {
-                                    toast.error('Vui lòng chọn ít nhất một nhân sự để xóa.');
+                                    toast.error('Vui lòng chọn ít nhất một nhân viên để xóa.');
                                 }
                             }}
                         >
-                            Xóa nhân sự
+                            Xóa nhân viên
                         </Button>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Xác nhận xóa</DialogTitle>
                             </DialogHeader>
                             <div className="flex flex-col">
-                                Bạn có chắc chắn muốn xóa {selectedEmployees.length} nhân sự đã chọn không?
+                                Bạn có chắc chắn muốn xóa {selectedEmployees.length} nhân viên đã chọn không?
                                 <span className="text-red-500">Hành động này không thể hoàn tác.</span>
                             </div>
                             <DialogFooter>
@@ -261,12 +261,12 @@ const EmployeeList = ({ filterValue }: EmployeeListProps) => {
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline" className="w-30">
-                                Thêm nhân sự
+                                Thêm nhân viên
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Thêm nhân sự mới</DialogTitle>
+                                <DialogTitle>Thêm nhân viên mới</DialogTitle>
                             </DialogHeader>
                             <EmployeeAddForm onSuccess={handleSuccess} />
                         </DialogContent>
