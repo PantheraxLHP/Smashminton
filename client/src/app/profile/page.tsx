@@ -309,11 +309,11 @@ const UserProfilePage = () => {
                 {activeTab === 'student' && (
                     <div className="mt-4">
                         {isStudentStatusUpdated ? (
-                            <div className="text-primary-600 text-center font-semibold">
+                            <div className="text-primary-600 text-center font-semibold flex flex-col gap-4 justify-center items-center">
                                 <span>Bạn đã được ghi nhận là học sinh/sinh viên.</span>
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className={`bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold mt-4 text-white ${isEditing ? 'hidden' : ''}`}
+                                    className={`bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold text-white w-fit ${isEditing ? 'hidden' : ''}`}
                                 >
                                     Cập nhật thẻ sinh viên
                                 </button>
