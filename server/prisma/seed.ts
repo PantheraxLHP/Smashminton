@@ -2131,7 +2131,7 @@ async function main() {
         data: [
             // Employee 1 (Admin)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2139,7 +2139,7 @@ async function main() {
                 employeeid: 1,
             },
             {
-                rewarddate: new Date('2025-06-10'),
+                rewarddate: new Date('2025-06-10').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-15'),
@@ -2148,7 +2148,7 @@ async function main() {
             },
             // Employee 2 (Nguyễn Văn A)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2156,7 +2156,7 @@ async function main() {
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-08'),
+                rewarddate: new Date('2025-06-08').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-12'),
@@ -2164,7 +2164,7 @@ async function main() {
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-15'),
+                rewarddate: new Date('2025-06-15').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
@@ -2173,7 +2173,7 @@ async function main() {
             },
             // Employee 3 (Trần Thị B)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2181,7 +2181,7 @@ async function main() {
                 employeeid: 3,
             },
             {
-                rewarddate: new Date('2025-06-12'),
+                rewarddate: new Date('2025-06-12').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-18'),
@@ -2190,7 +2190,7 @@ async function main() {
             },
             // Employee 4 (Lê Hồng C)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2198,7 +2198,7 @@ async function main() {
                 employeeid: 4,
             },
             {
-                rewarddate: new Date('2025-06-06'),
+                rewarddate: new Date('2025-06-06').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-10'),
@@ -2207,7 +2207,7 @@ async function main() {
             },
             // Employee 5 (Lê Hoàng D)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2215,7 +2215,7 @@ async function main() {
                 employeeid: 5,
             },
             {
-                rewarddate: new Date('2025-06-14'),
+                rewarddate: new Date('2025-06-14').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-18'),
@@ -2224,7 +2224,7 @@ async function main() {
             },
             // Employee 6 (Nguyễn Minh E)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2232,7 +2232,7 @@ async function main() {
                 employeeid: 6,
             },
             {
-                rewarddate: new Date('2025-06-20'),
+                rewarddate: new Date('2025-06-20').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-25'),
@@ -2241,7 +2241,7 @@ async function main() {
             },
             // Employee 7 (Bùi Thành F)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2250,7 +2250,7 @@ async function main() {
             },
             // Employee 8 (Trần Tiến G)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2258,7 +2258,7 @@ async function main() {
                 employeeid: 8,
             },
             {
-                rewarddate: new Date('2025-06-16'),
+                rewarddate: new Date('2025-06-16').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
@@ -2267,7 +2267,7 @@ async function main() {
             },
             // Employee 9 (Phạm Thị H)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2276,7 +2276,7 @@ async function main() {
             },
             // Employee 10 (Phù Mỹ I)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2284,7 +2284,7 @@ async function main() {
                 employeeid: 10,
             },
             {
-                rewarddate: new Date('2025-06-22'),
+                rewarddate: new Date('2025-06-22').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-26'),
@@ -2293,7 +2293,7 @@ async function main() {
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2302,7 +2302,7 @@ async function main() {
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2310,7 +2310,7 @@ async function main() {
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2025-06-25'),
+                rewarddate: new Date('2025-06-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-28'),
@@ -2319,7 +2319,7 @@ async function main() {
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2024-06-01'),
+                rewarddate: new Date('2024-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2024-06-05'),
@@ -2328,7 +2328,7 @@ async function main() {
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2024-06-01'),
+                rewarddate: new Date('2024-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2024-06-05'),
@@ -2336,7 +2336,7 @@ async function main() {
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2024-06-25'),
+                rewarddate: new Date('2024-06-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2024-06-28'),
