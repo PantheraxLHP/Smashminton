@@ -71,7 +71,6 @@ export interface Bookings {
     guestphone?: string;
     bookingdate?: Date;
     totalprice?: number;
-    bookingstatus?: string;
     createdat?: Date;
     updatedat?: Date;
     employeeid?: number;

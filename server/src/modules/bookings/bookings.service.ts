@@ -312,7 +312,6 @@ export class BookingsService {
 			select: {
 				bookingid: true,
 				guestphone: true,
-				bookingstatus: true,
 				totalprice: true,
 				receipts: { select: { receiptid: true, totalamount: true, bookingid: true, orderid: true } },
 			},
