@@ -25,13 +25,12 @@ export default function PaymentPage() {
     const userProfile = user;
     const [timeLeft, setTimeLeft] = useState(TTL);
 
-    let totalCourtPriceWithDiscount = totalCourtPrice;
+    const total = totalCourtPrice + totalProductPrice;
+    let courtPriceDiscount = 0;
     if (userProfile?.studentCard?.studentcardid) {
-        totalCourtPriceWithDiscount = totalCourtPrice * 0.9;
+        courtPriceDiscount = totalCourtPrice * 0.1;
     }
-
-    const total = totalCourtPriceWithDiscount + totalProductPrice;
-    const totalWithDiscount = total * (1 - discount);
+    const totalWithDiscount = total * (1 - discount) - courtPriceDiscount;
 
     useEffect(() => {
         const loadVouchers = async () => {
