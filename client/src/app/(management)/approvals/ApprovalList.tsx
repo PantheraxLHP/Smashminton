@@ -215,7 +215,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                         <DialogHeader className="flex !h-fit flex-col gap-0.5">
                                             <DialogTitle className="!h-fit">Chi tiết ghi chú</DialogTitle>
                                             <DialogDescription className="!h-fit">
-                                                {`Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || 'chưa có tên'} trong ` +
+                                                {`Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || 'chưa có tên'} ngày ` +
                                                     `${rc.rewardapplieddate ? formatDate(rc.rewardapplieddate) : ''}`}
                                             </DialogDescription>
                                         </DialogHeader>

@@ -44,7 +44,6 @@ model bookings {
   guestphone    String?
   bookingdate   DateTime?       @db.Timestamptz(6)
   totalprice    Decimal?        @db.Decimal
-  bookingstatus String?
   createdat     DateTime?       @default(now()) @db.Timestamptz(6)
   updatedat     DateTime?       @default(now()) @db.Timestamptz(6)
   employeeid    Int?

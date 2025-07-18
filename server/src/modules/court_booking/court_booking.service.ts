@@ -16,7 +16,7 @@ export class CourtBookingService {
         private courtsService: CourtsService, // Inject CourtsService
         private cacheService: CacheService, // Inject CacheService
         private appGateway: AppGateway,
-    ) {}
+    ) { }
 
     private readonly allStartTimes: string[] = [
         '06:00',
@@ -60,7 +60,7 @@ export class CourtBookingService {
         duration: number,
     ): Promise<AvailableCourts[]> {
         if (!zoneid || !date || !starttime || !duration) {
-            throw new BadRequestException('Missing query parameters court_booking 1');
+            throw new BadRequestException('Missing query parameters court_booking');
         }
 
         const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
@@ -189,9 +189,17 @@ export class CourtBookingService {
             const now = dayjs().tz('Asia/Ho_Chi_Minh').format('HH:mm');
             const nowIndex = this.allStartTimes.findIndex((time) => time >= now);
 
-            // Block tất cả các `starttime` trước thời gian hiện tại
-            for (let i = 0; i < nowIndex; i++) {
-                courtAvailability[i] = 0; // Đánh dấu các slot này là unavailable
+            if (nowIndex === -1) {
+                // Nếu nowIndex = -1, nghĩa là thời gian hiện tại > tất cả thời gian trong allStartTimes
+                // Nên block tất cả time slots
+                for (let i = 0; i < this.allStartTimes.length; i++) {
+                    courtAvailability[i] = 0;
+                }
+            } else {
+                // Block tất cả các `starttime` trước thời gian hiện tại
+                for (let i = 0; i < nowIndex; i++) {
+                    courtAvailability[i] = 0;
+                }
             }
         }
 
@@ -323,9 +331,17 @@ export class CourtBookingService {
             const now = dayjs().tz('Asia/Ho_Chi_Minh').format('HH:mm');
             const nowIndex = this.allStartTimes.findIndex((time) => time >= now);
 
-            // Block tất cả các `starttime` trước thời gian hiện tại
-            for (let i = 0; i < nowIndex; i++) {
-                courtAvailabilityForAllWeeks[i] = 0; // Đánh dấu các slot này là unavailable
+            if (nowIndex === -1) {
+                // Nếu nowIndex = -1, nghĩa là thời gian hiện tại > tất cả thời gian trong allStartTimes
+                // Nên block tất cả time slots
+                for (let i = 0; i < this.allStartTimes.length; i++) {
+                    courtAvailabilityForAllWeeks[i] = 0;
+                }
+            } else {
+                // Block tất cả các `starttime` trước thời gian hiện tại
+                for (let i = 0; i < nowIndex; i++) {
+                    courtAvailabilityForAllWeeks[i] = 0;
+                }
             }
         }
 

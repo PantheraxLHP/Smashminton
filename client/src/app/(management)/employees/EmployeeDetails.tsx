@@ -219,7 +219,7 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
             <div className="flex w-full items-center gap-5">
                 <div className="border-primary relative aspect-square h-full w-40 rounded-lg border-2 bg-green-50">
                     <Image
-                        src={avatarPreview || employee.avatarurl || `/logo.png`}
+                        src={avatarPreview || employee.avatarurl || `/user.png`}
                         alt={`Hình của nhân viên ${formData.fullname}`}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -501,19 +501,19 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                             key={record[`${section.type}recordid`]}
                                             className="flex w-full items-center"
                                         >
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {formatDateString(
                                                     section.type === 'reward'
                                                         ? record.rewardapplieddate
                                                         : record.violationdate || '',
                                                 )}
                                             </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {section.type === 'reward'
                                                     ? record.reward_rules?.rewardname
                                                     : record.penalty_rules?.penaltyname || ''}
                                             </span>
-                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
                                                 {section.type === 'reward' ? '+' : '-'}{' '}
                                                 {formatPrice(
                                                     section.type === 'reward'

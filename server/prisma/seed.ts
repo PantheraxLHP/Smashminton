@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/generated/client';
 import bcrypt from 'bcryptjs';
+import dayjs from 'dayjs';
 
 const prisma = new PrismaClient();
 
@@ -469,7 +470,7 @@ async function main() {
             },
             {
                 penaltyname: 'Early leave',
-                penaltydescription: 'Phạt nhân viên rời khỏi nơi làm việc (chấm công ra) sớm hơn giờ quy định',                
+                penaltydescription: 'Phạt nhân viên rời khỏi nơi làm việc (chấm công ra) sớm hơn giờ quy định',
             }
         ],
     });
@@ -1594,7 +1595,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-15'),
                 totalprice: 400000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T09:22:19.422Z'),
                 updatedat: new Date('2025-05-14T09:22:19.422Z'),
                 employeeid: 3,
@@ -1605,7 +1605,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-15'),
                 totalprice: 300000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T10:00:00.000Z'),
                 updatedat: new Date('2025-05-14T10:00:00.000Z'),
                 employeeid: 2,
@@ -1616,7 +1615,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-16'),
                 totalprice: 500000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T11:00:00.000Z'),
                 updatedat: new Date('2025-05-14T11:00:00.000Z'),
                 employeeid: 1,
@@ -2460,7 +2458,6 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: startTime,
             totalprice: 200000 + i * 5000,
-            bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
             createdat: startTime,
             updatedat: endTime,
             employeeid: isFirstHalf ? null : 55 + (i - 5),
@@ -2519,7 +2516,8 @@ async function main() {
             const startMinute = Math.floor((startHour % 1) * 60);
             const realStartHour = Math.floor(startHour);
 
-            const bookingDate = new Date(bookingsList[i].bookingdate!.toISOString().split('T')[0]);
+            const bookingDate = new Date(`${dayjs(bookingsList[i].bookingdate).format('YYYY-MM-DD')}`);
+
             const starttime = new Date(bookingDate);
             starttime.setHours(realStartHour, startMinute, 0, 0);
 
@@ -2611,7 +2609,6 @@ async function main() {
             guestphone: '090000000' + (i + 1),
             bookingdate: [completedStart, ongoingStart, upcomingStart][i],
             totalprice: 100000 * (i + 1),
-            bookingstatus: 'confirmed',
             employeeid: 2,
             customerid: 16,
             voucherid: null,
@@ -2662,7 +2659,7 @@ async function main() {
         const startMinute = Math.floor((startHour % 1) * 60);
         const realStartHour = Math.floor(startHour);
 
-        const bookingDate = new Date([completedStart, ongoingStart, upcomingStart][i].toISOString().split('T')[0]);
+        const bookingDate = new Date(`${dayjs([completedStart, ongoingStart, upcomingStart][i]).format('YYYY-MM-DD')}`);
         const starttime = new Date(bookingDate);
         starttime.setHours(realStartHour, startMinute, 0, 0);
 
@@ -2723,8 +2720,7 @@ async function main() {
             bookingDataMonth.push({
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
-                totalprice: 200000 + i * 5000,
-                bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
+                totalprice: 200000 + (8 + i) * 5000,
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2748,8 +2744,7 @@ async function main() {
             bookingDataMonth.push({
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
-                totalprice: 200000 + (5 + i) * 5000,
-                bookingstatus: (5 + i) % 3 === 0 ? 'confirmed' : (5 + i) % 3 === 1 ? 'pending' : 'completed',
+                totalprice: 200000 + (8 + i) * 5000,
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2757,10 +2752,10 @@ async function main() {
                 voucherid: null,
             });
             orderDataMonth.push({
-                ordertype: (5 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+                ordertype: (8 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
                 orderdate: date,
-                totalprice: 100000 + (5 + i) * 10000,
-                status: (5 + i) % 3 === 0 ? 'Hoàn thành' : (5 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+                totalprice: 100000 + (8 + i) * 10000,
+                status: (8 + i) % 3 === 0 ? 'Hoàn thành' : (8 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
                 employeeid: 2,
                 customerid: 15,
             });
@@ -2774,7 +2769,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
                 totalprice: 200000 + (8 + i) * 5000,
-                bookingstatus: (8 + i) % 3 === 0 ? 'confirmed' : (8 + i) % 3 === 1 ? 'pending' : 'completed',
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2832,7 +2826,7 @@ async function main() {
                 const startMinute = Math.floor((startHour % 1) * 60);
                 const realStartHour = Math.floor(startHour);
 
-                const bookingDate = new Date(bookingsListMonth[i].bookingdate!.toISOString().split('T')[0]);
+                const bookingDate = new Date(`${dayjs(bookingsListMonth[i].bookingdate).format('YYYY-MM-DD')}`);
                 const starttime = new Date(bookingDate);
                 starttime.setHours(realStartHour, startMinute, 0, 0);
 
@@ -3055,7 +3049,6 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: bookingDate,
             totalprice: 200000,
-            bookingstatus: 'confirmed',
             createdat: starttime,
             updatedat: endtime,
             employeeid: null,

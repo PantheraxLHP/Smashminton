@@ -10,9 +10,6 @@ export class CreateBookingDto {
   @ApiPropertyOptional({ example: 500000, description: 'Tổng giá tiền' })
   totalprice?: number;
 
-  @ApiPropertyOptional({ example: 'pending', description: 'Trạng thái đặt lịch' })
-  bookingstatus?: string;
-
   @ApiPropertyOptional({ example: 1, description: 'ID nhân viên' })
   employeeid?: number;
 
