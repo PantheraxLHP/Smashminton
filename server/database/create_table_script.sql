@@ -219,7 +219,6 @@ create table if not exists bookings (
 	guestphone text,
 	bookingdate timestamptz,
 	totalprice numeric,
-	bookingstatus text check (bookingstatus in ('Completed', 'Processing', 'Schedule')),
 	createdat timestamptz default now(),
 	updatedat timestamptz default now(),
 	employeeid integer,
