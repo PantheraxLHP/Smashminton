@@ -238,7 +238,6 @@ export class BookingsService {
 		}
 		createBookingDto.totalprice = bookingUserCache.totalprice;
 		createBookingDto.bookingdate = new Date();
-		createBookingDto.bookingstatus = 'Scheduled';
 
 		const booking = await this.prisma.bookings.create({
 			data: createBookingDto,
@@ -289,10 +288,11 @@ export class BookingsService {
 		// 2. Lấy tất cả court_booking trong ngày này, cho các sân thuộc zone
 		const startOfDay = new Date(`${date} 00:00:00`);
 		const endOfDay = new Date(`${date} 23:59:59`);
+
 		const courtBookings = await this.prisma.court_booking.findMany({
 			where: {
 				courtid: { in: courts.map(c => c.courtid) },
-				date: { gte: startOfDay, lte: endOfDay },
+				starttime: { gte: startOfDay, lte: endOfDay },
 			},
 			select: {
 				courtbookingid: true,
