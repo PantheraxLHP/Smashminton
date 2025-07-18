@@ -2509,19 +2509,34 @@ async function main() {
             const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
             const selectedDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
 
-            // Tạo starttime ngẫu nhiên trong khoảng 6h-21h, đảm bảo endtime <= 22h
-            const minStartHour = 6;
-            const maxStartHour = 22 - selectedDuration;
-            const startHour = minStartHour + Math.random() * (maxStartHour - minStartHour);
-            const startMinute = Math.floor((startHour % 1) * 60);
-            const realStartHour = Math.floor(startHour);
+            // Tạo các khung giờ cố định từ 6:00 đến 21:00 (cách nhau 30 phút)
+            const timeSlots = [
+                "6:00", "6:30", "7:00", "7:30", "8:00", "8:30", "9:00", "9:30",
+                "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+                "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
+            ];
+
+            // Tính toán khung giờ hợp lệ dựa trên selectedDuration
+            const slotsNeeded = Math.ceil(selectedDuration / 0.5); // Số slot cần thiết
+            const maxStartSlotIndex = timeSlots.length - slotsNeeded;
+            const randomStartIndex = Math.floor(Math.random() * maxStartSlotIndex);
+
+            // Lấy thời gian bắt đầu và kết thúc
+            const startTimeString = timeSlots[randomStartIndex];
+            const endTimeString = timeSlots[randomStartIndex + slotsNeeded];
 
             const bookingDate = new Date(`${dayjs(bookingsList[i].bookingdate).format('YYYY-MM-DD')}`);
 
+            // Tạo starttime từ string
+            const [startHour, startMinute] = startTimeString.split(':').map(Number);
             const starttime = new Date(bookingDate);
-            starttime.setHours(realStartHour, startMinute, 0, 0);
+            starttime.setHours(startHour, startMinute, 0, 0);
 
-            const endtime = new Date(starttime.getTime() + selectedDuration * 60 * 60 * 1000);
+            // Tạo endtime từ string
+            const [endHour, endMinute] = endTimeString.split(':').map(Number);
+            const endtime = new Date(bookingDate);
+            endtime.setHours(endHour, endMinute, 0, 0);
 
             // Tính duration (số giờ)
             const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
