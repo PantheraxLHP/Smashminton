@@ -185,6 +185,16 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="dob"
                                     value={formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
+                                    min={
+                                        new Date(new Date().setFullYear(new Date().getFullYear() - 100))
+                                            .toISOString()
+                                            .split('T')[0]
+                                    }
+                                    max={
+                                        new Date(new Date().setFullYear(new Date().getFullYear() - 16))
+                                            .toISOString()
+                                            .split('T')[0]
+                                    }
                                     className="w-full rounded border px-3 py-1"
                                 />
                             </div>

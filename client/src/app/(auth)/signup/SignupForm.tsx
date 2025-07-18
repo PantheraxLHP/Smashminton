@@ -86,7 +86,7 @@ const SignupForm = () => {
             <h2 className="text-primary-600 mb-6 text-center text-2xl font-semibold">Đăng ký thành viên</h2>
 
             <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
                     {[
                         { label: 'Tên đăng nhập*', name: 'username', type: 'text' },
                         { label: 'Mật khẩu*', name: 'password', type: 'password' },

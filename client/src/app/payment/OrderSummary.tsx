@@ -24,7 +24,8 @@ export default function OrderSummary() {
 
     const handleQuantityChange = async (productId: number, delta: number) => {
         if (delta > 0) {
-            if (getSelectedProductQuantity(productId) >= (await getProductStockQuantity(productId))) {
+            const productStock = await getProductStockQuantity(productId);
+            if (getSelectedProductQuantity(productId) >= productStock) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
