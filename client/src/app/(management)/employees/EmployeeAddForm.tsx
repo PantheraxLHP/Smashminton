@@ -76,6 +76,16 @@ const EmployeeAddForm = ({ onSuccess }: EmployeeAddFormProps) => {
                         value={employeeData.dob}
                         onChange={handleChange}
                         className="w-full"
+                        min={
+                            new Date(new Date().setFullYear(new Date().getFullYear() - 100))
+                                .toISOString()
+                                .split('T')[0]
+                        }
+                        max={
+                            new Date(new Date().setFullYear(new Date().getFullYear() - 10))
+                                .toISOString()
+                                .split('T')[0]
+                        }
                         required
                     />
                 </div>

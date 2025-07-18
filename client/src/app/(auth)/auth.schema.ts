@@ -17,7 +17,23 @@ export const signupSchema = z
         repassword: z.string().min(1, 'Mật khẩu xác nhận phải có ít nhất 1 ký tự'),
         email: z.string().email('Email không hợp lệ'),
         fullname: z.string().optional(),
-        dob: z.string().optional(),
+        dob: z
+            .string()
+            .optional()
+            .refine(
+                (date) => {
+                    if (!date) return true;
+                    const dob = new Date(date);
+                    if (isNaN(dob.getTime())) return false;
+                    const today = new Date();
+                    const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate()); // 100 tuổi
+                    const maxDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate()); // 10 tuổi
+                    return dob >= minDate && dob <= maxDate;
+                },
+                {
+                    message: 'Ngày sinh không hợp lệ (độ tuổi phải từ 10 đến 100)',
+                },
+            ),
         phonenumber: z.string().optional(),
         address: z.string().optional(),
         accounttype: z.string().optional(),
