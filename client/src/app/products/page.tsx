@@ -147,8 +147,8 @@ const ProductsPage = () => {
     };
 
     return (
-        <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row">
-            <div className="flex w-full flex-col sm:w-1/5">
+        <div className="flex w-full flex-col gap-4 px-2 py-4 sm:flex-row">
+            <div className="flex w-full flex-col gap-4 sm:max-w-xs">
                 <Filter
                     filters={filters}
                     values={filterValues}
@@ -156,7 +156,7 @@ const ProductsPage = () => {
                     onFilterChange={handleFilterChange}
                 />
             </div>
-            <div className="flex w-full flex-col gap-4 sm:w-4/5">
+            <div className="flex w-full flex-col gap-4">
                 <ProductList products={products} selectedProducts={selectedProducts} />
                 <div className="mt-4 flex justify-center">
                     <PaginationComponent page={page} setPage={setPage} totalPages={totalPages} />

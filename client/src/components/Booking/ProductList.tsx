@@ -71,7 +71,7 @@ const ProductList: React.FC<ProductListProps> = ({ products = [], selectedProduc
     };
 
     return (
-        <div className="flex w-full flex-col gap-2 p-4">
+        <div className="flex w-full flex-col gap-2">
             <div className="flex justify-end gap-2">
                 <div className="text-md flex items-center gap-2 font-semibold">
                     <Icon icon="lucide:sort-desc" className="text-xl" />
