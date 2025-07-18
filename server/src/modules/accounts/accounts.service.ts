@@ -107,7 +107,7 @@ export class AccountsService {
                     studyperiod: validResult.expiryYear,
                 });
             } else {
-                throw new BadRequestException('Student card already exists');
+                throw new BadRequestException('Thẻ học sinh/sinh viên đã tồn tại');
             }
         }
         // Trả về kết quả cuối cùng
