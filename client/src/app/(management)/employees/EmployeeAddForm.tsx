@@ -82,7 +82,7 @@ const EmployeeAddForm = ({ onSuccess }: EmployeeAddFormProps) => {
                                 .split('T')[0]
                         }
                         max={
-                            new Date(new Date().setFullYear(new Date().getFullYear() - 10))
+                            new Date(new Date().setFullYear(new Date().getFullYear() - 16))
                                 .toISOString()
                                 .split('T')[0]
                         }

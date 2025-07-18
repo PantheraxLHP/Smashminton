@@ -27,7 +27,7 @@ export const signupSchema = z
                     if (isNaN(dob.getTime())) return false;
                     const today = new Date();
                     const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate()); // 100 tuổi
-                    const maxDate = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate()); // 10 tuổi
+                    const maxDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate()); // 10 tuổi
                     return dob >= minDate && dob <= maxDate;
                 },
                 {
