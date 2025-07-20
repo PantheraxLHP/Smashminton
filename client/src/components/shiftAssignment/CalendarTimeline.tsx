@@ -2,6 +2,8 @@ import { useEffect, useState, Fragment } from 'react';
 import { ShiftAssignment, ShiftEnrollment, ShiftDate } from '@/types/types';
 import ShiftCardDialog from './ShiftCardDialog';
 import ShiftCard from './ShiftCard';
+import { formatTimeHours } from '@/lib/utils';
+import { sync } from 'framer-motion';
 
 interface CalendarTimelineProps {
     selectedRadio: string;
@@ -47,10 +49,12 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
     const todayIndex = today === 0 ? 6 : today - 1;
     const timesInDay = Array.from({ length: 17 }, (_, i) => `${6 + i}:00`);
     const [topOffset, setTopOffset] = useState(0);
+    const [timeNow, setTimeNow] = useState(new Date());
 
     useEffect(() => {
         const updateOffset = () => {
             const now = new Date();
+            setTimeNow(now);
             const hours = now.getHours();
             const minutes = now.getMinutes();
 
@@ -68,8 +72,21 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
         };
 
         updateOffset();
-        const interval = setInterval(updateOffset, 60000);
-        return () => clearInterval(interval);
+        const now = new Date();
+        const secondsUntilNextMinute = 60 - now.getSeconds();
+        const msUntilNextMinute = (secondsUntilNextMinute * 1000) - now.getMilliseconds();
+
+        let interval: NodeJS.Timeout;
+
+        const syncTimeout = setTimeout(() => {
+            updateOffset();
+            interval = setInterval(updateOffset, 60000);
+        }, msUntilNextMinute);
+
+        return () => {
+            clearTimeout(syncTimeout);
+            if (interval) clearInterval(interval);
+        };
     }, []);
 
     const fulltimeShiftDates = shiftData.filter((shiftDate) => {
@@ -84,7 +101,18 @@ const CalendarTimeline: React.FC<CalendarTimelineProps> = ({ selectedRadio, role
         <div className="relative min-w-max">
             {/*Đường thể hiện thời gian hiện tại trong khoảng 6h-22h*/}
             {topOffset >= 0 && (
-                <div className="bg-primary absolute right-0 left-0 z-1 h-[4px]" style={{ top: `${topOffset}px` }} />
+                <>
+                    <div
+                        className="absolute left-2 z-1 text-sm text-primary"
+                        style={{ top: `${topOffset - 20}px` }}
+                    >
+                        {formatTimeHours(timeNow)}
+                    </div>
+                    <div
+                        className="bg-primary absolute right-0 left-0 z-1 h-[4px]"
+                        style={{ top: `${topOffset}px` }}
+                    />
+                </>
             )}
 
             {/*Table thể hiện các ô giờ*/}
