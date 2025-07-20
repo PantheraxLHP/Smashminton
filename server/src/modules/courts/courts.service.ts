@@ -14,7 +14,7 @@ export class CourtsService {
     constructor(
         private prisma: PrismaService,
         private cloudinaryService: CloudinaryService,
-    ) {}
+    ) { }
 
     async createCourt(createCourtDto: CreateCourtDto, file: Express.Multer.File) {
         let imageUrl = '';
@@ -61,6 +61,29 @@ export class CourtsService {
         }
 
         const zoneIdAsNumber = updateCourtDto.zoneid ? +updateCourtDto.zoneid : undefined;
+
+        if (updateCourtDto.statuscourt?.toLowerCase() === 'inactive') {
+            const now = new Date();
+            const futureBookings = await this.prisma.court_booking.findMany({
+                where: {
+                    courtid: id,
+                    starttime: {
+                        gte: now,
+                    },
+                },
+                orderBy: {
+                    starttime: 'desc',
+                },
+                take: 1, // Lấy cái xa nhất
+            });
+
+            if (futureBookings.length > 0) {
+                const latestBookingDate = futureBookings[0].starttime || new Date();
+                const formattedDate = latestBookingDate.toLocaleDateString('vi-VN'); // format kiểu VN
+
+                throw new BadRequestException(`Sân đang được sử dụng vào ngày ${formattedDate} nên không thể bảo trì`);
+            }
+        }
 
         const updated = await this.prisma.courts.update({
             where: { courtid: id },
