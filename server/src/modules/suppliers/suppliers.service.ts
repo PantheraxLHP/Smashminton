@@ -61,10 +61,15 @@ export class SuppliersService {
                 productname: {
                   contains: q2,
                   mode: 'insensitive'
-                }
+                },
+                isdeleted: false
               }
             }
-            : undefined,
+            : {
+              products: {
+                isdeleted: false,
+              },
+            },
           include: { products: true }
         }
       },
