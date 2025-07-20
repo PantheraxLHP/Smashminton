@@ -34,6 +34,14 @@ export const formatNumber = (num: number | string) => {
     return number.toLocaleString('vi-VN');
 };
 
+export const formatTimeHours = (date: Date) => {
+    return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+
 export const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
