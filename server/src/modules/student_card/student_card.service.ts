@@ -5,14 +5,22 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class StudentCardService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
   createStudentCard(createStudentCardDto: CreateStudentCardDto) {
     if (!createStudentCardDto) {
       throw new Error('Invalid data');
     }
 
+    const expireDate = new Date(Number(createStudentCardDto.studyperiod), 11, 31, 23, 59, 59);
+
+
     return this.prisma.student_card.create({
-      data: createStudentCardDto,
+      data: {
+        studentcardid: createStudentCardDto.studentcardid,
+        schoolname: createStudentCardDto.schoolname,
+        studentid: createStudentCardDto.studentid,
+        studyperiod: expireDate,
+      },
     });
   }
 
