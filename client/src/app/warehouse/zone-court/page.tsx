@@ -196,28 +196,33 @@ export default function ZoneCourtManager() {
                 async function handleSwitchChange(checked: boolean) {
                     const newStatus = checked ? 'Active' : 'Inactive';
 
-                    // Gọi API cập nhật
-                    await patchCourts(item.courtid!, {
-                        courtname: item.courtname,
-                        statuscourt: newStatus,
-                        avgrating: item.avgrating,
-                        timecalculateavg: new Date(item.timecalavg).toISOString(),
-                        zoneid: item.zoneid,
-                        courtimgurl: item.image,
-                    });
+                    try {
+                        await patchCourts(item.courtid!, {
+                            courtname: item.courtname,
+                            statuscourt: newStatus,
+                            avgrating: item.avgrating,
+                            timecalculateavg: new Date(item.timecalavg).toISOString(),
+                            zoneid: item.zoneid,
+                            courtimgurl: item.image,
+                        });
 
-                    // Cập nhật UI
-                    const updatedCourts = courtState.map((c) =>
-                        c.courtid === item.courtid ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
-                    );
-                    setCourtState(updatedCourts);
-                    setAllCourts(prev =>
-                        prev.map((c) =>
+                        // Nếu không bị throw thì mới cập nhật UI
+                        const updatedCourts = courtState.map((c) =>
                             c.courtid === item.courtid ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
-                        )
-                    );
-                }
+                        );
+                        setCourtState(updatedCourts);
+                        setAllCourts(prev =>
+                            prev.map((c) =>
+                                c.courtid === item.courtid ? { ...c, status: checked ? 'Đang hoạt động' : 'Bảo trì' } : c
+                            )
+                        );
 
+                        toast.success('Cập nhật tình trạng thành công!');
+                    } catch (error: any) {
+                        //console.error('Lỗi cập nhật tình trạng:', error);
+                        toast.error(error?.message || 'Cập nhật thất bại!');
+                    }
+                }
 
                 const colorClass = isActive ? 'text-primary-600' : 'text-orange-500';
 
@@ -259,6 +264,7 @@ export default function ZoneCourtManager() {
                                         }
                                         return;
                                     }
+
                                     await patchCourts(item.courtid!, {
                                         courtname: item.courtname,
                                         statuscourt: item.status === 'Đang hoạt động' ? 'Active' : 'Inactive',
@@ -289,7 +295,10 @@ export default function ZoneCourtManager() {
                                                 : z
                                         )
                                     );
+
                                     setEditingItem(null);
+
+                                    toast.success('Cập nhật điểm số thành công!');
                                 }}
                                 className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600 w-14"
                             >
@@ -298,16 +307,20 @@ export default function ZoneCourtManager() {
                         </>
                     ) : (
                         <>
-                            <span>{item.avgrating}</span>
-                            <button
-                                onClick={() => {
-                                    setEditingItem(item);
-                                    setEditedRatingGrade(item.avgrating?.toString() ?? '');
-                                }}
-                                className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
-                            >
-                                <FaRegEdit size={14} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <span className="inline-block text-sm text-right w-12">
+                                    {item.avgrating?.toFixed(1)}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        setEditingItem(item);
+                                        setEditedRatingGrade(item.avgrating?.toString() ?? '');
+                                    }}
+                                    className="p-1 text-primary-500 hover:text-primary-600 cursor-pointer"
+                                >
+                                    <FaRegEdit size={14} />
+                                </button>
+                            </div>
                         </>
                     )}
                 </div>
