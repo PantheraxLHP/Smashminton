@@ -290,7 +290,7 @@ model student_card {
   studentcardid Int       @id
   schoolname    String?
   studentid     String?
-  studyperiod   String?
+  studyperiod   DateTime? @db.Timestamptz(6)
   customers     customers @relation(fields: [studentcardid], references: [customerid], onDelete: NoAction, onUpdate: NoAction, map: "fk_studentcard_customers")
 }
 

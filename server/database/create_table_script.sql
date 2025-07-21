@@ -170,7 +170,7 @@ create table if not exists student_card (
 	studentcardid integer primary key,
 	schoolname text,
 	studentid text,
-	studyperiod text,
+	studyperiod timestamptz,
 	constraint fk_studentcard_customers foreign key (studentcardid) references customers(customerid)
 );
 

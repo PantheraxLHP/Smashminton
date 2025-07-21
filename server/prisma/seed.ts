@@ -5,6 +5,21 @@ import dayjs from 'dayjs';
 const prisma = new PrismaClient();
 
 async function main() {
+    // Function to generate unique phone numbers
+    function generateUniquePhoneNumber(usedPhones: Set<string>, baseNumber: number): string {
+        let phone: string;
+        do {
+            // Generate phone number starting with 09, 08, 07, or 03
+            const prefixes = ['09', '08', '07', '03'];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const randomNumber = (1000000000 + baseNumber * 1000000 + Math.floor(Math.random() * 1000000)).toString().slice(-8);
+            phone = prefix + randomNumber;
+        } while (usedPhones.has(phone));
+
+        usedPhones.add(phone);
+        return phone;
+    }
+
     async function deleteAllData(tableList: string[]) {
         for (const tableName of tableList) {
             console.log('Truncating all data from ' + tableName);
@@ -47,6 +62,10 @@ async function main() {
     const password = '123';
     const hashedPassword = (await bcrypt.hash(password, 10)).toString();
 
+    // Create a Set to track used phone numbers and generate unique ones
+    const usedPhones = new Set<string>();
+    const generatePhone = (index: number) => generateUniquePhoneNumber(usedPhones, index);
+
     await prisma.accounts.createMany({
         data: [
             {
@@ -67,7 +86,7 @@ async function main() {
                 email: 'nguyenvana@example.com',
                 dob: new Date('1990-01-01'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(1),
                 address: '123 Đường A, Quận 1',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -81,7 +100,7 @@ async function main() {
                 email: 'tranthib@example.com',
                 dob: new Date('1992-02-02'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(2),
                 address: '456 Đường B, Quận 2',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -95,7 +114,7 @@ async function main() {
                 email: 'lehongc@example.com',
                 dob: new Date('1991-03-03'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(3),
                 address: '789 Đường C, Quận 3',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -109,7 +128,7 @@ async function main() {
                 email: 'lehoangd@example.com',
                 dob: new Date('1993-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(4),
                 address: '123 Đường D, Quận 4',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -123,7 +142,7 @@ async function main() {
                 email: 'nguyenminhe@example.com',
                 dob: new Date('1994-05-05'),
                 gender: 'Nam',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(5),
                 address: '456 Đường E, Quận 5',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -137,7 +156,7 @@ async function main() {
                 email: 'buithanhf@example.com',
                 dob: new Date('1995-06-06'),
                 gender: 'Nữ',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(6),
                 address: '789 Đường F, Quận 6',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -151,7 +170,7 @@ async function main() {
                 email: 'trantieng@example.com',
                 dob: new Date('1996-07-07'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(7),
                 address: '123 Đường G, Quận 7',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -165,7 +184,7 @@ async function main() {
                 email: 'phamthih@example.com',
                 dob: new Date('1997-08-08'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(8),
                 address: '456 Đường H, Quận 8',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -179,7 +198,7 @@ async function main() {
                 email: 'phumyi@example.com',
                 dob: new Date('1998-09-09'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(9),
                 address: '789 Đường I, Quận 9',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -193,7 +212,7 @@ async function main() {
                 email: 'caobaj@example.com',
                 dob: new Date('1999-10-10'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(10),
                 address: '123 Đường J, Quận 10',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -207,7 +226,7 @@ async function main() {
                 email: 'hoangthik@example.com',
                 dob: new Date('1999-11-11'),
                 gender: 'Nữ',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(11),
                 address: '123 Đường K, Quận 11',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -221,7 +240,7 @@ async function main() {
                 email: 'nguyenducl@example.com',
                 dob: new Date('2000-12-12'),
                 gender: 'Nam',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(12),
                 address: '456 Đường L, Quận 12',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -235,7 +254,7 @@ async function main() {
                 email: 'vophatm@example.com',
                 dob: new Date('2000-01-01'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(13),
                 address: '789 Đường M, Quận Thủ Đức',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -249,7 +268,7 @@ async function main() {
                 email: 'nguyenvun@example.com',
                 dob: new Date('2000-02-02'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(14),
                 address: '123 Đường N, Quận Bình Thạnh',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -263,7 +282,7 @@ async function main() {
                 email: 'phamthuyo@example.com',
                 dob: new Date('2000-03-03'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(15),
                 address: '456 Đường O, Quận Gò Vấp',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -277,7 +296,7 @@ async function main() {
                 email: 'huyenvup@example.com',
                 dob: new Date('2000-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(16),
                 address: '789 Đường P, Quận Tân Bình',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -292,7 +311,7 @@ async function main() {
                 email: 'customer2024_1@example.com',
                 dob: new Date('2001-01-01'),
                 gender: 'Nam',
-                phonenumber: '0900000001',
+                phonenumber: generatePhone(17),
                 address: 'Địa chỉ 1',
                 accounttype: 'Customer',
                 createdat: new Date('2024-02-15T10:00:00Z'),
@@ -306,7 +325,7 @@ async function main() {
                 email: 'customer2024_2@example.com',
                 dob: new Date('2002-02-02'),
                 gender: 'Nữ',
-                phonenumber: '0900000002',
+                phonenumber: generatePhone(18),
                 address: 'Địa chỉ 2',
                 accounttype: 'Customer',
                 createdat: new Date('2024-05-10T15:00:00Z'),
@@ -320,7 +339,7 @@ async function main() {
                 email: 'customer2024_3@example.com',
                 dob: new Date('2003-03-03'),
                 gender: 'Nam',
-                phonenumber: '0900000003',
+                phonenumber: generatePhone(19),
                 address: 'Địa chỉ 3',
                 accounttype: 'Customer',
                 createdat: new Date('2024-08-20T08:00:00Z'),
@@ -334,7 +353,7 @@ async function main() {
                 email: 'customer2024_4@example.com',
                 dob: new Date('2004-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0900000004',
+                phonenumber: generatePhone(20),
                 address: 'Địa chỉ 4',
                 accounttype: 'Customer',
                 createdat: new Date('2024-12-01T12:00:00Z'),
@@ -352,6 +371,7 @@ async function main() {
                 fullname: `User ${i}`,
                 accounttype: 'Employee',
                 gender: i % 2 === 0 ? 'Nam' : 'Nữ',
+                phonenumber: generatePhone(21 + i), // Continue from 21 to ensure uniqueness
             },
         });
     }
@@ -1504,9 +1524,9 @@ async function main() {
     await prisma.student_card.create({
         data: {
             studentcardid: 16,
-            schoolname: 'University of Science',
+            schoolname: 'UNIVERSITY OF SCIENCE',
             studentid: '21127081',
-            studyperiod: '12/25',
+            studyperiod: new Date('2025-12-31 23:59:59'),
         },
     });
 
