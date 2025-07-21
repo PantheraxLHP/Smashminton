@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/lib/apiResponse';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
@@ -8,11 +8,6 @@ export async function PATCH(request: NextRequest) {
         const accessToken = cookieStore.get('accessToken')?.value;
 
         const formData = await request.formData();
-
-        console.log('[DEBUG] PATCH formData received:');
-        for (const entry of formData.entries()) {
-            console.log(`  ${entry[0]}:`, entry[1]);
-        }
 
         const courtid = Number(formData.get('courtid'));
         const courtname = formData.get('courtname')?.toString();
@@ -48,14 +43,16 @@ export async function PATCH(request: NextRequest) {
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] Backend error response:', result);
-            return ApiResponse.error(`Lỗi server! Mã lỗi: ${response.status}`);
+            const message = result?.message || `Lỗi server! Mã lỗi: ${response.status}`;
+            return NextResponse.json({ message }, { status: response.status });
         }
 
-        console.log('[DEBUG] Backend PATCH response:', result);
-        return ApiResponse.success(result);
+        return NextResponse.json({ data: result }, { status: 200 });
     } catch (error) {
         console.error('[ERROR] PATCH route exception:', error);
-        return ApiResponse.error(error instanceof Error ? error.message : 'Lỗi khi cập nhật sân');
+        return NextResponse.json(
+            { message: error instanceof Error ? error.message : 'Lỗi khi cập nhật sân' },
+            { status: 500 }
+        );
     }
 }
