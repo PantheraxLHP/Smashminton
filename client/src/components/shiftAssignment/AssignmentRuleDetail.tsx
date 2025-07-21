@@ -74,22 +74,22 @@ const AssignmentRuleDetail = ({
             case 'employee':
                 return [
                     { actionName: 'setEligible', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'enrollmentEmployee':
                 return [
                     { actionName: 'setEligible', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'shift':
                 return [
                     { actionName: 'setAssignable', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'enrollmentShift':
                 return [
                     { actionName: 'setAssignable', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             default:
                 return [{ actionName: '', defaultValue: '' }];

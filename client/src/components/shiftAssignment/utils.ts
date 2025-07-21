@@ -14,30 +14,30 @@ export function formatActionName(actionName: string) {
 export function getTrueActionValue(ruleType: string) {
     switch (ruleType) {
         case 'employee':
-            return 'setEligible(true)';
+            return 'setEligible(true);';
         case 'enrollmentEmployee':
-            return 'setEligible(true)';
+            return 'setEligible(true);';
         case 'shift':
-            return 'setAssignable(true)';
+            return 'setAssignable(true);';
         case 'enrollmentShift':
-            return 'setAssignable(true)';
+            return 'setAssignable(true);';
         default:
-            return 'setAssignable(true)';
+            return 'setAssignable(true);';
     }
 }
 
 export function getFalseActionValue(ruleType: string) {
     switch (ruleType) {
         case 'employee':
-            return 'setEligible(false)';
+            return 'setEligible(false);';
         case 'enrollmentEmployee':
-            return 'setEligible(false)';
+            return 'setEligible(false);';
         case 'shift':
-            return 'setAssignable(false)';
+            return 'setAssignable(false);';
         case 'enrollmentShift':
-            return 'setAssignable(false)';
+            return 'setAssignable(false);';
         default:
-            return 'setAssignable(false)';
+            return 'setAssignable(false);';
     }
 }
 export function formatConditionName(conditionName: string) {
