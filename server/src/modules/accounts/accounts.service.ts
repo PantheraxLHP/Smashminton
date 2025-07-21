@@ -44,6 +44,15 @@ export class AccountsService {
             throw new BadRequestException('Email already existed');
         }
 
+        if (data.phonenumber) {
+            const phone = await this.prisma.accounts.findFirst({
+                where: { phonenumber: data.phonenumber },
+            });
+            if (phone) {
+                throw new BadRequestException('Số điện thoại đã tồn tại');
+            }
+        }
+
         // Kiểm tra mật khẩu
         if (data.password !== data.repassword) {
             throw new BadRequestException('Password not match');
@@ -123,6 +132,14 @@ export class AccountsService {
         if (!account) return null;
         if (account.accounttype === 'Customer') {
             const studentCard = await this.prisma.student_card.findUnique({ where: { studentcardid: id } });
+
+            if (studentCard) {
+                const currentDate = new Date();
+                const studyPeriod = studentCard.studyperiod;
+                if (studyPeriod && studyPeriod < currentDate) {
+                    return account;
+                }
+            }
             return { ...account, studentCard };
         }
         return account;
@@ -141,6 +158,15 @@ export class AccountsService {
             const existingAccount = await this.prisma.accounts.findUnique({ where: { accountid: id } });
             if (!existingAccount) {
                 throw new BadRequestException('Account not found');
+            }
+
+            if (updateAccountDto.phonenumber) {
+                const phone = await this.prisma.accounts.findFirst({
+                    where: { phonenumber: updateAccountDto.phonenumber },
+                });
+                if (phone && phone.accountid !== id) {
+                    throw new BadRequestException('Số điện thoại đã tồn tại');
+                }
             }
 
             let url_avatar: string = existingAccount.avatarurl || '';
@@ -167,7 +193,7 @@ export class AccountsService {
             if (!updatedAccount) {
                 throw new BadRequestException('Failed to update account');
             }
-            console.log(updatedAccount);
+
             return updatedAccount;
         } catch (error) {
             throw new BadRequestException('Failed to update account');
@@ -182,6 +208,16 @@ export class AccountsService {
         const studentCard = await this.prisma.student_card.findUnique({
             where: { studentcardid: customerId },
         });
+
+        if (studentCard) {
+            const currentDate = new Date();
+            const studyPeriod = studentCard.studyperiod;
+
+            if (studyPeriod && studyPeriod < currentDate) {
+                return false;
+            }
+        }
+
         return studentCard ? true : false;
     }
 
