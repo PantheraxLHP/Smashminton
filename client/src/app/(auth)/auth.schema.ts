@@ -1,8 +1,17 @@
 import { z } from 'zod';
+import {
+    usernameSchema,
+    passwordSchema,
+    emailSchema,
+    nameSchema,
+    phoneNumberSchema,
+    addressSchema,
+    signupDobSchema,
+} from '@/lib/validation.schema';
 
 // Define the schema for login
 export const signinSchema = z.object({
-    username: z.string().min(1, 'Vui lòng nhập tên đăng nhập'),
+    username: usernameSchema,
     password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
 });
 
@@ -12,30 +21,46 @@ export type SigninSchema = z.infer<typeof signinSchema>;
 // Define the schema for signup
 export const signupSchema = z
     .object({
-        username: z.string().min(1, 'Vui lòng nhập tên đăng nhập'),
-        password: z.string().min(1, 'Mật khẩu phải có ít nhất 1 ký tự'),
-        repassword: z.string().min(1, 'Mật khẩu xác nhận phải có ít nhất 1 ký tự'),
-        email: z.string().email('Email không hợp lệ'),
-        fullname: z.string().optional(),
-        dob: z
+        username: usernameSchema,
+        password: passwordSchema,
+        repassword: passwordSchema,
+        email: emailSchema,
+        fullname: z
             .string()
             .optional()
             .refine(
-                (date) => {
-                    if (!date) return true;
-                    const dob = new Date(date);
-                    if (isNaN(dob.getTime())) return false;
-                    const today = new Date();
-                    const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate()); // 100 tuổi
-                    const maxDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate()); // 10 tuổi
-                    return dob >= minDate && dob <= maxDate;
+                (value) => {
+                    if (!value || value.trim() === '') return true;
+                    try {
+                        nameSchema.parse(value);
+                        return true;
+                    } catch {
+                        return false;
+                    }
                 },
                 {
-                    message: 'Ngày sinh không hợp lệ (độ tuổi phải từ 10 đến 100)',
+                    message: 'Tên chỉ được chứa chữ cái và khoảng trắng',
                 },
             ),
-        phonenumber: z.string().optional(),
-        address: z.string().optional(),
+        dob: signupDobSchema,
+        phonenumber: z
+            .string()
+            .optional()
+            .refine(
+                (value) => {
+                    if (!value || value.trim() === '') return true;
+                    try {
+                        phoneNumberSchema.parse(value);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                },
+                {
+                    message: 'Số điện thoại không hợp lệ (phải là số Việt Nam và có 10-11 chữ số)',
+                },
+            ),
+        address: addressSchema,
         accounttype: z.string().optional(),
         studentCard: z.any().optional(),
     })

@@ -3,6 +3,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Filters } from './page';
 import { FeatureZone, getZones } from '@/services/zones.service';
+import { zoneSchema, dateSchema, durationSchema, timeSchema, sanitizeString } from '@/lib/validation.schema';
+import { toast } from 'sonner';
 
 interface BookingFilterProps {
     filters: Filters;
@@ -32,21 +34,42 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, filters, 
         return `${year}-${month}-${day}`;
     };
 
-    // Helper functions to handle filter changes
+    // Helper functions to handle filter changes with validation
     const handleZoneChange = (zone: string) => {
-        onFilterChange({ ...filters, zone });
+        try {
+            const validatedZone = zoneSchema.parse(sanitizeString(zone));
+            onFilterChange({ ...filters, zone: validatedZone });
+        } catch (error) {
+            toast.error('Khu vực sân không hợp lệ');
+        }
     };
 
     const handleDateChange = (date: Date) => {
-        onFilterChange({ ...filters, date: getLocalDateString(date) });
+        try {
+            const dateString = getLocalDateString(date);
+            const validatedDate = dateSchema.parse(dateString);
+            onFilterChange({ ...filters, date: validatedDate });
+        } catch (error) {
+            toast.error('Ngày đặt sân không hợp lệ');
+        }
     };
 
     const handleDurationChange = (duration: number) => {
-        onFilterChange({ ...filters, duration });
+        try {
+            const validatedDuration = durationSchema.parse(duration);
+            onFilterChange({ ...filters, duration: validatedDuration });
+        } catch (error) {
+            toast.error('Thời lượng đánh không hợp lệ');
+        }
     };
 
     const handleStartTimeChange = (startTime: string) => {
-        onFilterChange({ ...filters, startTime });
+        try {
+            const validatedTime = timeSchema.parse(sanitizeString(startTime));
+            onFilterChange({ ...filters, startTime: validatedTime });
+        } catch (error) {
+            toast.error('Giờ bắt đầu không hợp lệ');
+        }
     };
 
     const durations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
@@ -166,7 +189,7 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, filters, 
                                 className={`rounded-lg border px-3 py-1 text-sm ${
                                     isDisabled
                                         ? 'cursor-not-allowed bg-gray-200 text-gray-400 line-through'
-                                    : filters.startTime === time
+                                        : filters.startTime === time
                                           ? 'bg-primary-500 text-white'
                                           : 'hover:bg-primary-200 cursor-pointer border-gray-300 bg-gray-100 text-gray-700'
                                 } transition`}

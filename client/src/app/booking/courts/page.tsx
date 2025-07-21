@@ -16,6 +16,7 @@ import BookingBottomSheet from '../../../components/atomic/BottomSheet';
 import BookingStepper from '../_components/BookingStepper';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
+import { bookingFiltersSchema, sanitizeString, sanitizeNumber } from '@/lib/validation.schema';
 
 export interface SelectedCourts {
     zoneid: number;
@@ -60,17 +61,41 @@ export default function BookingCourtsPage() {
         return `${year}-${month}-${day}`;
     };
 
-    const zone = searchParams.get('zone') || '1';
-    const date = searchParams.get('date') || getTodayDateString();
-    const duration = parseFloat(searchParams.get('duration') || '0');
-    const startTime = searchParams.get('startTime') || '';
+    // Parse and validate URL parameters
+    const parseUrlParams = () => {
+        const rawZone = searchParams.get('zone') || '1';
+        const rawDate = searchParams.get('date') || getTodayDateString();
+        const rawDuration = sanitizeNumber(searchParams.get('duration') || '0') || 0;
+        const rawStartTime = searchParams.get('startTime') || '';
 
-    const [filters, setFilters] = useState<Filters>({
-        zone,
-        date,
-        duration,
-        startTime,
-    });
+        try {
+            // Validate the complete filter object
+            const validatedFilters = bookingFiltersSchema.partial().parse({
+                zone: sanitizeString(rawZone),
+                date: rawDate,
+                duration: rawDuration > 0 ? rawDuration : undefined,
+                startTime: rawStartTime ? sanitizeString(rawStartTime) : undefined,
+            });
+
+            return {
+                zone: validatedFilters.zone || '1',
+                date: validatedFilters.date || getTodayDateString(),
+                duration: validatedFilters.duration || 0,
+                startTime: validatedFilters.startTime || '',
+            };
+        } catch (error) {
+            // If validation fails, return safe defaults
+            toast.warning('Một số thông số không hợp lệ, đã được thiết lập lại');
+            return {
+                zone: '1',
+                date: getTodayDateString(),
+                duration: 0,
+                startTime: '',
+            };
+        }
+    };
+
+    const [filters, setFilters] = useState<Filters>(parseUrlParams());
 
     const [courts, setCourts] = useState<SelectedCourts[]>([]);
     const [disableTimes, setDisableTimes] = useState<string[]>([]);
@@ -128,12 +153,7 @@ export default function BookingCourtsPage() {
     }, [filters, router]);
 
     useEffect(() => {
-        setFilters({
-            zone: searchParams.get('zone') || '1',
-            date: searchParams.get('date') || getTodayDateString(),
-            duration: parseFloat(searchParams.get('duration') || '0'),
-            startTime: searchParams.get('startTime') || '',
-        });
+        setFilters(parseUrlParams());
     }, [searchParams]);
 
     useEffect(() => {
@@ -232,11 +252,7 @@ export default function BookingCourtsPage() {
         <div className="p-4">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap justify-center gap-4">
-                    <BookingFilter
-                        filters={filters}
-                        onFilterChange={handleFilterChange}
-                        disableTimes={disableTimes}
-                    />
+                    <BookingFilter filters={filters} onFilterChange={handleFilterChange} disableTimes={disableTimes} />
                     <div className="flex-1">
                         <BookingStepper currentStep={1} />
                         <BookingCourtList courts={courts} fixedCourt={fixedCourt} setFixedCourt={setFixedCourt} />

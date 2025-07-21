@@ -16,6 +16,19 @@ import {
     FaVenusMars,
 } from 'react-icons/fa';
 import { toast } from 'sonner';
+import { 
+    profileEditSchema, 
+    nameSchema, 
+    phoneNumberSchema, 
+    emailSchema, 
+    addressSchema, 
+    dobSchema,
+    imageFileSchema,
+    sanitizeString, 
+    sanitizeEmail,
+    sanitizePhone,
+    getValidationErrors 
+} from '@/lib/validation.schema';
 
 interface EditProfileFormData extends Accounts {
     avatar: File | null;
@@ -33,21 +46,119 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         ...userProfile,
         avatar: null,
     });
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        
+        // Sanitize input based on field type
+        let sanitizedValue = value;
+        if (name === 'email') {
+            sanitizedValue = sanitizeEmail(value);
+        } else if (name === 'phonenumber') {
+            sanitizedValue = sanitizePhone(value);
+        } else if (name === 'fullname') {
+            sanitizedValue = sanitizeString(value);
+        } else if (name === 'address') {
+            sanitizedValue = sanitizeString(value);
+        }
+        
+        setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+        
+        // Real-time validation
+        validateField(name, sanitizedValue);
+    };
+
+    const validateField = (fieldName: string, value: string) => {
+        try {
+            let schema;
+            switch (fieldName) {
+                case 'fullname':
+                    schema = nameSchema.optional();
+                    break;
+                case 'email':
+                    schema = emailSchema.optional();
+                    break;
+                case 'phonenumber':
+                    schema = phoneNumberSchema.optional();
+                    break;
+                case 'address':
+                    schema = addressSchema;
+                    break;
+                case 'dob':
+                    schema = dobSchema;
+                    break;
+                default:
+                    return; // No validation for other fields
+            }
+            
+            if (value === '' && fieldName !== 'fullname' && fieldName !== 'email') {
+                // Allow empty values for optional fields
+                setErrors(prev => ({ ...prev, [fieldName]: '' }));
+                return;
+            }
+            
+            schema.parse(value);
+            setErrors(prev => ({ ...prev, [fieldName]: '' }));
+        } catch (error: any) {
+            const errorMessage = error.errors?.[0]?.message || 'Giá trị không hợp lệ';
+            setErrors(prev => ({ ...prev, [fieldName]: errorMessage }));
+        }
     };
 
     const handleAvatarChange = (e: { target: HTMLInputElement }) => {
         const file = e.target.files?.[0] || null;
-        setFormData((prev) => ({ ...prev, avatar: file }));
+        
+        if (file) {
+            try {
+                imageFileSchema.parse(file);
+                setFormData((prev) => ({ ...prev, avatar: file }));
+                setErrors(prev => ({ ...prev, avatar: '' }));
+            } catch (error: any) {
+                const errorMessage = error.errors?.[0]?.message || 'File không hợp lệ';
+                setErrors(prev => ({ ...prev, avatar: errorMessage }));
+                toast.error(errorMessage);
+                // Reset file input
+                e.target.value = '';
+            }
+        } else {
+            setFormData((prev) => ({ ...prev, avatar: null }));
+            setErrors(prev => ({ ...prev, avatar: '' }));
+        }
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        setIsLoading(true);
         e.preventDefault();
         if (!userProfile?.accountid) return;
+
+        // Validate all form data before submission
+        try {
+            const validationData = {
+                fullname: formData.fullname || undefined,
+                email: formData.email || undefined,
+                phonenumber: formData.phonenumber || undefined,
+                address: formData.address || undefined,
+                dob: formData.dob || undefined,
+                gender: formData.gender as 'Nam' | 'Nữ' | 'Khác' | undefined,
+            };
+
+            profileEditSchema.parse(validationData);
+
+            // Check if there are any existing validation errors
+            const hasErrors = Object.values(errors).some(error => error !== '');
+            if (hasErrors) {
+                toast.error('Vui lòng sửa các lỗi trước khi lưu');
+                return;
+            }
+
+        } catch (error: any) {
+            const validationErrors = getValidationErrors(error);
+            setErrors(prev => ({ ...prev, ...validationErrors }));
+            toast.error('Có lỗi trong thông tin đã nhập');
+            return;
+        }
+
+        setIsLoading(true);
 
         const formDataToSend = new FormData();
 
@@ -66,17 +177,22 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             formDataToSend.append('avatarurl', formData.avatar);
         }
 
-        const response = await updateProfile(userProfile.accountid, formDataToSend);
-        if (response.ok) {
-            onSave(response.data);
-            onClose();
-            toast.success('Cập nhật thông tin thành công');
-            window.location.reload();
-        } else {
-            toast.error('Cập nhật thông tin thất bại');
-            window.location.reload();
+        try {
+            const response = await updateProfile(userProfile.accountid, formDataToSend);
+            if (response.ok) {
+                onSave(response.data);
+                onClose();
+                toast.success('Cập nhật thông tin thành công');
+                window.location.reload();
+            } else {
+                toast.error('Cập nhật thông tin thất bại');
+                window.location.reload();
+            }
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi cập nhật thông tin');
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     return (
@@ -142,8 +258,13 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="fullname"
                                     value={formData.fullname || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded border px-3 py-1"
+                                    className={`w-full rounded border px-3 py-1 ${
+                                        errors.fullname ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {errors.fullname && (
+                                    <span className="mt-1 text-xs text-red-500">{errors.fullname}</span>
+                                )}
                             </div>
 
                             <div>
@@ -172,8 +293,13 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="phonenumber"
                                     value={formData.phonenumber || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded border px-3 py-1"
+                                    className={`w-full rounded border px-3 py-1 ${
+                                        errors.phonenumber ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {errors.phonenumber && (
+                                    <span className="mt-1 text-xs text-red-500">{errors.phonenumber}</span>
+                                )}
                             </div>
 
                             <div>
@@ -195,8 +321,13 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                             .toISOString()
                                             .split('T')[0]
                                     }
-                                    className="w-full rounded border px-3 py-1"
+                                    className={`w-full rounded border px-3 py-1 ${
+                                        errors.dob ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {errors.dob && (
+                                    <span className="mt-1 text-xs text-red-500">{errors.dob}</span>
+                                )}
                             </div>
 
                             <div>
@@ -208,8 +339,13 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="address"
                                     value={formData.address || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded border px-3 py-1"
+                                    className={`w-full rounded border px-3 py-1 ${
+                                        errors.address ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {errors.address && (
+                                    <span className="mt-1 text-xs text-red-500">{errors.address}</span>
+                                )}
                             </div>
 
                             <div>
@@ -221,8 +357,13 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="email"
                                     value={formData.email || ''}
                                     onChange={handleChange}
-                                    className="w-full rounded border px-3 py-1"
+                                    className={`w-full rounded border px-3 py-1 ${
+                                        errors.email ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {errors.email && (
+                                    <span className="mt-1 text-xs text-red-500">{errors.email}</span>
+                                )}
                             </div>
                         </div>
                     </div>
