@@ -248,6 +248,7 @@ export class PaymentService {
             // Xử lý booking
             if (bookingTotalPrice > 0) {
                 const createBookingDto: CreateBookingDto = {
+                    guestphone: paymentData.guestPhoneNumber,
                     totalprice: bookingTotalPrice,
                     customerid: Number(paymentData.userId),
                     voucherid: paymentData.voucherId ? Number(paymentData.voucherId) : undefined,
@@ -268,6 +269,7 @@ export class PaymentService {
             // Xử lý booking
             if (bookingTotalPrice > 0) {
                 const createBookingDto: CreateBookingDto = {
+                    guestphone: paymentData.guestPhoneNumber,
                     totalprice: bookingTotalPrice,
                     employeeid: Number(paymentData.userId),
                     voucherid: paymentData.voucherId ? Number(paymentData.voucherId) : undefined,
@@ -327,24 +329,49 @@ export class PaymentService {
     }
 
     async getReceiptDetailByEmployeeOrCustomer(employeeid: number | null, customerid: number | null) {
+        // Nếu là customer, lấy phonenumber của customer để tìm thêm receipts có guestphone trùng
+        let customerPhone: string | null = null;
+        if (customerid) {
+            const customer = await this.prisma.accounts.findUnique({
+                where: { accountid: customerid },
+                select: { phonenumber: true }
+            });
+            customerPhone = customer?.phonenumber || null;
+        }
+
+        // Xây dựng điều kiện where
+        const whereConditions: any[] = [];
+
+        // Điều kiện cho bookings và orders theo employeeid/customerid (logic cũ)
+        if (employeeid || customerid) {
+            whereConditions.push({
+                bookings: employeeid
+                    ? { employeeid }
+                    : customerid
+                        ? { customerid }
+                        : undefined,
+            });
+            whereConditions.push({
+                orders: employeeid
+                    ? { employeeid }
+                    : customerid
+                        ? { customerid }
+                        : undefined,
+            });
+        }
+
+        // Điều kiện mới: Nếu là customer, thêm receipts có guestphone = customer.phonenumber
+        if (customerid && customerPhone) {
+            whereConditions.push({
+                bookings: {
+                    guestphone: customerPhone
+                }
+            });
+        }
+
         const receipts = await this.prisma.receipts.findMany({
             where: {
-                OR: [
-                    {
-                        bookings: employeeid
-                            ? { employeeid }
-                            : customerid
-                                ? { customerid }
-                                : undefined,
-                    },
-                    {
-                        orders: employeeid
-                            ? { employeeid }
-                            : customerid
-                                ? { customerid }
-                                : undefined,
-                    },
-                ],
+                OR: whereConditions,
             },
             select: {
                 receiptid: true,
