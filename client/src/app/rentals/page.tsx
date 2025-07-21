@@ -29,7 +29,7 @@ const RentalPage = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [pageSize, setPageSize] = useState(12);
-    const { selectedCourts, selectedProducts, TTL } = useBooking();
+    const { selectedCourts, selectedProducts } = useBooking();
     const bookingDates = Array.from(
         new Set(
             (selectedCourts ?? []).map((court) => court.date).filter(Boolean), // Ensure we only include valid dates
@@ -230,7 +230,6 @@ const RentalPage = () => {
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}
                     selectedCourts={selectedCourts}
-                    TTL={TTL}
                     onConfirm={handleConfirm}
                 />
             )}

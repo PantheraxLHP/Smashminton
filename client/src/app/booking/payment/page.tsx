@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Payment from '@/app/payment/page';
 import BookingStepper from '../_components/BookingStepper';
 

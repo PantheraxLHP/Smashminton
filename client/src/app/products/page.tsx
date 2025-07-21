@@ -15,7 +15,7 @@ export interface ProductListItem extends Products {
 }
 
 const ProductsPage = () => {
-    const { selectedCourts, selectedProducts, TTL } = useBooking();
+    const { selectedCourts, selectedProducts } = useBooking();
     const router = useRouter();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
@@ -166,7 +166,6 @@ const ProductsPage = () => {
                 <BookingBottomSheet
                     selectedProducts={selectedProducts}
                     selectedCourts={selectedCourts}
-                    TTL={TTL}
                     onConfirm={handleConfirm}
                 />
             )}

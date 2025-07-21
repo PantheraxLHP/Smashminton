@@ -249,7 +249,6 @@ export default function BookingCourtsPage() {
                     onConfirm={handleConfirm}
                     selectedCourts={selectedCourts}
                     selectedProducts={selectedProducts}
-                    TTL={TTL}
                 />
             )}
         </div>
