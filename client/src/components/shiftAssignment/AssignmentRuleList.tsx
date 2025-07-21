@@ -5,7 +5,6 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -79,6 +78,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
             const response = await getAutoAssignment();
             if (response.ok) {
                 setRuleList(response.data);
+                console.log(response.data);
             } else {
                 setRuleList([]);
                 toast.error('Không thể tải danh sách quy tắc phân công');
@@ -108,18 +108,13 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
     const handleExportExcel = async () => {
         const res = await exportAutoAssignmentFile();
         if (res.ok) {
-            // Create a temporary link and trigger download
             const link = document.createElement('a');
             link.href = res.data.url;
             link.download = 'drools_decisiontable.drl.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            // Clean up the URL object
             window.URL.revokeObjectURL(res.data.url);
-
-            toast.success('File đã được tải xuống thành công');
         } else {
             toast.error(res.message || 'Không thể xuất file phân công');
         }

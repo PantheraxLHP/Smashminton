@@ -12,6 +12,7 @@ import { updatePassword, updateStudentCard } from '@/services/accounts.service';
 import { toast } from 'sonner';
 import { getReceiptDetail } from '@/services/receipts.service';
 import { Icon } from '@iconify/react';
+import { passwordChangeSchema, getValidationErrors } from '@/lib/validation.schema';
 
 // Types for the API data
 interface Product {
@@ -65,6 +66,7 @@ const UserProfilePage = () => {
 
     const [receipts, setReceipts] = useState<Receipt[]>([]);
     const [isLoadingReceipts, setIsLoadingReceipts] = useState(false);
+    const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchUserReceipts = async () => {
@@ -186,21 +188,44 @@ const UserProfilePage = () => {
         const newPassword = formData.get('newPassword') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
 
-        setIsSubmitting(true);
-        const response = await updatePassword(userProfile?.accountid, {
-            newPassword: newPassword,
-            confirmPassword: confirmPassword,
-        });
-
-        if (!response.ok) {
-            toast.error(response.message);
+        // Validate password data
+        try {
+            passwordChangeSchema.parse({
+                newPassword,
+                confirmPassword,
+            });
+            setPasswordErrors({});
+        } catch (error: any) {
+            const validationErrors = getValidationErrors(error);
+            setPasswordErrors(validationErrors);
+            toast.error('Vui lòng sửa các lỗi trong mật khẩu');
             return;
         }
 
-        if (response.ok) {
-            toast.success('Mật khẩu đã được thay đổi thành công');
+        setIsSubmitting(true);
+        
+        try {
+            const response = await updatePassword(userProfile?.accountid, {
+                newPassword: newPassword,
+                confirmPassword: confirmPassword,
+            });
+
+            if (!response.ok) {
+                toast.error(response.message);
+                return;
+            }
+
+            if (response.ok) {
+                toast.success('Mật khẩu đã được thay đổi thành công');
+                // Reset form
+                (e.target as HTMLFormElement).reset();
+                setPasswordErrors({});
+            }
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi đổi mật khẩu');
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
     };
     return (
         <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center py-10 px-35 flex justify-center w-full max-h-screen">
@@ -477,9 +502,14 @@ const UserProfilePage = () => {
                                 <input
                                     type="password"
                                     name="newPassword"
-                                    className="w-full rounded border px-3 py-2"
+                                    className={`w-full rounded border px-3 py-2 ${
+                                        passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                     autoComplete="new-password"
                                 />
+                                {passwordErrors.newPassword && (
+                                    <span className="mt-1 text-xs text-red-500">{passwordErrors.newPassword}</span>
+                                )}
                             </div>
 
                             <div>
@@ -487,17 +517,22 @@ const UserProfilePage = () => {
                                 <input
                                     type="password"
                                     name="confirmPassword"
-                                    className="w-full rounded border px-3 py-2"
+                                    className={`w-full rounded border px-3 py-2 ${
+                                        passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                     autoComplete="new-password"
                                 />
+                                {passwordErrors.confirmPassword && (
+                                    <span className="mt-1 text-xs text-red-500">{passwordErrors.confirmPassword}</span>
+                                )}
                             </div>
 
                             <button
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || Object.values(passwordErrors).some(error => error !== '')}
                                 type="submit"
-                                className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white"
+                                className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Xác nhận thay đổi mật khẩu
+                                {isSubmitting ? 'Đang thay đổi...' : 'Xác nhận thay đổi mật khẩu'}
                             </button>
                         </form>
                     </div>
