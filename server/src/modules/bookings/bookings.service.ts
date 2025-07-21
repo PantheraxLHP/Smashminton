@@ -249,7 +249,7 @@ export class BookingsService {
 
 		// Hàm chuyển đổi sang đúng định dạng cho Prisma
 		const courtBookingPrismaData = bookingUserCache.court_booking.map(item => ({
-			date: new Date(`${item.date} 00:00:00`),
+			date: new Date(item.date),
 			starttime: new Date(`${item.date} ${item.starttime}:00`),
 			endtime: new Date(`${item.date} ${item.endtime}:00`),
 			duration: item.duration,

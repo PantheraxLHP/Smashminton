@@ -323,7 +323,10 @@ export class RewardRecordsService {
   }
   async create(createRewardRecordDto: CreateRewardRecordDto) {
     const rewardRecord = await this.prisma.reward_records.create({
-      data: createRewardRecordDto,
+      data: {
+        ...createRewardRecordDto,
+        rewarddate: new Date(),
+      },
     });
 
     if (!rewardRecord) {
