@@ -564,7 +564,7 @@ export class ShiftDateService {
 
             const absentRule = await this.prisma.penalty_rules.findFirst({
                 where: {
-                    penaltyname: "Unauthorized absence"
+                    penaltyname: "Phạt nghỉ không phép",
                 },
             });
 

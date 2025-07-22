@@ -432,32 +432,38 @@ async function main() {
     await prisma.reward_rules.createMany({
         data: [
             {
-                rewardname: 'Employee of the Month',
+                rewardname: 'Nhân viên của tháng',
                 rewarddescription: 'Thưởng nhân viên xuất sắc nhất tháng',
                 rewardtype: 'Product',
                 rewardvalue: 0.2,
             },
             {
-                rewardname: 'Attendance Bonus',
-                rewarddescription: 'Thưởng theo chuyên cần',
+                rewardname: 'Thưởng chuyên cần',
+                rewarddescription: 'Thưởng theo chuyên cần trong tháng',
                 rewardtype: 'Commendation',
                 rewardvalue: 0.1,
             },
             {
-                rewardname: 'Perfomance Bonus',
+                rewardname: 'Thưởng hiệu suất',
                 rewarddescription: 'Thưởng theo hiệu suất làm việc',
                 rewardtype: 'Voucher',
                 rewardvalue: 0.15,
             },
             {
-                rewardname: 'Profit-sharing Bonus',
+                rewardname: 'Thưởng kết quả kinh doanh',
                 rewarddescription: 'Thưởng theo kết quả kinh doanh trong 1 năm',
                 rewardtype: '1 Month Salary',
                 rewardvalue: 1,
             },
             {
-                rewardname: 'Holidays Bonus',
-                rewarddescription: 'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
+                rewardname: 'Thưởng ngày lễ',
+                rewarddescription: 'Thưởng cho các ngày lễ, tết',
+                rewardtype: 'Money',
+                rewardvalue: 0.5,
+            },
+            {
+                rewardname: 'Thưởng sinh nhật',
+                rewarddescription: 'Thưởng cho nhân viên có sinh nhật trong tháng',
                 rewardtype: 'Money',
                 rewardvalue: 0.2,
             },
@@ -467,14 +473,14 @@ async function main() {
     await prisma.penalty_rules.createMany({
         data: [
             {
-                penaltyname: 'Late for work',
+                penaltyname: 'Phạt đi trễ',
                 penaltydescription: 'Phạt nhân viên đến trễ giờ làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
             },
             {
-                penaltyname: 'Unauthorized absence',
+                penaltyname: 'Phạt nghỉ không phép',
                 penaltydescription: 'Phạt nhân viên vắng mặt không phép, tự ý bỏ ca làm việc',
                 basepenalty: 50000,
                 incrementalpenalty: 50000,
@@ -482,14 +488,14 @@ async function main() {
                 disciplineaction: 'Terminate',
             },
             {
-                penaltyname: 'Failure to comply with workplace policies',
+                penaltyname: 'Phạt vi phạm nội quy nơi làm việc',
                 penaltydescription: 'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
             },
             {
-                penaltyname: 'Early leave',
+                penaltyname: 'Phạt về sớm',
                 penaltydescription: 'Phạt nhân viên rời khỏi nơi làm việc (chấm công ra) sớm hơn giờ quy định',
             }
         ],

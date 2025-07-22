@@ -426,7 +426,7 @@ export class MqttService {
     async addEmployeeLatePenaltyRecord(employeeID: number, lateTime: Date) {
         const lateRule = await this.prisma.penalty_rules.findFirst({
             where: {
-                penaltyname: 'Late for work',
+                penaltyname: 'Phạt đi trễ',
             },
         });
 
@@ -479,7 +479,7 @@ export class MqttService {
     async addEmployeeAbsencePenaltyRecord(employeeID: number, absenceDate: Date) {
         const absenceRule = await this.prisma.penalty_rules.findFirst({
             where: {
-                penaltyname: 'Unauthorized absence',
+                penaltyname: 'Phạt nghỉ không phép',
             },
         });
         if (absenceRule) {
@@ -535,7 +535,7 @@ export class MqttService {
         }
         const earlyLeaveRule = await this.prisma.penalty_rules.findFirst({
             where: {
-                penaltyname: 'Early leave',
+                penaltyname: 'Phạt về sớm',
             },
         });
         if (earlyLeaveRule) {
