@@ -132,7 +132,7 @@ export class ProductBatchService {
     };
   }
 
-  @Cron('0 0 * * *')
+  @Cron('0 0 0 * * *')
   async handleBatchStatusUpdate() {
     console.log('⏰ Running batch status update at 0h');
     await this.updateAllBatchStatus();
