@@ -255,8 +255,8 @@ export default function PaymentPage() {
                     onClick={handlePayment} 
                     variant={'default'}
                     disabled={
-                        (userProfile?.accounttype !== 'Customer' && (phoneError || !customerPhone)) ||
-                        totalWithDiscount <= 0
+                        (userProfile?.accounttype !== 'Customer' && (!!phoneError || !customerPhone)) ||
+                        (totalWithDiscount <= 0)
                     }
                 >
                     THANH TOÁN — {formatPrice(totalWithDiscount)}
