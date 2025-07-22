@@ -23,6 +23,7 @@ export interface PurchaseOrder {
     quantity: number;
     deliverydate?: string;
     status?: string;
+    productfilterid: number;
 }
 
 export default function PurchaseOrderPage() {
@@ -57,6 +58,7 @@ export default function PurchaseOrderPage() {
                 price: Number(po.costprice || 0),
                 quantity: po.quantity,
                 deliverydate: po.deliverydate ? po.deliverydate.split('T')[0] : undefined,
+                productfilterid: po.products?.product_attributes?.[0]?.product_filter_values?.productfilterid || 0,
                 status:
                     po.statusorder === 'pending'
                         ? 'Chờ giao hàng'
