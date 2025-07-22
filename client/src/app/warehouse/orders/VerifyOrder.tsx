@@ -20,7 +20,6 @@ interface VerifyOrderFormData extends PurchaseOrder {
     expiryDate: string;
 }
 
-
 export default function VerifyOrderModal({
     open,
     onClose,
@@ -43,6 +42,7 @@ export default function VerifyOrderModal({
         status: '',
         receivedQuantity: 0,
         expiryDate: '',
+        productfilterid: 0,
     });
 
     useEffect(() => {
@@ -246,7 +246,7 @@ export default function VerifyOrderModal({
                                 />
                                 {errors.receivedQuantity && <p className="text-red-500 text-sm">{errors.receivedQuantity}</p>}
                             </div>
-                            <div>
+                            {orderData?.productfilterid == 1 && (<div>
                                 <label className="block text-sm mb-1">Ngày hết hạn</label>
                                 <input
                                     name="expiryDate"
@@ -255,7 +255,7 @@ export default function VerifyOrderModal({
                                     className="w-full border rounded px-3 py-2"
                                 />
                                 {errors.expiryDate && <p className="text-red-500 text-sm">{errors.expiryDate}</p>}
-                            </div>
+                            </div>)}
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">

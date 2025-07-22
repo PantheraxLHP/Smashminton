@@ -52,7 +52,7 @@ function DashboardClient({ year, activeTab }: { year: number; activeTab: string 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
     const params = await searchParams;
     const year = Number(params.year) || new Date().getFullYear();
-    const activeTab = params.tab || 'số lượng';
+    const activeTab = params.tab || 'Số lượng'; // Fixed: Changed to capital 'S'
 
     return (
         <div className="w-full">

@@ -56,12 +56,33 @@ export class PurchaseOrdersService {
         },
       },
       include: {
-        products: true,
+        products: {
+          select: {
+            productid: true,
+            productname: true,
+            sellingprice: true,
+            rentalprice: true,
+            productimgurl: true,
+            createdat: true,
+            updatedat: true,
+            product_attributes: {
+              select: {
+                product_filter_values: {
+                  select: {
+                    productfilterid: true,
+                  },
+                }
+              },
+            }
+          },
+        },
         suppliers: true,
         employees: true,
         product_batch: true,
       },
     });
+
+    console.log('Purchase Orders:', purchaseOrders);
 
     const enrichedOrders = await Promise.all(
       purchaseOrders.map(async (order) => {

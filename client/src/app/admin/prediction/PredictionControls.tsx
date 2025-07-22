@@ -64,7 +64,7 @@ export function PredictionTableControls({
                 <span className="bg-white text-2xl font-semibold">
                     Dự đoán các loại sản phẩm bán chạy theo tháng/quý
                 </span>
-            </div>S
+            </div>
 
             <div className="mt-4 flex items-end gap-4">
                 <span>Chọn thời gian dự đoán</span>
