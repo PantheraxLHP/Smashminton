@@ -48,10 +48,17 @@ interface Receipt {
 }
 
 const UserProfilePage = () => {
-    const [activeTab, setActiveTab] = useState('bookings');
+    // Fix: Set default activeTab based on user role
+    const { user, setUser } = useAuth();
+    const [activeTab, setActiveTab] = useState(() => {
+        if (user?.role === 'Admin') {
+            return 'changepassword';
+        }
+        return 'bookings';
+    });
+
     const [showEditProfile, setShowEditProfile] = useState(false);
     const router = useRouter();
-    const { user, setUser } = useAuth();
     const [isStudentStatusUpdated, setIsStudentStatusUpdated] = useState(
         user?.studentCard?.studentcardid ? true : false,
     );
@@ -91,10 +98,11 @@ const UserProfilePage = () => {
             }
         };
 
-        if (user?.accountid) {
+        // Fix: Only fetch receipts for Customer and Employee users
+        if (user?.accountid && (user?.role === 'Customer' || user?.role === 'Employee')) {
             fetchUserReceipts();
         }
-    }, [user?.accountid, user?.accounttype]);
+    }, [user?.accountid, user?.accounttype, user?.role]);
 
     // Updated image upload handler for single image
     const handleImageUpload = (file: File) => {
@@ -203,7 +211,7 @@ const UserProfilePage = () => {
         }
 
         setIsSubmitting(true);
-        
+
         try {
             const response = await updatePassword(userProfile?.accountid, {
                 newPassword: newPassword,
@@ -228,7 +236,7 @@ const UserProfilePage = () => {
         }
     };
     return (
-        <div className="min-h-screen bg-[url('/default.png')] bg-cover bg-center py-10 px-35 flex justify-center w-full max-h-screen">
+        <div className="flex max-h-screen min-h-screen w-full justify-center bg-[url('/default.png')] bg-cover bg-center px-35 py-10">
             <div className="w-full rounded bg-white p-6 shadow-2xl">
                 {/* Profile Section */}
                 <div className="flex items-start gap-6 border-b pb-6">
@@ -280,12 +288,14 @@ const UserProfilePage = () => {
 
                 {/* Tabs */}
                 <div className="mt-4 flex gap-8 border-b text-sm font-semibold">
-                    <button
-                        onClick={() => handleTabClick('bookings')}
-                        className={`py-2 ${activeTab === 'bookings' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
-                    >
-                        Lịch sử Sân & Dịch vụ
-                    </button>
+                    {(user?.role === 'Customer' || user?.role === 'Employee') && (
+                        <button
+                            onClick={() => handleTabClick('bookings')}
+                            className={`py-2 ${activeTab === 'bookings' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
+                        >
+                            Lịch sử Sân & Dịch vụ
+                        </button>
+                    )}
                     {user?.accounttype === 'Customer' && (
                         <button
                             onClick={() => handleTabClick('student')}
@@ -304,8 +314,8 @@ const UserProfilePage = () => {
                 </div>
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
-                {activeTab === 'bookings' && (
-                    <div className="mt-4 max-h-[45vh] sm:max-h-[50vh] overflow-y-auto">
+                {activeTab === 'bookings' && (user?.role === 'Customer' || user?.role === 'Employee') && (
+                    <div className="mt-4 max-h-[45vh] overflow-y-auto sm:max-h-[50vh]">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
                                 <div className="text-center">
@@ -334,11 +344,11 @@ const UserProfilePage = () => {
                 {activeTab === 'student' && (
                     <div className="mt-4">
                         {isStudentStatusUpdated ? (
-                            <div className="text-primary-600 text-center font-semibold flex flex-col gap-4 justify-center items-center">
+                            <div className="text-primary-600 flex flex-col items-center justify-center gap-4 text-center font-semibold">
                                 <span>Bạn đã được ghi nhận là học sinh/sinh viên.</span>
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className={`bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 font-semibold text-white w-fit ${isEditing ? 'hidden' : ''}`}
+                                    className={`bg-primary-600 hover:bg-primary-700 w-fit rounded px-4 py-2 font-semibold text-white ${isEditing ? 'hidden' : ''}`}
                                 >
                                     Cập nhật thẻ sinh viên
                                 </button>
@@ -351,40 +361,38 @@ const UserProfilePage = () => {
                                 </p>
 
                                 {/* Simplified Image Upload */}
-                                    <div className="mb-4">
+                                <div className="mb-4">
                                     <label className="mb-2 block text-sm font-medium text-gray-700">
                                         Thẻ sinh viên
                                     </label>
 
-                                        {/* Custom File Input */}
-                                        <div className="relative group">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="absolute inset-0 opacity-0 cursor-pointer hidden"
-                                                id="student-upload"
-                                            />
-                                            <label
-                                                htmlFor="student-upload"
-                                                className="flex w-full cursor-pointer items-center justify-between gap-10 rounded text-sm text-gray-500"
-                                            >
-                                                <span className="w-30 flex justify-center bg-primary-50 text-primary-700 group-hover:bg-primary-100 rounded-full font-medium px-2 py-1">
-                                                    Chọn file ảnh
-                                                </span>
-                                                {studentImage ? (
-                                                    <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
-                                                ) : (
-                                                    <span>
-                                                        Chưa chọn file nào
-                                                    </span>
-                                                )}
-                                            </label>
-                                        </div>
+                                    {/* Custom File Input */}
+                                    <div className="group relative">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="absolute inset-0 hidden cursor-pointer opacity-0"
+                                            id="student-upload"
+                                        />
+                                        <label
+                                            htmlFor="student-upload"
+                                            className="flex w-full cursor-pointer items-center justify-between gap-10 rounded text-sm text-gray-500"
+                                        >
+                                            <span className="bg-primary-50 text-primary-700 group-hover:bg-primary-100 flex w-30 justify-center rounded-full px-2 py-1 font-medium">
+                                                Chọn file ảnh
+                                            </span>
+                                            {studentImage ? (
+                                                <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
+                                            ) : (
+                                                <span>Chưa chọn file nào</span>
+                                            )}
+                                        </label>
+                                    </div>
 
                                     {/* Image Preview */}
                                     {imagePreview && (
-                                            <div className="mt-3">
+                                        <div className="mt-3">
                                             <div className="relative mx-auto aspect-[3/2] w-full max-w-sm overflow-hidden rounded-lg border">
                                                 <Image
                                                     src={imagePreview}
@@ -421,7 +429,7 @@ const UserProfilePage = () => {
 
                         {/* Update Section for Already Verified Users */}
                         {isStudentStatusUpdated && isEditing && (
-                            <div className="mx-auto max-w-md rounded-lg border bg-gray-50 p-2 mt-1">
+                            <div className="mx-auto mt-1 max-w-md rounded-lg border bg-gray-50 p-2">
                                 <h4 className="mb-2 text-lg font-semibold">Cập nhật thẻ sinh viên</h4>
 
                                 <div className="mb-4">
@@ -445,15 +453,13 @@ const UserProfilePage = () => {
                                             htmlFor="student-card-input"
                                             className="flex w-full cursor-pointer items-center justify-between gap-10 rounded text-sm text-gray-500"
                                         >
-                                            <span className="w-30 flex justify-center bg-primary-50 text-primary-700 group-hover:bg-primary-100 rounded-full font-medium px-2 py-1">
+                                            <span className="bg-primary-50 text-primary-700 group-hover:bg-primary-100 flex w-30 justify-center rounded-full px-2 py-1 font-medium">
                                                 Chọn file ảnh
                                             </span>
                                             {studentImage ? (
                                                 <span className="text-green-600">✓ Đã chọn: {studentImage.name}</span>
                                             ) : (
-                                                    <span>
-                                                        Chưa chọn file nào
-                                                    </span>
+                                                <span>Chưa chọn file nào</span>
                                             )}
                                         </label>
                                     </div>
@@ -528,7 +534,7 @@ const UserProfilePage = () => {
                             </div>
 
                             <button
-                                disabled={isSubmitting || Object.values(passwordErrors).some(error => error !== '')}
+                                disabled={isSubmitting || Object.values(passwordErrors).some((error) => error !== '')}
                                 type="submit"
                                 className="bg-primary-600 hover:bg-primary-700 w-full cursor-pointer rounded px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                             >

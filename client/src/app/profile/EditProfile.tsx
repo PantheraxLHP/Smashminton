@@ -79,29 +79,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         return false;
     };
 
-    // Function to convert Vietnamese gender to English for API
-    const convertGenderToEnglish = (gender: string | undefined): string => {
-        if (!gender) return '';
-
-        const genderMap: Record<string, string> = {
-            Nam: 'Nam',
-            Nữ: 'Nữ',
-            Khác: 'Khác',
-        };
-
-        return genderMap[gender] || gender;
-    };
-
-    // Custom validation schema for profile edit (address required as per API)
-    const profileEditValidationSchema = z.object({
-        fullname: nameSchema.optional(),
-        email: emailSchema.optional(),
-        phonenumber: phoneNumberSchema.optional(),
-        address: z.string().min(1, 'Địa chỉ không được để trống').max(500, 'Địa chỉ quá dài'),
-        dob: dobSchema,
-        gender: z.enum(['Nam', 'Nữ', 'Khác']).optional(),
-    });
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
@@ -185,19 +162,52 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         e.preventDefault();
         if (!userProfile?.accountid) return;
 
-        // Validate all form data before submission
+        // Only validate fields that will actually be sent to the backend
         try {
-            const validationData = {
-                fullname: formData.fullname || '',
-                email: formData.email || '',
-                phonenumber: formData.phonenumber || '',
-                address: formData.address || '', // Required by API
-                dob: formData.dob || '',
-                gender:
-                    formData.gender && formData.gender !== '' ? (formData.gender as 'Nam' | 'Nữ' | 'Khác') : undefined,
-            };
+            const validationData: any = {};
 
-            profileEditValidationSchema.parse(validationData);
+            // Only validate fields that have been modified or are required
+            if (formData.fullname && formData.fullname !== (userProfile.fullname || '')) {
+                validationData.fullname = formData.fullname;
+            }
+
+            if (formData.email && formData.email !== (userProfile.email || '')) {
+                validationData.email = formData.email;
+            }
+
+            // Only validate phone number if it has a value and has been changed
+            if (formData.phonenumber && formData.phonenumber !== (userProfile.phonenumber || '')) {
+                validationData.phonenumber = formData.phonenumber;
+            }
+
+            // Address is always validated since it's required by API
+            validationData.address = formData.address || '';
+
+            if (formData.dob) {
+                const currentDob = formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : '';
+                const originalDob = userProfile.dob ? new Date(userProfile.dob).toISOString().split('T')[0] : '';
+                if (currentDob !== originalDob) {
+                    validationData.dob = formData.dob;
+                }
+            }
+
+            if (formData.gender && formData.gender !== (userProfile.gender || '')) {
+                validationData.gender = formData.gender as 'Nam' | 'Nữ' | 'Khác';
+            }
+
+            // Create a dynamic schema based on what fields we're actually updating
+            const dynamicSchema = z.object({
+                ...(validationData.fullname !== undefined && { fullname: nameSchema }),
+                ...(validationData.email !== undefined && { email: emailSchema }),
+                ...(validationData.phonenumber !== undefined && { phonenumber: phoneNumberSchema }),
+                ...(validationData.address !== undefined && {
+                    address: z.string().min(1, 'Địa chỉ không được để trống').max(500, 'Địa chỉ quá dài'),
+                }),
+                ...(validationData.dob !== undefined && { dob: dobSchema }),
+                ...(validationData.gender !== undefined && { gender: z.enum(['Nam', 'Nữ', 'Khác']) }),
+            });
+
+            dynamicSchema.parse(validationData);
 
             // Check if there are any existing validation errors
             const hasErrors = Object.values(errors).some((error) => error !== '');
@@ -216,17 +226,37 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
 
         const formDataToSend = new FormData();
 
-        formDataToSend.append('fullname', formData.fullname || '');
-        formDataToSend.append('gender', convertGenderToEnglish(formData.gender));
-        formDataToSend.append('email', formData.email || '');
-        formDataToSend.append('phonenumber', formData.phonenumber || '');
-        formDataToSend.append('address', formData.address || '');
-
-        // Add dob if it exists, ensuring it's in ISO format
-        if (formData.dob) {
-            const dobDate = new Date(formData.dob);
-            formDataToSend.append('dob', dobDate.toISOString());
+        // Only send fields that have been modified and are valid
+        if (formData.fullname && formData.fullname !== (userProfile.fullname || '')) {
+            formDataToSend.append('fullname', formData.fullname);
         }
+
+        if (formData.gender && formData.gender !== (userProfile.gender || '')) {
+            formDataToSend.append('gender', formData.gender);
+        }
+
+        if (formData.email && formData.email !== (userProfile.email || '')) {
+            formDataToSend.append('email', formData.email);
+        }
+
+        // Only send phone number if it's valid and changed
+        if (formData.phonenumber && formData.phonenumber !== (userProfile.phonenumber || '') && !errors.phonenumber) {
+            formDataToSend.append('phonenumber', formData.phonenumber);
+        }
+
+        // Address is required by API, so always send it
+        formDataToSend.append('address', formData.address || userProfile.address || '');
+
+        // Add dob if it exists and has changed
+        if (formData.dob) {
+            const currentDob = formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : '';
+            const originalDob = userProfile.dob ? new Date(userProfile.dob).toISOString().split('T')[0] : '';
+            if (currentDob !== originalDob) {
+                const dobDate = new Date(formData.dob);
+                formDataToSend.append('dob', dobDate.toISOString());
+            }
+        }
+
         if (formData.avatar) {
             formDataToSend.append('avatarurl', formData.avatar);
         }
