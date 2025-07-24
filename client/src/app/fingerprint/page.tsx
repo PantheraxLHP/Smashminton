@@ -216,10 +216,10 @@ const FingerprintPage = () => {
             )}
             {status === 'success' && (
                 <div className="flex flex-col items-center gap-4">
-                    <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-green-600">
+                    <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-primary-600">
                         Đăng ký vân tay thành công với {fingerprintId && (<span>ID vân tay: {fingerprintId}</span>)}
                     </span>
-                    <span className="text-2xl text-primary">
+                    <span className="text-2xl text-primary-600">
                         Quay lại màn hình đăng ký vân tay sau 3 giây
                     </span>
                 </div>
