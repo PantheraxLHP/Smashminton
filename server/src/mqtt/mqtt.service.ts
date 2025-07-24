@@ -608,14 +608,14 @@ export class MqttService {
             const isLate = (shiftStart: string, checkin: Date, timeBuffer: number = 15) => {
                 const [h, m] = shiftStart.split(":").map(Number);
                 const shiftStartDate = new Date(checkin);
-                shiftStartDate.setHours(h, m + timeBuffer, 59, 999);
+                shiftStartDate.setHours(h, m + timeBuffer, 0, 0);
                 return checkin > shiftStartDate;
             };
 
             const isTooLate = (shiftStart: string, checkin: Date, timeBuffer: number = 120) => {
                 const [h, m] = shiftStart.split(":").map(Number);
                 const shiftStartDate = new Date(checkin);
-                shiftStartDate.setHours(h, m + timeBuffer, 59, 999);
+                shiftStartDate.setHours(h, m + timeBuffer, 0, 0);
                 return checkin > shiftStartDate;
             }
 
