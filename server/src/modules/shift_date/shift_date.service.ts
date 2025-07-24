@@ -6,7 +6,6 @@ import { EmployeesService } from '../employees/employees.service';
 import { UpdateShiftAssignmentDto } from './dto/update-shift_assignment.dto';
 import { CreateShiftEnrollmentDto } from './dto/create-shift_enrollment.dto';
 import { Cron } from '@nestjs/schedule';
-import { parentPort } from 'worker_threads';
 
 @Injectable()
 export class ShiftDateService {
@@ -472,8 +471,11 @@ export class ShiftDateService {
 
     // Chạy mỗi thứ 2 hằng tuần lúc 00:00
     @Cron("0 0 * * 1")
+    // @Cron("*/10 * * * * *")
     async weeklyCreateNextWeekShiftDate() {
         try {
+            Logger.log("Starting weekly shift date creation for next week.");
+
             const today = new Date();
             const currentDay = today.getDay();
             const dayToMonday = currentDay === 0 ? 1 : 8 - currentDay;
@@ -488,7 +490,7 @@ export class ShiftDateService {
                 where: {
                     shiftdate: {
                         gte: nextWeekStart,
-                        lt: nextWeekEnd
+                        lte: nextWeekEnd
                     }
                 },
             });
@@ -496,7 +498,7 @@ export class ShiftDateService {
             if (existingShiftDates.length > 0) {
                 Logger.log(`Found existing shift dates for next week (${nextWeekStart.toLocaleDateString('vi-VN')} to ${nextWeekEnd.toLocaleDateString('vi-VN')}). No new shift dates created.`);
             } else {
-                const shifts = await this.prisma.shifts.findMany();
+                const shifts = await this.prisma.shift.findMany();
                 const shiftdateData: any[] = [];
                 for (let i = 0; i < 7; i++) {
                     for (const shift of shifts) {
@@ -522,6 +524,7 @@ export class ShiftDateService {
 
     // Chạy mỗi ngày vào cuối ngày sau giờ làm việc (23:00)
     @Cron("0 23 * * *")
+    // @Cron("*/10 * * * * *")
     async dailyTimesheetCheck() {
         try {
             Logger.log("Starting daily timesheet check for unauthorized absences.");

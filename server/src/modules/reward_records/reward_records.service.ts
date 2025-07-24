@@ -353,7 +353,8 @@ export class RewardRecordsService {
         });
     }
 
-    @Cron('0 0 1 * *')
+    @Cron('0 0 1 * *') // Chay lúc 00:00 ngày đầu tiên hằng tháng
+    // @Cron("*/10 * * * * *")
     async monthlyAttendanceReward() {
         Logger.log("Starting monthly attendance reward record creation...");
         const employees = await this.prisma.employees.findMany({
@@ -438,7 +439,7 @@ export class RewardRecordsService {
                 }
             });
 
-            const assignmentCount = await this.prisma.shift_assignments.count({
+            const assignmentCount = await this.prisma.shift_assignment.count({
                 where: {
                     employeeid: employee.employeeid,
                     shiftdate: {
@@ -458,7 +459,7 @@ export class RewardRecordsService {
                     rewardruleid: attendanceRule.rewardruleid,
                     rewarddate: lastMonthEnd,
                     rewardapplieddate: lastMonthEnd,
-                    rewardrewardstatus: 'pending',
+                    rewardrecordstatus: 'pending',
                     rewardnote: `Thưởng chuyên cần tháng ${lastMonthStart.toLocaleDateString('vi-VN', { month: 'long' })}, ${lastMonthStart.getFullYear()}`,
                     finalrewardamount: finalRewardAmount,
                 });
@@ -470,10 +471,13 @@ export class RewardRecordsService {
                 data: rewardRecords,
             });
             Logger.log(`Successfully created ${rewardRecords.length} monthly attendance reward records.`);
+        } else {
+            Logger.log("No valid attendance reward records created for this month.");
         }
     }
 
-    @Cron('0 0 1 1 *')
+    @Cron('0 0 1 1 *') // Chạy lúc 00:00 ngày 1 tháng 1 hằng năm
+    // @Cron("*/10 * * * * *")
     async newYearReward() {
         Logger.log("Starting new year reward record creation...");
         const employees = await this.prisma.employees.findMany({
@@ -523,19 +527,18 @@ export class RewardRecordsService {
                 data: rewardRecords,
             });
             Logger.log(`Successfully created ${rewardRecords.length} new year reward records.`);
+        } else {
+            Logger.log("No valid new year reward records created for this year.");
         }
     }
 
-    @Cron('0 0 1 * *')
+    @Cron('0 0 1 * *') // Chạy lúc 00:00 ngày đầu tiên của mỗi tháng
+    // @Cron("*/10 * * * * *")
     async monthlyBirthdayReward() {
         Logger.log("Starting monthly birthday reward record creation...");
         const currentMonthStart = new Date();
         currentMonthStart.setDate(1);
         currentMonthStart.setHours(0, 0, 0, 0);
-        const currentMonthEnd = new Date(currentMonthStart);
-        currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1);
-        currentMonthEnd.setDate(0);
-        currentMonthEnd.setHours(23, 59, 59, 999);
 
         const employees = await this.prisma.employees.findMany({
             where: {
@@ -544,15 +547,21 @@ export class RewardRecordsService {
                 },
                 accounts: {
                     status: 'Active',
-                    dob: {
-                        gte: currentMonthStart,
-                        lte: currentMonthEnd
-                    }
                 },
+            },
+            include: {
+                accounts: true,
             },
         });
 
-        if (employees.length === 0) {
+        const employees_with_birthday = employees.filter(employee => {
+            const birthday = employee.accounts.dob;
+            if (!birthday) return false;
+            const month = birthday.getMonth();
+            return month === currentMonthStart.getMonth();
+        });
+
+        if (employees_with_birthday.length === 0) {
             Logger.log("No active employees with birthdays in the current month found, skipping monthly birthday reward record creation.");
             return;
         }
@@ -592,7 +601,7 @@ export class RewardRecordsService {
         });
 
         const rewardRecords: any[] = [];
-        for (const employee of employees) {
+        for (const employee of employees_with_birthday) {
             const hasReward = birthdayRewardRecords.some(record => record.employeeid === employee.employeeid);
             if (hasReward) {
                 continue;
@@ -616,6 +625,8 @@ export class RewardRecordsService {
                 data: rewardRecords,
             });
             Logger.log(`Successfully created ${rewardRecords.length} monthly birthday reward records.`);
+        } else {
+            Logger.log("No valid monthly birthday reward records created for this month.");
         }
     }
 }

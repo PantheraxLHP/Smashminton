@@ -176,19 +176,19 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
 
     const [{ isOver }, dropRef] = useDrop({
         accept: [EMPLOYEE_TYPE, ASSIGNMENT_TYPE],
-        drop: async (item: DragItem, monitor) => {
+        drop: (item: DragItem, monitor) => {
             if (item.type === EMPLOYEE_TYPE && item.employee.employeeid !== undefined) {
-                const response = await addAssignment({
+                addAssignment({
                     shiftdate: new Date(shiftDataSingle.shiftdate).toISOString(),
                     shiftid: shiftDataSingle.shiftid,
                     employeeid: item.employee.employeeid,
+                }).then((response) => {
+                    if (response.ok) {
+                        if (onDataChanged) onDataChanged();
+                        fetchAvailableEmployees();
+                    }
                 });
-                if (response.ok) {
-                    if (onDataChanged) onDataChanged();
-                    fetchAvailableEmployees();
-                }
             }
-            // Trả về object cho biết đã drop vào assignment area
             return { targetType: 'ASSIGNMENT_AREA' };
         },
         collect: (monitor) => ({
