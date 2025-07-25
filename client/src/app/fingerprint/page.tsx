@@ -138,7 +138,7 @@ const FingerprintPage = () => {
     return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-5">
             {/*Dòng chữ hiển thị tên và mã nhân viên đang thực hiện đăng ký vân tay*/}
-            <span className="text-lg sm:text-xl md-text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employeeName} - Mã nhân viên: ${employeeID}`}</span>
+            <span className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-center">{`Đăng ký vân tay cho nhân viên ${employeeName} - Mã nhân viên: ${employeeID}`}</span>
 
             {/* Hiển thị hình ảnh tương ứng với trạng thái */}
             {(status === 'start' || status === 'loading' || status === 'press_again') && (
@@ -184,11 +184,13 @@ const FingerprintPage = () => {
                         className={`object-contain`}
                     />
                 </div>
-            )}            {/*Dòng chữ ở dưới hình*/}
+            )}
+
+            {/*Dòng chữ ở dưới hình*/}
             {status === 'start' && (
                 <div className="flex flex-col items-center gap-4">
-                    <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">
-                        Vui lòng đặt ngón trỏ lên thiết bị
+                    <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">
+                        Nhấn nút đăng ký bên dưới để bắt đầu đăng ký vân tay và thực hiện theo hướng dẫn
                     </span>
                     <Button
                         onClick={startEnrollment}
@@ -203,22 +205,27 @@ const FingerprintPage = () => {
                 </div>
             )}
             {status === 'loading' && (
-                <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">
-                    Đang quét vân tay{dots}
+                <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl">
+                    Vui lòng đặt ngón tay lên thiết bị{dots}
                 </span>
             )}
             {status === 'press_again' && (
-                <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl animate-pulse">
-                    Vui lòng nhấc tay ra và đặt lại sau khi nghe âm thanh thông báo
+                <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl animate-pulse">
+                    Vui lòng nhấc ngón tay ra và đặt lại sau khi nghe âm thanh thông báo
                 </span>
             )}
             {status === 'success' && (
-                <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-green-600">
-                    Đăng ký vân tay thành công với {fingerprintId && (<span>ID vân tay: {fingerprintId}</span>)}
-                </span>
+                <div className="flex flex-col items-center gap-4">
+                    <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-primary-600">
+                        Đăng ký vân tay thành công với {fingerprintId && (<span>ID vân tay: {fingerprintId}</span>)}
+                    </span>
+                    <span className="text-2xl text-primary-600">
+                        Quay lại màn hình đăng ký vân tay sau 3 giây
+                    </span>
+                </div>
             )}
             {status === 'fail' && (
-                <span className="md-text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-red-600">
+                <span className="md:text-2xl text-center text-lg sm:text-xl lg:text-3xl xl:text-4xl text-red-600">
                     Đăng ký vân tay thất bại, thử lại sau 5 giây
                 </span>
             )}

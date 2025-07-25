@@ -5,12 +5,12 @@
 #include <Adafruit_Fingerprint.h>  // Thu vien cho cam bien van tay AS608
 
 // Network Configuration
-const char* WIFI_SSID = "";
-const char* WIFI_PASSWORD = "";
+const char* WIFI_SSID = ""; // Thêm SSID của mạng WiFi tại đây
+const char* WIFI_PASSWORD = ""; // Thêm mật khẩu của mạng WiFi tại đây
 const unsigned long WIFI_TIMEOUT = 15000;
 
 // MQTT Configuration
-const char* MQTT_SERVER = "";  
+const char* MQTT_SERVER = ""; // Thêm địa chỉ của MQTT server tại đây
 const int MQTT_PORT = 1883;
 const char* DEVICE_ID = "esp01_smashminton";
 const char* CLIENT_ID = "esp01_client";
@@ -179,32 +179,36 @@ void sendErrorResponse(const String& errorMessage, const String& requestId = "")
 }
 
 void beepSuccess() {
-  tone(BUZZER_PIN, 523, 150);
-  delay(200);
-  tone(BUZZER_PIN, 659, 150);
-  delay(200);
-  tone(BUZZER_PIN, 784, 200);
-  delay(250);
+  tone(BUZZER_PIN, 523, 120);
+  delay(130);
+  tone(BUZZER_PIN, 659, 120);
+  delay(130);
+  tone(BUZZER_PIN, 784, 120);
+  delay(130);
+  tone(BUZZER_PIN, 1047, 200);
+  delay(220);
   noTone(BUZZER_PIN);
 }
 
 void beepFail() {
-  tone(BUZZER_PIN, 330, 200);
-  delay(250);
-  tone(BUZZER_PIN, 247, 200);
-  delay(250);
-  tone(BUZZER_PIN, 196, 300);
+  tone(BUZZER_PIN, 392, 150);
+  delay(180);
+  tone(BUZZER_PIN, 330, 150);
+  delay(180);
+  tone(BUZZER_PIN, 262, 300);
   delay(350);
   noTone(BUZZER_PIN);
 }
 
 void beepAgain() {
-  tone(BUZZER_PIN, 440, 150);
-  delay(200);
-  tone(BUZZER_PIN, 523, 150);
-  delay(200);
-  tone(BUZZER_PIN, 587, 200);
-  delay(250);
+  tone(BUZZER_PIN, 587, 100);
+  delay(120);
+  tone(BUZZER_PIN, 784, 100);
+  delay(120);
+  tone(BUZZER_PIN, 587, 100);
+  delay(120);
+  tone(BUZZER_PIN, 784, 150);
+  delay(180);
   noTone(BUZZER_PIN);
 }
 
@@ -632,7 +636,7 @@ int enrollFingerprint(uint8_t roomID, uint8_t fingerID, uint8_t employeeID) {
 
   delay(2000);
 
-  // Wait for finger removal (shorter timeout)
+  // Wait for finger removal
   startTime = millis();
   while (finger.getImage() != FINGERPRINT_NOFINGER) {
     yield();
