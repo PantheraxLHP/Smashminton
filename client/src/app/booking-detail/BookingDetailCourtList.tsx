@@ -146,15 +146,7 @@ const BookingDetailCourtList = ({ filters }: { filters: BookingDetailFilters | u
                                 {formatPrice(court.revenue)}
                             </div>
                             <div className="flex h-12 items-center border-b-2 border-gray-200 py-2 text-sm">
-                                {courtTTL[index] > 0 ? (
-                                    <span
-                                        className={`${courtTTL[index] / 1000 < 900 ? 'text-red-500' : eventStatus.color}`}
-                                    >
-                                        {eventStatus.text}
-                                    </span>
-                                ) : (
-                                    <span className={eventStatus.color}>{eventStatus.text}</span>
-                                )}
+                                <span className={eventStatus.color}>{eventStatus.text}</span>
                             </div>
                             <div className="flex h-12 w-full items-center justify-center border-b-2 border-gray-200 py-2 text-sm">
                                 <Dialog>

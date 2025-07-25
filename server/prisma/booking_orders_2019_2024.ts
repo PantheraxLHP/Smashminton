@@ -17,7 +17,6 @@ type Booking = {
     guestphone: string;
     bookingdate: Date;
     totalprice: number;
-    bookingstatus: string;
     createdat: Date;
     updatedat: Date;
     employeeid: number | null;
@@ -310,7 +309,6 @@ async function main() {
                     guestphone,
                     bookingdate: date,
                     totalprice: Math.round(totalBookingPrice),
-                    bookingstatus: 'confirmed',
                     createdat: date,
                     updatedat: date,
                     employeeid: employee?.employeeid || null,
@@ -448,7 +446,6 @@ async function main() {
                             guestphone: booking.guestphone,
                             bookingdate: booking.bookingdate,
                             totalprice: booking.totalprice,
-                            bookingstatus: booking.bookingstatus,
                             createdat: booking.createdat,
                             updatedat: booking.updatedat,
                             employeeid: booking.employeeid,

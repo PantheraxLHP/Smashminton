@@ -235,11 +235,11 @@ export class AutoAssignmentController {
             };
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            return {
+            throw new InternalServerErrorException({
                 success: false,
                 message: 'Failed to update auto assignment settings',
                 error: errorMsg
-            };
+            });
         }
     }
 }

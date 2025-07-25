@@ -1,7 +1,7 @@
 'use client';
 
 import { useBooking } from '@/context/BookingContext';
-import { formatPrice } from '@/lib/utils';
+import { formatDate, formatPrice } from '@/lib/utils';
 import { getSingleProduct } from '@/services/products.service';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -24,7 +24,8 @@ export default function OrderSummary() {
 
     const handleQuantityChange = async (productId: number, delta: number) => {
         if (delta > 0) {
-            if (getSelectedProductQuantity(productId) >= (await getProductStockQuantity(productId))) {
+            const productStock = await getProductStockQuantity(productId);
+            if (getSelectedProductQuantity(productId) >= productStock) {
                 toast.warning('Số lượng sản phẩm đã đạt giới hạn');
                 return;
             }
@@ -58,11 +59,11 @@ export default function OrderSummary() {
                             <Image src={court.courtimgurl || '/default.png'} alt="icon" width={24} height={24} />
                             {court.courtname}
                         </td>
-                        <td className="px-2 py-3"></td>
+                        <td className="px-2 py-3">1</td>
                         <td className="px-2 py-3">
-                            {court.date} {court.starttime}
+                            {formatDate(court.date)} {court.starttime}
                         </td>
-                        <td className="px-2 py-3">{court.duration}</td>
+                        <td className="px-2 py-3">{court.duration} giờ</td>
                         <td className="px-2 py-3">{formatPrice(court.price / court.duration)}</td>
                         <td className="px-2 py-3">{formatPrice(court.price)}</td>
                     </tr>

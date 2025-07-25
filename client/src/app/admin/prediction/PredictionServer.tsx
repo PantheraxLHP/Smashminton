@@ -63,18 +63,10 @@ export default async function PredictionServer({
                 {/* Charts */}
                 <div className="flex h-full w-full gap-2">
                     <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                        <PredictionChart
-                            data={mappedSales}
-                            title={`Tỉ lệ loại sản phẩm bán ra trong ${selectedTime.toLowerCase()} năm ${selectedYear}`}
-                            sortOrder={sortOrder}
-                        />
+                        <PredictionChart data={mappedSales} sortOrder={sortOrder} />
                     </div>
                     <div className="flex-1 rounded-lg border-2 bg-white p-4">
-                        <PredictionChart
-                            data={mappedPurchase}
-                            title={`Tỉ lệ loại sản phẩm mua vào trong ${selectedTime.toLowerCase()} năm ${selectedYear}`}
-                            sortOrder={sortOrder}
-                        />
+                        <PredictionChart data={mappedPurchase} sortOrder={sortOrder} />
                     </div>
                 </div>
 

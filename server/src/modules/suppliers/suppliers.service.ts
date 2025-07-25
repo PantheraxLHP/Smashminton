@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplierWithProductsDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -46,7 +46,12 @@ export class SuppliersService {
     const allSuppliers = await this.prisma.suppliers.findMany({
       where: {
         isdeleted: false,
-        ...(q1 && { suppliername: { contains: q1, mode: 'insensitive' } }),
+        ...(q1 && {
+          suppliername: {
+            contains: q1,
+            mode: 'insensitive',
+          },
+        }),
       },
       include: {
         supply_products: {
@@ -56,37 +61,53 @@ export class SuppliersService {
                 productname: {
                   contains: q2,
                   mode: 'insensitive'
-                }
+                },
+                isdeleted: false
               }
             }
-            : undefined,
+            : {
+              products: {
+                isdeleted: false,
+              },
+            },
           include: { products: true }
         }
       },
-      orderBy: { supplierid: 'asc' }
+      orderBy: {
+        supplierid: 'asc',
+      },
     });
 
-    // 🔥 Chỉ lấy những thằng có supply_products.length > 0
-    const filtered = allSuppliers.filter(supplier => supplier.supply_products.length > 0);
+    let filtered = allSuppliers;
+
+    if (q2) {
+      filtered = allSuppliers.filter(supplier =>
+        supplier.supply_products.some(sp =>
+          sp.products?.productname?.toLowerCase().includes(q2.toLowerCase())
+        )
+      );
+    }
 
     const total = filtered.length;
     const totalPages = Math.ceil(total / limit);
-
     const paginatedSuppliers = filtered.slice(skip, skip + limit);
 
     return {
       data: paginatedSuppliers,
       pagination: {
-        page: page,
-        totalPages: totalPages
+        page,
+        totalPages,
       },
-    }
+    };
   }
 
   async findSuppliersByProduct(productid: number) {
     const supplies = await this.prisma.supply_products.findMany({
       where: {
         productid: productid,
+        suppliers: {
+          isdeleted: false,
+        },
       },
       include: {
         suppliers: true,
@@ -164,6 +185,17 @@ export class SuppliersService {
       throw new NotFoundException(`Không tìm thấy supplierid = ${supplierid}`);
     }
 
+    const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+      where: {
+        supplierid,
+        statusorder: 'pending',
+      },
+    });
+
+    if (hasPendingOrder) {
+      throw new BadRequestException(`Không thể xóa nhà cung cấp vì bạn đang đặt hàng họ với đơn hàng ${hasPendingOrder.poid}`);
+    }
+
     const deleted = await this.prisma.suppliers.update({
       where: { supplierid },
       data: {
@@ -190,6 +222,17 @@ export class SuppliersService {
 
     if (!existing) {
       throw new NotFoundException(`Không tìm thấy supply_products với productid = ${productid} và supplierid = ${supplierid}`);
+    }
+
+    const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+      where: {
+        productid,
+        statusorder: 'pending',
+      },
+    });
+
+    if (hasPendingOrder) {
+      throw new BadRequestException(`Không thể xóa sản phẩm vì đang nằm trong đơn hàng ${hasPendingOrder.poid}`);
     }
 
     await this.prisma.supply_products.delete({

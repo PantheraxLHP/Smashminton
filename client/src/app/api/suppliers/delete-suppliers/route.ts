@@ -1,8 +1,12 @@
 import { ApiResponse } from '@/lib/apiResponse';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: NextRequest) {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
+
         const url = new URL(request.url);
         const supplierid = url.searchParams.get('supplierid');
 
@@ -15,14 +19,20 @@ export async function PATCH(request: NextRequest) {
             {
                 method: 'PATCH',
                 credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+                },
             }
         );
 
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] Backend error response:', result);
-            return ApiResponse.error(result.message || 'Lỗi khi xoá nhà cung cấp');
+            return NextResponse.json(
+                { message: result.message || 'Lỗi khi xoá nhà cung cấp' },
+                { status: response.status }
+            );
         }
 
         return ApiResponse.success(result.data || 'Xoá thành công');

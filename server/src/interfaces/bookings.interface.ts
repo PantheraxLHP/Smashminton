@@ -28,7 +28,6 @@ export interface Booking {
   guestphone?: string;          // Số điện thoại khách
   bookingdate?: Date;           // Ngày đặt lịch
   totalprice?: number;          // Tổng giá tiền
-  bookingstatus?: string;       // Trạng thái đặt lịch
   employeeid?: number;          // ID nhân viên
   customerid?: number;          // ID khách hàng
   voucherid?: number;           // ID voucher

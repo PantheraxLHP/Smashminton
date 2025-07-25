@@ -13,25 +13,44 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import OrderSummary from './OrderSummary';
 import PaymentMethodSection from './PaymentMethodSection';
+import { customerPhoneSchema, paymentMethodSchema, sanitizePhone } from '@/lib/validation.schema';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
     const { totalCourtPrice, totalProductPrice, TTL, selectedCourts, clearRentalOrder } = useBooking();
     const { user } = useAuth();
     const [customerPhone, setCustomerPhone] = useState('');
+    const [phoneError, setPhoneError] = useState('');
     const [discount, setDiscount] = useState(0);
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
     const [selectedVoucherId, setSelectedVoucherId] = useState<number>();
     const userProfile = user;
     const [timeLeft, setTimeLeft] = useState(TTL);
 
-    let totalCourtPriceWithDiscount = totalCourtPrice;
-    if (userProfile?.studentCard?.studentcardid) {
-        totalCourtPriceWithDiscount = totalCourtPrice * 0.9;
-    }
+    // Handle customer phone validation
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = sanitizePhone(e.target.value);
+        setCustomerPhone(value);
+        
+        // Real-time validation
+        try {
+            customerPhoneSchema.parse(value);
+            setPhoneError('');
+        } catch (error: any) {
+            if (value.length > 0) {
+                setPhoneError(error.errors?.[0]?.message || 'Số điện thoại không hợp lệ');
+            } else {
+                setPhoneError('');
+            }
+        }
+    };
 
-    const total = totalCourtPriceWithDiscount + totalProductPrice;
-    const totalWithDiscount = total * (1 - discount);
+    const total = totalCourtPrice + totalProductPrice;
+    let courtPriceDiscount = 0;
+    if (userProfile?.studentCard?.studentcardid) {
+        courtPriceDiscount = totalCourtPrice * 0.1;
+    }
+    const totalWithDiscount = total * (1 - discount) - courtPriceDiscount;
 
     useEffect(() => {
         const loadVouchers = async () => {
@@ -69,10 +88,34 @@ export default function PaymentPage() {
     }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
 
     const handlePayment = async () => {
+        if (totalProductPrice === 0 && totalCourtPrice === 0) {
+            toast.error('Vui lòng chọn sản phẩm hoặc sân để thanh toán!');
+            return;
+        }
+
+        // Validate payment method
+        try {
+            paymentMethodSchema.parse(selectedMethod);
+        } catch (error) {
+            toast.error('Vui lòng chọn phương thức thanh toán hợp lệ');
+            return;
+        }
+
+        // Validate customer phone number if user is not a Customer
+        let validatedPhone = userProfile?.phonenumber || '';
+        if (userProfile?.accounttype !== 'Customer') {
+            try {
+                validatedPhone = customerPhoneSchema.parse(sanitizePhone(customerPhone));
+            } catch (error) {
+                toast.error('Số điện thoại khách hàng không hợp lệ');
+                return;
+            }
+        }
+
         const Payload = {
             userId: userProfile?.accountid?.toString() || '',
             userName: userProfile?.username || '',
-            guestPhoneNumber: userProfile?.accounttype !== 'Customer' ? customerPhone : userProfile?.phonenumber || '',
+            guestPhoneNumber: validatedPhone,
             paymentMethod: selectedMethod,
             voucherId: selectedVoucherId?.toString() || '',
             totalAmount: totalWithDiscount,
@@ -104,13 +147,20 @@ export default function PaymentPage() {
                     <div className="flex items-center gap-2">
                         <span className="font-bold">SỐ ĐIỆN THOẠI KHÁCH HÀNG:</span>
                         {userProfile?.accounttype !== 'Customer' ? (
-                            <input
-                                type="text"
-                                value={customerPhone}
-                                onChange={(e) => setCustomerPhone(e.target.value)}
-                                placeholder="Số điện thoại khách hàng"
-                                className="w-48 rounded border border-gray-300 px-2 py-1 text-xs"
-                            />
+                            <div className="flex flex-col">
+                                <input
+                                    type="text"
+                                    value={customerPhone}
+                                    onChange={handlePhoneChange}
+                                    placeholder="Số điện thoại khách hàng"
+                                    className={`w-48 rounded border px-2 py-1 text-xs ${
+                                        phoneError ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                                {phoneError && (
+                                    <span className="mt-1 text-xs text-red-500">{phoneError}</span>
+                                )}
+                            </div>
                         ) : (
                             <span className="rounded bg-gray-200 px-2 py-1 text-xs">{userProfile?.phonenumber}</span>
                         )}
@@ -201,7 +251,14 @@ export default function PaymentPage() {
             </div>
 
             <div className="text-center">
-                <Button onClick={handlePayment} variant={'default'}>
+                <Button 
+                    onClick={handlePayment} 
+                    variant={'default'}
+                    disabled={
+                        (userProfile?.accounttype !== 'Customer' && (!!phoneError || !customerPhone)) ||
+                        (totalWithDiscount <= 0)
+                    }
+                >
                     THANH TOÁN — {formatPrice(totalWithDiscount)}
                 </Button>
             </div>

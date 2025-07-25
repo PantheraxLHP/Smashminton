@@ -1,4 +1,5 @@
 const API_BASE = process.env.SERVER || 'http://localhost:8000';
+import { cookies } from 'next/headers';
 
 export interface DashboardData {
     revenue: number;
@@ -39,6 +40,8 @@ export interface DashboardData {
 
 export async function getDashboardData(year: number): Promise<DashboardData> {
     try {
+        const cookieStore = await cookies();
+        const accessToken = cookieStore.get('accessToken')?.value;
         // Use Next.js built-in fetch with caching
         const [
             revenueRes,
@@ -53,33 +56,63 @@ export async function getDashboardData(year: number): Promise<DashboardData> {
             newCustomerRateRes,
         ] = await Promise.all([
             fetch(`${API_BASE}/api/v1/admin/dashboard/revenue/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 }, // Cache for 5 minutes
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/duration/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/top-courts/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/zone-revenue/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/new-customers/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/booking-count-timeslot/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/product-sales-rentals/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/top-products/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/top-rented-products/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
             fetch(`${API_BASE}/api/v1/admin/dashboard/new-customer-rate/${year}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
                 next: { revalidate: 300 },
             }),
         ]);

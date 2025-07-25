@@ -170,7 +170,7 @@ create table if not exists student_card (
 	studentcardid integer primary key,
 	schoolname text,
 	studentid text,
-	studyperiod text,
+	studyperiod timestamptz,
 	constraint fk_studentcard_customers foreign key (studentcardid) references customers(customerid)
 );
 
@@ -219,7 +219,6 @@ create table if not exists bookings (
 	guestphone text,
 	bookingdate timestamptz,
 	totalprice numeric,
-	bookingstatus text check (bookingstatus in ('Completed', 'Processing', 'Schedule')),
 	createdat timestamptz default now(),
 	updatedat timestamptz default now(),
 	employeeid integer,

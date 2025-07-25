@@ -62,11 +62,11 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({ employee, setIsDr
             }}
         >
             <Image
-                src={employee.accounts?.avatarurl || '/logo.png'}
+                src={employee.accounts?.avatarurl || '/user.png'}
                 alt={`Hình của nhân viên ${employee.employeeid}`}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="rounded-full border-2 border-primary-500"
             />
             <span>{employee.accounts?.fullname}</span>
         </div>
@@ -120,13 +120,25 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
             }}
         >
             <Image
-                src={assignment.employees?.accounts?.avatarurl || '/logo.png'}
+                src={assignment.employees?.accounts?.avatarurl || '/user.png'}
                 alt={`Hình của nhân viên ${assignment.employeeid}`}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="rounded-full border-2 border-primary-500"
             />
             <span>{assignment.employees?.accounts?.fullname || ''}</span>
+            { assignment.assignmentstatus === "approved" && (
+                <div className="ml-auto flex gap-1 items-center text-sm text-primary">
+                    Đã xác nhận
+                    <Icon icon="nrk:check-active"/>
+                </div>
+            )}
+            { assignment.assignmentstatus === "refused" && (
+                <div className="ml-auto flex gap-1 items-center text-sm text-red-500">
+                    {assignment.employees?.employee_type === 'Full-time' ? 'Đã xin nghỉ' : 'Đã từ chối'}
+                    <Icon icon="nrk:close-active"/>
+                </div>
+            )}
         </div>
     );
 };
@@ -164,19 +176,19 @@ const ShiftCardDetail: React.FC<ShiftCardDetailProps> = ({ shiftDataSingle, onDa
 
     const [{ isOver }, dropRef] = useDrop({
         accept: [EMPLOYEE_TYPE, ASSIGNMENT_TYPE],
-        drop: async (item: DragItem, monitor) => {
+        drop: (item: DragItem, monitor) => {
             if (item.type === EMPLOYEE_TYPE && item.employee.employeeid !== undefined) {
-                const response = await addAssignment({
+                addAssignment({
                     shiftdate: new Date(shiftDataSingle.shiftdate).toISOString(),
                     shiftid: shiftDataSingle.shiftid,
                     employeeid: item.employee.employeeid,
+                }).then((response) => {
+                    if (response.ok) {
+                        if (onDataChanged) onDataChanged();
+                        fetchAvailableEmployees();
+                    }
                 });
-                if (response.ok) {
-                    if (onDataChanged) onDataChanged();
-                    fetchAvailableEmployees();
-                }
             }
-            // Trả về object cho biết đã drop vào assignment area
             return { targetType: 'ASSIGNMENT_AREA' };
         },
         collect: (monitor) => ({

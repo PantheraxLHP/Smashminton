@@ -74,22 +74,22 @@ const AssignmentRuleDetail = ({
             case 'employee':
                 return [
                     { actionName: 'setEligible', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'enrollmentEmployee':
                 return [
                     { actionName: 'setEligible', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'shift':
                 return [
                     { actionName: 'setAssignable', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             case 'enrollmentShift':
                 return [
                     { actionName: 'setAssignable', defaultValue: 'true' },
-                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false)' },
+                    { actionName: 'setDeletable', defaultValue: 'setDeletable(false);' },
                 ];
             default:
                 return [{ actionName: '', defaultValue: '' }];
@@ -293,11 +293,12 @@ const AssignmentRuleDetail = ({
         };
 
         let updatedRuleList: AssignmentRule[] = [];
-        //check unique rule name
-        if (ruleList.some((rule) => rule.ruleName === updatedRule.ruleName)) {
+        
+        if (ruleList.some((rule) => (rule.ruleName === updatedRule.ruleName) && (rule.ruleName !== AssignmentRule?.ruleName))) {
             toast.error('Tên quy tắc đã tồn tại');
             return;
         }
+        
         if (AssignmentRule) {
             updatedRuleList = ruleList.map((rule) => (rule.ruleName === AssignmentRule?.ruleName ? updatedRule : rule));
         } else {
@@ -307,7 +308,11 @@ const AssignmentRuleDetail = ({
         const response = await updateAutoAssignment(updatedRuleList);
         if (response.ok) {
             setRuleList(updatedRuleList);
-            toast.success('Quy tắc đã được lưu thành công');
+            if (response.data.data.reloaded) {
+                toast.success('Quy tắc đã được lưu thành công và bảng quyết định Drools đã được tải lại');
+            } else {
+                toast.warning('Quy tắc đã được lưu thành công nhưng không thể tải lại bảng quyết định Drools');
+            }
         } else {
             toast.error(response.message || 'Lưu quy tắc thất bại');
         }

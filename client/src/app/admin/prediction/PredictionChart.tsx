@@ -1,13 +1,13 @@
 'use client';
 
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Cell, Pie, PieChart } from 'recharts';
 
 interface PredictionChartProps {
     data: { id: string; name: string; ratio: number }[];
     sortOrder: 'asc' | 'desc';
-    title?: string;
+    title?: ReactNode;
 }
 
 interface ChartDataItem {

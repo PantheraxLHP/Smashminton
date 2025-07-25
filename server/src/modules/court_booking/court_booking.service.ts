@@ -16,7 +16,7 @@ export class CourtBookingService {
         private courtsService: CourtsService, // Inject CourtsService
         private cacheService: CacheService, // Inject CacheService
         private appGateway: AppGateway,
-    ) {}
+    ) { }
 
     private readonly allStartTimes: string[] = [
         '06:00',
@@ -60,7 +60,7 @@ export class CourtBookingService {
         duration: number,
     ): Promise<AvailableCourts[]> {
         if (!zoneid || !date || !starttime || !duration) {
-            throw new BadRequestException('Missing query parameters court_booking 1');
+            throw new BadRequestException('Missing query parameters court_booking');
         }
 
         const courtPrices = await this.courtsService.getCourtPrices(zoneid, date, starttime, duration);
@@ -120,65 +120,39 @@ export class CourtBookingService {
 
         const parsedZoneId = Number(zoneid);
 
+        // Lấy số sân tối đa của zone
         const filteredCourtByDayFromTo = await this.courtsService.getCourtsIDByDayFrom_To(parsedZoneId, date);
+        const maxCourts = filteredCourtByDayFromTo.length;
 
-        const selectedDate = new Date(date);
-        const bookings = await this.prisma.court_booking.findMany({
-            where: {
-                //courtid: { in: filteredCourtByDayFromTo },
-                date: selectedDate,
-            },
-            select: {
-                starttime: true,
-                endtime: true,
-            },
-        });
+        const unavailableStartTimes: string[] = [];
 
-        const convertedBookings = bookings.map((booking) => ({
-            ...booking,
-            starttime: dayjs(booking.starttime).tz('Asia/Ho_Chi_Minh').format('HH:mm'),
-            endtime: dayjs(booking.endtime).tz('Asia/Ho_Chi_Minh').format('HH:mm'),
-        }));
+        // Với mỗi starttime, kiểm tra số sân available
+        for (const starttime of this.allStartTimes) {
+            try {
+                // Gọi hàm getAvaliableCourts để lấy số sân available
+                const availableCourts = await this.getAvaliableCourts(zoneid, date, starttime, duration);
+                const availableCount = availableCourts.length;
 
-        const cacheBookings = await this.cacheService.getAllCacheBookings(date);
-        const cacheBookingsWithoutCourtIdAndDate = cacheBookings.map(({ courtid, date, ...rest }) => rest);
-
-        const mergedBookings = [...convertedBookings, ...cacheBookingsWithoutCourtIdAndDate];
-
-        // Tạo mảng copy với giá trị ban đầu là tổng số sân
-        const totalCourts = filteredCourtByDayFromTo.length;
-        const courtAvailability = Array(this.allStartTimes.length).fill(totalCourts);
-
-        // Lặp qua từng booking
-        for (const booking of mergedBookings) {
-            const startIndex = this.allStartTimes.indexOf(booking.starttime);
-            const endIndex = this.allStartTimes.indexOf(booking.endtime);
-
-            if (startIndex !== -1 && endIndex !== -1) {
-                // Trừ đi 1 cho các index tương ứng trong mảng copy
-                for (let i = startIndex; i < endIndex; i++) {
-                    courtAvailability[i] -= 1;
+                // Nếu số sân available = 0 thì unavailable
+                if (availableCount === 0) {
+                    unavailableStartTimes.push(starttime);
                 }
+            } catch (error) {
+                // Nếu có lỗi, coi như unavailable để an toàn
+                unavailableStartTimes.push(starttime);
             }
         }
 
         // Xử lý trường hợp duration vượt quá thời gian hoạt động
         const maxStartTimeIndex = this.allStartTimes.length - 1;
-        const durationSlots = (duration * 60) / 30 - 2; // Số slot 30 phút cần thiết cho duration
+        const durationSlots = Math.ceil((duration * 60) / 30); // Số slot 30 phút cần thiết cho duration
 
-        // Tính toán các slot bắt đầu không khả dụng
-        const unavailableStartIndex = maxStartTimeIndex + 1 - durationSlots;
-
-        // Kiểm tra và xử lý các phần tử có giá trị = 0 trong courtAvailability
-        for (let startTimeIndex = 0; startTimeIndex <= maxStartTimeIndex; startTimeIndex++) {
-            if (courtAvailability[startTimeIndex] === 0 || startTimeIndex === maxStartTimeIndex) {
-                // Duyệt ngược lại từ startTimeIndex đến (startTimeIndex - durationSlots)
-                for (
-                    let indexBlockedTime = startTimeIndex;
-                    indexBlockedTime >= startTimeIndex - durationSlots;
-                    indexBlockedTime--
-                ) {
-                    courtAvailability[indexBlockedTime] = 0; // Đánh dấu các slot này là unavailable
+        // Block các starttime cuối nếu duration vượt quá giờ hoạt động
+        for (let i = maxStartTimeIndex - durationSlots + 2; i <= maxStartTimeIndex; i++) {
+            if (i >= 0 && i < this.allStartTimes.length) {
+                const starttime = this.allStartTimes[i];
+                if (!unavailableStartTimes.includes(starttime)) {
+                    unavailableStartTimes.push(starttime);
                 }
             }
         }
@@ -187,18 +161,15 @@ export class CourtBookingService {
         // Chỉ block các `starttime` trước thời gian hiện tại nếu ngày được chọn là ngày hiện tại
         if (date === today) {
             const now = dayjs().tz('Asia/Ho_Chi_Minh').format('HH:mm');
-            const nowIndex = this.allStartTimes.findIndex((time) => time >= now);
 
-            // Block tất cả các `starttime` trước thời gian hiện tại
-            for (let i = 0; i < nowIndex; i++) {
-                courtAvailability[i] = 0; // Đánh dấu các slot này là unavailable
+            for (const starttime of this.allStartTimes) {
+                if (starttime < now && !unavailableStartTimes.includes(starttime)) {
+                    unavailableStartTimes.push(starttime);
+                }
             }
         }
 
-        // Lấy danh sách các khung giờ bị block (các index có giá trị = 0)
-        const unavailableTimes = this.allStartTimes.filter((_, index) => courtAvailability[index] === 0);
-
-        return unavailableTimes;
+        return unavailableStartTimes;
     }
 
     async getUnavailableStartTimesForFixedCourt(zoneid: number, date: string, duration: number): Promise<string[]> {
@@ -208,131 +179,56 @@ export class CourtBookingService {
 
         const parsedZoneId = Number(zoneid);
 
-        // Lấy danh sách courtid trong zone
+        // Lấy số sân tối đa của zone
         const filteredCourtByDayFromTo = await this.courtsService.getCourtsIDByDayFrom_To(parsedZoneId, date);
+        const maxCourts = filteredCourtByDayFromTo.length;
 
-        // Tạo danh sách 4 ngày đặt sân, mỗi ngày cách nhau 7 ngày
-        const bookingDates: string[] = [];
-        for (let i = 0; i < 4; i++) {
-            const bookingDate = dayjs(date)
-                .add(i * 7, 'day')
-                .format('YYYY-MM-DD');
-            bookingDates.push(bookingDate);
-        }
+        const unavailableStartTimes: string[] = [];
 
-        // Lấy tất cả court bookings cho 4 ngày
-        const courtBookings = await this.prisma.court_booking.findMany({
-            where: {
-                date: { in: bookingDates.map((d) => new Date(d)) },
-            },
-            select: {
-                courtid: true,
-                date: true,
-                starttime: true,
-                endtime: true,
-            },
-        });
+        // Với mỗi starttime, kiểm tra số sân available cho fixed court
+        for (const starttime of this.allStartTimes) {
+            try {
+                // Gọi hàm getAvailableFixedCourts để lấy số sân available
+                const availableFixedCourts = await this.getAvailableFixedCourts(zoneid, date, starttime, duration);
+                const availableCount = availableFixedCourts.length;
 
-        // Convert court bookings to VN time và group theo ngày
-        const bookingsByDate: { [key: string]: any[] } = {};
-        courtBookings.forEach((item) => {
-            const dateKey = dayjs(item.date).format('YYYY-MM-DD');
-            if (!bookingsByDate[dateKey]) {
-                bookingsByDate[dateKey] = [];
-            }
-            bookingsByDate[dateKey].push({
-                courtid: item.courtid,
-                starttime: item.starttime ? convertUTCToVNTime(item.starttime.toISOString()) : null,
-                endtime: item.endtime ? convertUTCToVNTime(item.endtime.toISOString()) : null,
-            });
-        });
-
-        // Lấy cache bookings cho tất cả 4 ngày
-        const cacheBookingsByDate: { [key: string]: any[] } = {};
-        for (const bookingDate of bookingDates) {
-            const cacheBookings = await this.cacheService.getAllCacheBookings(bookingDate);
-            cacheBookingsByDate[bookingDate] = cacheBookings.map(({ courtid, date, ...rest }) => rest);
-        }
-
-        // Tạo mảng availability cho từng starttime
-        const totalCourts = filteredCourtByDayFromTo.length;
-        const courtAvailabilityForAllWeeks = Array(this.allStartTimes.length).fill(totalCourts);
-
-        // Kiểm tra từng starttime xem có khả dụng cho tất cả 4 tuần không
-        for (let timeIndex = 0; timeIndex < this.allStartTimes.length; timeIndex++) {
-            const starttime = this.allStartTimes[timeIndex];
-
-            // Tính endtime dựa trên duration
-            const endtime = dayjs(starttime, 'HH:mm').add(duration, 'hour').format('HH:mm');
-            const endIndex = this.allStartTimes.indexOf(endtime);
-
-            // Kiểm tra từng tuần
-            for (const bookingDate of bookingDates) {
-                // Merge bookings cho ngày này
-                const dateBookings = [
-                    ...(bookingsByDate[bookingDate] || []),
-                    ...(cacheBookingsByDate[bookingDate] || []),
-                ];
-
-                // Đếm số sân bị chiếm trong khung giờ này
-                let occupiedCourts = 0;
-                for (const booking of dateBookings) {
-                    const bookingStartIndex = this.allStartTimes.indexOf(booking.starttime);
-                    const bookingEndIndex = this.allStartTimes.indexOf(booking.endtime);
-
-                    if (bookingStartIndex !== -1 && bookingEndIndex !== -1) {
-                        // Kiểm tra overlap với khung giờ hiện tại
-                        if (
-                            timeIndex < bookingEndIndex &&
-                            (endIndex === -1 ? this.allStartTimes.length : endIndex) > bookingStartIndex
-                        ) {
-                            occupiedCourts++;
-                        }
-                    }
+                // Nếu số sân available = 0 thì unavailable
+                if (availableCount === 0) {
+                    unavailableStartTimes.push(starttime);
                 }
-
-                // Nếu bất kỳ tuần nào không có sân trống, đánh dấu starttime này là unavailable
-                if (occupiedCourts >= totalCourts) {
-                    courtAvailabilityForAllWeeks[timeIndex] = 0;
-                    break; // Không cần kiểm tra các tuần còn lại
-                }
+            } catch (error) {
+                // Nếu có lỗi, coi như unavailable để an toàn
+                unavailableStartTimes.push(starttime);
             }
         }
 
         // Xử lý trường hợp duration vượt quá thời gian hoạt động
         const maxStartTimeIndex = this.allStartTimes.length - 1;
-        const durationSlots = (duration * 60) / 30 - 2; // Số slot 30 phút cần thiết cho duration
+        const durationSlots = Math.ceil((duration * 60) / 30); // Số slot 30 phút cần thiết cho duration
 
-        // Kiểm tra và xử lý các phần tử có giá trị = 0 trong courtAvailabilityForAllWeeks
-        for (let startTimeIndex = 0; startTimeIndex <= maxStartTimeIndex; startTimeIndex++) {
-            if (courtAvailabilityForAllWeeks[startTimeIndex] === 0 || startTimeIndex === maxStartTimeIndex) {
-                // Duyệt ngược lại từ startTimeIndex đến (startTimeIndex - durationSlots)
-                for (
-                    let indexBlockedTime = startTimeIndex;
-                    indexBlockedTime >= startTimeIndex - durationSlots;
-                    indexBlockedTime--
-                ) {
-                    courtAvailabilityForAllWeeks[indexBlockedTime] = 0; // Đánh dấu các slot này là unavailable
+        // Block các starttime cuối nếu duration vượt quá giờ hoạt động
+        for (let i = maxStartTimeIndex - durationSlots + 2; i <= maxStartTimeIndex; i++) {
+            if (i >= 0 && i < this.allStartTimes.length) {
+                const starttime = this.allStartTimes[i];
+                if (!unavailableStartTimes.includes(starttime)) {
+                    unavailableStartTimes.push(starttime);
                 }
             }
         }
 
         const today = dayjs().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD');
         // Chỉ block các `starttime` trước thời gian hiện tại nếu ngày đầu tiên được chọn là ngày hiện tại
-        if (bookingDates[0] === today) {
+        if (date === today) {
             const now = dayjs().tz('Asia/Ho_Chi_Minh').format('HH:mm');
-            const nowIndex = this.allStartTimes.findIndex((time) => time >= now);
 
-            // Block tất cả các `starttime` trước thời gian hiện tại
-            for (let i = 0; i < nowIndex; i++) {
-                courtAvailabilityForAllWeeks[i] = 0; // Đánh dấu các slot này là unavailable
+            for (const starttime of this.allStartTimes) {
+                if (starttime < now && !unavailableStartTimes.includes(starttime)) {
+                    unavailableStartTimes.push(starttime);
+                }
             }
         }
 
-        // Lấy danh sách các khung giờ bị block (các index có giá trị = 0)
-        const unavailableTimes = this.allStartTimes.filter((_, index) => courtAvailabilityForAllWeeks[index] === 0);
-
-        return unavailableTimes;
+        return unavailableStartTimes;
     }
 
     async getSeparatedCourtPrices(courtBookingDTO: courtBookingDto): Promise<AvailableCourts[]> {
@@ -484,7 +380,8 @@ export class CourtBookingService {
         return this.prisma.court_booking.findMany();
     }
 
-    @Cron('* */15 6-22 * * *') // Chạy mỗi 15 phút
+    @Cron('0 */15 6-22 * * *') // Chạy mỗi 15 phút
+    // @Cron('0/10 * * * * *') // Chạy mỗi 10 giây 
     async regularCourtBookingNotify() {
         const now = new Date();
         const courtBookings = await this.prisma.court_booking.findMany({
@@ -528,14 +425,4 @@ export class CourtBookingService {
 
         this.appGateway.regularCourtBookingCheck(zoneCourt);
     }
-
-    // @Cron('*/10 * * * * *')
-    // async testNotification() {
-    //     this.appGateway.testNotification('TEST GLOBAL ');
-    // }
-
-    // @Cron('*/10 * * * * *')
-    // async testNotificationAllEmployee() {
-    //     this.appGateway.testNotificationAllEmployee('TEST ALL EMPLOYEES');  
-    // }
 }

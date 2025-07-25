@@ -47,11 +47,6 @@ export const patchCourts = async (
             formData.append('courtimgurl', data.courtimgurl);
         }
 
-        console.log('[DEBUG] Sending patchCourts with formData:');
-        for (const pair of formData.entries()) {
-            console.log(`  ${pair[0]}:`, pair[1]);
-        }
-
         const response = await fetch(`/api/courts/patch-courts`, {
             method: 'PATCH',
             body: formData,
@@ -61,15 +56,12 @@ export const patchCourts = async (
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('[ERROR] patchCourts failed:', result);
-            return ServiceResponse.error(result.message || 'Không thể cập nhật sân');
+            throw new Error(result.message || 'Không thể cập nhật sân');
         }
 
-        console.log('[DEBUG] patchCourts success:', result);
-        return ServiceResponse.success(result.data);
+        return result.data;
     } catch (error) {
-        console.error('[ERROR] patchCourts exception:', error);
-        return ServiceResponse.error(
+        throw new Error(
             error instanceof Error ? error.message : 'Không thể cập nhật sân'
         );
     }

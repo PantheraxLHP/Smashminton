@@ -215,11 +215,11 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                         <DialogHeader className="flex !h-fit flex-col gap-0.5">
                                             <DialogTitle className="!h-fit">Chi tiết ghi chú</DialogTitle>
                                             <DialogDescription className="!h-fit">
-                                                {`Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || 'chưa có tên'} trong ` +
+                                                {`Nhân viên ${rc.employeeid} - ${rc.employees?.accounts?.fullname || 'chưa có tên'} ngày ` +
                                                     `${rc.rewardapplieddate ? formatDate(rc.rewardapplieddate) : ''}`}
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <ApprovalDetails record={rc} />
+                                        <ApprovalDetails record={rc} onSaveSuccess={fetchRewardRecords} />
                                     </DialogContent>
                                 </Dialog>
                             </div>
@@ -281,7 +281,7 @@ const ApprovalList = ({ filterValue }: ApprovalListProps) => {
                                     Vui lòng điền thông tin ghi chú mới cho nhân viên.
                                 </DialogDescription>
                             </DialogHeader>
-                            <ApprovalAddForm employees={employees} />
+                            <ApprovalAddForm employees={employees} onAddSuccess={fetchRewardRecords} />
                         </DialogContent>
                     </Dialog>
                 </div>

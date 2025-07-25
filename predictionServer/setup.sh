@@ -232,7 +232,7 @@ run_server() {
     
     activate_venv
     print_status "Starting Django development server..."
-    print_status "Server will be available at: http://127.0.0.1:8000/"
+    print_status "Server will be available at: http://127.0.0.1:8081/"
     print_status "Press Ctrl+C to stop the server"
     
     $PYTHON_IN_VENV manage.py runserver

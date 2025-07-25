@@ -97,7 +97,10 @@ export default function SupplierManagementPage() {
                                 key={p.productid}
                                 className="inline-block rounded bg-gray-200 px-2 py-1 text-xs"
                             >
-                                {p.productname} - {p.costprice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                                {p.productname} - {Number(p.costprice).toLocaleString('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND',
+                                })}
                             </span>
                         ))}
 
@@ -140,23 +143,17 @@ export default function SupplierManagementPage() {
         if (!supplier.supplierid) return;
 
         const result = await deleteSupplier(supplier.supplierid);
-        console.log(supplier.supplierid);
         if (result.ok) {
             toast.success('Xoá nhà cung cấp thành công!');
-            await fetchSuppliers();
         } else {
-            toast.error(`Lỗi khi xoá: ${result.message}`);
+            toast.error(`${result.message}`);
         }
+        fetchSuppliers();
+        setPage(1);
     };
 
 
     const handleSubmit = async (formData: Supplier, isEdit: boolean) => {
-        if (isEdit) {
-            toast.success('Cập nhật nhà cung cấp thành công!');
-        } else {
-            toast.success('Thêm nhà cung cấp thành công!');
-        }
-
         setOpenModal(false);
         setEditIndex(null);
         setEditData(null);

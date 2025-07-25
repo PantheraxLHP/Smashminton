@@ -1,9 +1,25 @@
 import { PrismaClient } from '@prisma/generated/client';
 import bcrypt from 'bcryptjs';
+import dayjs from 'dayjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+    // Function to generate unique phone numbers
+    function generateUniquePhoneNumber(usedPhones: Set<string>, baseNumber: number): string {
+        let phone: string;
+        do {
+            // Generate phone number starting with 09, 08, 07, or 03
+            const prefixes = ['09', '08', '07', '03'];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const randomNumber = (1000000000 + baseNumber * 1000000 + Math.floor(Math.random() * 1000000)).toString().slice(-8);
+            phone = prefix + randomNumber;
+        } while (usedPhones.has(phone));
+
+        usedPhones.add(phone);
+        return phone;
+    }
+
     async function deleteAllData(tableList: string[]) {
         for (const tableName of tableList) {
             console.log('Truncating all data from ' + tableName);
@@ -46,6 +62,10 @@ async function main() {
     const password = '123';
     const hashedPassword = (await bcrypt.hash(password, 10)).toString();
 
+    // Create a Set to track used phone numbers and generate unique ones
+    const usedPhones = new Set<string>();
+    const generatePhone = (index: number) => generateUniquePhoneNumber(usedPhones, index);
+
     await prisma.accounts.createMany({
         data: [
             {
@@ -66,7 +86,7 @@ async function main() {
                 email: 'nguyenvana@example.com',
                 dob: new Date('1990-01-01'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(1),
                 address: '123 Đường A, Quận 1',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -80,7 +100,7 @@ async function main() {
                 email: 'tranthib@example.com',
                 dob: new Date('1992-02-02'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(2),
                 address: '456 Đường B, Quận 2',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -94,7 +114,7 @@ async function main() {
                 email: 'lehongc@example.com',
                 dob: new Date('1991-03-03'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(3),
                 address: '789 Đường C, Quận 3',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -108,7 +128,7 @@ async function main() {
                 email: 'lehoangd@example.com',
                 dob: new Date('1993-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(4),
                 address: '123 Đường D, Quận 4',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -122,7 +142,7 @@ async function main() {
                 email: 'nguyenminhe@example.com',
                 dob: new Date('1994-05-05'),
                 gender: 'Nam',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(5),
                 address: '456 Đường E, Quận 5',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -136,7 +156,7 @@ async function main() {
                 email: 'buithanhf@example.com',
                 dob: new Date('1995-06-06'),
                 gender: 'Nữ',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(6),
                 address: '789 Đường F, Quận 6',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -150,7 +170,7 @@ async function main() {
                 email: 'trantieng@example.com',
                 dob: new Date('1996-07-07'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(7),
                 address: '123 Đường G, Quận 7',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -164,7 +184,7 @@ async function main() {
                 email: 'phamthih@example.com',
                 dob: new Date('1997-08-08'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(8),
                 address: '456 Đường H, Quận 8',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -178,7 +198,7 @@ async function main() {
                 email: 'phumyi@example.com',
                 dob: new Date('1998-09-09'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(9),
                 address: '789 Đường I, Quận 9',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -192,7 +212,7 @@ async function main() {
                 email: 'caobaj@example.com',
                 dob: new Date('1999-10-10'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(10),
                 address: '123 Đường J, Quận 10',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -206,7 +226,7 @@ async function main() {
                 email: 'hoangthik@example.com',
                 dob: new Date('1999-11-11'),
                 gender: 'Nữ',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(11),
                 address: '123 Đường K, Quận 11',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -220,7 +240,7 @@ async function main() {
                 email: 'nguyenducl@example.com',
                 dob: new Date('2000-12-12'),
                 gender: 'Nam',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(12),
                 address: '456 Đường L, Quận 12',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -234,7 +254,7 @@ async function main() {
                 email: 'vophatm@example.com',
                 dob: new Date('2000-01-01'),
                 gender: 'Nam',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(13),
                 address: '789 Đường M, Quận Thủ Đức',
                 accounttype: 'Employee',
                 createdat: new Date(),
@@ -248,7 +268,7 @@ async function main() {
                 email: 'nguyenvun@example.com',
                 dob: new Date('2000-02-02'),
                 gender: 'Nam',
-                phonenumber: '0123456789',
+                phonenumber: generatePhone(14),
                 address: '123 Đường N, Quận Bình Thạnh',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -262,7 +282,7 @@ async function main() {
                 email: 'phamthuyo@example.com',
                 dob: new Date('2000-03-03'),
                 gender: 'Nữ',
-                phonenumber: '0987654321',
+                phonenumber: generatePhone(15),
                 address: '456 Đường O, Quận Gò Vấp',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -276,7 +296,7 @@ async function main() {
                 email: 'huyenvup@example.com',
                 dob: new Date('2000-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0369852147',
+                phonenumber: generatePhone(16),
                 address: '789 Đường P, Quận Tân Bình',
                 accounttype: 'Customer',
                 createdat: new Date(),
@@ -291,7 +311,7 @@ async function main() {
                 email: 'customer2024_1@example.com',
                 dob: new Date('2001-01-01'),
                 gender: 'Nam',
-                phonenumber: '0900000001',
+                phonenumber: generatePhone(17),
                 address: 'Địa chỉ 1',
                 accounttype: 'Customer',
                 createdat: new Date('2024-02-15T10:00:00Z'),
@@ -305,7 +325,7 @@ async function main() {
                 email: 'customer2024_2@example.com',
                 dob: new Date('2002-02-02'),
                 gender: 'Nữ',
-                phonenumber: '0900000002',
+                phonenumber: generatePhone(18),
                 address: 'Địa chỉ 2',
                 accounttype: 'Customer',
                 createdat: new Date('2024-05-10T15:00:00Z'),
@@ -319,7 +339,7 @@ async function main() {
                 email: 'customer2024_3@example.com',
                 dob: new Date('2003-03-03'),
                 gender: 'Nam',
-                phonenumber: '0900000003',
+                phonenumber: generatePhone(19),
                 address: 'Địa chỉ 3',
                 accounttype: 'Customer',
                 createdat: new Date('2024-08-20T08:00:00Z'),
@@ -333,7 +353,7 @@ async function main() {
                 email: 'customer2024_4@example.com',
                 dob: new Date('2004-04-04'),
                 gender: 'Nữ',
-                phonenumber: '0900000004',
+                phonenumber: generatePhone(20),
                 address: 'Địa chỉ 4',
                 accounttype: 'Customer',
                 createdat: new Date('2024-12-01T12:00:00Z'),
@@ -351,6 +371,7 @@ async function main() {
                 fullname: `User ${i}`,
                 accounttype: 'Employee',
                 gender: i % 2 === 0 ? 'Nam' : 'Nữ',
+                phonenumber: generatePhone(21 + i), // Continue from 21 to ensure uniqueness
             },
         });
     }
@@ -411,32 +432,38 @@ async function main() {
     await prisma.reward_rules.createMany({
         data: [
             {
-                rewardname: 'Employee of the Month',
+                rewardname: 'Nhân viên của tháng',
                 rewarddescription: 'Thưởng nhân viên xuất sắc nhất tháng',
                 rewardtype: 'Product',
                 rewardvalue: 0.2,
             },
             {
-                rewardname: 'Attendance Bonus',
-                rewarddescription: 'Thưởng theo chuyên cần',
+                rewardname: 'Thưởng chuyên cần',
+                rewarddescription: 'Thưởng theo chuyên cần trong tháng',
                 rewardtype: 'Commendation',
                 rewardvalue: 0.1,
             },
             {
-                rewardname: 'Perfomance Bonus',
+                rewardname: 'Thưởng hiệu suất',
                 rewarddescription: 'Thưởng theo hiệu suất làm việc',
                 rewardtype: 'Voucher',
                 rewardvalue: 0.15,
             },
             {
-                rewardname: 'Profit-sharing Bonus',
+                rewardname: 'Thưởng kết quả kinh doanh',
                 rewarddescription: 'Thưởng theo kết quả kinh doanh trong 1 năm',
                 rewardtype: '1 Month Salary',
                 rewardvalue: 1,
             },
             {
-                rewardname: 'Holidays Bonus',
-                rewarddescription: 'Thưởng cho các ngày lễ, tết, sinh nhật của nhân viên',
+                rewardname: 'Thưởng ngày lễ',
+                rewarddescription: 'Thưởng cho các ngày lễ, tết',
+                rewardtype: 'Money',
+                rewardvalue: 0.5,
+            },
+            {
+                rewardname: 'Thưởng sinh nhật',
+                rewarddescription: 'Thưởng cho nhân viên có sinh nhật trong tháng',
                 rewardtype: 'Money',
                 rewardvalue: 0.2,
             },
@@ -446,14 +473,14 @@ async function main() {
     await prisma.penalty_rules.createMany({
         data: [
             {
-                penaltyname: 'Late for work',
+                penaltyname: 'Phạt đi trễ',
                 penaltydescription: 'Phạt nhân viên đến trễ giờ làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
             },
             {
-                penaltyname: 'Unauthorized absence',
+                penaltyname: 'Phạt nghỉ không phép',
                 penaltydescription: 'Phạt nhân viên vắng mặt không phép, tự ý bỏ ca làm việc',
                 basepenalty: 50000,
                 incrementalpenalty: 50000,
@@ -461,12 +488,16 @@ async function main() {
                 disciplineaction: 'Terminate',
             },
             {
-                penaltyname: 'Failure to comply with workplace policies',
+                penaltyname: 'Phạt vi phạm nội quy nơi làm việc',
                 penaltydescription: 'Phạt nhân viên vi phạm chính sách/quy định nơi làm việc',
                 basepenalty: 0,
                 incrementalpenalty: 20000,
                 maxiumpenalty: 100000,
             },
+            {
+                penaltyname: 'Phạt về sớm',
+                penaltydescription: 'Phạt nhân viên rời khỏi nơi làm việc (chấm công ra) sớm hơn giờ quy định',
+            }
         ],
     });
 
@@ -1499,9 +1530,9 @@ async function main() {
     await prisma.student_card.create({
         data: {
             studentcardid: 16,
-            schoolname: 'University of Science',
+            schoolname: 'UNIVERSITY OF SCIENCE',
             studentid: '21127081',
-            studyperiod: '12/25',
+            studyperiod: new Date('2025-12-31 23:59:59'),
         },
     });
 
@@ -1590,7 +1621,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-15'),
                 totalprice: 400000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T09:22:19.422Z'),
                 updatedat: new Date('2025-05-14T09:22:19.422Z'),
                 employeeid: 3,
@@ -1601,7 +1631,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-15'),
                 totalprice: 300000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T10:00:00.000Z'),
                 updatedat: new Date('2025-05-14T10:00:00.000Z'),
                 employeeid: 2,
@@ -1612,7 +1641,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: new Date('2025-05-16'),
                 totalprice: 500000.0,
-                bookingstatus: 'Schedule',
                 createdat: new Date('2025-05-14T11:00:00.000Z'),
                 updatedat: new Date('2025-05-14T11:00:00.000Z'),
                 employeeid: 1,
@@ -2129,7 +2157,7 @@ async function main() {
         data: [
             // Employee 1 (Admin)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2137,7 +2165,7 @@ async function main() {
                 employeeid: 1,
             },
             {
-                rewarddate: new Date('2025-06-10'),
+                rewarddate: new Date('2025-06-10').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-15'),
@@ -2146,7 +2174,7 @@ async function main() {
             },
             // Employee 2 (Nguyễn Văn A)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2154,7 +2182,7 @@ async function main() {
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-08'),
+                rewarddate: new Date('2025-06-08').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-12'),
@@ -2162,7 +2190,7 @@ async function main() {
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-15'),
+                rewarddate: new Date('2025-06-15').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
@@ -2171,7 +2199,7 @@ async function main() {
             },
             // Employee 3 (Trần Thị B)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2179,7 +2207,7 @@ async function main() {
                 employeeid: 3,
             },
             {
-                rewarddate: new Date('2025-06-12'),
+                rewarddate: new Date('2025-06-12').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-18'),
@@ -2188,7 +2216,7 @@ async function main() {
             },
             // Employee 4 (Lê Hồng C)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2196,7 +2224,7 @@ async function main() {
                 employeeid: 4,
             },
             {
-                rewarddate: new Date('2025-06-06'),
+                rewarddate: new Date('2025-06-06').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-10'),
@@ -2205,7 +2233,7 @@ async function main() {
             },
             // Employee 5 (Lê Hoàng D)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2213,7 +2241,7 @@ async function main() {
                 employeeid: 5,
             },
             {
-                rewarddate: new Date('2025-06-14'),
+                rewarddate: new Date('2025-06-14').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-18'),
@@ -2222,7 +2250,7 @@ async function main() {
             },
             // Employee 6 (Nguyễn Minh E)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2230,7 +2258,7 @@ async function main() {
                 employeeid: 6,
             },
             {
-                rewarddate: new Date('2025-06-20'),
+                rewarddate: new Date('2025-06-20').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-25'),
@@ -2239,7 +2267,7 @@ async function main() {
             },
             // Employee 7 (Bùi Thành F)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2248,7 +2276,7 @@ async function main() {
             },
             // Employee 8 (Trần Tiến G)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2256,7 +2284,7 @@ async function main() {
                 employeeid: 8,
             },
             {
-                rewarddate: new Date('2025-06-16'),
+                rewarddate: new Date('2025-06-16').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'pending',
                 rewardapplieddate: new Date('2025-06-20'),
@@ -2265,7 +2293,7 @@ async function main() {
             },
             // Employee 9 (Phạm Thị H)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2274,7 +2302,7 @@ async function main() {
             },
             // Employee 10 (Phù Mỹ I)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2282,7 +2310,7 @@ async function main() {
                 employeeid: 10,
             },
             {
-                rewarddate: new Date('2025-06-22'),
+                rewarddate: new Date('2025-06-22').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-26'),
@@ -2291,7 +2319,7 @@ async function main() {
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2300,7 +2328,7 @@ async function main() {
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2025-06-01'),
+                rewarddate: new Date('2025-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2025-06-05'),
@@ -2308,7 +2336,7 @@ async function main() {
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2025-06-25'),
+                rewarddate: new Date('2025-06-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2025-06-28'),
@@ -2317,7 +2345,7 @@ async function main() {
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2024-06-01'),
+                rewarddate: new Date('2024-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2024-06-05'),
@@ -2326,7 +2354,7 @@ async function main() {
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2024-06-01'),
+                rewarddate: new Date('2024-06-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
                 rewardapplieddate: new Date('2024-06-05'),
@@ -2334,7 +2362,7 @@ async function main() {
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2024-06-25'),
+                rewarddate: new Date('2024-06-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
                 rewardapplieddate: new Date('2024-06-28'),
@@ -2456,7 +2484,6 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: startTime,
             totalprice: 200000 + i * 5000,
-            bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
             createdat: startTime,
             updatedat: endTime,
             employeeid: isFirstHalf ? null : 55 + (i - 5),
@@ -2508,18 +2535,34 @@ async function main() {
             const durationOptions = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
             const selectedDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
 
-            // Tạo starttime ngẫu nhiên trong khoảng 6h-21h, đảm bảo endtime <= 22h
-            const minStartHour = 6;
-            const maxStartHour = 22 - selectedDuration;
-            const startHour = minStartHour + Math.random() * (maxStartHour - minStartHour);
-            const startMinute = Math.floor((startHour % 1) * 60);
-            const realStartHour = Math.floor(startHour);
+            // Tạo các khung giờ cố định từ 6:00 đến 21:00 (cách nhau 30 phút)
+            const timeSlots = [
+                "6:00", "6:30", "7:00", "7:30", "8:00", "8:30", "9:00", "9:30",
+                "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+                "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
+            ];
 
-            const bookingDate = new Date(bookingsList[i].bookingdate!.toISOString().split('T')[0]);
+            // Tính toán khung giờ hợp lệ dựa trên selectedDuration
+            const slotsNeeded = Math.ceil(selectedDuration / 0.5); // Số slot cần thiết
+            const maxStartSlotIndex = timeSlots.length - slotsNeeded;
+            const randomStartIndex = Math.floor(Math.random() * maxStartSlotIndex);
+
+            // Lấy thời gian bắt đầu và kết thúc
+            const startTimeString = timeSlots[randomStartIndex];
+            const endTimeString = timeSlots[randomStartIndex + slotsNeeded];
+
+            const bookingDate = new Date(`${dayjs(bookingsList[i].bookingdate).format('YYYY-MM-DD')}`);
+
+            // Tạo starttime từ string
+            const [startHour, startMinute] = startTimeString.split(':').map(Number);
             const starttime = new Date(bookingDate);
-            starttime.setHours(realStartHour, startMinute, 0, 0);
+            starttime.setHours(startHour, startMinute, 0, 0);
 
-            const endtime = new Date(starttime.getTime() + selectedDuration * 60 * 60 * 1000);
+            // Tạo endtime từ string
+            const [endHour, endMinute] = endTimeString.split(':').map(Number);
+            const endtime = new Date(bookingDate);
+            endtime.setHours(endHour, endMinute, 0, 0);
 
             // Tính duration (số giờ)
             const duration = (endtime.getTime() - starttime.getTime()) / (1000 * 60 * 60);
@@ -2607,7 +2650,6 @@ async function main() {
             guestphone: '090000000' + (i + 1),
             bookingdate: [completedStart, ongoingStart, upcomingStart][i],
             totalprice: 100000 * (i + 1),
-            bookingstatus: 'confirmed',
             employeeid: 2,
             customerid: 16,
             voucherid: null,
@@ -2658,7 +2700,7 @@ async function main() {
         const startMinute = Math.floor((startHour % 1) * 60);
         const realStartHour = Math.floor(startHour);
 
-        const bookingDate = new Date([completedStart, ongoingStart, upcomingStart][i].toISOString().split('T')[0]);
+        const bookingDate = new Date(`${dayjs([completedStart, ongoingStart, upcomingStart][i]).format('YYYY-MM-DD')}`);
         const starttime = new Date(bookingDate);
         starttime.setHours(realStartHour, startMinute, 0, 0);
 
@@ -2719,8 +2761,7 @@ async function main() {
             bookingDataMonth.push({
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
-                totalprice: 200000 + i * 5000,
-                bookingstatus: i % 3 === 0 ? 'confirmed' : i % 3 === 1 ? 'pending' : 'completed',
+                totalprice: 200000 + (8 + i) * 5000,
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2744,8 +2785,7 @@ async function main() {
             bookingDataMonth.push({
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
-                totalprice: 200000 + (5 + i) * 5000,
-                bookingstatus: (5 + i) % 3 === 0 ? 'confirmed' : (5 + i) % 3 === 1 ? 'pending' : 'completed',
+                totalprice: 200000 + (8 + i) * 5000,
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2753,10 +2793,10 @@ async function main() {
                 voucherid: null,
             });
             orderDataMonth.push({
-                ordertype: (5 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
+                ordertype: (8 + i) % 2 === 0 ? 'Bán hàng' : 'Cho thuê',
                 orderdate: date,
-                totalprice: 100000 + (5 + i) * 10000,
-                status: (5 + i) % 3 === 0 ? 'Hoàn thành' : (5 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
+                totalprice: 100000 + (8 + i) * 10000,
+                status: (8 + i) % 3 === 0 ? 'Hoàn thành' : (8 + i) % 3 === 1 ? 'Đang xử lý' : 'Chưa diễn ra',
                 employeeid: 2,
                 customerid: 15,
             });
@@ -2770,7 +2810,6 @@ async function main() {
                 guestphone: '0987654321',
                 bookingdate: bookingDateOnly,
                 totalprice: 200000 + (8 + i) * 5000,
-                bookingstatus: (8 + i) % 3 === 0 ? 'confirmed' : (8 + i) % 3 === 1 ? 'pending' : 'completed',
                 createdat: date,
                 updatedat: endDate,
                 employeeid: 2,
@@ -2828,7 +2867,7 @@ async function main() {
                 const startMinute = Math.floor((startHour % 1) * 60);
                 const realStartHour = Math.floor(startHour);
 
-                const bookingDate = new Date(bookingsListMonth[i].bookingdate!.toISOString().split('T')[0]);
+                const bookingDate = new Date(`${dayjs(bookingsListMonth[i].bookingdate).format('YYYY-MM-DD')}`);
                 const starttime = new Date(bookingDate);
                 starttime.setHours(realStartHour, startMinute, 0, 0);
 
@@ -3051,7 +3090,6 @@ async function main() {
             guestphone: '0987654321',
             bookingdate: bookingDate,
             totalprice: 200000,
-            bookingstatus: 'confirmed',
             createdat: starttime,
             updatedat: endtime,
             employeeid: null,

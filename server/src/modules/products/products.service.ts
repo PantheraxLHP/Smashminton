@@ -269,6 +269,17 @@ export class ProductsService {
             throw new NotFoundException(`Không tìm thấy sản phẩm với productid = ${productid}`);
         }
 
+        const hasPendingOrder = await this.prisma.purchase_order.findFirst({
+            where: {
+                productid,
+                statusorder: 'pending',
+            },
+        });
+
+        if (hasPendingOrder) {
+            throw new BadRequestException(`Không thể xóa sản phẩm vì đang nằm trong đơn hàng ${hasPendingOrder.poid}`);
+        }
+
         const deleted = await this.prisma.products.update({
             where: { productid },
             data: {

@@ -103,12 +103,30 @@ export default function AddSupplierModal({
                 ...product,
                 costprice: productCostPrice,
             };
-            if (!formData.products.some(p => p.productid === selectedProductId)) {
+            const existingProductIndex = formData.products.findIndex(
+                (p) => p.productid === selectedProductId
+            );
+
+            if (existingProductIndex !== -1) {
+                const existingProduct = formData.products[existingProductIndex];
+
+                if (existingProduct.costprice !== productCostPrice) {
+                    const updatedProducts = [...formData.products];
+                    updatedProducts[existingProductIndex] = {
+                        ...existingProduct,
+                        costprice: productCostPrice,
+                    };
+                    setFormData((prev) => ({
+                        ...prev,
+                        products: updatedProducts,
+                    }));
+                }
+            } else {
                 setFormData((prev) => ({
                     ...prev,
                     products: [...prev.products, newProduct],
                 }));
-            }
+            }            
             setProductCostPrice(null);
         }
         setSelectedProductId(0);
@@ -179,17 +197,23 @@ export default function AddSupplierModal({
                 });
 
                 if (result.ok) {
-                    // So sánh danh sách sản phẩm và xóa các sản phẩm bị loại bỏ
                     const currentProductIds = formData.products.map(p => p.productid);
                     const removedProductIds = originalProductIdsRef.current.filter(
                         (id) => !currentProductIds.includes(id)
                     );
 
+                    let hasDeleteError = false;
+
                     for (const productid of removedProductIds) {
                         const delRes = await deleteSupplyProduct(editData.supplierid, productid);
                         if (!delRes.ok) {
-                            toast.error(`Không thể xóa sản phẩm ID ${productid} khỏi nhà cung cấp`);
+                            toast.error(`${delRes.message}`);
+                            hasDeleteError = true;
                         }
+                    }
+
+                    if (!hasDeleteError) {
+                        toast.success("Cập nhật nhà cung cấp thành công");
                     }
                 }
             } else {
@@ -197,6 +221,10 @@ export default function AddSupplierModal({
                     ...payloadBase,
                     products,
                 });
+
+                if (result.ok) {
+                    toast.success("Thêm nhà cung cấp mới thành công");
+                }
             }
 
             if (result.ok) {
@@ -223,6 +251,7 @@ export default function AddSupplierModal({
             }
         }
     };
+
 
     useEffect(() => {
         if (!open) {
@@ -344,7 +373,7 @@ export default function AddSupplierModal({
                                             className="inline-flex items-center gap-1 bg-gray-200 text-sm px-2 py-1 rounded max-w-full truncate"
                                         >
                                             <span className="truncate">
-                                                {p.productname} - {p.costprice.toLocaleString('vi-VN', {
+                                                {p.productname} - {Number(p.costprice).toLocaleString('vi-VN', {
                                                     style: 'currency',
                                                     currency: 'VND',
                                                 })}
@@ -352,9 +381,9 @@ export default function AddSupplierModal({
 
                                             <button
                                                 onClick={() => handleRemoveProduct(p.productid)}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="text-red-500 hover:text-red-700 text-lg"
                                             >
-                                                ×
+                                                x
                                             </button>
                                         </span>
                                     ))}

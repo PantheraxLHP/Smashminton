@@ -242,7 +242,7 @@
         
         Invoke-InVirtualEnvironment {
             Write-Status "Starting Django development server..."
-            Write-Status "Server will be available at: http://127.0.0.1:8000/"
+            Write-Status "Server will be available at: http://127.0.0.1:8081/"
             Write-Status "Press Ctrl+C to stop the server"
             
             try {

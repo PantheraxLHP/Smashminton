@@ -29,17 +29,17 @@ export class MqttController {
                 if (data.status === 'success') {
                     this.logger.log(`✅ Fingerprint enrollment successful: ID=${data.fingerID}`);
                     await this.mqttService.enrollEmployeeFingerprint(data.employeeID, data.fingerID);
-                    this.appGateway.enrollmentSuccess(data.employeeID, data.fingerID);
+                    this.appGateway.enrollmentSuccess(data.roomID, data.employeeID, data.fingerID);
                 } else {
                     this.logger.error(`❌ Fingerprint enrollment failed: ID=${data.fingerID}, Error: ${data.message}`);
-                    this.appGateway.enrollmentFailure(data.employeeID, data.message || 'Enrollment failed');
+                    this.appGateway.enrollmentFailure(data.roomID, data.employeeID, data.message || 'Enrollment failed');
                 }
             } else if (data.action === 'enroll_step') {
                 this.logger.log(`🔄 Enrollment step: ${data.step} for employee ${data.employeeID}`);
                 if (data.step === 'remove_finger') {
-                    this.appGateway.enrollmentStep(data.employeeID, 'remove_finger');
+                    this.appGateway.enrollmentStep(data.roomID, data.employeeID, 'remove_finger');
                 } else if (data.step === 'place_again') {
-                    this.appGateway.enrollmentStep(data.employeeID, 'place_again');
+                    this.appGateway.enrollmentStep(data.roomID, data.employeeID, 'place_again');
                 }              
             } else if (data.action === 'delete_finger') {
                 if (data.status === 'success') {

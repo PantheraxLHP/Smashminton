@@ -1,20 +1,20 @@
 #include <ESP8266WiFi.h>           // Thu vien ket noi wifi
 #include <PubSubClient.h>          // Thu vien cho phep publish len mqtt server
 #include <SoftwareSerial.h>        // Thu vien cho phep tao mot ket noi de giao tiep mach dien tu khac
-#include <ArduinoJson.h>           // For better JSON handling
+#include <ArduinoJson.h>           // Thu vien cho phep su dung cau truc du lieu JSON
 #include <Adafruit_Fingerprint.h>  // Thu vien cho cam bien van tay AS608
 
 // Network Configuration
-const char* WIFI_SSID = "Vinh";
-const char* WIFI_PASSWORD = "28282828";
-const unsigned long WIFI_TIMEOUT = 15000;  // 15 seconds
+const char* WIFI_SSID = ""; // Thêm SSID của mạng WiFi tại đây
+const char* WIFI_PASSWORD = ""; // Thêm mật khẩu của mạng WiFi tại đây
+const unsigned long WIFI_TIMEOUT = 15000;
 
 // MQTT Configuration
-const char* MQTT_SERVER = "192.168.0.100";  // Change to your actual server IP
+const char* MQTT_SERVER = ""; // Thêm địa chỉ của MQTT server tại đây
 const int MQTT_PORT = 1883;
 const char* DEVICE_ID = "esp01_smashminton";
 const char* CLIENT_ID = "esp01_client";
-const unsigned long MQTT_RECONNECT_DELAY = 2000;  // 2 seconds
+const unsigned long MQTT_RECONNECT_DELAY = 2000;
 
 // MQTT Topics
 const char* TOPIC_COMMAND = "smashminton/device/esp01/command";
@@ -31,18 +31,17 @@ const char* TOPIC_FINGERPRINT = "smashminton/device/esp01/fingerprint";
 
 // Timing
 unsigned long lastHeartbeat = 0;
-const unsigned long HEARTBEAT_INTERVAL = 30000;  // 30 seconds
+const unsigned long HEARTBEAT_INTERVAL = 30000; 
 unsigned long lastFingerprintScan = 0;
-const unsigned long FINGERPRINT_SCAN_INTERVAL = 1000;  // 1 second
+const unsigned long FINGERPRINT_SCAN_INTERVAL = 1000; 
 unsigned long lastEnrollmentTime = 0;
-const unsigned long ENROLLMENT_COOLDOWN = 5000;  // 5 seconds cooldown after enrollment
+const unsigned long ENROLLMENT_COOLDOWN = 5000; 
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 SoftwareSerial mySerial(FINGERPRINT_RX, FINGERPRINT_TX);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
-// State tracking
 bool fingerprintInitialized = false;
 
 void setup() {
@@ -180,32 +179,36 @@ void sendErrorResponse(const String& errorMessage, const String& requestId = "")
 }
 
 void beepSuccess() {
-  tone(BUZZER_PIN, 523, 150);
-  delay(200);
-  tone(BUZZER_PIN, 659, 150);
-  delay(200);
-  tone(BUZZER_PIN, 784, 200);
-  delay(250);
+  tone(BUZZER_PIN, 523, 120);
+  delay(130);
+  tone(BUZZER_PIN, 659, 120);
+  delay(130);
+  tone(BUZZER_PIN, 784, 120);
+  delay(130);
+  tone(BUZZER_PIN, 1047, 200);
+  delay(220);
   noTone(BUZZER_PIN);
 }
 
 void beepFail() {
-  tone(BUZZER_PIN, 330, 200);
-  delay(250);
-  tone(BUZZER_PIN, 247, 200);
-  delay(250);
-  tone(BUZZER_PIN, 196, 300);
+  tone(BUZZER_PIN, 392, 150);
+  delay(180);
+  tone(BUZZER_PIN, 330, 150);
+  delay(180);
+  tone(BUZZER_PIN, 262, 300);
   delay(350);
   noTone(BUZZER_PIN);
 }
 
 void beepAgain() {
-  tone(BUZZER_PIN, 440, 150);
-  delay(200);
-  tone(BUZZER_PIN, 523, 150);
-  delay(200);
-  tone(BUZZER_PIN, 587, 200);
-  delay(250);
+  tone(BUZZER_PIN, 587, 100);
+  delay(120);
+  tone(BUZZER_PIN, 784, 100);
+  delay(120);
+  tone(BUZZER_PIN, 587, 100);
+  delay(120);
+  tone(BUZZER_PIN, 784, 150);
+  delay(180);
   noTone(BUZZER_PIN);
 }
 
@@ -498,12 +501,14 @@ void publishFingerprintEvent(const String& eventType, uint16_t fingerID, uint16_
 void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId) {
   uint8_t employeeID = doc["employeeID"] | 0;
   uint8_t fingerID = doc["fingerID"] | 1;
+  uint8_t roomID = doc["roomID"] | employeeID;
 
   Serial.printf("🔐 Starting fingerprint enrollment for employee ID: %d with finger ID: %d\n", employeeID, fingerID);
 
   JsonDocument response;
   response["requestId"] = requestId;
   response["action"] = "enroll_finger";
+  response["roomID"] = roomID;
   response["employeeID"] = employeeID;
   response["fingerID"] = fingerID;
 
@@ -523,7 +528,7 @@ void handleEnrollFingerCommand(const JsonDocument& doc, const String& requestId)
   }
 
   // Start enrollment process
-  int enrollResult = enrollFingerprint(fingerID, employeeID);
+  int enrollResult = enrollFingerprint(roomID, fingerID, employeeID);
 
   if (enrollResult == FINGERPRINT_OK) {
     response["status"] = "success";
@@ -587,7 +592,7 @@ void handleGetFingerCountCommand(const String& requestId) {
   Serial.printf("📊 Enrolled fingerprints: %d/%d\n", finger.templateCount, finger.capacity);
 }
 
-int enrollFingerprint(uint8_t fingerID, uint8_t employeeID) {
+int enrollFingerprint(uint8_t roomID, uint8_t fingerID, uint8_t employeeID) {
   int p = -1;
   unsigned long startTime;
   const unsigned long FINGER_TIMEOUT = 10000;  // 10 seconds timeout
@@ -620,6 +625,7 @@ int enrollFingerprint(uint8_t fingerID, uint8_t employeeID) {
   JsonDocument stepResponse;
   stepResponse["action"] = "enroll_step";
   stepResponse["step"] = "remove_finger";
+  stepResponse["roomID"] = roomID;
   stepResponse["employeeID"] = employeeID;
   stepResponse["fingerID"] = fingerID;
   stepResponse["timestamp"] = millis();
@@ -630,7 +636,7 @@ int enrollFingerprint(uint8_t fingerID, uint8_t employeeID) {
 
   delay(2000);
 
-  // Wait for finger removal (shorter timeout)
+  // Wait for finger removal
   startTime = millis();
   while (finger.getImage() != FINGERPRINT_NOFINGER) {
     yield();
@@ -647,6 +653,7 @@ int enrollFingerprint(uint8_t fingerID, uint8_t employeeID) {
   JsonDocument placeAgainResponse;
   placeAgainResponse["action"] = "enroll_step";
   placeAgainResponse["step"] = "place_again";
+  placeAgainResponse["roomID"] = "roomID";
   placeAgainResponse["employeeID"] = employeeID;
   placeAgainResponse["fingerID"] = fingerID;
   placeAgainResponse["timestamp"] = millis();

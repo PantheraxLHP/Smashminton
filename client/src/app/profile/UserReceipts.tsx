@@ -1,6 +1,7 @@
 import { formatDate, formatPrice } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { useState, useMemo } from 'react';
 
 interface Product {
     productid: number;
@@ -39,23 +40,40 @@ interface UserReceiptsProps {
 }
 
 const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
+    const [selectedFilter, setSelectedFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
+
     const formatTime = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        });
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'N/A';
+            }
+            return date.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+            });
+        } catch {
+            return 'N/A';
+        }
     };
 
     const getBookingStatus = (starttime: string, endtime: string): 'upcoming' | 'ongoing' | 'completed' => {
-        const now = new Date();
-        const start = new Date(starttime);
-        const end = new Date(endtime);
+        try {
+            const now = new Date();
+            const start = new Date(starttime);
+            const end = new Date(endtime);
 
-        if (now < start) return 'upcoming';
-        if (now >= start && now <= end) return 'ongoing';
-        return 'completed';
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return 'completed';
+            }
+
+            if (now < start) return 'upcoming';
+            if (now >= start && now <= end) return 'ongoing';
+            return 'completed';
+        } catch {
+            return 'completed';
+        }
     };
 
     const getStatusColor = (status: 'upcoming' | 'ongoing' | 'completed') => {
@@ -63,7 +81,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
             case 'upcoming':
                 return 'bg-blue-500';
             case 'ongoing':
-                return 'bg-green-500';
+                return 'bg-primary-500';
             case 'completed':
                 return 'bg-gray-500';
             default:
@@ -85,7 +103,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
     };
 
     const getPaymentMethodText = (method: string) => {
-        switch (method.toLowerCase()) {
+        switch (method?.toLowerCase()) {
             case 'momo':
                 return 'MoMo';
             case 'cash':
@@ -93,81 +111,155 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
             case 'banking':
                 return 'Chuyển khoản';
             default:
-                return method;
+                return method || 'Không xác định';
         }
     };
 
+    // Memoized calculations for better performance
+    const { categorizedReceipts, allReceipts } = useMemo(() => {
+        const validReceipts = Array.isArray(receipts) ? receipts : [];
+
+        // Helper function to get earliest date for sorting
+        const getEarliestDate = (receipt: Receipt) => {
+            if (!receipt.courts || !Array.isArray(receipt.courts) || receipt.courts.length === 0) {
+                return new Date(0);
+            }
+            const dates = receipt.courts
+                .map((court) => new Date(court.starttime))
+                .filter((date) => !isNaN(date.getTime()));
+
+            return dates.length > 0 ? new Date(Math.min(...dates.map((d) => d.getTime()))) : new Date(0);
+        };
+
+        // Sort function
+        const sortReceiptsByDate = (receipts: Receipt[], reverse: boolean = false) => {
+            return [...receipts].sort((a, b) => {
+                const dateA = getEarliestDate(a);
+                const dateB = getEarliestDate(b);
+                return reverse ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
+            });
+        };
+
+        // Categorize receipts with unique assignment (each receipt appears in only one category)
+        const ongoing: Receipt[] = [];
+        const upcoming: Receipt[] = [];
+        const completed: Receipt[] = [];
+
+        validReceipts.forEach((receipt) => {
+            if (!receipt.courts || !Array.isArray(receipt.courts) || receipt.courts.length === 0) {
+                completed.push(receipt);
+                return;
+            }
+
+            const statuses = receipt.courts.map((court) => getBookingStatus(court.starttime, court.endtime));
+
+            // Priority: ongoing > upcoming > completed
+            if (statuses.includes('ongoing')) {
+                ongoing.push(receipt);
+            }
+            if (statuses.includes('upcoming')) {
+                upcoming.push(receipt);
+            }
+            if (statuses.includes('completed')) {
+                completed.push(receipt);
+            }
+        });
+
+        return {
+            categorizedReceipts: {
+                ongoing: sortReceiptsByDate(ongoing),
+                upcoming: sortReceiptsByDate(upcoming),
+                completed: sortReceiptsByDate(completed, true), // newest first for completed
+            },
+            allReceipts: sortReceiptsByDate(validReceipts),
+        };
+    }, [receipts]);
+
     const renderCourt = (court: Court, receiptId: number, courtIndex: number) => {
         const status = getBookingStatus(court.starttime, court.endtime);
-
-        // Safe array access
         const products = Array.isArray(court.products) ? court.products : [];
         const rentals = Array.isArray(court.rentals) ? court.rentals : [];
 
         return (
-            <div key={`${receiptId}-${courtIndex}`} className="flex flex-col">
-                <div className={`h-3 rounded-t-lg ${getStatusColor(status)} flex items-center justify-center`}>
+            <div key={`${receiptId}-${courtIndex}-${court.starttime}`} className="flex flex-col">
+                <div className={`h-6 rounded-t-lg ${getStatusColor(status)} flex items-center justify-center`}>
                     <span className="text-xs font-semibold text-white">{getStatusText(status)}</span>
                 </div>
-                <div className="flex flex-col gap-2 rounded-b-lg border-r-2 border-b-2 border-l-2 p-4 shadow-md">
-                    <div className="flex items-center gap-4 text-lg">
-                        {formatTime(court.starttime)} - {formatTime(court.endtime)}
-                        <div className="flex items-center gap-2">
-                            <Icon icon="mdi:clock-outline" className="size-6" />
-                            <span className="">{court.duration}h</span>
+                <div className="flex flex-col gap-3 rounded-b-lg border-r-2 border-b-2 border-l-2 bg-white p-4 shadow-md">
+                    <div className="flex flex-wrap items-center gap-4 text-base">
+                        <div className="flex items-center gap-1 font-medium">
+                            {formatTime(court.starttime)} - {formatTime(court.endtime)}
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Icon icon="material-symbols:attach-money-rounded" className="size-6" />
-                            <span className="">{formatPrice(parseInt(court.totalamount || '0'))}</span>
+                        <div className="flex items-center gap-1">
+                            <Icon icon="mdi:clock-outline" className="size-5" />
+                            <span>{court.duration}h</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Icon icon="material-symbols:attach-money-rounded" className="size-5" />
+                            <span className="font-medium">{formatPrice(parseInt(court.totalamount || '0'))}</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-lg">
-                        <Icon icon="mdi:calendar-outline" className="size-6" />
-                        <span className="">{formatDate(new Date(court.date))}</span>
+
+                    <div className="flex items-center gap-2 text-base">
+                        <Icon icon="mdi:calendar-outline" className="size-5" />
+                        <span>{formatDate(new Date(court.starttime))}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-lg">
-                        <Icon icon="ph:court-basketball" className="size-6" />
-                        <span className="">Sân cầu lông ({court.zone || 'N/A'})</span>
+
+                    <div className="flex items-center gap-2 text-base">
+                        <Icon icon="ph:court-basketball" className="size-5" />
+                        <span>Sân cầu lông ({court.zone || 'N/A'})</span>
                     </div>
-                    <div className="flex items-center gap-2 text-lg">
-                        <Icon icon="lucide:user-round-check" className="size-6" />
-                        <span className="">{court.guestphone || 'N/A'}</span>
-                    </div>
+
+                    {court.guestphone && (
+                        <div className="flex items-center gap-2 text-base">
+                            <Icon icon="lucide:phone-call" className="size-5" />
+                            <span>{court.guestphone}</span>
+                        </div>
+                    )}
+
                     {(products.length > 0 || rentals.length > 0) && (
-                        <Accordion type="multiple" className="w-full">
+                        <Accordion type="multiple" className="mt-2 w-full">
                             {products.length > 0 && (
-                                <AccordionItem value={`products-${receiptId}-${courtIndex}`} className="">
-                                    <AccordionTrigger className="cursor-pointer !py-1 text-lg">
+                                <AccordionItem value={`products-${receiptId}-${courtIndex}`}>
+                                    <AccordionTrigger className="cursor-pointer py-2 text-base hover:no-underline">
                                         <div className="flex items-center gap-2">
-                                            <Icon icon="mdi:package-variant-closed-check" className="size-6" />
-                                            <span>{products.length} Sản phẩm </span>
+                                            <Icon icon="mdi:package-variant-closed-check" className="size-5" />
+                                            <span>{products.length} Sản phẩm</span>
                                         </div>
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-base">
-                                        <div className="flex flex-col gap-1">
+                                    <AccordionContent className="text-sm">
+                                        <div className="flex flex-col gap-1 pl-2">
                                             {products.map((product, index) => (
-                                                <span key={index}>
-                                                    {product.quantity} {product.productname}
-                                                </span>
+                                                <div
+                                                    key={`${product.productid}-${index}`}
+                                                    className="flex justify-between"
+                                                >
+                                                    <span>{product.productname}</span>
+                                                    <span className="font-medium">x{product.quantity}</span>
+                                                </div>
                                             ))}
                                         </div>
                                     </AccordionContent>
                                 </AccordionItem>
                             )}
                             {rentals.length > 0 && (
-                                <AccordionItem value={`rentals-${receiptId}-${courtIndex}`} className="">
-                                    <AccordionTrigger className="cursor-pointer !py-1 text-lg">
+                                <AccordionItem value={`rentals-${receiptId}-${courtIndex}`}>
+                                    <AccordionTrigger className="cursor-pointer py-2 text-base hover:no-underline">
                                         <div className="flex items-center gap-2">
-                                            <Icon icon="mdi:package-variant" className="size-6" />
-                                            <span>{rentals.length} Dịch vụ </span>
+                                            <Icon icon="mdi:package-variant" className="size-5" />
+                                            <span>{rentals.length} Dịch vụ</span>
                                         </div>
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-base">
-                                        <div className="flex flex-col gap-1">
+                                    <AccordionContent className="text-sm">
+                                        <div className="flex flex-col gap-1 pl-2">
                                             {rentals.map((rental, index) => (
-                                                <span key={index}>
-                                                    {rental.quantity} {rental.productname}
-                                                </span>
+                                                <div
+                                                    key={`${rental.productid}-${index}`}
+                                                    className="flex justify-between"
+                                                >
+                                                    <span>{rental.productname}</span>
+                                                    <span className="font-medium">x{rental.quantity}</span>
+                                                </div>
                                             ))}
                                         </div>
                                     </AccordionContent>
@@ -180,97 +272,150 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         );
     };
 
-    const renderReceipt = (receipt: Receipt) => {
+    const renderReceipt = (receipt: Receipt, currentFilter: 'all' | 'ongoing' | 'upcoming' | 'completed') => {
         const courts = Array.isArray(receipt.courts) ? receipt.courts : [];
 
+        // Filter courts based on current filter when not 'all'
+        const filteredCourts =
+            currentFilter === 'all'
+                ? courts
+                : courts.filter((court) => getBookingStatus(court.starttime, court.endtime) === currentFilter);
+
+        // Don't render if no courts match the filter
+        if (filteredCourts.length === 0) return null;
+
         return (
-            <div key={receipt.receiptid} className="mb-6">
-                <div className="mb-4 rounded-lg bg-gray-50 p-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <Icon icon="mdi:receipt-text" className="size-5" />
-                                <span className="font-medium">Hóa đơn #{receipt.receiptid}</span>
+            <div key={`${receipt.receiptid}-${currentFilter}`} className="mb-6">
+                <Accordion type="multiple" className="w-full">
+                    <AccordionItem value={`receipt-${receipt.receiptid}`} className="rounded-lg border shadow-sm">
+                        <AccordionTrigger className="rounded-t-lg bg-gray-50 px-4 py-3 hover:no-underline">
+                            <div className="flex w-full items-center justify-between">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <Icon icon="mdi:receipt-text" className="size-5" />
+                                        <span className="font-medium">Hóa đơn #{receipt.receiptid}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Icon icon="mdi:credit-card" className="size-4" />
+                                        <span className="text-sm text-gray-600">
+                                            {getPaymentMethodText(receipt.paymentmethod)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Icon icon="ph:court-basketball" className="size-4" />
+                                        <span className="text-sm text-gray-600">
+                                            {filteredCourts.length}
+                                            {filteredCourts.length !== courts.length && ` / ${courts.length}`} sân
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs text-gray-500">Tổng cộng</div>
+                                    <div className="text-primary-600 text-lg font-bold">
+                                        {formatPrice(parseInt(receipt.totalamount || '0'))}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Icon icon="mdi:credit-card" className="size-5" />
-                                <span className="text-sm text-gray-600">
-                                    {getPaymentMethodText(receipt.paymentmethod || 'N/A')}
-                                </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="bg-gray-25 px-4 pb-4">
+                            <div className="mt-2 flex flex-col gap-4">
+                                {filteredCourts.map((court, index) => renderCourt(court, receipt.receiptid, index))}
                             </div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-sm text-gray-600">Tổng cộng</div>
-                            <div className="text-lg font-bold">{formatPrice(parseInt(receipt.totalamount || '0'))}</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex flex-col gap-4">
-                    {courts.map((court, index) => renderCourt(court, receipt.receiptid, index))}
-                </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
         );
     };
 
-    // Ensure receipts is an array and handle edge cases
-    const validReceipts = Array.isArray(receipts) ? receipts : [];
-
-    // Group receipts by status
-    const upcomingReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'upcoming'),
-    );
-
-    const ongoingReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.some((court) => getBookingStatus(court.starttime, court.endtime) === 'ongoing'),
-    );
-
-    const completedReceipts = validReceipts.filter(
-        (receipt) =>
-            receipt.courts &&
-            Array.isArray(receipt.courts) &&
-            receipt.courts.every((court) => getBookingStatus(court.starttime, court.endtime) === 'completed'),
-    );
-
-    if (validReceipts.length === 0) {
+    if (!receipts || receipts.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-                <Icon icon="mdi:calendar-blank-outline" className="mb-4 size-16" />
-                <span className="text-lg">Chưa có lịch đặt sân nào</span>
+            <div className="flex flex-col items-center justify-center p-12 text-gray-500">
+                <Icon icon="mdi:calendar-blank-outline" className="mb-4 size-20" />
+                <span className="text-xl font-medium">Chưa có lịch đặt sân nào</span>
+                <span className="mt-2 text-sm">Lịch đặt sân của bạn sẽ hiển thị tại đây</span>
             </div>
         );
     }
 
+    const filterButtons = [
+        { key: 'all', label: 'Tất cả', icon: 'mdi:calendar-multiple', count: allReceipts.length },
+        { key: 'ongoing', label: 'Đang diễn ra', icon: 'mdi:clock-outline', count: categorizedReceipts.ongoing.length },
+        {
+            key: 'upcoming',
+            label: 'Sắp diễn ra',
+            icon: 'mdi:calendar-clock',
+            count: categorizedReceipts.upcoming.length,
+        },
+        {
+            key: 'completed',
+            label: 'Đã hoàn thành',
+            icon: 'mdi:calendar-check',
+            count: categorizedReceipts.completed.length,
+        },
+    ] as const;
+
+    const renderFilteredContent = () => {
+        const currentReceipts = selectedFilter === 'all' ? allReceipts : categorizedReceipts[selectedFilter];
+
+        if (currentReceipts.length === 0) {
+            const emptyStateConfig = {
+                ongoing: { icon: 'mdi:clock-outline', text: 'Không có booking đang diễn ra' },
+                upcoming: { icon: 'mdi:calendar-clock', text: 'Không có booking sắp diễn ra' },
+                completed: { icon: 'mdi:calendar-check', text: 'Không có booking đã hoàn thành' },
+                all: { icon: 'mdi:calendar-blank-outline', text: 'Không có booking nào' },
+            };
+
+            const config = emptyStateConfig[selectedFilter];
+
+            return (
+                <div className="flex flex-col items-center justify-center p-12 text-gray-500">
+                    <Icon icon={config.icon} className="mb-4 size-16" />
+                    <span className="text-lg">{config.text}</span>
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-2">{currentReceipts.map((receipt) => renderReceipt(receipt, selectedFilter))}</div>
+        );
+    };
+
     return (
         <div className="space-y-6">
-            {/* Ongoing Bookings */}
-            {ongoingReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Đang diễn ra</h3>
-                    {ongoingReceipts.map(renderReceipt)}
+            {/* Filter Buttons */}
+            <div className="sticky top-0 z-10 border-b bg-white/80 pb-4 backdrop-blur-sm">
+                <div className="flex flex-wrap gap-2">
+                    {filterButtons.map((button) => (
+                        <button
+                            key={button.key}
+                            onClick={() => setSelectedFilter(button.key)}
+                            className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+                                selectedFilter === button.key
+                                    ? 'bg-primary-600 text-white shadow-md'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                            }`}
+                        >
+                            <Icon icon={button.icon} className="size-4" />
+                            <span>{button.label}</span>
+                            {button.count > 0 && (
+                                <span
+                                    className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+                                        selectedFilter === button.key
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-gray-300 text-gray-700'
+                                    }`}
+                                >
+                                    {button.count}
+                                </span>
+                            )}
+                        </button>
+                    ))}
                 </div>
-            )}
+            </div>
 
-            {/* Upcoming Bookings */}
-            {upcomingReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Sắp diễn ra</h3>
-                    {upcomingReceipts.map(renderReceipt)}
-                </div>
-            )}
-
-            {/* Completed Bookings */}
-            {completedReceipts.length > 0 && (
-                <div>
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Đã hoàn thành</h3>
-                    {completedReceipts.map(renderReceipt)}
-                </div>
-            )}
+            {/* Filtered Content */}
+            {renderFilteredContent()}
         </div>
     );
 };

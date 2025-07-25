@@ -93,7 +93,9 @@ export class ProductBatchService {
 
       if (!po?.deliverydate || !expiry) continue;
 
-      const X = (expiry.getTime() - po.deliverydate.getTime()) / (1000 * 60 * 60 * 24);
+      const testNow = new Date('2025-08-01'); // <-- Bạn thay đổi ngày ở đây để test
+
+      const X = Math.ceil((expiry.getTime() - po.deliverydate.getTime()) / (1000 * 60 * 60 * 24));
       let Y: number;
       if (X < 30) Y = Math.ceil(X * 0.2);
       else if (X < 180) Y = Math.ceil(X * 0.15);
@@ -101,14 +103,14 @@ export class ProductBatchService {
       else Y = Math.ceil(X * 0.05);
 
       const Z = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-
-      // console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
-
+      
       let statusbatch = '';
       if (Z < 0) statusbatch = 'expired';
       else if (Z < Y) statusbatch = 'expiringsoon';
       else statusbatch = 'available';
 
+      // console.log(`Batch ${batch.batchid} - X: ${X}, Y: ${Y}, Z: ${Z}`);
+      
       if (batch.statusbatch !== statusbatch) {
         await this.prisma.product_batch.update({
           where: { batchid: batch.batchid },
@@ -130,7 +132,7 @@ export class ProductBatchService {
     };
   }
 
-  @Cron('0 0 * * *')
+  @Cron('0 0 0 * * *')
   async handleBatchStatusUpdate() {
     console.log('⏰ Running batch status update at 0h');
     await this.updateAllBatchStatus();
