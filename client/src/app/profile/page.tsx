@@ -80,7 +80,7 @@ const UserProfilePage = () => {
             setIsLoadingReceipts(true);
             try {
                 const customerid = user?.accounttype === 'Customer' ? user?.accountid : 0;
-                const employeeid = user?.accounttype === 'Employee' ? user?.accountid : 0;
+                const employeeid = user?.role === 'employee' ? user?.accountid : 0;
 
                 const response = await getReceiptDetail(customerid, employeeid);
                 if (response.ok) {
@@ -99,7 +99,7 @@ const UserProfilePage = () => {
         };
 
         // Fix: Only fetch receipts for Customer and Employee users
-        if (user?.accountid && (user?.role === 'Customer' || user?.role === 'Employee')) {
+        if (user?.accountid && (user?.accounttype === 'Customer' || user?.role === 'employee')) {
             fetchUserReceipts();
         }
     }, [user?.accountid, user?.accounttype, user?.role]);
@@ -314,7 +314,7 @@ const UserProfilePage = () => {
                 </div>
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
-                {activeTab === 'bookings' && (user?.accounttype === 'Customer' || user?.role === 'employee') && (
+                {activeTab === 'bookings' && (
                     <div className="mt-4 max-h-[45vh] overflow-y-auto sm:max-h-[50vh]">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">
