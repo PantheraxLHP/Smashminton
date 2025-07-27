@@ -288,7 +288,7 @@ const UserProfilePage = () => {
 
                 {/* Tabs */}
                 <div className="mt-4 flex gap-8 border-b text-sm font-semibold">
-                    {(user?.role === 'Customer' || user?.role === 'Employee') && (
+                    {(user?.accounttype === 'Customer' || user?.role === 'employee') && (
                         <button
                             onClick={() => handleTabClick('bookings')}
                             className={`py-2 ${activeTab === 'bookings' ? 'border-primary-600 text-primary-600 border-b-2' : 'text-gray-500'} hover:text-primary-600 cursor-pointer`}
@@ -314,7 +314,7 @@ const UserProfilePage = () => {
                 </div>
 
                 {/* Content for "Lịch sử Sân & Dịch vụ" */}
-                {activeTab === 'bookings' && (user?.role === 'Customer' || user?.role === 'Employee') && (
+                {activeTab === 'bookings' && (user?.accounttype === 'Customer' || user?.role === 'employee') && (
                     <div className="mt-4 max-h-[45vh] overflow-y-auto sm:max-h-[50vh]">
                         {isLoadingReceipts ? (
                             <div className="flex items-center justify-center p-8 text-gray-500">

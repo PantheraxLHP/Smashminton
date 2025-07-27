@@ -50,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     setIsAuthenticated(true);
                     try {
                         const accountId = userJWT.sub;
-                        console.log(userJWT.role);
                         const profileResponse = await getUser(accountId);
                         if (profileResponse.ok) {
                             const userData: User = {
