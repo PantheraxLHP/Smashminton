@@ -112,14 +112,12 @@ public class Shift_Date implements Serializable {
         if (obj == null || getClass() != obj.getClass())
             return false;
         Shift_Date that = (Shift_Date) obj;
-        return shiftId == that.shiftId && assignedEmployees == that.assignedEmployees && assignable == that.assignable
-                && shiftDate.equals(that.shiftDate);
+        return shiftId == that.shiftId && shiftDate.equals(that.shiftDate);
     }
 
     @Override
     public int hashCode() {
-        int result = 31 * shiftId + assignedEmployees + (assignable ? 1 : 0) + shiftDate.hashCode();
-        return result;
+        return 31 * shiftId + (shiftDate != null ? shiftDate.hashCode() : 0);
     }
 
     @Override

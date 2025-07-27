@@ -6,7 +6,7 @@ const HeroSection = () => {
     return (
         <div className="max-h-[80vh] bg-[url('https://res.cloudinary.com/dnagyxwcl/image/upload/v1746248985/What_is_the_Weight_of_a_Plastic_Shuttlecock__-_BadmintonBites_cwgpxi.jpg')] bg-cover bg-center p-8">
             <div className="relative max-h-screen w-full">
-                <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8">
+                <div className="container mx-auto flex h-full flex-col items-center justify-between px-4 py-16 md:px-6 lg:flex-row lg:px-8 gap-8">
                     {/* Left Section: Text */}
                     <div className="max-w-xl text-center text-white lg:text-left">
                         <h1 className="text-3xl leading-tight font-bold uppercase drop-shadow-lg md:text-4xl lg:text-5xl">

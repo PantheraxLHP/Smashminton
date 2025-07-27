@@ -78,7 +78,6 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
             const response = await getAutoAssignment();
             if (response.ok) {
                 setRuleList(response.data);
-                console.log(response.data);
             } else {
                 setRuleList([]);
                 toast.error('Không thể tải danh sách quy tắc phân công');
@@ -95,11 +94,7 @@ const AssignmentRuleList: React.FC<AssignmentRuleListProps> = ({
         const response = await updateAutoAssignment(ruleList.filter((r) => r.ruleName !== ruleName));
         if (response.ok) {
             setRuleList(ruleList.filter((r) => r.ruleName !== ruleName));
-            if (response.data.data.reloaded) {
-                toast.success('Xóa quy tắc thành công và bảng quyết định Drools đã được tải lại');
-            } else {
-                toast.warning('Xóa quy tắc thành công nhưng không thể tải lại bảng quyết định Drools');
-            }
+            toast.success('Xóa quy tắc thành công');
         } else {
             toast.error(response.message || 'Xóa quy tắc thất bại');
         }

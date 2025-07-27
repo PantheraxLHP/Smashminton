@@ -12,6 +12,8 @@ import {
     formatActionName,
     getFalseActionValue,
     getTrueActionValue,
+    getTrueConditionValue,
+    getFalseConditionValue,
 } from './utils';
 import { updateAutoAssignment } from '@/services/shiftdate.service';
 import { toast } from 'sonner';
@@ -43,15 +45,15 @@ const AssignmentRuleDetail = ({
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
                     { conditionName: 'isEligible', defaultValue: 'true' },
-                    { conditionName: 'isAssigned', defaultValue: 'true' },
+                    { conditionName: 'isAssigned', defaultValue: 'ShiftAssignment(employee == $E, shift == $CSD)' },
                 ];
             case 'enrollmentEmployee':
                 return [
                     { conditionName: 'assignedShiftInDay', defaultValue: '== 0' },
                     { conditionName: 'assignedShiftInWeek', defaultValue: '== 0' },
                     { conditionName: 'isEligible', defaultValue: 'true' },
-                    { conditionName: 'isEnrolled', defaultValue: 'true' },
-                    { conditionName: 'isAssigned', defaultValue: 'true' },
+                    { conditionName: 'isEnrolled', defaultValue: 'ShiftEnrollment(employee == $E, shift == $CSD)' },
+                    { conditionName: 'isAssigned', defaultValue: 'ShiftAssignment(employee == $E, shift == $CSD)' },
                 ];
             case 'shift':
                 return [
@@ -62,7 +64,7 @@ const AssignmentRuleDetail = ({
                 return [
                     { conditionName: 'assignedEmployees', defaultValue: '== 0' },
                     { conditionName: 'isAssignable', defaultValue: 'true' },
-                    { conditionName: 'isEnrolled', defaultValue: 'true' },
+                    { conditionName: 'isEnrolled', defaultValue: 'ShiftEnrollment(shift == $SD)' },
                 ];
             default:
                 return [{ conditionName: '', defaultValue: '' }];
@@ -308,11 +310,7 @@ const AssignmentRuleDetail = ({
         const response = await updateAutoAssignment(updatedRuleList);
         if (response.ok) {
             setRuleList(updatedRuleList);
-            if (response.data.data.reloaded) {
-                toast.success('Quy tắc đã được lưu thành công và bảng quyết định Drools đã được tải lại');
-            } else {
-                toast.warning('Quy tắc đã được lưu thành công nhưng không thể tải lại bảng quyết định Drools');
-            }
+            toast.success('Quy tắc đã được lưu thành công');
         } else {
             toast.error(response.message || 'Lưu quy tắc thất bại');
         }
@@ -519,15 +517,15 @@ const AssignmentRuleDetail = ({
                                         <div className="w-full p-2">
                                             {condition.conditionName.startsWith('is') ? (
                                                 <Select
-                                                    value={formatConditionValue(condition.conditionValue) || 'true'}
+                                                    value={condition.conditionValue}
                                                     onValueChange={(value) => updateConditionValue(index, value)}
                                                 >
                                                     <SelectTrigger className="focus-visible:border-primary focus-visible:ring-primary/50 border-gray-500">
                                                         <SelectValue placeholder={'Giá trị'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value={'true'}>{'Có'}</SelectItem>
-                                                        <SelectItem value={'false'}>{'Không'}</SelectItem>
+                                                        <SelectItem value={getTrueConditionValue(ruleType, condition.conditionName)}>{'Có'}</SelectItem>
+                                                        <SelectItem value={getFalseConditionValue(ruleType, condition.conditionName)}>{'Không'}</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             ) : (
