@@ -72,7 +72,7 @@ const FastBooking = () => {
     };
 
     return (
-        <div className="w-full max-w-md flex-[1_1_33%] rounded-xl bg-black/20 p-5">
+        <div className="w-full max-w-lg flex-[1_1_33%] rounded-xl bg-black/20 p-4">
             <p className="flex w-full justify-center pb-5 text-center text-base font-light text-white transition-all lg:text-lg">
                 Khám phá và đặt sân cầu lông chất lượng cao
                 <br />
