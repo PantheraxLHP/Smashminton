@@ -184,14 +184,14 @@ export default function PaymentPage() {
             </div>
 
             <div className="w-full overflow-auto rounded border border-black bg-gray-50">
-                <div className="bg-primary-500 min-w-[800px] border-b border-black py-2 text-center font-semibold text-white">
+                <div className="min-w-[800px] bg-primary-500 border-b border-black text-center font-semibold text-white py-2 pr-4 pl-4">
                     THÔNG TIN ĐƠN HÀNG
                 </div>
 
-                <div className="space-y-3 pt-2 pr-4 pb-3 pl-4">
+                <div className="min-w-[800px] space-y-3 pt-2 pb-3 pl-4 pr-4">
                     <OrderSummary />
 
-                    <div className="min-w-[800px] border-t border-gray-400 pt-4">
+                    <div className="border-t border-gray-400 pt-4">
                         <div className="flex flex-col items-start justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <span className="font-semibold whitespace-nowrap">MÃ GIẢM GIÁ</span>

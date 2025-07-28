@@ -40,8 +40,8 @@ export default function OrderSummary() {
     const totalPrice = totalCourtPrice + totalProductPrice;
 
     return (
-        <table className="text-md w-full min-w-[800px] text-center">
-            <thead className="border-b border-black bg-white">
+        <table className="text-md w-full text-center">
+            <thead className="border-b border-black">
                 <tr className="text-xs">
                     <th className="px-2 py-3 text-left">MÔ TẢ</th>
                     <th className="px-2 py-3">SỐ LƯỢNG</th>

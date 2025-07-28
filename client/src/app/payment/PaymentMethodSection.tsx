@@ -10,7 +10,7 @@ interface PaymentMethodSectionProps {
 
 const PaymentMethodSection: React.FC<PaymentMethodSectionProps> = ({ selectedMethod, setSelectedMethod }) => {
     return (
-        <div className="min-w-[800px] border-t border-gray-400 pt-4">
+        <div className="border-t border-gray-400 pt-4">
             <p className="mb-2 font-semibold">HÌNH THỨC THANH TOÁN</p>
             <div className="flex flex-col gap-2">
                 <RadioGroup
