@@ -354,7 +354,7 @@ export class PredictionService {
     }
   }
 
-  @Cron('0 23 31 12 *') // 11h pm, 31/12 every year
+  @Cron('0 0 0 1 1 *') // 12AM, 1/1 every year
   async handleTrainBestsellerModelCron() {
     Logger.log('Auto training bestseller model at 11PM, 31/12...');
     await this.trainBestsellerModel();

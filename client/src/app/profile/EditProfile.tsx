@@ -1,8 +1,8 @@
 // components/EditProfile.tsx
 'use client';
 
+import { User } from '@/context/AuthContext';
 import { updateProfile } from '@/services/accounts.service';
-import { Accounts } from '@/types/types';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import {
@@ -31,14 +31,14 @@ import {
     getValidationErrors,
 } from '@/lib/validation.schema';
 
-interface EditProfileFormData extends Accounts {
+interface EditProfileFormData extends User {
     avatar: File | null;
 }
 
 interface EditProfileProps {
-    userProfile: Accounts;
+    userProfile: User;
     onClose: () => void;
-    onSave: (updatedUser: Accounts) => void;
+    onSave: (updatedUser: User) => void;
 }
 
 const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave }) => {
@@ -266,7 +266,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             if (response.ok) {
                 onSave(response.data);
                 onClose();
-                console.log(response.message);
                 toast.success('Cập nhật thông tin thành công');
             } else {
                 toast.error('Cập nhật thông tin thất bại');

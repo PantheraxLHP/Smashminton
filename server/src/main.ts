@@ -24,7 +24,8 @@ async function bootstrap() {
     app.enableCors({
         origin: process.env.CLIENT || 'http://localhost:3000',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        credentials: true, // Cho phép gửi cookies
+        credentials: process.env.NODE_ENV === 'production',
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     });
 
     app.setGlobalPrefix('api/v1', { exclude: [''] });
