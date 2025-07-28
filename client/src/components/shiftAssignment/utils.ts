@@ -64,19 +64,97 @@ export function formatConditionName(conditionName: string) {
 
 export function formatConditionValue(conditionValue: string) {
     switch (conditionValue) {
-        case 'ShiftEnrollment(getShift().equals($SD))':
+        case 'ShiftEnrollment(shift == $SD)':
             return 'true';
-        case 'not(ShiftEnrollment(getShift().equals($SD)))':
+        case 'not(ShiftEnrollment(shift == $SD))':
             return 'false';
-        case 'ShiftEnrollment(getEmployee().equals($E), getShift().equals($CSD))':
+        case 'ShiftEnrollment(employee == $E, shift == $CSD)':
             return 'true';
-        case 'not(ShiftEnrollment(getEmployee().equals($E), getShift().equals($CSD)))':
+        case 'not(ShiftEnrollment(employee == $E, shift == $CSD))':
             return 'false';
-        case 'ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD))':
+        case 'ShiftAssignment(employee == $E, shift == $CSD)':
             return 'true';
-        case 'not(ShiftAssignment(getEmployee().equals($E), getShift().equals($CSD)))':
+        case 'not(ShiftAssignment(employee == $E, shift == $CSD))':
             return 'false';
         default:
             return conditionValue;
+    }
+}
+
+export function getTrueConditionValue(ruleType: string, conditionName: string) {
+    switch (ruleType) {
+        case 'employee':
+            if (conditionName === 'isAssigned') {
+                return 'ShiftAssignment(employee == $E, shift == $CSD)';
+            }
+            else if (conditionName === 'isEligible') {
+                return 'true';
+            }
+            else return 'undefined';
+        case 'enrollmentEmployee':
+            if (conditionName === 'isEnrolled') {
+                return 'ShiftEnrollment(employee == $E, shift == $CSD)';
+            }
+            else if (conditionName === 'isAssigned') {
+                return 'ShiftAssignment(employee == $E, shift == $CSD)';
+            }
+            else if (conditionName === 'isEligible') {
+                return 'true';
+            }
+            else return 'undefined';
+        case 'enrollmentShift':
+            if (conditionName === 'isEnrolled') {
+                return 'ShiftEnrollment(shift == $SD)';
+            }
+            else if (conditionName === 'isAssignable') {
+                return 'true';
+            }
+            else return 'undefined';
+        case 'shift':
+            if (conditionName === 'isAssignable') {
+                return 'true';
+            }
+            else return 'undefined';
+        default:
+            return 'undefined';
+    }
+}
+
+export function getFalseConditionValue(ruleType: string, conditionName: string) {
+    switch (ruleType) {
+        case 'employee':
+            if (conditionName === 'isAssigned') {
+                return 'not(ShiftAssignment(employee == $E, shift == $CSD))';
+            }
+            else if (conditionName === 'isEligible') {
+                return 'false';
+            }
+            else return 'undefined';
+        case 'enrollmentEmployee':
+            if (conditionName === 'isEnrolled') {
+                return 'not(ShiftEnrollment(employee == $E, shift == $CSD))';
+            }
+            else if (conditionName === 'isAssigned') {
+                return 'not(ShiftAssignment(employee == $E, shift == $CSD))';
+            }
+            else if (conditionName === 'isEligible') {
+                return 'false';
+            }
+            else return 'undefined';
+        case 'enrollmentShift':
+            if (conditionName === 'isEnrolled') {
+                return 'not(ShiftEnrollment(shift == $SD))';
+            }
+            else if (conditionName === 'isAssignable') {
+                return 'false';
+            }
+            else return 'undefined';
+        case 'shift':
+            if (conditionName === 'isAssignable') {
+                return 'false';
+            }
+            else return 'undefined';
+        default:
+            return 'undefined';
     }
 }

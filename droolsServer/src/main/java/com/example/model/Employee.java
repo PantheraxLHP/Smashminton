@@ -180,17 +180,12 @@ public class Employee {
         if (obj == null || getClass() != obj.getClass())
             return false;
         Employee employee = (Employee) obj;
-        return employeeId == employee.employeeId &&
-                assignedShiftInWeek == employee.assignedShiftInWeek &&
-                priorityScore == employee.priorityScore &&
-                eligible == employee.eligible &&
-                assignedShiftInDay.equals(employee.assignedShiftInDay);
+        return employeeId == employee.employeeId;
     }
 
     @Override
     public int hashCode() {
-        return 31 * employeeId + assignedShiftInWeek + priorityScore + (eligible ? 1 : 0)
-                + assignedShiftInDay.hashCode();
+        return 31 * employeeId;
     }
 
     @Override

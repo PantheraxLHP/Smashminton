@@ -457,26 +457,8 @@ export class AutoAssignmentService {
             if (!insertResult || insertResult.insertedRows === undefined) {
                 throw new Error("Failed to insert rule table data or no rows inserted.");
             }
-
-            console.log("🔄 Reloading Drools decision table after Excel changes...");
-            let reloaded = false;
-            try {
-                const droolsReloadResponse = await fetch(`${process.env.DROOLS}/api/drools/reload`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (droolsReloadResponse.ok) {
-                    reloaded = true;
-                }
-            } catch (droolsError) {
-                
-            }
-    
+            
             return {
-                reloaded,
                 deleteResult,
                 insertResult
             };
