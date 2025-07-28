@@ -139,7 +139,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
             )}
 
             {/* Desktop Submenu */}
-            {menuItems.map(
+            {!isMobileMenuOpen && menuItems.map(
                 (item, index) =>
                     item.subMenu &&
                     openMenu === item.label && (
