@@ -27,7 +27,6 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
     const { selectedCourts, addCourt, removeCourtByIndex } = useBooking();
     const [showFixedCourtDialog, setShowFixedCourtDialog] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
-    // Remove storage, use local state for dialog tracking
     const [hasShownDialog, setHasShownDialog] = useState(false);
 
     const handleAddCourt = (scCourt: SelectedCourts) => {

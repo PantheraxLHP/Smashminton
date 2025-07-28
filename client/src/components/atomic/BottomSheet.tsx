@@ -18,7 +18,6 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, sele
 
     const [timeLeft, setTimeLeft] = useState(TTL);
     const router = useRouter();
-    const prevCourtsLengthRef = useRef<number>(0);
 
     useEffect(() => {
         if (selectedCourts && selectedCourts.length > 0) {
@@ -30,19 +29,39 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, sele
         if (timeLeft <= 0 || !selectedCourts || selectedCourts.length === 0) {
             return;
         }
-        const timerId = setInterval(() => {
-            setTimeLeft((prevTime) => {
-                if (prevTime <= 1) {
-                    clearInterval(timerId);
-                    toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
-                    clearRentalOrder();
-                    window.location.reload();
-                    return 0;
-                }
-                return prevTime - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timerId);
+
+        let lastTime = Date.now();
+        let animationId: number;
+
+        const updateTimer = () => {
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastTime;
+
+            if (deltaTime >= 1000) {
+                setTimeLeft((prevTime) => {
+                    if (prevTime <= 1) {
+                        toast.warning('Thời gian đặt sân đã hết. Vui lòng chọn lại sân.');
+                        clearRentalOrder();
+                        window.location.reload();
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+                lastTime = currentTime;
+            }
+
+            if (timeLeft > 0) {
+                animationId = requestAnimationFrame(updateTimer);
+            }
+        };
+
+        animationId = requestAnimationFrame(updateTimer);
+
+        return () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        };
     }, [TTL, selectedCourts, timeLeft, clearRentalOrder]);
 
     // onConfirm function use for booking page, if not set, it will redirect to payment page
