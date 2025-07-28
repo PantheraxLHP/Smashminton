@@ -37,7 +37,7 @@ const ProfileIcon = () => {
                             alt="avatar"
                             width={32}
                             height={32}
-                            className="rounded-full object-cover"
+                            className="object-cover rounded-full w-[32px] h-[32px]"
                         />
                     ) : (
                         <User className="text-primary-500" size={32} />

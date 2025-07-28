@@ -235,11 +235,17 @@ const UserProfilePage = () => {
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        setImagePreview(null);
+        setStudentImage(null);
+    }, [activeTab]);
+
     return (
-        <div className="flex max-h-screen min-h-screen w-full justify-center bg-[url('/default.png')] bg-cover bg-center px-35 py-10">
-            <div className="w-full rounded bg-white p-6 shadow-2xl">
+        <div className="flex max-h-screen min-h-screen w-full justify-center bg-[url('/default.png')] bg-cover bg-center px-4 sm:px-10 md:px-20 lg:px-35 py-10">
+            <div className="w-full rounded bg-white p-4 sm:p-6 shadow-2xl overflow-y-auto">
                 {/* Profile Section */}
-                <div className="flex items-start gap-6 border-b pb-6">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 border-b pb-6">
                     {userProfile?.avatarurl ? (
                         <Image
                             src={userProfile.avatarurl}
@@ -276,7 +282,7 @@ const UserProfilePage = () => {
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div className="mt-4 sm:mt-0 sm:ml-auto">
                         <button
                             className="bg-primary-500 hover:bg-primary-600 cursor-pointer rounded px-4 py-2 font-semibold text-white"
                             onClick={() => setShowEditProfile(true)}
@@ -287,7 +293,7 @@ const UserProfilePage = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="mt-4 flex gap-8 border-b text-sm font-semibold">
+                <div className="mt-4 flex gap-6 overflow-x-auto whitespace-nowrap border-b text-sm font-semibold">
                     {(user?.accounttype === 'Customer' || user?.role === 'employee') && (
                         <button
                             onClick={() => handleTabClick('bookings')}
@@ -501,7 +507,7 @@ const UserProfilePage = () => {
                 )}
 
                 {activeTab === 'changepassword' && (
-                    <div className="flex justify-center">
+                    <div className="flex justify-center px-2">
                         <form className="mt-4 w-full max-w-md space-y-4" onSubmit={handleChangePassword}>
                             <div>
                                 <label className="block py-2 text-sm font-medium">Mật khẩu mới</label>

@@ -343,7 +343,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         { key: 'ongoing', label: 'Đang diễn ra', icon: 'mdi:clock-outline', count: categorizedReceipts.ongoing.length },
         {
             key: 'upcoming',
-            label: 'Sắp diễn ra',
+            label: 'Sắp diễn ra',   
             icon: 'mdi:calendar-clock',
             count: categorizedReceipts.upcoming.length,
         },
@@ -384,8 +384,8 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
     return (
         <div className="space-y-6">
             {/* Filter Buttons */}
-            <div className="sticky top-0 z-10 border-b bg-white/80 pb-4 backdrop-blur-sm">
-                <div className="flex flex-wrap gap-2">
+            <div className="sticky top-0 z-10 border-b bg-white pb-4 backdrop-blur-sm">
+                <div className="flex overflow-x-auto gap-2 whitespace-nowrap">
                     {filterButtons.map((button) => (
                         <button
                             key={button.key}

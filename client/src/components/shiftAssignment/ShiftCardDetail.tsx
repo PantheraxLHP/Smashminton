@@ -66,7 +66,7 @@ const DraggableEmployee: React.FC<DraggableEmployeeProps> = ({ employee, setIsDr
                 alt={`Hình của nhân viên ${employee.employeeid}`}
                 width={40}
                 height={40}
-                className="rounded-full border-2 border-primary-500"
+                className="rounded-full border-2 border-primary-500 w-[40px] h-[40px] object-cover"
             />
             <span>{employee.accounts?.fullname}</span>
         </div>
@@ -124,7 +124,7 @@ const DraggableAssignment: React.FC<DraggableAssignmentProps> = ({
                 alt={`Hình của nhân viên ${assignment.employeeid}`}
                 width={40}
                 height={40}
-                className="rounded-full border-2 border-primary-500"
+                className="rounded-full border-2 border-primary-500 w-[40px] h-[40px] object-cover"
             />
             <span>{assignment.employees?.accounts?.fullname || ''}</span>
             { assignment.assignmentstatus === "approved" && (

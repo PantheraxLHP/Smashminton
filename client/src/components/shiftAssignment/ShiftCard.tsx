@@ -192,26 +192,26 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shiftDataSingle, role, type, sele
                                 {(shiftDataSingle as ShiftDate).shift_assignment?.length || 0} Xác nhận
                             </span>
                         </div>
-                        <div className="flex items-center -space-x-5">
+                        <div className="flex items-center -space-x-4">
                             {(shiftDataSingle as ShiftDate).shift_assignment
                                 ?.slice(0, 5)
                                 .map((assignment: ShiftAssignment, index: number) => (
                                     <div
                                         key={`assignment-${assignment.shiftid}-${assignment.employeeid}-${new Date((shiftDataSingle as ShiftDate).shiftdate instanceof Date ? (shiftDataSingle as ShiftDate).shiftdate : new Date((shiftDataSingle as ShiftDate).shiftdate)).getTime()}-${index}`}
-                                        className={`border-primary bg-primary-50 relative aspect-square h-10 w-10 rounded-full border-2`}
+                                        className={`border-primary bg-primary-50 rounded-full border-2`}
                                     >
                                         <Image
                                             src={`${assignment.employees?.accounts?.avatarurl || '/user.png'}`}
                                             alt={`Nhân viên ${assignment.employeeid}`}
-                                            width={40}
-                                            height={40}
-                                            className="rounded-full object-cover"
+                                            width={32}
+                                            height={32}
+                                            className="object-cover rounded-full w-[32px] h-[32px]"
                                         />
                                     </div>
                                 ))}
 
                             {((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) > 5 && (
-                                <div className="border-primary bg-primary-50 text-primary relative flex aspect-square h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold">
+                                <div className="border-primary bg-primary-50 text-primary flex items-center w-9 h-9 justify-center rounded-full border-2 text-sm font-bold">
                                     +{((shiftDataSingle as ShiftDate).shift_assignment?.length || 0) - 5}
                                 </div>
                             )}

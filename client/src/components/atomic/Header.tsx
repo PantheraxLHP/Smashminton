@@ -49,7 +49,7 @@ export default function Header({ menuItems = [], showLoginButton }: HeaderProps)
                             alt="Logo"
                             width={40}
                             height={40}
-                            style={{ width: 'auto', height: 'auto' }}
+                            className="object-contain w-[40px] h-[40px]"
                         />
                     </Link>
                 </div>
