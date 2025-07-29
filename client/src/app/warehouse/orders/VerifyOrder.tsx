@@ -94,7 +94,6 @@ export default function VerifyOrderModal({
 
             const received = formData.receivedQuantity;
             const ordered = formData.quantity;
-            console.log(received);
             // Gọi API xác nhận đơn hàng chính
             const updateRes = await updatePurchaseOrder(formData.orderid, {
                 realityQuantity: received,

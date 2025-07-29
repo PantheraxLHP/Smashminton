@@ -266,7 +266,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             if (response.ok) {
                 onSave(response.data);
                 onClose();
-                console.log(response.message);
                 toast.success('Cập nhật thông tin thành công');
             } else {
                 toast.error('Cập nhật thông tin thất bại');

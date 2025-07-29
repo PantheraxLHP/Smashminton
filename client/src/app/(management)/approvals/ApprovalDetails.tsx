@@ -16,7 +16,6 @@ interface ApprovalDetailsProps {
 const ApprovalDetails = ({ record, onSaveSuccess }: ApprovalDetailsProps) => {
     const [rewardNote, setRewardNote] = useState(record.rewardnote || '');
     const handleSaveNote = async () => {
-        console.log(rewardNote);
         const response = await patchRewardNote(record.rewardrecordid, rewardNote);
         if (response.ok) {
             toast.success('Ghi chú đã được lưu');

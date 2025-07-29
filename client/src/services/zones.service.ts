@@ -67,7 +67,6 @@ export const getZoneCourt = async (page: number, pageSize: number) => {
         });
 
         const result = await res.json();
-        console.log('[DEBUG] getZoneCourt response:', result);
 
         const zoneList = result.data?.data;
         const pagination = result.data?.pagination;

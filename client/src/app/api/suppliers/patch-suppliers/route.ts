@@ -16,8 +16,6 @@ export async function PATCH(request: NextRequest) {
 
         const body = await request.json();
 
-        console.log('[DEBUG] PATCH supplier JSON received:', body);
-
         const { suppliername, contactname, phonenumber, email, address, products_costs } = body;
 
         if ( !suppliername || !contactname || !phonenumber || !email || !address ) {
