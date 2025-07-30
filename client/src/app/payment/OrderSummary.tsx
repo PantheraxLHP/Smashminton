@@ -4,11 +4,13 @@ import { useBooking } from '@/context/BookingContext';
 import { formatDate, formatPrice } from '@/lib/utils';
 import { getSingleProduct } from '@/services/products.service';
 import Image from 'next/image';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function OrderSummary() {
     const { addProductItem, removeProduct, totalCourtPrice, totalProductPrice, selectedCourts, selectedProducts } =
         useBooking();
+    const [loadingProducts, setLoadingProducts] = useState<Set<number>>(new Set());
     const getSelectedProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
@@ -23,18 +25,36 @@ export default function OrderSummary() {
     };
 
     const handleQuantityChange = async (productId: number, delta: number) => {
-        if (delta > 0) {
-            const productStock = await getProductStockQuantity(productId);
-            if (getSelectedProductQuantity(productId) >= productStock) {
-                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
-                return;
+        // Prevent multiple clicks
+        if (loadingProducts.has(productId)) {
+            return;
+        }
+
+        // Add product to loading state
+        setLoadingProducts((prev) => new Set(prev).add(productId));
+
+        try {
+            if (delta > 0) {
+                const productStock = await getProductStockQuantity(productId);
+                const currentQuantity = getSelectedProductQuantity(productId);
+                if (currentQuantity + 1 > productStock) {
+                    toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                    return;
+                }
+                await addProductItem(productId);
+            } else {
+                if (getSelectedProductQuantity(productId) == 0) {
+                    return;
+                }
+                await removeProduct(productId);
             }
-            addProductItem(productId);
-        } else {
-            if (getSelectedProductQuantity(productId) == 0) {
-                return;
-            }
-            removeProduct(productId);
+        } finally {
+            // Remove product from loading state
+            setLoadingProducts((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(productId);
+                return newSet;
+            });
         }
     };
     const totalPrice = totalCourtPrice + totalProductPrice;
@@ -79,8 +99,9 @@ export default function OrderSummary() {
                         <td className="px-2 py-3">
                             <div className="flex items-center justify-center gap-2">
                                 <button
+                                    disabled={loadingProducts.has(product.productid)}
                                     onClick={() => handleQuantityChange(product.productid, -1)}
-                                    className="rounded border px-2 py-1 hover:bg-gray-100"
+                                    className="rounded border px-2 py-1 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
                                 >
                                     –
                                 </button>
@@ -88,8 +109,9 @@ export default function OrderSummary() {
                                     {getSelectedProductQuantity(product.productid) || 1}
                                 </span>
                                 <button
+                                    disabled={loadingProducts.has(product.productid)}
                                     onClick={() => handleQuantityChange(product.productid, 1)}
-                                    className="rounded border px-2 py-1 hover:bg-gray-100"
+                                    className="rounded border px-2 py-1 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
                                 >
                                     +
                                 </button>
