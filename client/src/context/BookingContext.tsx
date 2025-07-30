@@ -69,8 +69,13 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             username: user?.username || '',
             court_booking: court,
         });
+
         if (response.ok) {
-            fetchBooking();
+            await fetchBooking();
+            if (selectedCourts.length === 1) {
+                await clearRentalOrder();
+                await fetchOrders();
+            }
             toast.success('Xóa sân thành công');
         }
     };

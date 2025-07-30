@@ -21,29 +21,49 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
     const { user } = useAuth();
     const [sortBy, setSortBy] = useState('rentalprice');
     const [sortOrder, setSortOrder] = useState('asc');
+    const [loadingProducts, setLoadingProducts] = useState<Set<number>>(new Set());
     const router = useRouter();
     const getProductQuantity = (productid: number) => {
         const product = selectedProducts.find((p) => p.productid === productid);
         return product ? product.quantity : 0;
     };
 
-    const handleQuantityChange = (productId: number, delta: number) => {
-        if (delta > 0) {
-            if (!selectedCourts || selectedCourts.length === 0 || !user) {
-                toast.warning('Bạn phải đặt sân trước khi thuê sản phẩm');
-                router.push('/booking/courts');
-                return;
+    const handleQuantityChange = async (productId: number, delta: number) => {
+        // Prevent multiple clicks
+        if (loadingProducts.has(productId)) {
+            return;
+        }
+
+        // Add product to loading state
+        setLoadingProducts((prev) => new Set(prev).add(productId));
+
+        try {
+            if (delta > 0) {
+                if (!selectedCourts || selectedCourts.length === 0 || !user) {
+                    toast.warning('Bạn phải đặt sân trước khi thuê sản phẩm');
+                    router.push('/booking/courts');
+                    return;
+                }
+                const currentQuantity = getProductQuantity(productId);
+                const availableStock = products.find((p) => p.productid === productId)?.quantity || 0;
+                if (currentQuantity + 1 > availableStock) {
+                    toast.warning('Số lượng sản phẩm đã đạt giới hạn');
+                    return;
+                }
+                await addRentalItem(productId, returnDate);
+            } else {
+                if (getProductQuantity(productId) == 0) {
+                    return;
+                }
+                await removeProduct(productId);
             }
-            if (getProductQuantity(productId) >= (products.find((p) => p.productid === productId)?.quantity || 0)) {
-                toast.warning('Số lượng sản phẩm đã đạt giới hạn');
-                return;
-            }
-            addRentalItem(productId, returnDate);
-        } else {
-            if (getProductQuantity(productId) == 0) {
-                return;
-            }
-            removeProduct(productId);
+        } finally {
+            // Remove product from loading state
+            setLoadingProducts((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(productId);
+                return newSet;
+            });
         }
     };
 
@@ -87,7 +107,7 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
                 {getSortedProducts().map((product) => (
                     <div
                         key={product.productid}
-                        className="border-gray-200 flex h-full min-h-[350px] flex-col rounded-lg border p-4 transition-colors hover:border-gray-300"
+                        className="flex h-full min-h-[350px] flex-col rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300"
                     >
                         <Image
                             src={product.productimgurl || '/default-image.jpg'}
@@ -109,23 +129,25 @@ const RentalList: React.FC<RentalListProps> = ({ products, selectedProducts, ret
                                 <div className="flex items-center">
                                     <button
                                         type="button"
-                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        disabled={loadingProducts.has(product.productid)}
+                                        className="group bg-primary-50 hover:bg-primary disabled:hover:bg-primary-50 flex h-6 w-6 cursor-pointer items-center justify-center rounded disabled:cursor-not-allowed disabled:opacity-50"
                                         onClick={() => handleQuantityChange(product.productid, -1)}
                                     >
                                         <Icon
                                             icon="ic:baseline-minus"
-                                            className="text-lg text-gray-500 group-hover:text-white"
+                                            className="text-lg text-gray-500 group-hover:text-white group-disabled:text-gray-400"
                                         />
                                     </button>
                                     <div className="mx-4 text-lg">{getProductQuantity(product.productid)}</div>
                                     <button
                                         type="button"
-                                        className="group bg-primary-50 hover:bg-primary flex h-6 w-6 cursor-pointer items-center justify-center rounded"
+                                        disabled={loadingProducts.has(product.productid)}
+                                        className="group bg-primary-50 hover:bg-primary disabled:hover:bg-primary-50 flex h-6 w-6 cursor-pointer items-center justify-center rounded disabled:cursor-not-allowed disabled:opacity-50"
                                         onClick={() => handleQuantityChange(product.productid, 1)}
                                     >
                                         <Icon
                                             icon="ic:baseline-plus"
-                                            className="text-lg text-gray-500 group-hover:text-white"
+                                            className="text-lg text-gray-500 group-hover:text-white group-disabled:text-gray-400"
                                         />
                                     </button>
                                 </div>
