@@ -1523,6 +1523,9 @@ async function main() {
             },
             where: {
                 employee_type: 'Full-time',
+                employeeid: {
+                    not: 1,
+                }
             },
         })
     ).map((employee) => employee.employeeid);
@@ -1540,6 +1543,14 @@ async function main() {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
+    const nextWeekStart = new Date(startOfWeek);
+    nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+    nextWeekStart.setHours(0, 0, 0, 0);
+    const nextWeekEnd = new Date(nextWeekStart);
+    nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+    nextWeekEnd.setHours(23, 59, 59, 999);
+
+
     const shiftdates = await prisma.shift_date.findMany({
         where: {
             shiftdate: {
@@ -1553,8 +1564,21 @@ async function main() {
         },
     });
 
+    const nextWeekShiftDates = await prisma.shift_date.findMany({
+        where: {
+            shiftdate: {
+                gte: nextWeekStart,
+                lte: nextWeekEnd,
+            },
+        },
+        select: {
+            shiftid: true,
+            shiftdate: true,
+        },
+    });
+
     // Lọc ra các shiftdate có shiftid 3, 4, 5, 6
-    const parttimeShiftDates = shiftdates.filter(sd => [3, 4, 5, 6].includes(sd.shiftid));
+    const parttimeShiftDates = nextWeekShiftDates.filter(sd => [3, 4, 5, 6].includes(sd.shiftid));
 
     parttimeEmployeeIds.forEach(async (employeeId) => {
         const randomShiftDate = parttimeShiftDates[Math.floor(Math.random() * parttimeShiftDates.length)];
@@ -1568,8 +1592,6 @@ async function main() {
     });
 
     const totalEmployeesParttime = parttimeEmployeeIds.length;
-    const totalEmployeesFulltime = fulltimeEmployeeIds.length;
-    const groupSize = Math.ceil(totalEmployeesParttime / 3);
 
     fulltimeEmployeeIds.forEach(async (employeeId, index) => {
         // Chỉ lấy shiftid 3,4,5,6
@@ -2157,215 +2179,215 @@ async function main() {
         data: [
             // Employee 1 (Admin)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 1,
             },
             {
-                rewarddate: new Date('2025-06-10').toISOString(),
+                rewarddate: new Date('2025-08-10').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-15'),
+                rewardapplieddate: new Date('2025-08-15'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 1,
             },
             // Employee 2 (Nguyễn Văn A)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-08').toISOString(),
+                rewarddate: new Date('2025-08-08').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-12'),
+                rewardapplieddate: new Date('2025-08-12'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 2,
             },
             {
-                rewarddate: new Date('2025-06-15').toISOString(),
+                rewarddate: new Date('2025-08-15').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'pending',
-                rewardapplieddate: new Date('2025-06-20'),
+                rewardapplieddate: new Date('2025-08-20'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 2,
             },
             // Employee 3 (Trần Thị B)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 3,
             },
             {
-                rewarddate: new Date('2025-06-12').toISOString(),
+                rewarddate: new Date('2025-08-12').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'pending',
-                rewardapplieddate: new Date('2025-06-18'),
+                rewardapplieddate: new Date('2025-08-18'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 3,
             },
             // Employee 4 (Lê Hồng C)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'pending',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 4,
             },
             {
-                rewarddate: new Date('2025-06-06').toISOString(),
+                rewarddate: new Date('2025-08-08').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-10'),
+                rewardapplieddate: new Date('2025-08-10'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 4,
             },
             // Employee 5 (Lê Hoàng D)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 5,
             },
             {
-                rewarddate: new Date('2025-06-14').toISOString(),
+                rewarddate: new Date('2025-08-14').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-18'),
+                rewardapplieddate: new Date('2025-08-18'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 5,
             },
             // Employee 6 (Nguyễn Minh E)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 6,
             },
             {
-                rewarddate: new Date('2025-06-20').toISOString(),
+                rewarddate: new Date('2025-08-20').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-25'),
+                rewardapplieddate: new Date('2025-08-25'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 6,
             },
             // Employee 7 (Bùi Thành F)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 7,
             },
             // Employee 8 (Trần Tiến G)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 8,
             },
             {
-                rewarddate: new Date('2025-06-16').toISOString(),
+                rewarddate: new Date('2025-08-16').toISOString(),
                 finalrewardamount: 300000,
                 rewardrecordstatus: 'pending',
-                rewardapplieddate: new Date('2025-06-20'),
+                rewardapplieddate: new Date('2025-08-20'),
                 rewardruleid: 2, // Attendance Bonus
                 employeeid: 8,
             },
             // Employee 9 (Phạm Thị H)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 9,
             },
             // Employee 10 (Phù Mỹ I)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 10,
             },
             {
-                rewarddate: new Date('2025-06-22').toISOString(),
+                rewarddate: new Date('2025-08-22').toISOString(),
                 finalrewardamount: 200000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-26'),
+                rewardapplieddate: new Date('2025-08-26'),
                 rewardruleid: 3, // Performance Bonus
                 employeeid: 10,
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 11,
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2025-06-01').toISOString(),
+                rewarddate: new Date('2025-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2025-06-05'),
+                rewardapplieddate: new Date('2025-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2025-06-25').toISOString(),
+                rewarddate: new Date('2025-08-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2025-06-28'),
+                rewardapplieddate: new Date('2025-08-28'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 12,
             },
             // Employee 11 (Cao Bá J)
             {
-                rewarddate: new Date('2024-06-01').toISOString(),
+                rewarddate: new Date('2024-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2024-06-05'),
+                rewardapplieddate: new Date('2024-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 11,
             },
             // Employee 12 (Hoàng Thị K)
             {
-                rewarddate: new Date('2024-06-01').toISOString(),
+                rewarddate: new Date('2024-08-01').toISOString(),
                 finalrewardamount: 500000,
                 rewardrecordstatus: 'approved',
-                rewardapplieddate: new Date('2024-06-05'),
+                rewardapplieddate: new Date('2024-08-05'),
                 rewardruleid: 5, // Holidays Bonus
                 employeeid: 12,
             },
             {
-                rewarddate: new Date('2024-06-25').toISOString(),
+                rewarddate: new Date('2024-08-25').toISOString(),
                 finalrewardamount: 1000000,
                 rewardrecordstatus: 'rejected',
-                rewardapplieddate: new Date('2024-06-28'),
+                rewardapplieddate: new Date('2024-08-28'),
                 rewardruleid: 1, // Employee of the Month
                 employeeid: 12,
             },
@@ -2379,84 +2401,84 @@ async function main() {
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 2,
-                violationdate: new Date('2025-06-03'),
+                violationdate: new Date('2025-08-03'),
                 finalpenaltyamount: 20000,
-                penaltyapplieddate: new Date('2025-06-04'),
+                penaltyapplieddate: new Date('2025-08-04'),
             },
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 2,
-                violationdate: new Date('2025-06-17'),
+                violationdate: new Date('2025-08-17'),
                 finalpenaltyamount: 40000,
-                penaltyapplieddate: new Date('2025-06-18'),
+                penaltyapplieddate: new Date('2025-08-18'),
             },
             // Employee 4 (Lê Hồng C) - Vắng mặt không phép 1 lần
             {
                 penaltyruleid: 2, // Unauthorized absence
                 employeeid: 4,
-                violationdate: new Date('2025-06-05'),
+                violationdate: new Date('2025-08-05'),
                 finalpenaltyamount: 100000,
-                penaltyapplieddate: new Date('2025-06-06'),
+                penaltyapplieddate: new Date('2025-08-08'),
             },
             // Employee 6 (Nguyễn Minh E) - Vi phạm quy định 1 lần
             {
                 penaltyruleid: 3, // Failure to comply with workplace policies
                 employeeid: 6,
-                violationdate: new Date('2025-06-07'),
+                violationdate: new Date('2025-08-07'),
                 finalpenaltyamount: 20000,
-                penaltyapplieddate: new Date('2025-06-08'),
+                penaltyapplieddate: new Date('2025-08-08'),
             },
             // Employee 7 (Bùi Thành F) - Đến trễ 3 lần
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 7,
-                violationdate: new Date('2025-06-02'),
+                violationdate: new Date('2025-08-02'),
                 finalpenaltyamount: 20000,
-                penaltyapplieddate: new Date('2025-06-03'),
+                penaltyapplieddate: new Date('2025-08-03'),
             },
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 7,
-                violationdate: new Date('2025-06-10'),
+                violationdate: new Date('2025-08-10'),
                 finalpenaltyamount: 40000,
-                penaltyapplieddate: new Date('2025-06-11'),
+                penaltyapplieddate: new Date('2025-08-11'),
             },
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 7,
-                violationdate: new Date('2025-06-23'),
+                violationdate: new Date('2025-08-23'),
                 finalpenaltyamount: 60000,
-                penaltyapplieddate: new Date('2025-06-24'),
+                penaltyapplieddate: new Date('2025-08-24'),
             },
             // Employee 9 (Phạm Thị H) - Vi phạm quy định 2 lần
             {
                 penaltyruleid: 3, // Failure to comply with workplace policies
                 employeeid: 9,
-                violationdate: new Date('2025-06-09'),
+                violationdate: new Date('2025-08-09'),
                 finalpenaltyamount: 20000,
-                penaltyapplieddate: new Date('2025-06-10'),
+                penaltyapplieddate: new Date('2025-08-10'),
             },
             {
                 penaltyruleid: 3, // Failure to comply with workplace policies
                 employeeid: 9,
-                violationdate: new Date('2025-06-19'),
+                violationdate: new Date('2025-08-19'),
                 finalpenaltyamount: 40000,
-                penaltyapplieddate: new Date('2025-06-20'),
+                penaltyapplieddate: new Date('2025-08-20'),
             },
             // Employee 11 (Cao Bá J) - Vắng mặt không phép 1 lần và đến trễ 1 lần
             {
                 penaltyruleid: 2, // Unauthorized absence
                 employeeid: 11,
-                violationdate: new Date('2025-06-11'),
+                violationdate: new Date('2025-08-11'),
                 finalpenaltyamount: 100000,
-                penaltyapplieddate: new Date('2025-06-12'),
+                penaltyapplieddate: new Date('2025-08-12'),
             },
             {
                 penaltyruleid: 1, // Late for work
                 employeeid: 11,
-                violationdate: new Date('2025-06-26'),
+                violationdate: new Date('2025-08-26'),
                 finalpenaltyamount: 20000,
-                penaltyapplieddate: new Date('2025-06-27'),
+                penaltyapplieddate: new Date('2025-08-27'),
             },
         ],
     });
@@ -3133,6 +3155,23 @@ async function main() {
             });
         }
     }
+
+    await prisma.accounts.create({
+        data: {
+            username: 'hdkien',
+            password: hashedPassword,
+            status: 'Active',
+            fullname: 'Hoàng Đức Kiên',
+            email: 'hdkien21@clc.fitus.edu.vn',
+            dob: new Date('2000-02-02'),
+            gender: 'Nam',
+            phonenumber: generatePhone(14),
+            address: '123 Đường V, Phường XH',
+            accounttype: 'Customer',
+            createdat: new Date(),
+            updatedat: new Date(),
+        }
+    });
 }
 
 main()

@@ -45,6 +45,7 @@ interface Receipt {
     paymentmethod: string;
     totalamount: string;
     courts: Court[];
+    createdat: string;
 }
 
 const UserProfilePage = () => {

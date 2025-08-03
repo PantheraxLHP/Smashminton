@@ -9,7 +9,7 @@ import { postBankDetail } from '@/services/employees.service';
 import { Loader2 } from 'lucide-react';
 
 interface BankDetailAddFormProps {
-    onSuccess: (newBankDetail?: any) => void;
+    onSuccess: () => void;
     employeeId: number;
 }
 
@@ -45,7 +45,7 @@ const BankDetailAddForm = ({ onSuccess, employeeId }: BankDetailAddFormProps) =>
 
         if (result.ok) {
             toast.success('Thêm thông tin ngân hàng thành công');
-            onSuccess(result.data);
+            onSuccess();
         } else {
             toast.error(result.message || 'Thêm thông tin ngân hàng thất bại');
         }

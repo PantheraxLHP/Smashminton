@@ -8,7 +8,7 @@ import { formatDateString, formatEmployeeType, formatPrice } from '@/lib/utils';
 import { putBankActive, putEmployee } from '@/services/employees.service';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import BankDetailAddForm from './BankDetailAddForm';
 import { EmployeesProps } from './EmployeeList';
@@ -36,7 +36,7 @@ interface FormData {
 }
 
 const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
-    const [randomGender, setRandomGender] = useState<number>(Math.floor(Math.random() * 2 + 1));
+    const [randomGender] = useState<number>(Math.floor(Math.random() * 2 + 1));
     const tabs = ['Thông tin cơ bản', 'Thông tin ngân hàng', 'Thông tin lương, thưởng, phạt'];
     const [selectedTab, setSelectedTab] = useState(tabs[0]);
     const [isEditing, setIsEditing] = useState(false);
@@ -61,6 +61,11 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         role: employee.role || '',
         avatar: null,
     });
+
+    // Sync bankDetails with employee.bank_detail when employee prop changes
+    useEffect(() => {
+        setBankDetails(employee.bank_detail || []);
+    }, [employee.bank_detail]);
 
     // Reusable field renderer
     const renderField = (id: string, label: string, name: keyof FormData, type = 'text', disabled = false) => (
@@ -88,12 +93,9 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
         </div>
     );
 
-    const handleBankDetailSuccess = (newBankDetail?: any) => {
+    const handleBankDetailSuccess = () => {
         toast.success('Thêm thông tin ngân hàng thành công');
-        if (newBankDetail) {
-            setBankDetails((prev) => [...prev, newBankDetail]);
-        }
-        // Don't exit edit mode - remove setIsEditing(false)
+        // Remove local state update - let refetch handle data updates
         setIsAddDialogOpen(false);
 
         // Refetch data to get updated information
@@ -501,19 +503,19 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                                             key={record[`${section.type}recordid`]}
                                             className="flex w-full items-center"
                                         >
-                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2 text-sm">
                                                 {formatDateString(
                                                     section.type === 'reward'
                                                         ? record.rewardapplieddate
                                                         : record.violationdate || '',
                                                 )}
                                             </span>
-                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2 text-sm">
                                                 {section.type === 'reward'
                                                     ? record.reward_rules?.rewardname
                                                     : record.penalty_rules?.penaltyname || ''}
                                             </span>
-                                            <span className="flex h-full w-full text-sm items-center border-b-2 border-gray-200 p-2">
+                                            <span className="flex h-full w-full items-center border-b-2 border-gray-200 p-2 text-sm">
                                                 {section.type === 'reward' ? '+' : '-'}{' '}
                                                 {formatPrice(
                                                     section.type === 'reward'
