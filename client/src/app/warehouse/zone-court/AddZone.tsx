@@ -87,7 +87,6 @@ export default function AddZoneModal({ open, onClose, onSubmit, onSuccess }: Zon
             fd.append("zonedescription", formData.zonedescription);
             if (formData.zoneAvatar) {
                 fd.append("image", formData.zoneAvatar);
-                console.log("Ảnh khu vực:", formData.zoneAvatar);
             }
 
             try {

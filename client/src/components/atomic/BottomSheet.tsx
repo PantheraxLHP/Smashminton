@@ -14,9 +14,10 @@ export interface BookingBottomSheetProps {
 }
 
 const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, selectedCourts, selectedProducts }) => {
-    const { removeCourtByIndex, totalCourtPrice, totalProductPrice, clearRentalOrder, TTL } = useBooking();
+    const { removeCourtByIndex, totalCourtPrice, totalProductPrice, clearRentalOrder, TTL, fetchBooking } = useBooking();
 
     const [timeLeft, setTimeLeft] = useState(TTL);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -67,21 +68,42 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, sele
     // onConfirm function use for booking page, if not set, it will redirect to payment page
     const handleConfirm = () => {
         if (onConfirm) {
+            fetchBooking();
             onConfirm();
         } else {
+            fetchBooking();
             router.push('/payment');
         }
     };
 
     const TotalPrice = totalCourtPrice + totalProductPrice;
 
+    const toggleCollapse = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
     return (
-        <div className="fixed inset-x-0 bottom-0 z-50 bg-black text-white shadow-lg">
-            <div className="p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:max-h-20 sm:flex-row sm:items-center sm:gap-2">
+        <div className={`fixed inset-x-0 bottom-0 z-50 bg-black text-white shadow-lg transition-transform duration-300 ${isCollapsed ? 'translate-y-full' : 'translate-y-0'
+            }`}>
+            {/* Toggle Button */}
+            <div className="flex justify-center">
+                <button
+                    onClick={toggleCollapse}
+                    className="absolute -top-5 sm:-top-7 flex h-5 w-12 sm:h-7 sm:w-14 items-center justify-center rounded-t-lg bg-primary hover:bg-primary-800 transition-colors shadow-lg border-2 border-primary-600"
+                    aria-label={isCollapsed ? "Hiện bottom sheet" : "Ẩn bottom sheet"}
+                >
+                    <Icon
+                        icon={isCollapsed ? "mdi:chevron-up" : "mdi:chevron-down"}
+                        className="h-7 w-7 sm:h-8 sm:w-8 text-white"
+                    />
+                </button>
+            </div>
+
+            <div className="p-2 sm:p-3 md:p-4">
+                <div className="flex flex-col gap-2 max-h-[80vh] sm:max-h-30 sm:flex-row sm:items-center sm:gap-3">
                     {/* Scrollable Content */}
-                    <div className="max-h-32 flex-1 overflow-y-auto sm:max-h-20">
-                        <div className="flex flex-col gap-2 sm:gap-1">
+                    <div className="max-h-[80vh] flex-1 overflow-y-auto sm:max-h-30">
+                        <div className="flex flex-col gap-1 sm:gap-2">
                             {/* Danh sách sân */}
                             {selectedCourts?.map((scCourt: SelectedCourts, index: number) => (
                                 <div
@@ -145,7 +167,7 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, sele
                         {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (
                             <div className="text-primary border-primary flex items-center justify-center rounded-lg border-2 border-solid bg-white p-2 sm:flex-col">
                                 <span className="mr-2 text-xs sm:mr-0 sm:text-sm">Thời gian giữ sân:</span>
-                                <span className="text-xl font-bold sm:w-full sm:text-3xl">{formatTime(timeLeft)}</span>
+                                <span className="text-lg font-bold sm:w-full sm:text-3xl">{formatTime(timeLeft)}</span>
                             </div>
                         )}
 
@@ -153,13 +175,13 @@ const BookingBottomSheet: React.FC<BookingBottomSheetProps> = ({ onConfirm, sele
                         <div className="flex flex-col items-center sm:max-w-65">
                             <div className="mb-2 flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
                                 <span className="text-sm text-white sm:text-base">Tạm tính:</span>
-                                <span className="text-xl font-bold sm:text-lg">
+                                <span className="text-lg font-bold sm:text-xl">
                                     {TotalPrice.toLocaleString('vi-VN')} VND
                                 </span>
                             </div>
                             <div className="flex w-full gap-2">
                                 <Button
-                                    className="bg-primary w-full px-8 py-3 text-sm font-bold uppercase sm:px-6 sm:py-2"
+                                    className="bg-primary w-full px-6 py-2 text-sm font-bold uppercase sm:px-8 sm:py-3"
                                     onClick={handleConfirm}
                                 >
                                     THANH TOÁN

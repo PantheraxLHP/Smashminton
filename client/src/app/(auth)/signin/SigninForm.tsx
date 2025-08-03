@@ -34,7 +34,7 @@ export default function SigninForm() {
             window.location.reload();
             window.location.href = '/';
         } else {
-            toast.error('Đăng nhập thất bại, vui lòng thử lại! ');
+            toast.error('Tên đăng nhập hoặc mật khẩu không chính xác, vui lòng thử lại! ');
         }
     };
 

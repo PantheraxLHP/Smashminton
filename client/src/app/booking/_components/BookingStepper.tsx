@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useBooking } from '@/context/BookingContext';
 
 interface BookingStepperProps {
     currentStep: number;
@@ -14,20 +15,25 @@ const steps = [
 ];
 
 const BookingStepper: React.FC<BookingStepperProps> = ({ currentStep, disableNavigation = false }) => {
+    const { fetchBooking } = useBooking();
+
     const handleStepClick = (stepId: number, link: string) => {
         if (!disableNavigation && stepId <= currentStep) {
+            fetchBooking();
             redirect(link);
         }
     };
 
     const handleBackButtonClick = () => {
         if (currentStep > 1) {
+            fetchBooking();
             redirect(steps[currentStep - 2].link);
         }
     };
 
     const handleNextButtonClick = () => {
         if (currentStep < steps.length) {
+            fetchBooking();
             redirect(steps[currentStep].link);
         }
     };

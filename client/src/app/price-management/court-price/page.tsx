@@ -39,7 +39,6 @@ export default function CourtPriceManager() {
             }));
             setZonePricesState(newData);
         }
-        //console.log(response);
     };
 
 

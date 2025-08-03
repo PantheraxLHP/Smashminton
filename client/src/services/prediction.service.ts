@@ -147,7 +147,6 @@ export async function getPredictionDataTable(filters: PredictionTableFilters): P
         // Get server URL dynamically
         const API_BASE = await getServerUrl();
         const accessToken = await getAccessToken();
-        console.log('accessToken', accessToken);
 
         const params = new URLSearchParams({
             filter_type: filters.type,

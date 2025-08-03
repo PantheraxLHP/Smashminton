@@ -108,8 +108,6 @@ export default function PurchaseOrderForm<T extends OrderFormData>({
             quantity: formData.quantity,
         };
 
-        console.log('Submitting purchase order:', payload);
-
         const res = await createPurchaseOrder(payload);
 
         if (res.ok) {
