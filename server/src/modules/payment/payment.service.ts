@@ -377,6 +377,7 @@ export class PaymentService {
                 receiptid: true,
                 paymentmethod: true,
                 totalamount: true,
+                createdat: true,
                 bookings: {
                     select: {
                         bookingid: true,
@@ -443,6 +444,7 @@ export class PaymentService {
                 receiptid: r.receiptid,
                 paymentmethod: r.paymentmethod,
                 totalamount: r.totalamount,
+                createdat: r.createdat,
                 courts,
             };
         });

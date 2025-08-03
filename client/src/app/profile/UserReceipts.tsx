@@ -33,6 +33,7 @@ interface Receipt {
     paymentmethod: string;
     totalamount: string;
     courts: Court[];
+    createdat: string;
 }
 
 interface UserReceiptsProps {
@@ -132,12 +133,8 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         };
 
         // Sort function
-        const sortReceiptsByDate = (receipts: Receipt[], reverse: boolean = false) => {
-            return [...receipts].sort((a, b) => {
-                const dateA = getEarliestDate(a);
-                const dateB = getEarliestDate(b);
-                return reverse ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
-            });
+        const sortReceiptsByDate = (receipts: Receipt[]) => {
+            return [...receipts].sort((a, b) => b.receiptid - a.receiptid);
         };
 
         // Categorize receipts with unique assignment (each receipt appears in only one category)
@@ -169,7 +166,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
             categorizedReceipts: {
                 ongoing: sortReceiptsByDate(ongoing),
                 upcoming: sortReceiptsByDate(upcoming),
-                completed: sortReceiptsByDate(completed, true), // newest first for completed
+                completed: sortReceiptsByDate(completed),
             },
             allReceipts: sortReceiptsByDate(validReceipts),
         };
@@ -296,6 +293,10 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
                                         <span className="font-medium">Hóa đơn #{receipt.receiptid}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <Icon icon="ph:calendar-blank" className="size-4" />
+                                        <span className="text-sm text-gray-600">Ngày tạo: {formatDate(new Date(receipt.createdat))}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
                                         <Icon icon="mdi:credit-card" className="size-4" />
                                         <span className="text-sm text-gray-600">
                                             {getPaymentMethodText(receipt.paymentmethod)}
@@ -343,7 +344,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         { key: 'ongoing', label: 'Đang diễn ra', icon: 'mdi:clock-outline', count: categorizedReceipts.ongoing.length },
         {
             key: 'upcoming',
-            label: 'Sắp diễn ra',   
+            label: 'Sắp diễn ra',
             icon: 'mdi:calendar-clock',
             count: categorizedReceipts.upcoming.length,
         },
@@ -385,7 +386,7 @@ const UserReceipts: React.FC<UserReceiptsProps> = ({ receipts }) => {
         <div className="space-y-6">
             {/* Filter Buttons */}
             <div className="sticky top-0 z-10 border-b bg-white pb-4 backdrop-blur-sm">
-                <div className="flex overflow-x-auto gap-2 whitespace-nowrap">
+                <div className="flex gap-2 overflow-x-auto whitespace-nowrap">
                     {filterButtons.map((button) => (
                         <button
                             key={button.key}
