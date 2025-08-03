@@ -562,19 +562,19 @@ async function main() {
     await prisma.zones.createMany({
         data: [
             {
-                zonename: 'Zone A',
+                zonename: 'Khu vực A',
                 zonetype: 'Normal',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905522/Zone/ZoneA_Thuong.jpg',
                 zonedescription: 'Thông thoáng, không gian rộng, giá hợp lý',
             },
             {
-                zonename: 'Zone B',
+                zonename: 'Khu vực B',
                 zonetype: 'AirConditioner',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905407/Zone/ZoneMayLanh.png',
                 zonedescription: 'Máy lạnh hiện đại, sân cao cấp, dịch vụ VIP',
             },
             {
-                zonename: 'Zone C',
+                zonename: 'Khu vực C',
                 zonetype: 'Private',
                 zoneimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1742905204/Zone/ZoneB_01.jpg',
                 zonedescription: 'Không gian riêng tư, ánh sáng tốt, phù hợp thi đấu',
@@ -686,7 +686,7 @@ async function main() {
     await prisma.courts.createMany({
         data: [
             {
-                courtname: 'Court A1',
+                courtname: 'Sân A1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_1_gmluce.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -694,7 +694,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A2',
+                courtname: 'Sân A2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_2_dnrqpy.jpg',
                 statuscourt: 'Active',
                 avgrating: 4.5,
@@ -702,7 +702,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A3',
+                courtname: 'Sân A3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_3_wxlkcx.jpg',
                 statuscourt: 'Active',
                 avgrating: 2.0,
@@ -710,7 +710,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A4',
+                courtname: 'Sân A4',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_4_x3ymi1.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -718,7 +718,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A5',
+                courtname: 'Sân A5',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_5_m4lot8.jpg',
                 statuscourt: 'Active',
                 avgrating: 3.5,
@@ -726,7 +726,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A6',
+                courtname: 'Sân A6',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670707/A_6_kmlie9.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -734,7 +734,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A7',
+                courtname: 'Sân A7',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_7_ptadlq.jpg',
                 statuscourt: 'Active',
                 avgrating: 4.5,
@@ -742,7 +742,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court A8',
+                courtname: 'Sân A8',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745670706/A_8_rac29n.jpg',
                 statuscourt: 'Active',
                 avgrating: 3.0,
@@ -750,7 +750,7 @@ async function main() {
                 zoneid: 1,
             },
             {
-                courtname: 'Court B1',
+                courtname: 'Sân B1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_1_bebuc2.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -758,7 +758,7 @@ async function main() {
                 zoneid: 2,
             },
             {
-                courtname: 'Court B2',
+                courtname: 'Sân B2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_2_nmoioi.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -766,7 +766,7 @@ async function main() {
                 zoneid: 2,
             },
             {
-                courtname: 'Court B3',
+                courtname: 'Sân B3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745668417/B_3_pgmtsr.jpg',
                 statuscourt: 'Active',
                 avgrating: 5.0,
@@ -774,7 +774,7 @@ async function main() {
                 zoneid: 2,
             },
             {
-                courtname: 'Court C1',
+                courtname: 'Sân C1',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C1_h8yho8.jpg',
                 statuscourt: 'Active',
                 avgrating: 3.0,
@@ -782,7 +782,7 @@ async function main() {
                 zoneid: 3,
             },
             {
-                courtname: 'Court C2',
+                courtname: 'Sân C2',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669811/C2_nd5cgp.jpg',
                 statuscourt: 'Active',
                 avgrating: 2.5,
@@ -790,7 +790,7 @@ async function main() {
                 zoneid: 3,
             },
             {
-                courtname: 'Court C3',
+                courtname: 'Sân C3',
                 courtimgurl: 'https://res.cloudinary.com/dnagyxwcl/image/upload/v1745669812/C3_w4danq.jpg',
                 statuscourt: 'Active',
                 avgrating: 4.0,

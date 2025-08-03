@@ -50,7 +50,7 @@ const ZoneRevenueChart: React.FC<ZoneRevenueChartProps> = ({
                 {/* Header Section */}
                 <div className="flex flex-col gap-3">
                     <h2 className="w-full text-center text-lg font-semibold">
-                        Doanh thu các khu vực sân (Zone) trong năm {year}
+                        Doanh thu các khu vực sân trong năm {year}
                     </h2>
                     <div className="ml-10 flex flex-wrap gap-2">
                         {Object.entries(chartConfig).map(([key, config]) => {
