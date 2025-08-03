@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ShiftEnrollmentRepository extends JpaRepository<ShiftEnrollment, ShiftEnrollmentId> {
-        @Query("SELECT se FROM ShiftEnrollment se WHERE se.shiftId > 2 AND se.shiftDate >= :startDate AND se.shiftDate <= :endDate")
+        @Query("SELECT se FROM ShiftEnrollment se WHERE se.shiftId > 2 AND se.shiftDate >= :startDate AND se.shiftDate <= :endDate AND (se.enrollmentStatus IS NULL OR se.enrollmentStatus != 'assigned')")
         List<ShiftEnrollment> findByShiftDateBetween(@Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 

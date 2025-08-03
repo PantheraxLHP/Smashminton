@@ -187,9 +187,9 @@ export class ShiftDateService {
         });
     }
 
-    removeEmployeeFromShiftAssignment(shiftid: number, shiftdate: string, employeeid: number) {
+    async removeEmployeeFromShiftAssignment(shiftid: number, shiftdate: string, employeeid: number) {
         // Xóa bản ghi shift_assignment theo khóa chính (employeeid, shiftid, shiftdate)
-        return this.prisma.shift_assignment.delete({
+        await this.prisma.shift_assignment.delete({
             where: {
                 employeeid_shiftid_shiftdate: {
                     employeeid,
@@ -198,6 +198,30 @@ export class ShiftDateService {
                 },
             },
         });
+
+        const existEnrollments = await this.prisma.shift_enrollment.findMany({
+            where: {
+                employeeid,
+                shiftid,
+                shiftdate: new Date(shiftdate),
+            },
+        });
+
+        if (existEnrollments.length > 0) {
+            // Nếu có bản ghi shift_enrollment, xóa nó
+            await this.prisma.shift_enrollment.updateMany({
+                where: {
+                    employeeid,
+                    shiftid,
+                    shiftdate: new Date(shiftdate),
+                },
+                data: {
+                    enrollmentstatus: null,
+                },
+            });
+        }
+
+        return { message: 'Employee removed from shift assignment successfully.' };
     }
 
     async searchEmployees(query: string, employee_type?: string, page: number = 1, pageSize: number = 6) {

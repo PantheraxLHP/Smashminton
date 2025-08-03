@@ -143,6 +143,7 @@ export class ShiftDateController {
     const { shiftid, shiftdate, employeeid } = body;
     return this.shiftDateService.removeEmployeeFromShiftAssignment(shiftid, shiftdate, employeeid);
   }
+  
   @Get('search-employees-not-in-shift')
   @Roles('hr_manager')
   @ApiBearerAuth()
