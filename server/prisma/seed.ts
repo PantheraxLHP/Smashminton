@@ -1780,20 +1780,14 @@ async function main() {
     await prisma.voucher.createMany({
         data: [
             {
-                vouchername: 'Giảm giá 10% cho khách hàng mới',
-                discountamount: 0.1,
+                vouchername: 'Giảm giá 5%',
+                discountamount: 0.05,
                 startdate: new Date('2025-01-01T00:00:00Z'),
                 expireddate: new Date('2025-12-31T23:59:59Z'),
             },
             {
-                vouchername: 'Giảm 50k cho đơn hàng trên 500k',
-                discountamount: 0.05,
-                startdate: new Date('2025-01-15T00:00:00Z'),
-                expireddate: new Date('2025-06-30T23:59:59Z'),
-            },
-            {
-                vouchername: 'Khuyến mãi cuối tuần - Giảm 15%',
-                discountamount: 0.075,
+                vouchername: 'Giảm giá 10%',
+                discountamount: 0.1,
                 startdate: new Date('2025-02-01T00:00:00Z'),
                 expireddate: new Date('2025-02-28T23:59:59Z'),
             },
