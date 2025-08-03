@@ -72,6 +72,16 @@ export default function CourtPriceManager() {
         { filterid: 'zonename', filterlabel: 'Chọn khu vực', filtertype: 'checkbox', filteroptions: zoneOptions },
     ];
 
+    const dayMap: Record<string, string> = {
+        monday: 'Thứ 2',
+        tuesday: 'Thứ 3',
+        wednesday: 'Thứ 4',
+        thursday: 'Thứ 5',
+        friday: 'Thứ 6',
+        saturday: 'Thứ 7',
+        sunday: 'Chủ nhật',
+    };
+
     const zoneColumns: Column<ZonePriceProps>[] = [
         {
             header: 'Zone',
@@ -82,8 +92,16 @@ export default function CourtPriceManager() {
                 </div>
             ),
         },
-        { header: 'Từ', accessor: 'dayfrom' },
-        { header: 'Đến', accessor: 'dayto' },
+        {
+            header: 'Từ',
+            accessor: (item) =>
+                item.dayfrom ? dayMap[item.dayfrom.toLowerCase()] || item.dayfrom : '',
+        },
+        {
+            header: 'Đến',
+            accessor: (item) =>
+                item.dayto ? dayMap[item.dayto.toLowerCase()] || item.dayto : '',
+        },
         { header: 'Giờ bắt đầu', accessor: 'starttime' },
         { header: 'Giờ kết thúc', accessor: 'endtime' },
         {
