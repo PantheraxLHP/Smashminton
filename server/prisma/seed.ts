@@ -275,20 +275,6 @@ async function main() {
                 updatedat: new Date(),
             },
             {
-                username: 'duckien',
-                password: hashedPassword,
-                status: 'Active',
-                fullname: 'Hoàng Đức Kiên',
-                email: 'hdkien21@clc.fitus.edu.vn',
-                dob: new Date('2000-02-02'),
-                gender: 'Nam',
-                phonenumber: generatePhone(14),
-                address: '123 Đường V, Phường XH',
-                accounttype: 'Customer',
-                createdat: new Date(),
-                updatedat: new Date(),
-            },
-            {
                 username: 'phamthuyo',
                 password: hashedPassword,
                 status: 'Active',
@@ -3169,6 +3155,23 @@ async function main() {
             });
         }
     }
+
+    await prisma.accounts.create({
+        data: {
+            username: 'hdkien',
+            password: hashedPassword,
+            status: 'Active',
+            fullname: 'Hoàng Đức Kiên',
+            email: 'hdkien21@clc.fitus.edu.vn',
+            dob: new Date('2000-02-02'),
+            gender: 'Nam',
+            phonenumber: generatePhone(14),
+            address: '123 Đường V, Phường XH',
+            accounttype: 'Customer',
+            createdat: new Date(),
+            updatedat: new Date(),
+        }
+    });
 }
 
 main()
