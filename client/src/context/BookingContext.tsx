@@ -23,6 +23,8 @@ export interface BookingContextProps {
     fetchBooking: () => Promise<void>;
     clearCourts: () => void;
     clearRentalOrder: () => Promise<void>;
+    refreshCourts: () => void;
+    refreshTrigger: number;
 }
 
 const BookingContext = createContext<BookingContextProps>({
@@ -41,6 +43,8 @@ const BookingContext = createContext<BookingContextProps>({
     removeProduct: () => {},
     clearCourts: () => {},
     clearRentalOrder: async () => {},
+    refreshCourts: () => {},
+    refreshTrigger: 0,
 });
 
 export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
@@ -50,6 +54,11 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     const [totalCourtPrice, setTotalCourtPrice] = useState(0);
     const [totalProductPrice, setTotalProductPrice] = useState(0);
     const { user } = useAuth();
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const refreshCourts = () => {
+        setRefreshTrigger((prev) => prev + 1);
+    };
 
     const addCourt = async (court: SelectedCourts, fixedCourt: boolean) => {
         const response = await postBookingCourt({
@@ -58,8 +67,11 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             court_booking: court,
         });
         if (response.ok) {
-            fetchBooking();
+            await fetchBooking();
             toast.success('Thêm sân thành công');
+        } else {
+            await toast.error('Sân đã được đặt! Vui lòng chọn sân khác');
+            refreshCourts();
         }
     };
 
@@ -77,6 +89,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 await fetchOrders();
             }
             toast.success('Xóa sân thành công');
+            refreshCourts();
         }
     };
 
@@ -167,6 +180,8 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 fetchBooking,
                 clearCourts,
                 clearRentalOrder,
+                refreshCourts,
+                refreshTrigger,
             }}
         >
             {children}

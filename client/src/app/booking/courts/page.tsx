@@ -48,7 +48,7 @@ export interface Filters {
 export default function BookingCourtsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { selectedCourts, selectedProducts, TTL } = useBooking();
+    const { selectedCourts, selectedProducts, TTL, refreshTrigger } = useBooking();
     const { user } = useAuth();
     const [fixedCourt, setFixedCourt] = useState(false);
 
@@ -241,6 +241,18 @@ export default function BookingCourtsPage() {
             }
         }
     }, [disableTimes, filters.startTime]);
+
+    // Add this useEffect to handle refreshTrigger changes
+    useEffect(() => {
+        if (refreshTrigger > 0) {
+            // Re-fetch courts when refreshTrigger changes
+            if (fixedCourt) {
+                fetchFixedCourts();
+            } else {
+                fetchCourts();
+            }
+        }
+    }, [refreshTrigger, fixedCourt]);
 
     const handleConfirm = () => {
         router.push('/booking/payment');
