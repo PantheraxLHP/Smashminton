@@ -62,7 +62,9 @@ export class PaymentService {
         const autoCapture = true;
         const lang = 'vi';
 
+        // Create raw signature string
         const rawSignature = `accessKey=${accessKey}&amount=${paymentData.totalAmount}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
+
         const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
         const requestBody = {
@@ -97,6 +99,16 @@ export class PaymentService {
 
             const data = await response.json();
             const payUrl = data.payUrl;
+
+            // Reset TTL cho booking cache về 300 giây khi tạo payment link thành công
+            if (paymentData.userName) {
+                const bookingCache = await this.cacheService.getBooking(paymentData.userName);
+                if (bookingCache) {
+                    console.log('bookingCache', bookingCache);
+                    await this.cacheService.setBooking(paymentData.userName, bookingCache, 300);
+                }
+            }
+
             return payUrl;
         } catch (error) {
             console.error('Error creating MoMo payment link:', error);
@@ -191,6 +203,15 @@ export class PaymentService {
         try {
             const paymentLinkResponse = await this.payOS.createPaymentLink(body);
             console.log(queryParams.toString());
+
+            // Reset TTL cho booking cache về 300 giây khi tạo payment link thành công
+            if (paymentData.userName) {
+                const bookingCache = await this.cacheService.getBooking(paymentData.userName);
+                if (bookingCache) {
+                    await this.cacheService.setBooking(paymentData.userName, bookingCache, 300);
+                }
+            }
+
             return paymentLinkResponse.checkoutUrl; // Trả về URL thanh toán
         } catch (error) {
             console.error('Error creating payment link:', error);
