@@ -6,6 +6,7 @@ import { AvailableCourtsAndUnavailableStartTime, Booking, CacheBooking, CacheCou
 import { CourtBookingService } from '../court_booking/court_booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { CourtPrices } from 'src/interfaces/courts.interface';
+import dayjs from 'dayjs';
 @Injectable()
 export class BookingsService {
 	constructor(
@@ -42,16 +43,47 @@ export class BookingsService {
 	async addBookingToCache(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
 		const { username, fixedCourt, court_booking } = CacheBookingDTO;
 
+		// Kiểm tra nếu không có username
+		if (!username) {
+			throw new BadRequestException('Username is required to add booking to cache');
+		}
+
+		const allCacheBookings = await this.cacheService.getAllCacheBookings(court_booking.date);
+
+		const allBookingsDatabase = await this.courtBookingService.getBookingsByDate(court_booking.date);
+
+		const allBookings = [...allCacheBookings, ...allBookingsDatabase];
+
+
+		// Kiểm tra xung đột thời gian với các booking hiện tại trong cache
+		const newBookingStart = dayjs(court_booking.starttime, 'HH:mm');
+		const newBookingEnd = court_booking.endtime
+			? dayjs(court_booking.endtime, 'HH:mm')
+			: newBookingStart.add(court_booking.duration, 'hour');
+
+		const hasConflict = allBookings.some((existingBooking) => {
+			// Chỉ kiểm tra với cùng sân
+			if (existingBooking.courtid !== court_booking.courtid) {
+				return false;
+			}
+
+			const existingStart = dayjs(existingBooking.starttime, 'HH:mm');
+			const existingEnd = dayjs(existingBooking.endtime, 'HH:mm');
+
+			// Kiểm tra giao nhau: thời gian mới giao với thời gian đã có
+			return newBookingStart.isBefore(existingEnd) && existingStart.isBefore(newBookingEnd);
+		});
+
+		if (hasConflict) {
+			console.log('hasConflict', hasConflict);
+			throw new BadRequestException('Sân này đã có người đặt trong khoảng thời gian bạn chọn');
+		}
+
 		let separatedCourts: CourtPrices[] = [];
 		if (fixedCourt) {
 			separatedCourts = await this.courtBookingService.getSeparatedFixedCourtPrices(court_booking);
 		} else {
 			separatedCourts = await this.courtBookingService.getSeparatedCourtPrices(court_booking);
-		}
-
-		// Kiểm tra nếu không có username
-		if (!username) {
-			throw new BadRequestException('Username is required to add booking to cache');
 		}
 
 		// Kiểm tra nếu không có dữ liệu trả về từ separatedCourts

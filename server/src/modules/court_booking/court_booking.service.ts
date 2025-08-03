@@ -425,4 +425,36 @@ export class CourtBookingService {
 
         this.appGateway.regularCourtBookingCheck(zoneCourt);
     }
+
+    // async getBookingsByDate(date: string): Promise<any[]> {
+    //     return await this.prisma.court_booking.findMany({
+    //         where: {
+    //             date: new Date(date),
+    //         },
+    //     });
+    // }
+
+    async getBookingsByDate(date: string): Promise<any[]> {
+        const bookings = await this.prisma.court_booking.findMany({
+            where: {
+                date: new Date(date),
+            },
+            select: {
+                courtid: true,
+                date: true,
+                starttime: true,
+                endtime: true,
+                duration: true,
+            },
+        });
+
+        // Convert to match allCacheBookings format
+        return bookings.map((booking) => ({
+            date: dayjs(booking.date).format('YYYY-MM-DD'),
+            courtid: booking.courtid,
+            starttime: booking.starttime ? convertUTCToVNTime(booking.starttime.toISOString()) : null,
+            endtime: booking.endtime ? convertUTCToVNTime(booking.endtime.toISOString()) : null,
+            duration: booking.duration,
+        }));
+    }
 }
