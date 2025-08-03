@@ -40,7 +40,7 @@ export default function DashboardControls({ activeTab }: DashboardControlsProps)
                         onChange={(e) => handleYearChange(Number(e.target.value))}
                         className="rounded border px-3 py-2"
                     >
-                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                        {Array.from({ length: 7 }, (_, i) => 2025 - i).map((year) => (
                             <option key={year} value={year}>
                                 {year}
                             </option>
