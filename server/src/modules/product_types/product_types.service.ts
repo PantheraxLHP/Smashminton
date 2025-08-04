@@ -75,9 +75,18 @@ export class ProductTypesService {
       where: {
         productid: productId,
         product_batch: {
-          expirydate: {
-            gte: now,
-          },
+          OR: [
+            // Nếu có expiry date thì phải >= now
+            {
+              expirydate: {
+                gte: now,
+              },
+            },
+            // Nếu expiry date là null thì vẫn lấy
+            {
+              expirydate: null,
+            },
+          ],
         },
       },
       include: {
@@ -168,6 +177,7 @@ export class ProductTypesService {
           product_batch: true,
         },
       });
+
       const quantity = purchaseOrders.reduce((sum, po) => {
         return sum + (po.product_batch?.stockquantity || 0);
       }, 0);
@@ -198,7 +208,7 @@ export class ProductTypesService {
     }
   }
 
-  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
+  async findAllProductsFromProductType_V2(productTypeId: number, filterValueIds?: number[], q: string = '', page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
@@ -307,7 +317,7 @@ export class ProductTypesService {
     }
   }
 
-  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], q: string='',page: number = 1, limit: number = 12) {
+  async findAllProductsFromProductType_V3(productTypeId: number, filterValueIds?: number[], q: string = '', page: number = 1, limit: number = 12) {
     const now = new Date();
     const skip = (page - 1) * limit;
 
