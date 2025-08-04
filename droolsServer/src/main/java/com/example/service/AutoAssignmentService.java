@@ -48,8 +48,7 @@ public class AutoAssignmentService {
             LocalDateTime nextWeekStartDateTime = nextWeekStart;
             LocalDateTime nextWeekEndDateTime = nextWeekEnd;
 
-            // Load part-time employees and initialize their assignedShiftInDay for next
-            // week
+            // Load part-time employees and initialize their assignedShiftInDay for next  week
             List<Employee> employees = loadAndInitializePartTimeEmployees(nextWeekStartDateTime, nextWeekEndDateTime);
             if (employees.isEmpty()) {
                 return new AutoAssignmentResponse(false, "No available part-time employees found in database");
@@ -65,6 +64,11 @@ public class AutoAssignmentService {
 
             // Initialize assigned employee counts for each shift
             initializeShiftAssignedEmployees(shiftDates);
+
+            // Load existing shift assignments for next week from database
+            List<ShiftAssignment> existingAssignments = shiftAssignmentRepository.findByShiftDateBetween(
+                    nextWeekStartDateTime, nextWeekEndDateTime);
+
             // Load shift enrollments for next week from database
             List<ShiftEnrollment> shiftEnrollments = shiftEnrollmentRepository.findByShiftDateBetween(
                     nextWeekStartDateTime, nextWeekEndDateTime);
@@ -78,7 +82,7 @@ public class AutoAssignmentService {
 
             // Execute Drools auto-assignment logic
             List<ShiftAssignment> assignments = executeAssignmentLogic(
-                    employees, shiftDates, shiftEnrollments, sort);
+                    employees, shiftDates, shiftEnrollments, existingAssignments, sort);
 
             // Save assignments to database
             if (!assignments.isEmpty()) {
@@ -207,6 +211,7 @@ public class AutoAssignmentService {
             List<Employee> employees,
             List<Shift_Date> shiftDates,
             List<ShiftEnrollment> enrollments,
+            List<ShiftAssignment> existingAssignments,
             Sort sort) {
 
         KieSession kieSession = droolsService.getKieSession();
@@ -220,6 +225,11 @@ public class AutoAssignmentService {
 
             for (Shift_Date shiftDate : shiftDates) {
                 kieSession.insert(shiftDate);
+            }
+
+            // Insert existing assignments into KieSession
+            for (ShiftAssignment existingAssignment : existingAssignments) {
+                kieSession.insert(existingAssignment);
             }
 
             // Create container objects
