@@ -1,7 +1,8 @@
 import { ApiResponse } from '@/lib/apiResponse';
+import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const accountId = url.searchParams.get('accountId');

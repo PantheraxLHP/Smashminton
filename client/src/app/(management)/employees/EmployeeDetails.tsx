@@ -208,7 +208,6 @@ const EmployeeDetails = ({ employee, onSuccess }: EmployeeDetailsProps) => {
                 toast.error(result.message || 'Cập nhật thông tin nhân viên thất bại');
             }
         } catch (error) {
-            console.error('Error updating employee:', error);
             toast.error('Có lỗi xảy ra khi cập nhật thông tin nhân viên');
         } finally {
             setIsSaving(false);

@@ -22,7 +22,7 @@ export class AccountsService {
         private tesseractOcrService: TesseractOcrService,
         private cloudinaryService: CloudinaryService,
         private cacheService: CacheService,
-    ) { }
+    ) {}
 
     //CRUD operations
     async createCustomer(createAccountDto: CreateAccountDto, files: Express.Multer.File[]): Promise<any> {
@@ -247,7 +247,7 @@ export class AccountsService {
     async updateStudentCard(accountId: number, files: Express.Multer.File[]): Promise<any> {
         // Kiểm tra account tồn tại
         const existingAccount = await this.prisma.accounts.findUnique({
-            where: { accountid: accountId }
+            where: { accountid: accountId },
         });
 
         if (!existingAccount) {
@@ -277,27 +277,41 @@ export class AccountsService {
             return accountInfo;
         }
 
-        const studnetid = await this.prisma.student_card.findFirst({
+        // Check if another student card exists with the same studentid (excluding current account)
+        const duplicateStudentCard = await this.prisma.student_card.findFirst({
             where: {
                 studentid: validResult.id,
+                NOT: {
+                    studentcardid: accountId, // Exclude current account's student card
+                },
             },
         });
-        if (studnetid) {
+
+        if (duplicateStudentCard) {
             throw new BadRequestException('Student card already exists');
         }
 
-        // Lưu thông tin OCR hợp lệ vào database (chỉ 1 bản ghi)
+        // Lưu thông tin OCR hợp lệ vào database - use upsert for create or update
         if (validResult) {
-            // Tạo student card mới
-            await this.studentCardService.createStudentCard({
-                studentcardid: accountId,
-                schoolname: validResult.university,
-                studentid: validResult.id,
-                studyperiod: validResult.expiryYear,
+            const expireDate = new Date(Number(validResult.expiryYear), 11, 31, 23, 59, 59);
+
+            await this.prisma.student_card.upsert({
+                where: { studentcardid: accountId },
+                update: {
+                    schoolname: validResult.university,
+                    studentid: validResult.id,
+                    studyperiod: expireDate,
+                },
+                create: {
+                    studentcardid: accountId,
+                    schoolname: validResult.university,
+                    studentid: validResult.id,
+                    studyperiod: expireDate,
+                },
             });
         }
 
-        // Trả về kết quả từ findOne (sẽ bao gồm student card mới)
+        // Trả về kết quả từ findOne (sẽ bao gồm student card mới/cập nhật)
         const updatedAccountInfo = await this.findOne(accountId);
         return updatedAccountInfo;
     }
