@@ -3166,6 +3166,20 @@ async function main() {
             updatedat: new Date(),
         }
     });
+
+    const newAccount = await prisma.accounts.findFirst({
+        where: { username: 'hdkien' },
+        select: { accountid: true }
+    });
+
+    if (newAccount) {
+        await prisma.customers.create({
+            data: {
+                customerid: newAccount.accountid,
+                totalpurchase: 0,
+            }
+        });
+    }
 }
 
 main()
