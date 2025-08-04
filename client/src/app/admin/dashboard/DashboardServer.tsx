@@ -171,7 +171,7 @@ export default async function DashboardServer({ year, activeTab }: DashboardServ
                         </div>
                         <div className="text-primary flex w-full items-end justify-center gap-2 font-semibold">
                             <Icon icon="streamline:graph-arrow-increase" className="text-4xl" />
-                            {activeTab === 'số lượng' ? (
+                            {activeTab === 'Số lượng' ? (
                                 <>
                                     <span className="text-4xl">{formatNumber(dashboardData.newCustomers || 0)}</span>
                                     <span>khách hàng mới</span>

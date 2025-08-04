@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
         const result = await res.json();
 
         if (!res.ok) {
-            console.error('Server error:', result);
             return ApiResponse.error(result.message || 'Đặt lại mật khẩu thất bại');
         }
 

@@ -3180,6 +3180,42 @@ async function main() {
             }
         });
     }
+    
+    
+    await prisma.product_batch.create({
+        data: {
+            batchname: 'Lô cá viên chiên ứ hự',
+            stockquantity: 29,
+            statusbatch: 'expiringsoon',
+            expirydate: (() => {
+                const d = new Date();
+                d.setDate(d.getDate() + 2);
+                return d;
+            })(),
+        }
+    });
+
+    // Lấy batchid lớn nhất vừa tạo (nếu muốn chắc chắn lấy max batchid)
+    const maxBatch = await prisma.product_batch.findFirst({
+        orderBy: { batchid: 'desc' },
+        select: { batchid: true }
+    });
+
+    await prisma.purchase_order.create({
+        data: {
+            productid: 60,
+            quantity: 29,
+            employeeid: 3,
+            supplierid: 2,
+            deliverydate: (() => {
+                const d = new Date();
+                d.setDate(d.getDate() - 16);
+                return d;
+            })(),
+            statusorder: 'delivered',
+            batchid: maxBatch?.batchid,
+        }
+    });
 }
 
 main()
