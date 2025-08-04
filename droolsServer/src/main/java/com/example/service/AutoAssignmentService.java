@@ -49,11 +49,6 @@ public class AutoAssignmentService {
             LocalDateTime nextWeekStartDateTime = nextWeekStart;
             LocalDateTime nextWeekEndDateTime = nextWeekEnd;
 
-            System.out.println("DEBUG - Calculated time range:");
-            System.out.println("  nextWeekStart: " + nextWeekStart);
-            System.out.println("  nextWeekEnd: " + nextWeekEnd);
-            System.out.println("  System timezone: " + ZoneId.systemDefault());
-
             // Load part-time employees and initialize their assignedShiftInDay for next  week
             List<Employee> employees = loadAndInitializePartTimeEmployees(nextWeekStartDateTime, nextWeekEndDateTime);
             if (employees.isEmpty()) {
@@ -63,11 +58,6 @@ public class AutoAssignmentService {
             // Load shift dates for next week with shiftId > 2
             List<Shift_Date> shiftDates = shiftDateRepository.findByShiftIdGreaterThan2AndShiftDateBetween(
                     nextWeekStartDateTime, nextWeekEndDateTime);
-
-            System.out.println("DEBUG - Loaded shift dates from DB:");
-            for (Shift_Date sd : shiftDates.subList(0, Math.min(3, shiftDates.size()))) {
-                System.out.println("  " + sd.getShiftId() + " - " + sd.getShiftDate());
-            }
 
             if (shiftDates.isEmpty()) {
                 return new AutoAssignmentResponse(false, "No shifts found for next week with shiftId > 2");
