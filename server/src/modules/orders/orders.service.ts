@@ -82,10 +82,10 @@ export class OrdersService {
             // Chỉ áp dụng discount nếu batch gần nhất có discount
             discount = (closestBatch?.discount && closestBatch.discount > 0) ? closestBatch.discount : 0;
             unitprice = product_order.sellingprice ? product_order.sellingprice.toNumber() : 0;
-
             // Áp dụng discount nếu có
+
             if (discount > 0) {
-                unitprice = unitprice * (100 - discount / 100);
+                unitprice = unitprice * ((100 - discount)/ 100);
             }
         }
         else {
