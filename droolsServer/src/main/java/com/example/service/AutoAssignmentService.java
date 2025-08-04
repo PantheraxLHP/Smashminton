@@ -40,17 +40,19 @@ public class AutoAssignmentService {
     public AutoAssignmentResponse performAutoAssignment(AutoAssignmentRequest request) {
         AutoAssignmentResponse response = new AutoAssignmentResponse();
         try {
-            // Calculate next week dates using Asia/Ho_Chi_Minh timezone for consistency
-            ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
-            LocalDateTime now = LocalDateTime.now(vietnamZone);
-
-            int currentDayOfWeek = now.getDayOfWeek().getValue();
-            LocalDateTime nextWeekStart = now.plusDays(7 - currentDayOfWeek + 1).withHour(0)
+            // Calculate next week dates
+            int currentDayOfWeek = LocalDateTime.now().getDayOfWeek().getValue();
+            LocalDateTime nextWeekStart = LocalDateTime.now().plusDays(7 - currentDayOfWeek + 1).withHour(0)
                     .withMinute(0).withSecond(0).withNano(0);
             LocalDateTime nextWeekEnd = nextWeekStart.plusDays(6).withHour(23).withMinute(59).withSecond(59)
                     .withNano(999999999);
             LocalDateTime nextWeekStartDateTime = nextWeekStart;
             LocalDateTime nextWeekEndDateTime = nextWeekEnd;
+
+            System.out.println("DEBUG - Calculated time range:");
+            System.out.println("  nextWeekStart: " + nextWeekStart);
+            System.out.println("  nextWeekEnd: " + nextWeekEnd);
+            System.out.println("  System timezone: " + ZoneId.systemDefault());
 
             // Load part-time employees and initialize their assignedShiftInDay for next  week
             List<Employee> employees = loadAndInitializePartTimeEmployees(nextWeekStartDateTime, nextWeekEndDateTime);
@@ -61,6 +63,11 @@ public class AutoAssignmentService {
             // Load shift dates for next week with shiftId > 2
             List<Shift_Date> shiftDates = shiftDateRepository.findByShiftIdGreaterThan2AndShiftDateBetween(
                     nextWeekStartDateTime, nextWeekEndDateTime);
+
+            System.out.println("DEBUG - Loaded shift dates from DB:");
+            for (Shift_Date sd : shiftDates.subList(0, Math.min(3, shiftDates.size()))) {
+                System.out.println("  " + sd.getShiftId() + " - " + sd.getShiftDate());
+            }
 
             if (shiftDates.isEmpty()) {
                 return new AutoAssignmentResponse(false, "No shifts found for next week with shiftId > 2");
