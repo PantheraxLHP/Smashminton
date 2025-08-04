@@ -559,14 +559,14 @@ async function main() {
                     batchname: `Batch-${productId}-${deliveryDate.toISOString().split('T')[0]}`,
                     expirydate: new Date(deliveryDate.getFullYear() + 1, deliveryDate.getMonth(), deliveryDate.getDate()),
                     stockquantity: estimatedQuantity,
-                    statusbatch: 'Mới',
+                    statusbatch: 'available',
                     createdat: deliveryDate,
                     updatedat: deliveryDate,
                 });
 
                 purchaseOrdersToCreate.push({
                     quantity: estimatedQuantity,
-                    statusorder: 'Hoàn thành',
+                    statusorder: 'delivered',
                     deliverydate: deliveryDate,
                     createdat: deliveryDate,
                     updatedat: deliveryDate,
@@ -613,7 +613,7 @@ async function main() {
             }
 
 
-            // Reset bộ đếm cho tháng mới
+            // Reset bộ đếm cho tháng available
             monthlySoldProducts = {};
 
             const progress = ((date.getTime() - startDate.getTime()) / (endDate.getTime() - startDate.getTime()) * 100).toFixed(2);
