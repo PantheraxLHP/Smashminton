@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -39,9 +40,12 @@ public class AutoAssignmentService {
     public AutoAssignmentResponse performAutoAssignment(AutoAssignmentRequest request) {
         AutoAssignmentResponse response = new AutoAssignmentResponse();
         try {
-            // Calculate next week dates
-            int currentDayOfWeek = LocalDateTime.now().getDayOfWeek().getValue();
-            LocalDateTime nextWeekStart = LocalDateTime.now().plusDays(7 - currentDayOfWeek + 1).withHour(0)
+            // Calculate next week dates using Asia/Ho_Chi_Minh timezone for consistency
+            ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+            LocalDateTime now = LocalDateTime.now(vietnamZone);
+
+            int currentDayOfWeek = now.getDayOfWeek().getValue();
+            LocalDateTime nextWeekStart = now.plusDays(7 - currentDayOfWeek + 1).withHour(0)
                     .withMinute(0).withSecond(0).withNano(0);
             LocalDateTime nextWeekEnd = nextWeekStart.plusDays(6).withHour(23).withMinute(59).withSecond(59)
                     .withNano(999999999);
