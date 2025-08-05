@@ -140,6 +140,13 @@ async function main() {
                     phonenumber: true
                 }
             }
+        },
+        where: {
+            accounts: {
+                username: {
+                    not: 'hdkien'
+                }
+            }
         }
     });
     const employees = await prisma.employees.findMany({
