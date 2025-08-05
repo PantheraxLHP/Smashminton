@@ -189,7 +189,6 @@ export const paymentFormSchema = z.object({
 // Input sanitization helpers
 export const sanitizeString = (input: string): string => {
     return input
-        .trim()
         .replace(/[<>'"&]/g, '') // Remove potentially harmful characters
         .replace(/\s+/g, ' '); // Replace multiple spaces with single space
 };
