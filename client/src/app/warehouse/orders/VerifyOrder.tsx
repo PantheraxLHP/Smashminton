@@ -85,19 +85,30 @@ export default function VerifyOrderModal({
         if (!orderData) return;
 
         try {
-            verifyOrderSchema.parse({
-                receivedQuantity: Number(formData.receivedQuantity),
-                expiryDate: formData.expiryDate,
-            });
-            
-            setErrors({});
-
             const received = formData.receivedQuantity;
             const ordered = formData.quantity;
+            // Nếu có expiryDate thì kiểm tra Zod
+            if (formData.expiryDate) {
+                verifyOrderSchema.parse({
+                    receivedQuantity: received,
+                    expiryDate: formData.expiryDate,
+                });
+            } else {
+                // Nếu không có expiryDate thì chỉ kiểm tra số lượng
+                const quantitySchema = z.object({
+                    receivedQuantity: verifyOrderSchema.shape.receivedQuantity,
+                });
+
+                quantitySchema.parse({ receivedQuantity: received });
+            }
+            
+            setErrors({});
+            const expiryDate = formData.expiryDate || null;
+            
             // Gọi API xác nhận đơn hàng chính
             const updateRes = await updatePurchaseOrder(formData.orderid, {
                 realityQuantity: received,
-                realityExpiryDate: formData.expiryDate,
+                realityExpiryDate: expiryDate,
             });
 
             if (!updateRes.ok) {

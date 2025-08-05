@@ -60,7 +60,11 @@ export class PurchaseOrdersController {
     @Param('id') poid: string,
     @Body() body: UpdateDeliverySuccessfullyDto
   ) {
-    return this.purchaseOrdersService.confirmDelivery(+poid, body.realityQuantity, new Date(body.realityExpiryDate));
+    return this.purchaseOrdersService.confirmDelivery(
+      +poid,
+      body.realityQuantity,
+      body.realityExpiryDate ? new Date(body.realityExpiryDate) : undefined
+    );
   }
 
   @Patch('cancel-purchaseOrder/:poid')

@@ -46,6 +46,13 @@ export const verifyOrderSchema = z.object({
         }),
 });
 
+export const quantitySchema = z.object({
+    receivedQuantity: z
+        .number()
+        .min(1, { message: "Số lượng giao phải lớn hơn 0" })
+        .max(1000000000, { message: "Số lượng giao không hợp lệ" }),
+})
+
 export const supplierSchema = z.object({
     name: z.string()
         .min(1, { message: "Tên nhà cung cấp không hợp lệ" })

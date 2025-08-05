@@ -82,7 +82,7 @@ export class PurchaseOrdersService {
       },
     });
 
-    console.log('Purchase Orders:', purchaseOrders);
+    //console.log('Purchase Orders:', purchaseOrders);
 
     const enrichedOrders = await Promise.all(
       purchaseOrders.map(async (order) => {
@@ -126,7 +126,7 @@ export class PurchaseOrdersService {
     return `This action returns a #${id} purchaseOrder`;
   }
 
-  async confirmDelivery(poid: number, realityQuantity: number, realityExpiryDate: Date) {
+  async confirmDelivery(poid: number, realityQuantity: number, realityExpiryDate?: Date) {
     // 1. Kiểm tra đơn nhập có tồn tại không
     const order = await this.prisma.purchase_order.findUnique({
       where: { poid },
@@ -147,17 +147,29 @@ export class PurchaseOrdersService {
         updatedat: new Date(),
       },
     });
-
-    // 3. Cập nhật batch tương ứng
-    await this.prisma.product_batch.update({
-      where: { batchid: order.batchid! },
-      data: {
-        stockquantity: realityQuantity,
-        expirydate: realityExpiryDate,
-        statusbatch: 'available',
-        updatedat: new Date(),
-      },
-    });
+    
+    if (!realityExpiryDate) {
+      await this.prisma.product_batch.update({
+        where: { batchid: order.batchid! },
+        data: {
+          stockquantity: realityQuantity,
+          statusbatch: 'available',
+          updatedat: new Date(),
+        },
+      });
+    }
+    else {
+      // 3. Cập nhật batch tương ứng
+      await this.prisma.product_batch.update({
+        where: { batchid: order.batchid! },
+        data: {
+          stockquantity: realityQuantity,
+          expirydate: realityExpiryDate,
+          statusbatch: 'available',
+          updatedat: new Date(),
+        },
+      });
+    }
 
     return {
       message: 'Cập nhật đơn nhập và lô hàng thành công',

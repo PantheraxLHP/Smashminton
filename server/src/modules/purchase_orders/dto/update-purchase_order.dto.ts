@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt } from 'class-validator';
+import { IsDateString, IsInt, IsOptional } from 'class-validator';
 
 export class UpdateDeliverySuccessfullyDto {
     @ApiProperty({ example: 100, description: 'Số lượng thực tế nhận được' })
     @IsInt()
     realityQuantity: number;
 
-    @ApiProperty({ example: '2025-08-15', description: 'Hạn sử dụng thực tế (yyyy-mm-dd)' })
+    @ApiProperty({ example: '2025-08-15', description: 'Hạn sử dụng thực tế (yyyy-mm-dd)', required: false })
+    @IsOptional()
     @IsDateString()
-    realityExpiryDate: string;
+    realityExpiryDate?: string;
 }

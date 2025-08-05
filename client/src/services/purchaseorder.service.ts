@@ -68,7 +68,7 @@ export const getAllPurchaseOrder = async (page: number, pageSize: number, status
 
 
 
-export const updatePurchaseOrder = async (id: number, payload: { realityQuantity: number; realityExpiryDate: string }) => {
+export const updatePurchaseOrder = async (id: number, payload: { realityQuantity: number; realityExpiryDate: string | null }) => {
     try {
         const response = await fetch(`/api/purchase-order/patch-purchase-order?id=${id}`, {
             method: 'PATCH',
