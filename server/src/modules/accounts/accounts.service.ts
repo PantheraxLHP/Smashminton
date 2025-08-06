@@ -251,69 +251,93 @@ export class AccountsService {
         });
 
         if (!existingAccount) {
-            throw new BadRequestException('Account not found');
-        }
-
-        // Nếu không có files, trả về thông tin hiện tại
-        if (!files || files.length === 0) {
-            return this.findOne(accountId);
-        }
-
-        // Thực hiện OCR
-        const ocrResults = await Promise.all(
-            files.map(async (file) => {
-                return await this.tesseractOcrService.parseImage(file.buffer);
-            }),
-        );
-
-        // Lấy phần tử đầu tiên có đủ cả 3 trường
-        const validResult = ocrResults.find((ocrData) => {
-            return ocrData.university !== '' && ocrData.id !== '' && ocrData.expiryYear !== '';
-        });
-
-        if (validResult === undefined) {
-            // Trả về kết quả từ findOne với thông tin URLs
-            const accountInfo = await this.findOne(accountId);
-            return accountInfo;
-        }
-
-        // Check if another student card exists with the same studentid (excluding current account)
-        const duplicateStudentCard = await this.prisma.student_card.findFirst({
-            where: {
-                studentid: validResult.id,
-                NOT: {
-                    studentcardid: accountId, // Exclude current account's student card
-                },
-            },
-        });
-
-        if (duplicateStudentCard) {
-            throw new BadRequestException('Student card already exists');
-        }
-
-        // Lưu thông tin OCR hợp lệ vào database - use upsert for create or update
-        if (validResult) {
-            const expireDate = new Date(Number(validResult.expiryYear), 11, 31, 23, 59, 59);
-
-            await this.prisma.student_card.upsert({
-                where: { studentcardid: accountId },
-                update: {
-                    schoolname: validResult.university,
-                    studentid: validResult.id,
-                    studyperiod: expireDate,
-                },
-                create: {
-                    studentcardid: accountId,
-                    schoolname: validResult.university,
-                    studentid: validResult.id,
-                    studyperiod: expireDate,
-                },
+            throw new BadRequestException({
+                message: 'Tài khoản không tồn tại',
+                error: 'ACCOUNT_NOT_FOUND',
             });
         }
 
-        // Trả về kết quả từ findOne (sẽ bao gồm student card mới/cập nhật)
-        const updatedAccountInfo = await this.findOne(accountId);
-        return updatedAccountInfo;
+        // Nếu không có files, trả về lỗi
+        if (!files || files.length === 0) {
+            throw new BadRequestException({
+                message: 'Vui lòng tải lên ít nhất một ảnh thẻ sinh viên',
+                error: 'NO_FILES_PROVIDED',
+            });
+        }
+
+        try {
+            // Thực hiện OCR
+            const ocrResults = await Promise.all(
+                files.map(async (file) => {
+                    return await this.tesseractOcrService.parseImage(file.buffer);
+                }),
+            );
+
+            // Lấy phần tử đầu tiên có đủ cả 3 trường
+            const validResult = ocrResults.find((ocrData) => {
+                return ocrData.university !== '' && ocrData.id !== '' && ocrData.expiryYear !== '';
+            });
+
+            if (validResult === undefined) {
+                throw new BadRequestException({
+                    message: 'Không thể đọc được thông tin từ ảnh thẻ sinh viên',
+                    error: 'OCR_EXTRACTION_FAILED',
+                    details: 'Vui lòng chụp ảnh rõ nét hơn hoặc thử với ảnh khác',
+                });
+            }
+
+            // Check if another student card exists with the same studentid (excluding current account)
+            const duplicateStudentCard = await this.prisma.student_card.findFirst({
+                where: {
+                    studentid: validResult.id,
+                    NOT: {
+                        studentcardid: accountId, // Exclude current account's student card
+                    },
+                },
+            });
+
+            if (duplicateStudentCard) {
+                throw new BadRequestException({
+                    message: 'Thẻ sinh viên này đã được sử dụng bởi tài khoản khác',
+                    error: 'STUDENT_CARD_ALREADY_EXISTS',
+                    details: `Student ID ${validResult.id} đã tồn tại trong hệ thống`,
+                });
+            }
+
+            // Lưu thông tin OCR hợp lệ vào database - use upsert for create or update
+            if (validResult) {
+                const expireDate = new Date(Number(validResult.expiryYear), 11, 31, 23, 59, 59);
+
+                await this.prisma.student_card.upsert({
+                    where: { studentcardid: accountId },
+                    update: {
+                        schoolname: validResult.university,
+                        studentid: validResult.id,
+                        studyperiod: expireDate,
+                    },
+                    create: {
+                        studentcardid: accountId,
+                        schoolname: validResult.university,
+                        studentid: validResult.id,
+                        studyperiod: expireDate,
+                    },
+                });
+            }
+
+            // Trả về kết quả từ findOne (sẽ bao gồm student card mới/cập nhật)
+            const updatedAccountInfo = await this.findOne(accountId);
+            return updatedAccountInfo;
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error; // Re-throw our custom errors
+            }
+            // Handle unexpected errors
+            throw new BadRequestException({
+                message: 'Có lỗi xảy ra khi xử lý ảnh thẻ sinh viên',
+                error: 'PROCESSING_ERROR',
+                details: error.message,
+            });
+        }
     }
 
     async findByEmail(email: string) {

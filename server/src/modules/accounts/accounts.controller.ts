@@ -1,4 +1,20 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, BadRequestException, UploadedFiles, UploadedFile, UseInterceptors, ParseIntPipe, UseGuards, Logger } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Put,
+    Param,
+    Delete,
+    NotFoundException,
+    BadRequestException,
+    UploadedFiles,
+    UploadedFile,
+    UseInterceptors,
+    ParseIntPipe,
+    UseGuards,
+    Logger,
+} from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -22,27 +38,25 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('accounts')
 export class AccountsController {
-    constructor(
-        private readonly accountsService: AccountsService,
-    ) { }
+    constructor(private readonly accountsService: AccountsService) {}
 
     @Post('customer')
     @ApiBearerAuth()
-    @UseInterceptors(FilesInterceptor('studentCard', 10, { // Cho phép tối đa 10 file
-        limits: {
-            fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
-        },
-        fileFilter: (req, file, cb) => {
-            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-                return cb(new Error('Only image files are allowed!'), false);
-            }
-            cb(null, true);
-        },
-    }))
-    async createAccount(
-        @Body() createAccountDto: CreateAccountDto,
-        @UploadedFiles() files: Express.Multer.File[],
-    ) {
+    @UseInterceptors(
+        FilesInterceptor('studentCard', 10, {
+            // Cho phép tối đa 10 file
+            limits: {
+                fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file: 5MB
+            },
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files are allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    async createAccount(@Body() createAccountDto: CreateAccountDto, @UploadedFiles() files: Express.Multer.File[]) {
         if (!createAccountDto) {
             throw new BadRequestException('Invalid account data');
         }
@@ -154,7 +168,7 @@ export class AccountsController {
         name: 'id',
         description: 'Account ID',
         type: Number,
-        example: 1
+        example: 1,
     })
     @ApiBody({
         description: 'Upload 2 student card images',
@@ -179,12 +193,13 @@ export class AccountsController {
     })
     @ApiResponse({
         status: 400,
-        description: 'Account not found'
+        description: 'Bad request - Account not found, invalid files, or OCR failed',
     })
-    async updateStudentCard(
-        @Param('id', ParseIntPipe) id: number,
-        @UploadedFiles() files?: Express.Multer.File[]
-    ) {
+    @ApiResponse({
+        status: 422,
+        description: 'Unprocessable Entity - Unable to extract student card information from images',
+    })
+    async updateStudentCard(@Param('id', ParseIntPipe) id: number, @UploadedFiles() files?: Express.Multer.File[]) {
         return this.accountsService.updateStudentCard(id, files || []);
     }
 }
