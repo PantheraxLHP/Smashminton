@@ -8,7 +8,7 @@ export class UpdateAccountDto {
     @IsString()
     fullname?: string;
 
-    @ApiProperty({example: 'Male', required: false })
+    @ApiProperty({ example: 'Male', required: false })
     @IsOptional()
     @IsString()
     gender?: string;
@@ -21,17 +21,14 @@ export class UpdateAccountDto {
     @IsOptional()
     @IsDate()
     @Type(() => Date)
-    @ApiProperty({ example: '2000-02-02T00:00:00Z', required: false }) 
+    @ApiProperty({ example: '2000-02-02T00:00:00Z', required: false })
     dob?: Date;
 
     @ApiProperty({ example: '0123456789', required: false })
     @IsOptional()
-    @Matches(/^(0|\+84)[3-9][0-9]{8}$/, { 
-        message: 'Số điện thoại không hợp lệ (phải là số Việt Nam và có 10-11 chữ số)' 
-    })
     phonenumber?: string;
 
-    @ApiProperty({ example: '123 Đường N, Quận Bình Thạnh' })
+    @ApiProperty({ example: '123 Đường N, Quận Bình Thạnh', required: false })
     @IsOptional()
     address?: string;
 

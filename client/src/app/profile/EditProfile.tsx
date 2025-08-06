@@ -1,6 +1,7 @@
 // components/EditProfile.tsx
 'use client';
 
+import { addressSchema, dobSchema, emailSchema, nameSchema, phoneNumberSchema } from '@/lib/validation.schema';
 import { updateProfile } from '@/services/accounts.service';
 import { Accounts } from '@/types/types';
 import Image from 'next/image';
@@ -16,20 +17,6 @@ import {
     FaVenusMars,
 } from 'react-icons/fa';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import {
-    profileEditSchema,
-    nameSchema,
-    phoneNumberSchema,
-    emailSchema,
-    addressSchema,
-    dobSchema,
-    imageFileSchema,
-    sanitizeString,
-    sanitizeEmail,
-    sanitizePhone,
-    getValidationErrors,
-} from '@/lib/validation.schema';
 
 interface EditProfileFormData extends Accounts {
     avatar: File | null;
@@ -82,22 +69,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
-        // Sanitize input based on field type
-        let sanitizedValue = value;
-        if (name === 'email') {
-            sanitizedValue = sanitizeEmail(value);
-        } else if (name === 'phonenumber') {
-            sanitizedValue = sanitizePhone(value);
-        } else if (name === 'fullname') {
-            sanitizedValue = sanitizeString(value);
-        } else if (name === 'address') {
-            sanitizedValue = sanitizeString(value);
-        }
+        setFormData((prev) => ({ ...prev, [name]: value }));
 
-        setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
-
-        // Real-time validation
-        validateField(name, sanitizedValue);
+        // Real-time validation - only validate if field has content
+        validateField(name, value);
     };
 
     const validateField = (fieldName: string, value: string) => {
@@ -105,28 +80,22 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             let schema;
             switch (fieldName) {
                 case 'fullname':
-                    schema = nameSchema.optional();
+                    schema = nameSchema;
                     break;
                 case 'email':
-                    schema = emailSchema.optional();
+                    schema = emailSchema;
                     break;
                 case 'phonenumber':
-                    schema = phoneNumberSchema.optional();
+                    schema = phoneNumberSchema;
                     break;
                 case 'address':
-                    schema = z.string().min(1, 'Địa chỉ không được để trống').max(500, 'Địa chỉ quá dài');
+                    schema = addressSchema;
                     break;
                 case 'dob':
-                    schema = dobSchema.optional();
+                    schema = dobSchema;
                     break;
                 default:
                     return; // No validation for other fields
-            }
-
-            if (value === '' && fieldName !== 'fullname' && fieldName !== 'email' && fieldName !== 'address') {
-                // Allow empty values for optional fields (except fullname, email, and address)
-                setErrors((prev) => ({ ...prev, [fieldName]: '' }));
-                return;
             }
 
             schema.parse(value);
@@ -141,17 +110,23 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         const file = e.target.files?.[0] || null;
 
         if (file) {
-            try {
-                imageFileSchema.parse(file);
-                setFormData((prev) => ({ ...prev, avatar: file }));
-                setErrors((prev) => ({ ...prev, avatar: '' }));
-            } catch (error: any) {
-                const errorMessage = error.errors?.[0]?.message || 'File không hợp lệ';
-                setErrors((prev) => ({ ...prev, avatar: errorMessage }));
-                toast.error(errorMessage);
-                // Reset file input
+            // Simple file validation
+            if (file.size > 5 * 1024 * 1024) {
+                setErrors((prev) => ({ ...prev, avatar: 'Kích thước file không được vượt quá 5MB' }));
+                toast.error('Kích thước file không được vượt quá 5MB');
                 e.target.value = '';
+                return;
             }
+
+            if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+                setErrors((prev) => ({ ...prev, avatar: 'File phải là định dạng ảnh (JPEG, PNG, WebP)' }));
+                toast.error('File phải là định dạng ảnh (JPEG, PNG, WebP)');
+                e.target.value = '';
+                return;
+            }
+
+            setFormData((prev) => ({ ...prev, avatar: file }));
+            setErrors((prev) => ({ ...prev, avatar: '' }));
         } else {
             setFormData((prev) => ({ ...prev, avatar: null }));
             setErrors((prev) => ({ ...prev, avatar: '' }));
@@ -162,63 +137,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
         e.preventDefault();
         if (!userProfile?.accountid) return;
 
-        // Only validate fields that will actually be sent to the backend
-        try {
-            const validationData: any = {};
-
-            // Only validate fields that have been modified or are required
-            if (formData.fullname && formData.fullname !== (userProfile.fullname || '')) {
-                validationData.fullname = formData.fullname;
-            }
-
-            if (formData.email && formData.email !== (userProfile.email || '')) {
-                validationData.email = formData.email;
-            }
-
-            // Only validate phone number if it has a value and has been changed
-            if (formData.phonenumber && formData.phonenumber !== (userProfile.phonenumber || '')) {
-                validationData.phonenumber = formData.phonenumber;
-            }
-
-            // Address is always validated since it's required by API
-            validationData.address = formData.address || '';
-
-            if (formData.dob) {
-                const currentDob = formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : '';
-                const originalDob = userProfile.dob ? new Date(userProfile.dob).toISOString().split('T')[0] : '';
-                if (currentDob !== originalDob) {
-                    validationData.dob = formData.dob;
-                }
-            }
-
-            if (formData.gender && formData.gender !== (userProfile.gender || '')) {
-                validationData.gender = formData.gender as 'Nam' | 'Nữ' | 'Khác';
-            }
-
-            // Create a dynamic schema based on what fields we're actually updating
-            const dynamicSchema = z.object({
-                ...(validationData.fullname !== undefined && { fullname: nameSchema }),
-                ...(validationData.email !== undefined && { email: emailSchema }),
-                ...(validationData.phonenumber !== undefined && { phonenumber: phoneNumberSchema }),
-                ...(validationData.address !== undefined && {
-                    address: z.string().min(1, 'Địa chỉ không được để trống').max(500, 'Địa chỉ quá dài'),
-                }),
-                ...(validationData.dob !== undefined && { dob: dobSchema }),
-                ...(validationData.gender !== undefined && { gender: z.enum(['Nam', 'Nữ', 'Khác']) }),
-            });
-
-            dynamicSchema.parse(validationData);
-
-            // Check if there are any existing validation errors
-            const hasErrors = Object.values(errors).some((error) => error !== '');
-            if (hasErrors) {
-                toast.error('Vui lòng sửa các lỗi trước khi lưu');
-                return;
-            }
-        } catch (error: any) {
-            const validationErrors = getValidationErrors(error);
-            setErrors((prev) => ({ ...prev, ...validationErrors }));
-            toast.error('Có lỗi trong thông tin đã nhập');
+        // Check if there are any existing validation errors from real-time validation
+        const hasErrors = Object.values(errors).some((error) => error !== '' && error !== undefined);
+        if (hasErrors) {
+            toast.error('Vui lòng sửa các lỗi trước khi lưu');
             return;
         }
 
@@ -226,39 +148,24 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
 
         const formDataToSend = new FormData();
 
-        // Only send fields that have been modified and are valid
-        if (formData.fullname && formData.fullname !== (userProfile.fullname || '')) {
-            formDataToSend.append('fullname', formData.fullname);
-        }
+        // Send all fields, even if empty (let backend handle)
+        formDataToSend.append('fullname', formData.fullname || '');
+        formDataToSend.append('gender', formData.gender || '');
+        formDataToSend.append('email', formData.email || '');
+        formDataToSend.append('phonenumber', formData.phonenumber || '');
+        formDataToSend.append('address', formData.address || '');
 
-        if (formData.gender && formData.gender !== (userProfile.gender || '')) {
-            formDataToSend.append('gender', formData.gender);
-        }
-
-        if (formData.email && formData.email !== (userProfile.email || '')) {
-            formDataToSend.append('email', formData.email);
-        }
-
-        // Only send phone number if it's valid and changed
-        if (formData.phonenumber && formData.phonenumber !== (userProfile.phonenumber || '') && !errors.phonenumber) {
-            formDataToSend.append('phonenumber', formData.phonenumber);
-        }
-
-        // Address is required by API, so always send it
-        formDataToSend.append('address', formData.address || userProfile.address || '');
-
-        // Add dob if it exists and has changed
+        // Add dob if it exists
         if (formData.dob) {
-            const currentDob = formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : '';
-            const originalDob = userProfile.dob ? new Date(userProfile.dob).toISOString().split('T')[0] : '';
-            if (currentDob !== originalDob) {
-                const dobDate = new Date(formData.dob);
-                formDataToSend.append('dob', dobDate.toISOString());
-            }
+            const dobDate = new Date(formData.dob);
+            formDataToSend.append('dob', dobDate.toISOString());
         }
 
         if (formData.avatar) {
             formDataToSend.append('avatarurl', formData.avatar);
+        }
+        else {
+            formDataToSend.append('avatarurl', userProfile.avatarurl || '');
         }
 
         try {
@@ -270,7 +177,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
             } else {
                 toast.error('Cập nhật thông tin thất bại');
             }
-        } catch (error) {
+        } catch {
             toast.error('Có lỗi xảy ra khi cập nhật thông tin');
         } finally {
             setIsLoading(false);
@@ -340,6 +247,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="fullname"
                                     value={formData.fullname || ''}
                                     onChange={handleChange}
+                                    placeholder="Nhập tên của bạn"
                                     className={`w-full rounded border px-3 py-1 ${
                                         errors.fullname ? 'border-red-500' : 'border-gray-300'
                                     }`}
@@ -375,6 +283,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="phonenumber"
                                     value={formData.phonenumber || ''}
                                     onChange={handleChange}
+                                    placeholder="VD: 0123456789 hoặc +84123456789"
                                     className={`w-full rounded border px-3 py-1 ${
                                         errors.phonenumber ? 'border-red-500' : 'border-gray-300'
                                     }`}
@@ -393,21 +302,12 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="dob"
                                     value={formData.dob ? new Date(formData.dob).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
-                                    min={
-                                        new Date(new Date().setFullYear(new Date().getFullYear() - 100))
-                                            .toISOString()
-                                            .split('T')[0]
-                                    }
-                                    max={
-                                        new Date(new Date().setFullYear(new Date().getFullYear() - 16))
-                                            .toISOString()
-                                            .split('T')[0]
-                                    }
                                     className={`w-full rounded border px-3 py-1 ${
                                         errors.dob ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 />
                                 {errors.dob && <span className="mt-1 text-xs text-red-500">{errors.dob}</span>}
+                                <span className="mt-1 text-xs text-gray-500">Từ 16-100 tuổi</span>
                             </div>
 
                             <div>
@@ -419,6 +319,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="address"
                                     value={formData.address || ''}
                                     onChange={handleChange}
+                                    placeholder="Nhập địa chỉ của bạn"
                                     className={`w-full rounded border px-3 py-1 ${
                                         errors.address ? 'border-red-500' : 'border-gray-300'
                                     }`}
@@ -435,6 +336,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ userProfile, onClose, onSave 
                                     name="email"
                                     value={formData.email || ''}
                                     onChange={handleChange}
+                                    placeholder="email@example.com"
                                     className={`w-full rounded border px-3 py-1 ${
                                         errors.email ? 'border-red-500' : 'border-gray-300'
                                     }`}

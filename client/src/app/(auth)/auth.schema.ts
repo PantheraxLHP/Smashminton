@@ -1,13 +1,62 @@
 import { z } from 'zod';
-import {
-    usernameSchema,
-    passwordSchema,
-    emailSchema,
-    nameSchema,
-    phoneNumberSchema,
-    addressSchema,
-    signupDobSchema,
-} from '@/lib/validation.schema';
+
+// Define auth-specific required schemas (for registration/login)
+const authEmailSchema = z
+    .string()
+    .min(1, 'Email không được để trống')
+    .email('Email không hợp lệ')
+    .transform((val) => val.trim().toLowerCase());
+
+const authPasswordSchema = z.string().min(3, 'Mật khẩu phải có ít nhất 3 ký tự');
+
+const authNameSchema = z
+    .string()
+    .max(100, 'Tên quá dài')
+    .transform((val) => val.trim());
+
+// Validation pattern for Vietnamese phone numbers
+const vietnamesePhoneRegex = /^(0|\+84)[3-9][0-9]{8}$/;
+
+const authAddressSchema = z
+    .string()
+    .optional()
+    .transform((val) => val?.trim());
+
+// Optional phone schema for signup (allows empty)
+const signupPhoneNumberSchema = z
+    .string()
+    .optional()
+    .refine((val) => {
+        if (!val || val.trim() === '') return true; // Allow empty
+        return vietnamesePhoneRegex.test(val.trim());
+    }, 'Số điện thoại không hợp lệ')
+    .transform((val) => val?.trim());
+
+// Define missing schemas inline
+const usernameSchema = z
+    .string()
+    .min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự')
+    .max(30, 'Tên đăng nhập không được quá 30 ký tự')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới')
+    .transform((val) => val.trim());
+
+const signupDobSchema = z
+    .string()
+    .optional()
+    .refine(
+        (date) => {
+            if (!date) return true;
+            const dob = new Date(date);
+            if (isNaN(dob.getTime())) return false;
+            const today = new Date();
+            const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+            const maxDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate());
+            return dob >= minDate && dob <= maxDate;
+        },
+        {
+            message: 'Ngày sinh không hợp lệ (độ tuổi phải từ 16 đến 100)',
+        },
+    );
 
 // Define the schema for login
 export const signinSchema = z.object({
@@ -22,45 +71,13 @@ export type SigninSchema = z.infer<typeof signinSchema>;
 export const signupSchema = z
     .object({
         username: usernameSchema,
-        password: passwordSchema,
-        repassword: passwordSchema,
-        email: emailSchema,
-        fullname: z
-            .string()
-            .optional()
-            .refine(
-                (value) => {
-                    if (!value || value.trim() === '') return true;
-                    try {
-                        nameSchema.parse(value);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                },
-                {
-                    message: 'Tên chỉ được chứa chữ cái và khoảng trắng',
-                },
-            ),
+        password: authPasswordSchema,
+        repassword: authPasswordSchema,
+        email: authEmailSchema,
+        fullname: authNameSchema.optional(),
         dob: signupDobSchema,
-        phonenumber: z
-            .string()
-            .optional()
-            .refine(
-                (value) => {
-                    if (!value || value.trim() === '') return true;
-                    try {
-                        phoneNumberSchema.parse(value);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                },
-                {
-                    message: 'Số điện thoại không hợp lệ (phải là số Việt Nam và có 10-11 chữ số)',
-                },
-            ),
-        address: addressSchema,
+        phonenumber: signupPhoneNumberSchema,
+        address: authAddressSchema.optional(),
         accounttype: z.string().optional(),
         studentCard: z.any().optional(),
     })

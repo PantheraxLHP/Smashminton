@@ -3,7 +3,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Filters } from './page';
 import { FeatureZone, getZones } from '@/services/zones.service';
-import { zoneSchema, dateSchema, durationSchema, timeSchema, sanitizeString } from '@/lib/validation.schema';
+// Removed booking validation schemas - using simple validation instead
 import { toast } from 'sonner';
 
 interface BookingFilterProps {
@@ -34,40 +34,43 @@ const BookingFilter: React.FC<BookingFilterProps> = ({ onFilterChange, filters, 
         return `${year}-${month}-${day}`;
     };
 
-    // Helper functions to handle filter changes with validation
+    // Helper functions to handle filter changes with simple validation
     const handleZoneChange = (zone: string) => {
-        try {
-            const validatedZone = zoneSchema.parse(sanitizeString(zone));
+        const validatedZone = zone.trim();
+        if (validatedZone) {
             onFilterChange({ ...filters, zone: validatedZone });
-        } catch (error) {
+        } else {
             toast.error('Khu vực sân không hợp lệ');
         }
     };
 
     const handleDateChange = (date: Date) => {
-        try {
-            const dateString = getLocalDateString(date);
-            const validatedDate = dateSchema.parse(dateString);
-            onFilterChange({ ...filters, date: validatedDate });
-        } catch (error) {
-            toast.error('Ngày đặt sân không hợp lệ');
+        const dateString = getLocalDateString(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (date >= today) {
+            onFilterChange({ ...filters, date: dateString });
+        } else {
+            toast.error('Ngày đặt sân không được trong quá khứ');
         }
     };
 
     const handleDurationChange = (duration: number) => {
-        try {
-            const validatedDuration = durationSchema.parse(duration);
-            onFilterChange({ ...filters, duration: validatedDuration });
-        } catch (error) {
-            toast.error('Thời lượng đánh không hợp lệ');
+        if (duration >= 0.5 && duration <= 8 && duration % 0.5 === 0) {
+            onFilterChange({ ...filters, duration });
+        } else {
+            toast.error('Thời lượng đánh không hợp lệ (0.5-8 giờ, bội số của 0.5)');
         }
     };
 
     const handleStartTimeChange = (startTime: string) => {
-        try {
-            const validatedTime = timeSchema.parse(sanitizeString(startTime));
+        const validatedTime = startTime.trim();
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        
+        if (timeRegex.test(validatedTime)) {
             onFilterChange({ ...filters, startTime: validatedTime });
-        } catch (error) {
+        } else {
             toast.error('Giờ bắt đầu không hợp lệ');
         }
     };

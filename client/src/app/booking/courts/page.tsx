@@ -16,7 +16,7 @@ import BookingBottomSheet from '../../../components/atomic/BottomSheet';
 import BookingStepper from '../_components/BookingStepper';
 import BookingCourtList from './BookingCourtList';
 import BookingFilter from './BookingFilter';
-import { bookingFiltersSchema, sanitizeString, sanitizeNumber } from '@/lib/validation.schema';
+// Removed booking validation schemas - using simple validation instead
 
 export interface SelectedCourts {
     zoneid: number;
@@ -63,25 +63,22 @@ export default function BookingCourtsPage() {
 
     // Parse and validate URL parameters
     const parseUrlParams = () => {
-        const rawZone = searchParams.get('zone') || '1';
-        const rawDate = searchParams.get('date') || getTodayDateString();
-        const rawDuration = sanitizeNumber(searchParams.get('duration') || '0') || 0;
-        const rawStartTime = searchParams.get('startTime') || '';
-
         try {
-            // Validate the complete filter object
-            const validatedFilters = bookingFiltersSchema.partial().parse({
-                zone: sanitizeString(rawZone),
-                date: rawDate,
-                duration: rawDuration > 0 ? rawDuration : undefined,
-                startTime: rawStartTime ? sanitizeString(rawStartTime) : undefined,
-            });
+            const rawZone = searchParams.get('zone') || '1';
+            const rawDate = searchParams.get('date') || getTodayDateString();
+            const rawDuration = parseFloat(searchParams.get('duration') || '0') || 0;
+            const rawStartTime = searchParams.get('startTime') || '';
+
+            // Simple validation and sanitization
+            const zone = rawZone.trim();
+            const duration = rawDuration > 0 ? rawDuration : 0;
+            const startTime = rawStartTime ? rawStartTime.trim() : '';
 
             return {
-                zone: validatedFilters.zone || '1',
-                date: validatedFilters.date || getTodayDateString(),
-                duration: validatedFilters.duration || 0,
-                startTime: validatedFilters.startTime || '',
+                zone: zone || '1',
+                date: rawDate || getTodayDateString(),
+                duration: duration,
+                startTime: startTime,
             };
         } catch (error) {
             // If validation fails, return safe defaults

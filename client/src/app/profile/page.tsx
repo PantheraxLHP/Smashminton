@@ -12,7 +12,8 @@ import { updatePassword, updateStudentCard } from '@/services/accounts.service';
 import { toast } from 'sonner';
 import { getReceiptDetail } from '@/services/receipts.service';
 import { Icon } from '@iconify/react';
-import { passwordChangeSchema, getValidationErrors } from '@/lib/validation.schema';
+import { passwordSchema, getValidationErrors } from '@/lib/validation.schema';
+import { z } from 'zod';
 
 // Types for the API data
 interface Product {
@@ -199,6 +200,16 @@ const UserProfilePage = () => {
 
         // Validate password data
         try {
+            const passwordChangeSchema = z
+                .object({
+                    newPassword: passwordSchema,
+                    confirmPassword: z.string().min(1, 'Xác nhận mật khẩu không được để trống'),
+                })
+                .refine((data) => data.newPassword === data.confirmPassword, {
+                    message: 'Mật khẩu xác nhận không khớp',
+                    path: ['confirmPassword'],
+                });
+            
             passwordChangeSchema.parse({
                 newPassword,
                 confirmPassword,
@@ -243,10 +254,10 @@ const UserProfilePage = () => {
     }, [activeTab]);
 
     return (
-        <div className="flex max-h-screen min-h-screen w-full justify-center bg-[url('/default.png')] bg-cover bg-center px-4 sm:px-10 md:px-20 lg:px-35 py-10">
-            <div className="w-full rounded bg-white p-4 sm:p-6 shadow-2xl overflow-y-auto">
+        <div className="flex max-h-screen min-h-screen w-full justify-center bg-[url('/default.png')] bg-cover bg-center px-4 py-10 sm:px-10 md:px-20 lg:px-35">
+            <div className="w-full overflow-y-auto rounded bg-white p-4 shadow-2xl sm:p-6">
                 {/* Profile Section */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 border-b pb-6">
+                <div className="flex flex-col items-center gap-4 border-b pb-6 sm:flex-row sm:items-start sm:gap-6">
                     {userProfile?.avatarurl ? (
                         <Image
                             src={userProfile.avatarurl}
@@ -294,7 +305,7 @@ const UserProfilePage = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="mt-4 flex gap-6 overflow-x-auto whitespace-nowrap border-b text-sm font-semibold">
+                <div className="mt-4 flex gap-6 overflow-x-auto border-b text-sm font-semibold whitespace-nowrap">
                     {(user?.accounttype === 'Customer' || user?.role === 'employee') && (
                         <button
                             onClick={() => handleTabClick('bookings')}

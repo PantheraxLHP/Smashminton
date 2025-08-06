@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import OrderSummary from './OrderSummary';
 import PaymentMethodSection from './PaymentMethodSection';
-import { customerPhoneSchema, paymentMethodSchema, sanitizePhone } from '@/lib/validation.schema';
+import { requiredPhoneNumberSchema } from '@/lib/validation.schema';
 
 export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState<'momo' | 'payos'>('momo');
@@ -29,19 +29,19 @@ export default function PaymentPage() {
 
     // Handle customer phone validation
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = sanitizePhone(e.target.value);
+        const value = e.target.value.replace(/[^\d+]/g, '').trim();
         setCustomerPhone(value);
-        
-        // Real-time validation
+
+        // Real-time validation - phone is required
         try {
-            customerPhoneSchema.parse(value);
+            if (!value || value.length === 0) {
+                setPhoneError('Số điện thoại không được để trống');
+                return;
+            }
+            requiredPhoneNumberSchema.parse(value);
             setPhoneError('');
         } catch (error: any) {
-            if (value.length > 0) {
-                setPhoneError(error.errors?.[0]?.message || 'Số điện thoại không hợp lệ');
-            } else {
-                setPhoneError('');
-            }
+            setPhoneError(error.errors?.[0]?.message || 'Số điện thoại không hợp lệ');
         }
     };
 
@@ -94,9 +94,7 @@ export default function PaymentPage() {
         }
 
         // Validate payment method
-        try {
-            paymentMethodSchema.parse(selectedMethod);
-        } catch (error) {
+        if (!selectedMethod || !['momo', 'payos'].includes(selectedMethod)) {
             toast.error('Vui lòng chọn phương thức thanh toán hợp lệ');
             return;
         }
@@ -105,7 +103,12 @@ export default function PaymentPage() {
         let validatedPhone = userProfile?.phonenumber || '';
         if (userProfile?.accounttype !== 'Customer') {
             try {
-                validatedPhone = customerPhoneSchema.parse(sanitizePhone(customerPhone));
+                const cleanPhone = customerPhone.replace(/[^\d+]/g, '').trim();
+                if (!cleanPhone || cleanPhone.length === 0) {
+                    toast.error('Vui lòng nhập số điện thoại khách hàng');
+                    return;
+                }
+                validatedPhone = requiredPhoneNumberSchema.parse(cleanPhone);
             } catch (error) {
                 toast.error('Số điện thoại khách hàng không hợp lệ');
                 return;
@@ -153,24 +156,17 @@ export default function PaymentPage() {
                                     value={customerPhone}
                                     onChange={handlePhoneChange}
                                     placeholder="Số điện thoại khách hàng"
-                                    className={`w-48 rounded border px-2 py-1 text-xs ${
+                                    className={`w-48 rounded border px-2 py-1 text-sm ${
                                         phoneError ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 />
-                                {phoneError && (
-                                    <span className="mt-1 text-xs text-red-500">{phoneError}</span>
-                                )}
+                                {phoneError && <span className="mt-1 text-xs text-red-500">{phoneError}</span>}
                             </div>
                         ) : (
                             <span className="rounded bg-gray-200 px-2 py-1 text-xs">{userProfile?.phonenumber}</span>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold">MÃ NHÂN VIÊN:</span>
-                        <span className="rounded bg-gray-200 px-2 py-1 text-xs">
-                            {userProfile?.accounttype !== 'Customer' ? userProfile?.accountid : '#####'}
-                        </span>
-                    </div>
+
                 </div>
                 {/* Countdown Timer UI */}
                 {selectedCourts && selectedCourts.length > 0 && timeLeft > 0 && (
@@ -184,11 +180,11 @@ export default function PaymentPage() {
             </div>
 
             <div className="w-full overflow-auto rounded border border-black bg-gray-50">
-                <div className="min-w-[800px] bg-primary-500 border-b border-black text-center font-semibold text-white py-2 pr-4 pl-4">
+                <div className="bg-primary-500 min-w-[800px] border-b border-black py-2 pr-4 pl-4 text-center font-semibold text-white">
                     THÔNG TIN ĐƠN HÀNG
                 </div>
 
-                <div className="min-w-[800px] space-y-3 pt-2 pb-3 pl-4 pr-4">
+                <div className="min-w-[800px] space-y-3 pt-2 pr-4 pb-3 pl-4">
                     <OrderSummary />
 
                     <div className="border-t border-gray-400 pt-4">
@@ -251,12 +247,12 @@ export default function PaymentPage() {
             </div>
 
             <div className="text-center">
-                <Button 
-                    onClick={handlePayment} 
+                <Button
+                    onClick={handlePayment}
                     variant={'default'}
                     disabled={
                         (userProfile?.accounttype !== 'Customer' && (!!phoneError || !customerPhone)) ||
-                        (totalWithDiscount <= 0)
+                        totalWithDiscount <= 0
                     }
                 >
                     THANH TOÁN — {formatPrice(totalWithDiscount)}
