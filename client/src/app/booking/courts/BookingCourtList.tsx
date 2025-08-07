@@ -37,14 +37,19 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
     //     removeCourtByIndex(index);
     // };
 
-    const handleRemoveMultiCourt = (court: SelectedCourts, fixedCourt: boolean) => {
-        removeMultiCourt(court, fixedCourt);
+    const handleRemoveMultiCourtByIndex = (index: number, fixedCourt: boolean) => {
+        removeMultiCourt(index, fixedCourt);
     };
 
     // New handler for booking button
-    const handleBookingButtonClick = (court: SelectedCourts, isSelected: boolean, fixedCourt: boolean) => {
+    const handleBookingButtonClick = (
+        court: SelectedCourts,
+        isSelected: boolean,
+        fixedCourt: boolean,
+        scCourtIndex: number,
+    ) => {
         if (isSelected) {
-            handleRemoveMultiCourt(selectedCourts[0], fixedCourt);
+            handleRemoveMultiCourtByIndex(scCourtIndex, fixedCourt);
         } else {
             // Only show dialog if fixedCourt is false and dialog hasn't been shown in this page load
             if (!fixedCourt && !hasShownDialog) {
@@ -169,7 +174,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
                                 <Button
                                     className="w-full"
                                     variant={isSelected ? 'destructive' : 'default'}
-                                    onClick={() => debouncedHandleClick(court, isSelected, fixedCourt)}
+                                    onClick={() => debouncedHandleClick(court, isSelected, fixedCourt, scCourtIndex)}
                                 >
                                     {isSelected ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
                                 </Button>

@@ -30,7 +30,7 @@ export interface BookingContextProps {
     clearRentalOrder: () => Promise<void>;
     refreshCourts: () => void;
     refreshTrigger: number;
-    removeMultiCourt: (courts: SelectedCourts, fixedCourt: boolean) => Promise<void>;
+    removeMultiCourt: (index: number, fixedCourt: boolean) => Promise<void>;
 }
 
 const BookingContext = createContext<BookingContextProps>({
@@ -100,11 +100,11 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         }
     };
 
-    const removeMultiCourt = async (courts: SelectedCourts, fixedCourt: boolean) => {
+    const removeMultiCourt = async (index: number, fixedCourt: boolean) => {
         const response = await deleteMultiBookingCourt({
             username: user?.username || '',
             fixedCourt,
-            court_booking: courts,
+            court_booking: selectedCourts[index],
         });
         if (response.ok) {
             await fetchBooking();
