@@ -166,19 +166,19 @@ export const postBookingCourt = async (bookingData: {
 
 export const deleteBookingCourt = async (bookingData: { username?: string; court_booking: SelectedCourts }) => {
     try {
-        const modifiedBookingData = {
-            ...bookingData,
-            court_booking: {
-                ...bookingData.court_booking,
-                price: Number(bookingData.court_booking.price) || 0,
-                duration: Number(bookingData.court_booking.duration) || 0,
-            },
-        };
+        // const modifiedBookingData = {
+        //     ...bookingData,
+        //     court_booking: {
+        //         ...bookingData.court_booking,
+        //         price: Number(bookingData.court_booking.price) || 0,
+        //         duration: Number(bookingData.court_booking.duration) || 0,
+        //     },
+        // };
 
         const response = await fetch('/api/booking/delete-booking', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(modifiedBookingData),
+            body: JSON.stringify(bookingData),
             credentials: 'include',
         });
         const result = await response.json();
@@ -190,6 +190,30 @@ export const deleteBookingCourt = async (bookingData: { username?: string; court
         return ServiceResponse.success(result.data);
     } catch (error) {
         return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện đặt sân');
+    }
+};
+
+export const deleteMultiBookingCourt = async (bookingData: {
+    username?: string;
+    fixedCourt: boolean;
+    court_booking: SelectedCourts;
+}) => {
+    try {
+        const response = await fetch('/api/booking/delete-multi-booking', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingData),
+            credentials: 'include',
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            return ServiceResponse.error(result.message || 'Không thể thực hiện xoá sân');
+        }
+
+        return ServiceResponse.success(result.data);
+    } catch (error) {
+        return ServiceResponse.error(error instanceof Error ? error.message : 'Không thể thực hiện xoá sân');
     }
 };
 

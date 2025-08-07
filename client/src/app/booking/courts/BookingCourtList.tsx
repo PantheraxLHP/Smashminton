@@ -24,7 +24,7 @@ interface BookingCourtListProps {
 }
 
 const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedCourt, setFixedCourt }) => {
-    const { selectedCourts, addCourt, removeCourtByIndex } = useBooking();
+    const { selectedCourts, addCourt, removeCourtByIndex, removeMultiCourt } = useBooking();
     const [showFixedCourtDialog, setShowFixedCourtDialog] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [hasShownDialog, setHasShownDialog] = useState(false);
@@ -33,14 +33,18 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
         addCourt(scCourt, fixedCourt);
     };
 
-    const handleRemoveCourtByIndex = (index: number) => {
-        removeCourtByIndex(index);
+    // const handleRemoveCourtByIndex = (index: number) => {
+    //     removeCourtByIndex(index);
+    // };
+
+    const handleRemoveMultiCourt = (court: SelectedCourts, fixedCourt: boolean) => {
+        removeMultiCourt(court, fixedCourt);
     };
 
     // New handler for booking button
-    const handleBookingButtonClick = (court: SelectedCourts, isSelected: boolean, scCourtIndex: number) => {
+    const handleBookingButtonClick = (court: SelectedCourts, isSelected: boolean, fixedCourt: boolean) => {
         if (isSelected) {
-            handleRemoveCourtByIndex(scCourtIndex);
+            handleRemoveMultiCourt(selectedCourts[0], fixedCourt);
         } else {
             // Only show dialog if fixedCourt is false and dialog hasn't been shown in this page load
             if (!fixedCourt && !hasShownDialog) {
@@ -165,7 +169,7 @@ const BookingCourtList: React.FC<BookingCourtListProps> = ({ courts = [], fixedC
                                 <Button
                                     className="w-full"
                                     variant={isSelected ? 'destructive' : 'default'}
-                                    onClick={() => debouncedHandleClick(court, isSelected, scCourtIndex)}
+                                    onClick={() => debouncedHandleClick(court, isSelected, fixedCourt)}
                                 >
                                     {isSelected ? 'HỦY ĐẶT SÂN' : 'ĐẶT SÂN'}
                                 </Button>

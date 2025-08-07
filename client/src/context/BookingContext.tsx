@@ -1,7 +1,12 @@
 'use client';
 
 import { SelectedCourts, SelectedProducts } from '@/app/booking/courts/page';
-import { deleteBookingCourt, getBookingRedis, postBookingCourt } from '@/services/booking.service';
+import {
+    deleteBookingCourt,
+    deleteMultiBookingCourt,
+    getBookingRedis,
+    postBookingCourt,
+} from '@/services/booking.service';
 import { deleteOrder, deleteRentalOrder, getOrderRedis, postOrder } from '@/services/orders.service';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,6 +30,7 @@ export interface BookingContextProps {
     clearRentalOrder: () => Promise<void>;
     refreshCourts: () => void;
     refreshTrigger: number;
+    removeMultiCourt: (courts: SelectedCourts, fixedCourt: boolean) => Promise<void>;
 }
 
 const BookingContext = createContext<BookingContextProps>({
@@ -45,6 +51,7 @@ const BookingContext = createContext<BookingContextProps>({
     clearRentalOrder: async () => {},
     refreshCourts: () => {},
     refreshTrigger: 0,
+    removeMultiCourt: async () => {},
 });
 
 export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
@@ -82,6 +89,23 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
             court_booking: court,
         });
 
+        if (response.ok) {
+            await fetchBooking();
+            if (selectedCourts.length === 1) {
+                await clearRentalOrder();
+                await fetchOrders();
+            }
+            toast.success('Xóa sân thành công');
+            refreshCourts();
+        }
+    };
+
+    const removeMultiCourt = async (courts: SelectedCourts, fixedCourt: boolean) => {
+        const response = await deleteMultiBookingCourt({
+            username: user?.username || '',
+            fixedCourt,
+            court_booking: courts,
+        });
         if (response.ok) {
             await fetchBooking();
             if (selectedCourts.length === 1) {
@@ -182,6 +206,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
                 clearRentalOrder,
                 refreshCourts,
                 refreshTrigger,
+                removeMultiCourt,
             }}
         >
             {children}
