@@ -81,6 +81,19 @@ export class BookingsController {
     return this.bookingsService.removeCourtBookingFromCache(DeleteCourtBookingDto);
   }
 
+  @Delete('cache-booking-separated-fixed')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete separated or fixed court bookings from redis',
+    description: 'Deletes related bookings: separated courts (consecutive times same day) or fixed courts (4 weeks same time)'
+  })
+  @ApiBody({ type: cacheBookingDTO })
+  @ApiResponse({ status: 200, description: 'Delete successful' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  deleteCourtBookingForSeperatedAndFixCourt(@Body() CacheBookingDTO: cacheBookingDTO) {
+    return this.bookingsService.removeCourtBookingForSeperatedAndFixCourt(CacheBookingDTO);
+  }
+
   @Get('detail')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get booking detail for all courts in a zone on a specific date' })

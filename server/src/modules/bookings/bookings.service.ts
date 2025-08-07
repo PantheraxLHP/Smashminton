@@ -181,6 +181,7 @@ export class BookingsService {
 		return bookingUserCache;
 	}
 
+
 	async removeCourtBookingFromCache(DeleteCourtBookingDto: deleteCourtBookingDto): Promise<CacheBooking> {
 		const { username, court_booking } = DeleteCourtBookingDto;
 		if (!username) {
@@ -237,6 +238,197 @@ export class BookingsService {
 			throw new BadRequestException('Failed to update booking in cache');
 		}
 
+		return bookingUserCache;
+	}
+
+	async removeCourtBookingForSeperatedAndFixCourt(CacheBookingDTO: cacheBookingDTO): Promise<CacheBooking> {
+		const { username, fixedCourt, court_booking } = CacheBookingDTO;
+		if (!username) {
+			throw new BadRequestException('Username is required to remove booking from cache');
+		}
+
+		const bookingUserCache = await this.cacheService.getBooking(username);
+
+		if (!bookingUserCache) {
+			throw new BadRequestException('No booking found in cache for this user');
+		}
+
+		const { courtid, date, starttime, duration } = court_booking;
+		const targetDate = dayjs(date).format('YYYY-MM-DD');
+		const targetStartTime = dayjs(starttime, 'HH:mm');
+
+		// Find all court bookings to remove
+		const courtBookingsToRemove: any[] = [];
+
+		// Strategy 1: If fixedCourt is true, check for Fixed Court booking (4 tuần liên tiếp)
+		if (fixedCourt) {
+			const requestStartTime = dayjs(starttime, 'HH:mm');
+			const requestEndTime = court_booking.endtime
+				? dayjs(court_booking.endtime, 'HH:mm')
+				: requestStartTime.add(duration, 'hour');
+
+			// Find all bookings with same courtid
+			const sameCourtBookings = bookingUserCache.court_booking.filter((court) =>
+				court.courtid === courtid
+			);
+
+			// Group bookings by date to find weekly patterns
+			const bookingsByDate = new Map<string, any[]>();
+			sameCourtBookings.forEach(booking => {
+				const bookingDate = dayjs(booking.date).format('YYYY-MM-DD');
+				if (!bookingsByDate.has(bookingDate)) {
+					bookingsByDate.set(bookingDate, []);
+				}
+				bookingsByDate.get(bookingDate)!.push(booking);
+			});
+
+			// Find all dates that follow fixed court pattern (7 days apart)
+			const targetDate = dayjs(date).format('YYYY-MM-DD');
+			const fixedCourtDates = new Set<string>();
+
+			// Check for dates that are multiples of 7 days from target date
+			for (const [dateKey, dateBookings] of bookingsByDate) {
+				const daysDiff = Math.abs(dayjs(dateKey).diff(targetDate, 'day'));
+				if (daysDiff % 7 === 0 && daysDiff <= 21) { // Within 4 weeks (0, 7, 14, 21 days)
+					fixedCourtDates.add(dateKey);
+				}
+			}
+
+			// For each fixed court date, find separated bookings that cover the requested time range
+			if (fixedCourtDates.size > 1) { // Must have bookings on multiple weeks
+				for (const dateKey of fixedCourtDates) {
+					const dateBookings = bookingsByDate.get(dateKey) || [];
+
+					// Sort by starttime
+					const sortedBookings = dateBookings.sort((a, b) =>
+						dayjs(a.starttime, 'HH:mm').diff(dayjs(b.starttime, 'HH:mm'))
+					);
+
+					// Find bookings that cover the requested time range for this date
+					const coveringBookings: any[] = [];
+					let currentCoverageStart = requestStartTime;
+					let currentCoverageEnd = requestStartTime;
+
+					for (const booking of sortedBookings) {
+						const bookingStart = dayjs(booking.starttime, 'HH:mm');
+						const bookingEnd = dayjs(booking.endtime, 'HH:mm');
+
+						// Check if this booking overlaps with request range or connects to current coverage
+						if ((bookingStart.isBefore(requestEndTime) || bookingStart.isSame(requestEndTime)) &&
+							bookingEnd.isAfter(requestStartTime) ||
+							(bookingStart.isBefore(currentCoverageEnd) || bookingStart.isSame(currentCoverageEnd)) &&
+							bookingEnd.isAfter(currentCoverageStart)) {
+
+							coveringBookings.push(booking);
+							currentCoverageStart = currentCoverageStart.isBefore(bookingStart) ? currentCoverageStart : bookingStart;
+							currentCoverageEnd = currentCoverageEnd.isAfter(bookingEnd) ? currentCoverageEnd : bookingEnd;
+						}
+					}
+
+					// Add covering bookings for this date
+					if (coveringBookings.length > 0) {
+						courtBookingsToRemove.push(...coveringBookings);
+					}
+				}
+			}
+		} else {
+			// Strategy 2: Check for Separated Court booking (same courtid, same date only)
+			const requestStartTime = dayjs(starttime, 'HH:mm');
+			const requestEndTime = court_booking.endtime
+				? dayjs(court_booking.endtime, 'HH:mm')
+				: requestStartTime.add(duration, 'hour');
+
+			// Find all bookings with same courtid and EXACT same date as request
+			const sameDateCourtBookings = bookingUserCache.court_booking.filter((court) =>
+				court.courtid === courtid && court.date === date
+			);
+
+			if (sameDateCourtBookings.length > 0) {
+				// Sort by starttime to find consecutive bookings
+				const sortedBookings = sameDateCourtBookings.sort((a, b) =>
+					dayjs(a.starttime, 'HH:mm').diff(dayjs(b.starttime, 'HH:mm'))
+				);
+
+				// Find bookings that cover the requested time range
+				const coveringBookings: any[] = [];
+				let currentCoverageStart = requestStartTime;
+				let currentCoverageEnd = requestStartTime;
+
+				for (const booking of sortedBookings) {
+					const bookingStart = dayjs(booking.starttime, 'HH:mm');
+					const bookingEnd = dayjs(booking.endtime, 'HH:mm');
+
+					// Check if this booking connects to our current coverage or overlaps with request range
+					if ((bookingStart.isBefore(requestEndTime) || bookingStart.isSame(requestEndTime)) &&
+						bookingEnd.isAfter(requestStartTime) ||
+						(bookingStart.isBefore(currentCoverageEnd) || bookingStart.isSame(currentCoverageEnd)) &&
+						bookingEnd.isAfter(currentCoverageStart)) {
+
+						coveringBookings.push(booking);
+						currentCoverageStart = currentCoverageStart.isBefore(bookingStart) ? currentCoverageStart : bookingStart;
+						currentCoverageEnd = currentCoverageEnd.isAfter(bookingEnd) ? currentCoverageEnd : bookingEnd;
+					}
+				}
+
+				// Check if we found bookings that reasonably cover the requested range
+				if (coveringBookings.length > 0) {
+					// Verify that the covering bookings actually span the requested time or are consecutive
+					const totalCoverage = currentCoverageEnd.diff(currentCoverageStart, 'minute');
+					const requestedDuration = requestEndTime.diff(requestStartTime, 'minute');
+
+					// If coverage is reasonable (at least overlaps or consecutive), use these bookings
+					if (totalCoverage >= requestedDuration * 0.5 || coveringBookings.length > 1) {
+						courtBookingsToRemove.push(...coveringBookings);
+					}
+				}
+			}
+		}
+
+		// If no connected bookings found, fall back to single booking removal
+		if (courtBookingsToRemove.length === 0) {
+			const singleBooking = bookingUserCache.court_booking.find((court) =>
+				court.courtid === courtid &&
+				court.date === date &&
+				court.starttime === starttime &&
+				court.duration === duration
+			);
+
+			if (singleBooking) {
+				courtBookingsToRemove.push(singleBooking);
+			}
+		}
+
+		// Remove all identified bookings
+		if (courtBookingsToRemove.length === 0) {
+			throw new BadRequestException('No court bookings found to remove');
+		}
+
+		// Calculate total price to subtract
+		let totalPriceToSubtract = 0;
+		courtBookingsToRemove.forEach((bookingToRemove) => {
+			const index = bookingUserCache.court_booking.indexOf(bookingToRemove);
+			if (index > -1) {
+				bookingUserCache.court_booking.splice(index, 1);
+				totalPriceToSubtract += bookingToRemove.price;
+			}
+		});
+
+		bookingUserCache.totalprice -= totalPriceToSubtract;
+
+		// Get TTL and update cache
+		const TTL = await this.cacheService.getTTL('booking::booking:' + username);
+
+		const isSuccess = await this.cacheService.setBooking(
+			username,
+			bookingUserCache,
+			TTL === -1 ? undefined : TTL
+		);
+
+		if (!isSuccess) {
+			throw new BadRequestException('Failed to update booking in cache');
+		}
+
+		bookingUserCache.TTL = TTL;
 		return bookingUserCache;
 	}
 
