@@ -6,11 +6,14 @@ import { Input } from '@/components/ui/input';
 import { handleSignin } from '@/services/auth.service';
 import { signinSchema, SigninSchema } from '../auth.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export default function SigninForm() {
+    const [showPassword, setShowPassword] = useState(false);
     const form = useForm<SigninSchema>({
         resolver: zodResolver(signinSchema),
         defaultValues: {
@@ -65,7 +68,26 @@ export default function SigninForm() {
                             <FormItem>
                                 <FormLabel>Mật khẩu</FormLabel>
                                 <FormControl>
-                                    <Input type="password" placeholder="Nhập mật khẩu" {...field} />
+                                    <div className="relative">
+                                        <Input
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Nhập mật khẩu"
+                                            className="pr-12"
+                                            {...field}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                            ) : (
+                                                <Eye className="h-5 w-5" aria-hidden="true" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
