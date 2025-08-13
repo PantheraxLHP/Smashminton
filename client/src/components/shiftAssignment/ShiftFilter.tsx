@@ -159,22 +159,7 @@ const ShiftFilter: React.FC<ShiftFilterProps> = ({
                                     Thực hiện phân công tự động cho nhân viên trong tuần tiếp theo
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="flex w-full items-center justify-between gap-5">
-                                <div className="flex w-full flex-col gap-1">
-                                    <span className="text-sm font-semibold">
-                                        Chế độ phân công cho nhân viên toàn thời gian
-                                    </span>
-                                    <Select value={fullTimeOption} onValueChange={setFullTimeOption}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Chọn chế độ phân công" />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            <SelectItem value="same">Như tuần trước</SelectItem>
-                                            <SelectItem value="rotate">Xoay tua buổi</SelectItem>
-                                            <SelectItem value="random">Ngẫu nhiên</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="flex w-full flex-col items-center justify-between gap-5">
                                 <div className="flex w-full flex-col gap-1">
                                     <span className="text-sm font-semibold">
                                         Ưu tiên phân công cho nhân viên bán thời gian theo
